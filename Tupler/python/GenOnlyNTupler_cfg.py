@@ -19,6 +19,9 @@ for data in mcdata:
 		OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/genOnly_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
 		print '\n\nWill run over', len(INPUTFILES), 'files and attempt to create', OUTPUTFILE, '\n\n'
 		break
+else:
+	print '\n\nNo sample found; exiting now\n\n'
+	exit()
 #####
 
 # parameters and constants

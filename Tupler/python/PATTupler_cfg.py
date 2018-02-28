@@ -1,5 +1,29 @@
 import FWCore.ParameterSet.Config as cms
 
+##### Batch cmsRun from command line arguments
+# get signal point as 3 numbers
+import sys
+import argparse
+import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+
+parser = argparse.ArgumentParser()
+parser.add_argument('mH'  , type=int)
+parser.add_argument('mX'  , type=int)
+parser.add_argument('cTau', type=int)
+args = parser.parse_args(sys.argv[2:])
+signalPoint = (args.mH, args.mX, args.cTau)
+mcdata = DH.getMCDatasets()
+for data in mcdata:
+	if data.signalPoint() == signalPoint and data.process == 'AODSIM-ReHLT_V37-v1':
+		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
+		OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/PATTuple_' + '_'.join(map(str,signalPoint)) + '.root'
+		print '\n\nWill run over', len(INPUTFILES), 'files and attempt to create', OUTPUTFILE, '\n\n'
+		break
+else:
+	print '\n\nNo sample found; exiting now\n\n'
+	exit()
+#####
+
 # parameters and constants
 MAXEVENTS   = -1
 REPORTEVERY = 100
@@ -25,7 +49,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = REPORTEVERY
 # declare process.source
 # PAT Tupler expects this to be AOD
 process.source = cms.Source('PoolSource',
-	fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/a/adasgupt/public/DD_AODReHLTv13v1_125_20_1300.root')
+	fileNames = cms.untracked.vstring(*INPUTFILES)
 )
 
 ######################
@@ -34,9 +58,17 @@ process.source = cms.Source('PoolSource',
 
 # load process.out and process.outpath
 process.load(MODULES+'Output_cfi')
+process.out.fileName = cms.untracked.string(OUTPUTFILE)
 
-# load process.PATTupler, the patDefaultSequence
+# load patDefaultSequence
 process.load(MODULES+'PATTupler_cfi')
+
+# remove the OOT Photons tasks and modules
+process.patCandidates.remove(process.patCandidateSummary)
+process.patCandidatesTask.remove(process.makePatOOTPhotonsTask)
+process.selectedPatCandidates.remove(process.selectedPatCandidateSummary)
+process.selectedPatCandidatesTask.remove(process.selectedPatOOTPhotons)
+process.cleanPatCandidates.remove(process.cleanPatCandidateSummary)
 
 # enable PAT trigger paths
 # switchOnTrigger expects an output module 'out'
@@ -47,5 +79,5 @@ switchOnTrigger(process)
 process.load(FILTERS+'goodData_cff')
 
 # declare final path
-process.PATTuplerPath = cms.Path(process.PATTupler)
+process.PATTuplerPath = cms.Path(process.patDefaultSequence)
 

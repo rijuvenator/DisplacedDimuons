@@ -10,6 +10,3 @@ GlobalTag = _GlobalTag(GlobalTag, 'auto:run2_mc')
 
 # Load patDefaultSequence (a cms.Task)
 from PhysicsTools.PatAlgos.patSequences_cff import *
-
-# Define the PAT Tupler sequence
-PATTupler = cms.Sequence(patDefaultSequence)

@@ -1,5 +1,21 @@
 import FWCore.ParameterSet.Config as cms
 
+##### Batch cmsRun from command line arguments
+# get signal point as 3 numbers
+import sys
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('mH'  , type=int)
+parser.add_argument('mX'  , type=int)
+parser.add_argument('cTau', type=int)
+args = parser.parse_args(sys.argv[2:])
+signalPoint = (args.mH, args.mX, args.cTau)
+DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
+INPUTFILES = ['file:' + DIR_WS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']
+OUTPUTFILE = DIR_WS + 'simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
+#####
+
 # parameters and constants
 MAXEVENTS   = -1
 
@@ -23,7 +39,7 @@ process.load(MODULES+'MessageLogger_cfi')
 # Simple NTupler expects this to be a PAT Tupler created by main_PATTupler_cfg.py
 process.source = cms.Source(
 	'PoolSource',
-	fileNames = cms.untracked.vstring('file:../ntuples/PATTuple.root')
+	fileNames = cms.untracked.vstring(*INPUTFILES)
 )
 
 ##########################
@@ -32,6 +48,7 @@ process.source = cms.Source(
 
 # load process.SimpleNTupler, the simple nTupler, and process.TFileService
 process.load(MODULES+'SimpleNTupler_cfi')
+process.TFileService.fileName = cms.string(OUTPUTFILE)
 
 # declare final path
 process.nTuplerPath = cms.Path(process.SimpleNTupler)
