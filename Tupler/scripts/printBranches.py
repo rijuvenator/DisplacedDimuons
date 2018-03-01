@@ -23,7 +23,7 @@ def printContent(cols):
 	print FFSTRING.format(**cols)
 
 printContent(dict(zip(COLS,COLS)))
-with open('fullAODBranchListRaw') as f:
+with open('fullAODBranchListRaw.txt') as f:
 	for line in f:
 		if line[0:4] == 'Type': continue
 		if '----------' in line: continue
