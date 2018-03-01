@@ -1,6 +1,7 @@
 import re
 import collections
 import math
+import DisplacedDimuons.Histogrammer.RootTools as RT
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
@@ -57,52 +58,9 @@ class ETree(object):
 		if KEY == 'MUON':
 			return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt))]
 
-# Useful Point class for vector addition (+), dot product or scalar multiplication (*), distance
-PointTuple = collections.namedtuple('PointTuple', ['x', 'y', 'z'])
-class Point(PointTuple):
-	def __init__(self, x, y, z):
-		PointTuple.__init__(x, y, z)
-	
-	def __format__(self, format_spec):
-		if format_spec.endswith('p'):
-			return '({x:{fs}}, {y:{fs}}, {z:{fs}})'.format(fs=format_spec[:-1]+'f', x=self.x, y=self.y, z=self.z)
-		else:
-			return self.__repr__()
-
-	def __sub__(self, point):
-		return Point(self.x - point.x, self.y - point.y, self.z - point.z)
-	
-	def __rsub__(self, point):
-		return Point(point[0] - self.x, point[1] - self.y, point[2] - self.z)
-
-	def __add__(self, point):
-		return Point(self.x + point.x, self.y + point.y, self.z + point.z)
-	
-	def __radd__(self, point):
-		return Point(point[0] + self.x, point[1] + self.y, point[2] + self.z)
-
-	def __mul__(self, multiplier):
-		try:
-			point = multiplier
-			return self.x * point[0] + self.y * point[1] + self.z * point[2]
-		except:
-			scalar = multiplier
-			return Point(self.x * scalar, self.y * scalar, self.z * scalar)
-	
-	def __rmul__(self, multiplier):
-		return self * multiplier
-
-	def __rdiv__(self, scalar):
-		return Point(scalar/self.x, scalar/self.y, scalar/self.z)
-
-	def norm(self):
-		return (self.x**2 + self.y**2 + self.z**2)**0.5
-
-	@staticmethod
-	def dist(a, b):
-		return (a-b).norm()
-
 # The Primitives Classes: take in an ETree and an index, produces an object.
+# Base class for primitives
+# just provides a wrapper for setting attributes
 class Primitive(object):
 	def __init__(self):
 		pass
@@ -110,17 +68,26 @@ class Primitive(object):
 	def set(self, attr, E, E_attr, i):
 		setattr(self, attr, getattr(E, E_attr)[i])
 
+# Particle class
+# sets all the variables, also sets pos, p4, and p3 vectors
 class Particle(Primitive):
 	def __init__(self, E, i, prefix):
 		Primitive.__init__(self)
 		for attr in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
 			self.set(attr, E, prefix+attr, i)
-		self.pos = Point(self.x, self.y, self.z)
-		try:
-			self.p3  = Point(self.pt * math.cos(self.phi), self.pt * math.sin(self.phi), self.pt * math.sinh(self.eta))
-		except:
-			self.p3  = Point(-999., -999., -999.)
+		self.pos = RT.Vector3(self.x, self.y, self.z)
 
+		self.p4 = RT.LorentzVector()
+		self.p4.SetPtEtaPhiE(self.pt, self.phi, self.eta, self.energy)
+
+		# this is an XYZ 3-vector!
+		self.p3 = RT.Vector3(*self.p4.Vect())
+
+# Muon class
+# sets all the particle variables
+# distinguishes three "kinds" of muons:
+# reco AOD muon, GEN muon, and the GEN particle attached to the reco AOD muon
+# the last one is called "SUB"
 class Muon(Particle):
 	def __init__(self, E, i, source=None):
 		self.source = source
@@ -133,10 +100,15 @@ class Muon(Particle):
 			self.gen = Muon(E, i, source='SUB')
 			self.set('isSlim', E, 'mu_isSlim', i)
 
+		if self.source == 'GEN':
+			self.set('d0', E, 'gen_d0', i)
+
+# Vertex class
+# nothing too unusual here
 class Vertex(Primitive):
 	def __init__(self, E, i):
 		Primitive.__init__(self)
 		for attr in ('x', 'y', 'z', 'chi2', 'ndof'):
 			self.set(attr, E, 'vtx_'+attr, i)
 
-		self.pos = Point(self.x, self.y, self.z)
+		self.pos = RT.Vector3(self.x, self.y, self.z)

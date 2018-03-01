@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-
 import ROOT as R
 import DisplacedDimuons.Histogrammer.Plotter as Plotter
-import DisplacedDimuons.Histogrammer.Primitives as Primitives
-from DisplacedDimuons.Histogrammer.Primitives import Point
 import DisplacedDimuons.Histogrammer.RootTools as RT
 from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
 
@@ -132,6 +128,7 @@ HISTS = {}
 #	'd0',
 #	'pTmu',
 #)
+# for parallelizing with : parallel python genPlots.py ::: massH massX cTau pTH pTX beta Lxy d0 pTmu
 import sys
 HList = (sys.argv[-1],)
 
