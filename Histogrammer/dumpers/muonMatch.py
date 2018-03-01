@@ -35,19 +35,38 @@ for i, event in enumerate(t):
 	cTau.append(X1.mass/X1.p3.Mag()*mu11.pos.Dist(X1.pos))
 	cTau.append(X2.mass/X2.p3.Mag()*mu21.pos.Dist(X2.pos))
 
+	def findClosestVertex(muon, vertices):
+		closestDistance = float('inf')
+		closestVertex = None
+		for vertex in vertices:
+			if muon.pos.Dist(vertex.pos) < closestDistance:
+				closestDistance = muon.pos.Dist(vertex.pos)
+				closestVertex = vertex
+		return closestVertex
+
 	for muon in muons:
 		if not muon.isSlim: continue
-		print '  {muonPT:9.4f} {muonGenPT} {muonPos:9.4p}'.format(
+		vertex = findClosestVertex(muon, vertices)
+		#print '  {muonPT:9.4f} {muonGenPT} {muonPos:9.4p}'.format(
+		print '  {muonPT:9.4f} {muonGenPT} {muonPos:9.4p} {dist:6.4e}'.format(
 			muonPT    = muon.pt,
 			muonGenPT = '{:9.4f}'.format(muon.gen.pt) if muon.gen.pt != -999 else '{:9s}'.format('-'),
-			muonPos   = muon.pos
+			muonPos   = muon.pos,
+			dist = muon.pos.Dist(vertex.pos)
 		)
-		for vertex in vertices:
-			if muon.pos.Dist(vertex.pos) < 0.1:
-				print '  {spaces:20s}{vertexPos:9.4p} {dist:6.4e}'.format(
-					spaces = " ",
-					vertexPos = vertex.pos,
-					dist = muon.pos.Dist(vertex.pos)
-				)
+		#print '  {spaces:20s}{vertexPos:9.4p} {dist:6.4e}'.format(
+		#	spaces = " ",
+		#	vertexPos = vertex.pos,
+		#	dist = muon.pos.Dist(vertex.pos)
+		#)
+	print
+	for muon in (mu11, mu12, mu21, mu22):
+		vertex = findClosestVertex(muon, vertices)
+		print '  {muonPT:9.4f} {muonGenPT} {muonPos:9.4p} {dist:6.4e}'.format(
+			muonPT    = muon.pt,
+			muonGenPT = '{:9s}'.format('-'),
+			muonPos   = muon.pos,
+			dist = muon.pos.Dist(vertex.pos)
+		)
 
 print 'avg. cTau = {:9.4f}, avg. dX = {:9.4f}'.format(sum(cTau)/len(cTau), sum(dX)/len(dX))
