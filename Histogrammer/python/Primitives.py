@@ -10,12 +10,13 @@ import DisplacedDimuons.Histogrammer.RootTools as RT
 ##########
 
 BRANCHPREFIXES = {
-	'EVENT'    : 'evt_' ,
-	'TRIGGER'  : 'trig_',
-	'BEAMSPOT' : 'bs_'  ,
-	'VERTEX'   : 'vtx_' ,
-	'GEN'      : 'gen_' ,
-	'MUON'     : 'mu_'  ,
+	'EVENT'    : 'evt_'  ,
+	'TRIGGER'  : 'trig_' ,
+	'BEAMSPOT' : 'bs_'   ,
+	'VERTEX'   : 'vtx_'  ,
+	'GEN'      : 'gen_'  ,
+	'MUON'     : 'mu_'   ,
+	'DSAMUON'  : 'dsamu_',
 }
 BRANCHKEYS = tuple(BRANCHPREFIXES.keys())
 
@@ -50,13 +51,15 @@ class ETree(object):
 	
 	def getPrimitives(self, KEY):
 		if KEY == 'GEN':
-			muons   = [Muon    (self, i, 'GEN' ) for i in range(4)              ]
-			mothers = [Particle(self, i, 'gen_') for i in range(4, 8)           ]
+			muons   = [Muon    (self, i, 'GEN' ) for i in range(4)                 ]
+			mothers = [Particle(self, i, 'gen_') for i in range(4, 8)              ]
 			return muons + mothers
 		if KEY == 'VERTEX':
-			return    [Vertex  (self, i        ) for i in range(len(self.vtx_x))]
+			return    [Vertex  (self, i        ) for i in range(len(self.vtx_x   ))]
 		if KEY == 'MUON':
-			return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt))]
+			return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt   ))]
+		if KEY == 'DSAMUON':
+			return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -94,6 +97,7 @@ class Muon(Particle):
 		if   self.source == 'AOD': prefix = 'mu_'
 		elif self.source == 'GEN': prefix = 'gen_'
 		elif self.source == 'SUB': prefix = 'mu_gen_'
+		elif self.source == 'DSA': prefix = 'dsamu_'
 		Particle.__init__(self, E, i, prefix)
 
 		if self.source == 'AOD':
@@ -102,6 +106,9 @@ class Muon(Particle):
 
 		if self.source == 'GEN':
 			self.set('d0', E, 'gen_d0', i)
+
+		if self.source == 'DSA':
+			self.set('d0', E, 'dsamu_d0', i)
 
 # Vertex class
 # nothing too unusual here

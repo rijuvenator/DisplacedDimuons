@@ -27,6 +27,8 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/EventBranches.h"
@@ -35,6 +37,7 @@
 #include "DisplacedDimuons/Tupler/interface/VertexBranches.h"
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
 #include "DisplacedDimuons/Tupler/interface/MuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 
 // class declaration
 class SimpleNTupler : public edm::EDAnalyzer
@@ -56,6 +59,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		VertexBranches vertexData;
 		GenBranches genData;
 		MuonBranches muonData;
+		DSAMuonBranches dsaMuonData;
 
 		edm::EDGetTokenT<edm::TriggerResults> triggerToken;
 		edm::EDGetTokenT<reco::BeamSpot> beamspotToken;
@@ -63,6 +67,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		edm::EDGetTokenT<reco::GenParticleCollection> genToken;
 		edm::EDGetTokenT<GenEventInfoProduct> GEIPToken;
 		edm::EDGetTokenT<pat::MuonCollection> muonToken;
+		edm::EDGetTokenT<reco::TrackCollection> dsaMuonToken;
 
 };
 
@@ -74,12 +79,14 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	vertexData(tree),
 	genData(tree),
 	muonData(tree),
+	dsaMuonData(tree),
 	triggerToken(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 	beamspotToken(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamspot"))),
 	vertexToken(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
 	genToken(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"))),
 	GEIPToken(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("GEIP"))),
-	muonToken(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons")))
+	muonToken(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
+	dsaMuonToken(consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("dsaMuons")))
 {};
 
 void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -108,6 +115,10 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	edm::Handle<pat::MuonCollection> muons;
 	iEvent.getByToken(muonToken, muons);
 	muonData.Fill(*muons);
+
+	edm::Handle<reco::TrackCollection> dsaMuons;
+	iEvent.getByToken(dsaMuonToken, dsaMuons);
+	dsaMuonData.Fill(*dsaMuons);
 
 	tree.Fill();
 
