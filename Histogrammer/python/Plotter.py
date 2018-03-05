@@ -62,6 +62,8 @@ def globalSetStyle():
 
 	# fit box
 	style.SetOptFit(1)                       # on
+	style.SetStatStyle(0)                    # white
+	style.SetStatBorderSize(0)               # default 2
 
 	# title
 	style.SetOptTitle(0)                     # off
@@ -344,8 +346,6 @@ class Canvas(R.TCanvas):
 
 		sbox = owner.FindObject('stats')
 
-		sbox.SetFillStyle(0)
-		sbox.SetBorderSize(0)
 		sbox.SetTextFont(self.font)
 		sbox.SetTextSize(fontscale * self.fontsize)
 

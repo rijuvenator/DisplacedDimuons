@@ -45,7 +45,7 @@ submitScript = '''
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
 cd DisplacedDimuons/Histogrammer/plotters
-python pTResolution.py {mH} {mX} {cTau}
+python recoPlots.py --signalpoints {mH} {mX} {cTau}
 rm -f core.*
 '''
 
