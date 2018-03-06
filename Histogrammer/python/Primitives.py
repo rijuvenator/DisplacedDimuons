@@ -81,7 +81,7 @@ class Particle(Primitive):
 		self.pos = RT.Vector3(self.x, self.y, self.z)
 
 		self.p4 = RT.LorentzVector()
-		self.p4.SetPtEtaPhiE(self.pt, self.phi, self.eta, self.energy)
+		self.p4.SetPtEtaPhiE(self.pt, self.eta, self.phi, self.energy)
 
 		# this is an XYZ 3-vector!
 		self.p3 = RT.Vector3(*self.p4.Vect())

@@ -78,8 +78,7 @@ def fillPlots(sp):
 				HISTS[sp]['LxyEff'].Fill(Lxy)
 				HISTS[sp]['pTEff' ].Fill(genMuon.pt)
 
-	print '{} {} {} :'.format(*sp), nDouble, 'multiple matches out of', nMuons, 'muons'
-
+	print '{:5} {} {} : {} multiple matches out of {} muons'.format(sp[0], sp[1], sp[2], nDouble, nMuons)
 	# cleanup
 	del t
 	f.Close()
@@ -103,10 +102,10 @@ def makePlots(sp):
 	canvas.legend.resizeHeight()
 	p.SetLineColor(R.kBlue)
 	f.SetLineColor(R.kRed)
-	p.FindObject('stats').SetTextColor(R.kRed)
 	canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
 	canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
 	canvas.setFitBoxStyle(h, lWidth=0.35, pos='tl')
+	p.FindObject('stats').SetTextColor(R.kRed)
 	canvas.makeTransparent()
 	canvas.finishCanvas()
 	canvas.save(fname)
