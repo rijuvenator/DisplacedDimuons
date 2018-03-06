@@ -29,8 +29,8 @@ def SPStr(*args):
 
 # make Efficiency Plot
 def makeEffPlot(key):
+	f = R.TFile.Open('roots/ResEffPlots.root')
 	for i, sp in enumerate(SIGNALPOINTS):
-		f = R.TFile.Open('roots/ResEffPlots_{}.root'.format(SPStr(sp)))
 		if i == 0:
 			hEff = f.Get('{}Eff_{}'.format(key, SPStr(sp)))
 			hDen = f.Get('{}Den_{}'.format(key, SPStr(sp)))
@@ -39,8 +39,10 @@ def makeEffPlot(key):
 		else:
 			hEff.Add(f.Get('{}Eff_{}'.format(key, SPStr(sp))))
 			hDen.Add(f.Get('{}Den_{}'.format(key, SPStr(sp))))
-		f.Close()
+	f.Close()
 
+	hEff.Rebin(10)
+	hDen.Rebin(10)
 	hEff.Divide(hDen)
 
 	p = Plotter.Plot(hEff, '', 'p', 'hist p')
@@ -48,7 +50,7 @@ def makeEffPlot(key):
 	canvas.addMainPlot(p)
 	canvas.makeTransparent()
 	canvas.finishCanvas()
-	canvas.save('{}Eff.pdf'.format(key))
+	canvas.save('pdfs/{}Eff.pdf'.format(key))
 	canvas.deleteCanvas()
 
 makeEffPlot('Lxy')
