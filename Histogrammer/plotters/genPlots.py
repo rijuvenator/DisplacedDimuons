@@ -37,7 +37,7 @@ class HistogramConfigurations(object):
 		MuPtUpper = mH/2.
 
 		# actual init code. saves constructor argument for each histogram type
-		self.keys = ('massH', 'massX', 'cTau', 'pTH', 'pTX', 'beta', 'Lxy', 'd0', 'pTmu')
+		self.keys = ('massH', 'massX', 'cTau', 'pTH', 'pTX', 'beta', 'Lxy', 'd0', 'pTmu', 'd00')
 		self.attr = ('name', 'xTitle', 'yTitle', 'nBins', 'binLow', 'binHigh')
 
 		self.data = {}
@@ -50,6 +50,7 @@ class HistogramConfigurations(object):
 		self.data['Lxy'  ] = self.makeAttrDict((self.HName('Lxy'  ), 'L_{xy} [mm]'      , 'Counts', 100, 0.         , LxyUpper   ))
 		self.data['d0'   ] = self.makeAttrDict((self.HName('d0'   ), 'd_{0} [mm]'       , 'Counts', 100, 0.         , cTau*2.    ))
 		self.data['pTmu' ] = self.makeAttrDict((self.HName('pTmu' ), '#mu p_{T} [GeV]'  , 'Counts', 100, 0.         , MuPtUpper  ))
+		self.data['d00'  ] = self.makeAttrDict((self.HName('d00'  ), '#Deltad_{0} [cm]' , 'Counts', 100, -.1        , .1         ))
 
 	def HName(self, key):
 		return key + '_' + SPStr(self.mH, self.mX, self.cTau)
@@ -127,8 +128,9 @@ HISTS = {}
 #	'Lxy',
 #	'd0',
 #	'pTmu',
+#	'd00',
 #)
-# for parallelizing with : parallel python genPlots.py ::: massH massX cTau pTH pTX beta Lxy d0 pTmu
+# for parallelizing with : parallel python genPlots.py ::: massH massX cTau pTH pTX beta Lxy d0 pTmu d00
 import sys
 HList = (sys.argv[-1],)
 
@@ -140,8 +142,12 @@ HAliases = {
 	'beta2' : 'sqrt(pow(X2.energy,2)-pow(X2.mass,2))/X2.energy',
 	'Lxy1'  : 'sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2))*10.',
 	'Lxy2'  : 'sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2))*10.',
-	'd01'   : 'TMath::Min(gen_d0[0],gen_d0[1])*10.',
-	'd02'   : 'TMath::Min(gen_d0[2],gen_d0[3])*10.',
+	'd01'   : 'TMath::Min(mu11.d0,mu12.d0)*10.',
+	'd02'   : 'TMath::Min(mu21.d0,mu22.d0)*10.',
+	'd0011' : 'TMath::Abs(mu11.x*mu11.pt*TMath::Sin(mu11.phi)-mu11.y*mu11.pt*TMath::Cos(mu11.phi))/mu11.pt-mu11.d0',
+	'd0012' : 'TMath::Abs(mu12.x*mu12.pt*TMath::Sin(mu12.phi)-mu12.y*mu12.pt*TMath::Cos(mu12.phi))/mu12.pt-mu12.d0',
+	'd0021' : 'TMath::Abs(mu21.x*mu21.pt*TMath::Sin(mu21.phi)-mu21.y*mu21.pt*TMath::Cos(mu21.phi))/mu21.pt-mu21.d0',
+	'd0022' : 'TMath::Abs(mu22.x*mu22.pt*TMath::Sin(mu22.phi)-mu22.y*mu22.pt*TMath::Cos(mu22.phi))/mu22.pt-mu22.d0',
 }
 
 # TTree draw configuration: histogram name : (list of Draw expressions)
@@ -155,6 +161,7 @@ HExpressions = {
 	'Lxy'   : ('Lxy1', 'Lxy2'),
 	'd0'    : ('d01', 'd02'),
 	'pTmu'  : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
+	'd00'   : ('d0011', 'd0012', 'd0021', 'd0022'),
 }
 
 #### MAIN CODE ####

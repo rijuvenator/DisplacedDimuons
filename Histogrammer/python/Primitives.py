@@ -104,11 +104,8 @@ class Muon(Particle):
 			self.gen = Muon(E, i, source='SUB')
 			self.set('isSlim', E, 'mu_isSlim', i)
 
-		if self.source == 'GEN':
-			self.set('d0', E, 'gen_d0', i)
-
-		if self.source == 'DSA':
-			self.set('d0', E, 'dsamu_d0', i)
+		if self.source == 'GEN' or self.source == 'DSA':
+			self.set('d0', E, prefix+'d0', i)
 
 # Vertex class
 # nothing too unusual here

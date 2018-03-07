@@ -45,5 +45,6 @@ LorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[3]]
 # sets tree aliases for use in formulae
 def setGenAliases(t):
 	for i, particle in enumerate(('mu11', 'mu12', 'mu21', 'mu22', 'X1', 'X2', 'H', 'P')):
-		for attribute in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
+		for attribute in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z', 'd0'):
+			if attribute == 'd0' and particle[0:2] != 'mu': continue
 			t.SetAlias(particle+'.'+attribute, 'gen_'+attribute+'['+str(i)+']')
