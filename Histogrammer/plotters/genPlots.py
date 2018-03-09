@@ -2,15 +2,9 @@ import ROOT as R
 import DisplacedDimuons.Histogrammer.Plotter as Plotter
 import DisplacedDimuons.Histogrammer.RootTools as RT
 from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Histogrammer.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
-# this works for a tuple OR 3 arguments
-def SPStr(*args):
-	if len(args) == 3:
-		return '{}_{}_{}'.format(*args)
-	elif len(args) == 1:
-		return '{}_{}_{}'.format(*args[0])
-
 # histogram configuration object
 # declared once per signal point and calculates all the histogram properties
 # add new histograms here
@@ -106,8 +100,8 @@ def makePlots(sp, HList):
 		canvas = Plotter.Canvas()
 		canvas.addMainPlot(p)
 		p.SetLineColor(R.kBlue)
-		canvas.drawText('#mu = {:.4f}'   .format(h.GetMean())  , (.7, .8    ))
-		canvas.drawText('#sigma = {:.4f}'.format(h.GetStdDev()), (.7, .8-.04))
+		canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
+		canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
 		canvas.makeTransparent()
 		canvas.finishCanvas()
 		canvas.save('pdfs/{}_{}.pdf'.format(key, SPStr(sp)))

@@ -1,17 +1,12 @@
 import ROOT as R
 import DisplacedDimuons.Histogrammer.Plotter as Plotter
 import DisplacedDimuons.Histogrammer.Primitives as Primitives
+import DisplacedDimuons.Histogrammer.RootTools as RT
 from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Histogrammer.Utilities import SPStr
 import argparse
 
 #### CLASS AND FUNCTION DEFINITIONS ####
-# this works for a tuple OR 3 arguments
-def SPStr(*args):
-	if len(args) == 3:
-		return '{}_{}_{}'.format(*args)
-	elif len(args) == 1:
-		return '{}_{}_{}'.format(*args[0])
-
 # opens file, gets tree, fills histograms, closes file
 def fillPlots(sp):
 	# get file and tree
@@ -19,19 +14,15 @@ def fillPlots(sp):
 	t = f.Get('SimpleNTupler/DDTree')
 
 	# declare histogram
-	HISTS[sp]['pTRes' ] = R.TH1F('pTRes_{}' .format(SPStr(sp)), ';(DSA p_{T} #minus gen p_{T})/gen p_{T};Counts', 100 , -5. , 5.     )
-	HISTS[sp]['pTEff' ] = R.TH1F('pTEff_{}' .format(SPStr(sp)), ';p_{T} [GeV];DSA Match Efficiency'             , 1000, 0.  , 500.   )
-	HISTS[sp]['pTDen' ] = R.TH1F('pTDen_{}' .format(SPStr(sp)), ''                                              , 1000, 0.  , 500.   )
-	HISTS[sp]['LxyEff'] = R.TH1F('LxyEff_{}'.format(SPStr(sp)), ';L_{xy} [cm];DSA Match Efficiency'             , 1000, 0.  , 1500.  )
-	HISTS[sp]['LxyDen'] = R.TH1F('LxyDen_{}'.format(SPStr(sp)), ''                                              , 1000, 0.  , 1500.  )
-	HISTS[sp]['d0Res' ] = R.TH1F('d0Res_{}' .format(SPStr(sp)), ';(DSA d_{0} #minus gen d_{0})/gen d_{0};Counts', 100 , -2. , 20.    )
+	HISTS[sp]['pTRes' ] = R.TH1F('pTRes_{}' .format(SPStr(sp)), ';(DSA p_{T} #minus gen p_{T})/gen p_{T};Counts', 1000, -1. , 3.   )
+	HISTS[sp]['pTEff' ] = R.TH1F('pTEff_{}' .format(SPStr(sp)), ';p_{T} [GeV];DSA Match Efficiency'             , 1000, 0.  , 500. )
+	HISTS[sp]['pTDen' ] = R.TH1F('pTDen_{}' .format(SPStr(sp)), ''                                              , 1000, 0.  , 500. )
+	HISTS[sp]['LxyEff'] = R.TH1F('LxyEff_{}'.format(SPStr(sp)), ';L_{xy} [cm];DSA Match Efficiency'             , 1000, 0.  , 1500.)
+	HISTS[sp]['LxyDen'] = R.TH1F('LxyDen_{}'.format(SPStr(sp)), ''                                              , 1000, 0.  , 1500.)
+	HISTS[sp]['d0Dif' ] = R.TH1F('d0Dif_{}' .format(SPStr(sp)), ';DSA d_{0} #minus gen d_{0}'                   , 1000, -10., 10.  )
 
-	HISTS[sp]['pTRes' ].SetDirectory(0)
-	HISTS[sp]['pTEff' ].SetDirectory(0)
-	HISTS[sp]['pTDen' ].SetDirectory(0)
-	HISTS[sp]['LxyEff'].SetDirectory(0)
-	HISTS[sp]['LxyDen'].SetDirectory(0)
-	HISTS[sp]['d0Res' ].SetDirectory(0)
+	for key in HISTS[sp]:
+		HISTS[sp][key].SetDirectory(0)
 
 	nMuons = 0
 	nDouble = 0
@@ -79,26 +70,26 @@ def fillPlots(sp):
 			HISTS[sp]['pTDen' ].Fill(genMuon.pt)
 			closestDSAMuonIndex, closestDSAMuon = findClosestMuon(genMuon, DSAmuons)
 			if closestDSAMuonIndex is not None:
-				if True: #Lxy > 650:
-					genPos = R.TVector3(genMuon       .pos.X()-X.x, genMuon       .pos.Y()-X.y, 0.)
-					genMom = R.TVector3(genMuon       .p3 .X()    , genMuon       .p3 .Y()    , 0.)
-					DSAPos = R.TVector3(closestDSAMuon.pos.X()    , closestDSAMuon.pos.Y()    , 0.)
-					DSAMom = R.TVector3(closestDSAMuon.p3 .X()    , closestDSAMuon.p3 .Y()    , 0.)
+				if False: #Lxy > 650:
+					#genPos = RT.Vector3(genMuon       .pos.X()-X.x, genMuon       .pos.Y()-X.y, 0.)
+					#genMom = RT.Vector3(genMuon       .p3 .X()    , genMuon       .p3 .Y()    , 0.)
+					#DSAPos = RT.Vector3(closestDSAMuon.pos.X()    , closestDSAMuon.pos.Y()    , 0.)
+					#DSAMom = RT.Vector3(closestDSAMuon.p3 .X()    , closestDSAMuon.p3 .Y()    , 0.)
 
 					lineDistance = getLineDistance(genMuon.pos, genMuon.p3, closestDSAMuon.pos, closestDSAMuon.p3)
-					nCols = 6
+					nCols = 5
 					print ('[DEBUG] ' + '{:8.2f} '*nCols + '\n' + '[DEBUG]          ' + '{:8.2f} '*(nCols) + '\n').format(
 						Lxy,
 						genMuon.pt,
 						genMuon.eta,
 						genMuon.phi,
 						genMuon.d0,
-						genPos.Cross(genMom).Mag()/genMom.Mag(),
+						#genPos.Cross(genMom).Mag()/genMom.Mag(),
 						closestDSAMuon.pt,
 						closestDSAMuon.eta,
 						closestDSAMuon.phi,
 						closestDSAMuon.d0,
-						DSAPos.Cross(DSAMom).Mag()/DSAMom.Mag(),
+						#DSAPos.Cross(DSAMom).Mag()/DSAMom.Mag(),
 						lineDistance
 					)
 				if closestDSAMuonIndex in alreadyFound:
@@ -106,7 +97,7 @@ def fillPlots(sp):
 				alreadyFound.append(closestDSAMuonIndex)
 			if closestDSAMuon is not None:
 				HISTS[sp]['pTRes' ].Fill((closestDSAMuon.pt - genMuon.pt)/genMuon.pt)
-				HISTS[sp]['d0Res' ].Fill((closestDSAMuon.d0 - genMuon.d0)/genMuon.d0)
+				HISTS[sp]['d0Dif' ].Fill((closestDSAMuon.d0 - genMuon.d0))#/genMuon.d0)
 				HISTS[sp]['LxyEff'].Fill(Lxy)
 				HISTS[sp]['pTEff' ].Fill(genMuon.pt)
 
@@ -117,18 +108,18 @@ def fillPlots(sp):
 	del f
 
 # makes plot using Plotter class
-def makePlots(sp):
+def makePerSignalPlots(sp):
 	CONFIG = {
 		'pTRes' : {'DOFIT' :  True, 'LEGPOS' : 'tr'},
-		'd0Res' : {'DOFIT' : False, 'LEGPOS' : 'tr'},
+		'd0Dif' : {'DOFIT' : False, 'LEGPOS' : 'tr'},
 	}
-	for key in ('pTRes', 'd0Res'):
+	for key in CONFIG:
 		h = HISTS[sp][key]
 		p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
 		fname = 'pdfs/{}_{}.pdf'.format(key, SPStr(sp)) if not args.DEVELOP else 'test_{}.pdf'.format(key)
 
 		if CONFIG[key]['DOFIT']:
-			func = R.TF1('f1', 'gaus', -0.4, 0.4)
+			func = R.TF1('f1', 'gaus', -0.5, 0.4)
 			h.Fit('f1')
 			f = Plotter.Plot(func, 'Gaussian fit', 'l', '')
 
@@ -144,8 +135,10 @@ def makePlots(sp):
 		canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
 		if CONFIG[key]['DOFIT']:
 			f.SetLineColor(R.kRed)
-			canvas.setFitBoxStyle(h, lWidth=0.35, pos='tl')
+			canvas.setFitBoxStyle(h, lWidth=0.35, pos='tr')
 			p.FindObject('stats').SetTextColor(R.kRed)
+			p.FindObject('stats').SetY1NDC(p.FindObject('stats').GetY1NDC() - .5)
+			p.FindObject('stats').SetY2NDC(p.FindObject('stats').GetY2NDC() - .5)
 		canvas.makeTransparent()
 		canvas.finishCanvas()
 		canvas.save(fname)
@@ -190,7 +183,7 @@ if not args.FROMFILE:
 		HISTS[sp] = {}
 
 		fillPlots(sp)
-		makePlots(sp)
+		makePerSignalPlots(sp)
 
 	writeHistograms(sp)
 else:
@@ -216,7 +209,7 @@ else:
 
 	for sp in SIGNALPOINTS:
 		HISTS[sp] = {}
-		for key in ('pTRes', 'pTEff', 'pTDen', 'LxyEff', 'LxyDen', 'd0Res'):
+		for key in ('pTRes', 'pTEff', 'pTDen', 'LxyEff', 'LxyDen', 'd0Dif'):
 			HISTS[sp][key] = f.Get(key + '_' + SPStr(sp))
 
-		makePlots(sp)
+		makePerSignalPlots(sp)

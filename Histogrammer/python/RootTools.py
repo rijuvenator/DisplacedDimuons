@@ -39,6 +39,17 @@ class Vector2(R.TVector2): pass
 # TLorentzVector doesn't implement an iterator (for..in or *) or a length, but TVector2/3 do
 LorentzVector.__len__  = lambda self : 4
 LorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[3]])
+# TVector2 doesn't do __mul__ correctly. Also, make Mag() return Mod().
+def fixedMul(self, second):
+	try:
+		return self.X()*second.X() + self.Y()*second.Y()
+	except:
+		return Vector2(self.X()*second, self.Y()*second)
+Vector2.__mul__ = fixedMul
+Vector2.__rmul__ = fixedMul
+Vector2.Mag = R.TVector2.Mod
+# make Vector3.XYvector return a Vector2 instead of a TVector2
+Vector3.XYvector = lambda self : Vector2(self.X(), self.Y())
 
 #### TTree Tools
 # takes an ntuple tree with gen_ branches of length 8

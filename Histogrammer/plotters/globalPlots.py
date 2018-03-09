@@ -1,6 +1,7 @@
 import ROOT as R
 import DisplacedDimuons.Histogrammer.Plotter as Plotter
 from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Histogrammer.Utilities import SPStr
 
 SIGNALPOINTS = [
 	(1000,  20,    2),
@@ -19,13 +20,6 @@ SIGNALPOINTS = [
 	( 125,  20,  130),
 	( 125,  20, 1300),
 ]
-
-# this works for a tuple OR 3 arguments
-def SPStr(*args):
-	if len(args) == 3:
-		return '{}_{}_{}'.format(*args)
-	elif len(args) == 1:
-		return '{}_{}_{}'.format(*args[0])
 
 # make Efficiency Plot
 def makeEffPlot(key):
@@ -52,6 +46,27 @@ def makeEffPlot(key):
 	canvas.finishCanvas()
 	canvas.save('pdfs/{}Eff.pdf'.format(key))
 	canvas.deleteCanvas()
+
+def makeColorPlot(key):
+	f = R.TFile.Open('roots/ResEffPlots.root')
+	for i, sp in enumerate(SIGNALPOINTS):
+		if i == 0:
+			h = f.Get('{}_{}'.format(key, SPStr(sp)))
+			h.SetDirectory(0)
+		else:
+			h.Add(f.Get('{}_{}'.format(key, SPStr(sp))))
+	f.Close()
+
+	p = Plotter.Plot(h, '', '', 'colz')
+	canvas = Plotter.Canvas()
+	canvas.addMainPlot(p)
+	canvas.scaleMargins(1.75, edges='R')
+	canvas.scaleMargins(0.75, edges='L')
+	canvas.makeTransparent()
+	canvas.finishCanvas()
+	canvas.save('pdfs/{}.pdf'.format(key))
+	canvas.deleteCanvas()
+
 
 makeEffPlot('Lxy')
 makeEffPlot('pT')
