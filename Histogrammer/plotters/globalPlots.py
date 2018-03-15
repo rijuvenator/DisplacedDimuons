@@ -21,34 +21,38 @@ SIGNALPOINTS = [
 	( 125,  20, 1300),
 ]
 
-# make Efficiency Plot
-def makeEffPlot(key):
-	f = R.TFile.Open('roots/ResEffPlots.root')
-	for i, sp in enumerate(SIGNALPOINTS):
-		if i == 0:
-			hEff = f.Get('{}Eff_{}'.format(key, SPStr(sp)))
-			hDen = f.Get('{}Den_{}'.format(key, SPStr(sp)))
-			hEff.SetDirectory(0)
-			hDen.SetDirectory(0)
-		else:
-			hEff.Add(f.Get('{}Eff_{}'.format(key, SPStr(sp))))
-			hDen.Add(f.Get('{}Den_{}'.format(key, SPStr(sp))))
-	f.Close()
-
-	hEff.Rebin(10)
-	hDen.Rebin(10)
-	hEff.Divide(hDen)
-
-	p = Plotter.Plot(hEff, '', 'p', 'hist p')
-	canvas = Plotter.Canvas()
-	canvas.addMainPlot(p)
-	canvas.makeTransparent()
+def Cleanup(canvas, filename):
 	canvas.finishCanvas()
-	canvas.save('pdfs/{}Eff.pdf'.format(key))
+	canvas.save(filename)
 	canvas.deleteCanvas()
 
+def MakePlot(key, DenKey=None):
+	f = R.TFile.Open('roots/RecoPlots.root')
+	for i, sp in enumerate(SIGNALPOINTS):
+		if i == 0:
+			h = f.Get('{}_{}'.format(key, SPStr(sp)))
+			h.SetDirectory(0)
+			if DenKey is not None:
+				hDen = f.Get('{}_{}'.format(DenKey, SPStr(sp)))
+				hDen.SetDirectory(0)
+		else:
+			h.Add(f.Get('{}_{}'.format(key, SPStr(sp))))
+			if DenKey is not None:
+				hDen.Add(f.Get('{}_{}'.format(DenKey, SPStr(sp))))
+	f.Close()
+
+	h.Rebin(10)
+	if DenKey is not None:
+		hDen.Rebin(10)
+		h.Divide(hDen)
+
+	p = Plotter.Plot(h, '', 'p', 'hist p')
+	canvas = Plotter.Canvas()
+	canvas.addMainPlot(p)
+	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
+
 def makeColorPlot(key):
-	f = R.TFile.Open('roots/ResEffPlots.root')
+	f = R.TFile.Open('roots/RecoPlots.root')
 	for i, sp in enumerate(SIGNALPOINTS):
 		if i == 0:
 			h = f.Get('{}_{}'.format(key, SPStr(sp)))
@@ -62,11 +66,9 @@ def makeColorPlot(key):
 	canvas.addMainPlot(p)
 	canvas.scaleMargins(1.75, edges='R')
 	canvas.scaleMargins(0.75, edges='L')
-	canvas.makeTransparent()
-	canvas.finishCanvas()
-	canvas.save('pdfs/{}.pdf'.format(key))
-	canvas.deleteCanvas()
+	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
 
-makeEffPlot('Lxy')
-makeEffPlot('pT')
+MakePlot('LxyEff' , DenKey='LxyDen')
+MakePlot('pTEff'  , DenKey='pTDen' )
+MakePlot('nDSALxy', DenKey='LxyDen')

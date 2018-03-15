@@ -1,5 +1,10 @@
 import os
 import subprocess as bash
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--local', dest='LOCAL', action='store_true', help='whether to run locally')
+args = parser.parse_args()
 
 CMSSW_BASE = os.environ['CMSSW_BASE']
 
@@ -49,8 +54,14 @@ python recoPlots.py --signalpoints {mH} {mX} {cTau}
 rm -f core.*
 '''
 
-for index, (mH, mX, cTau) in enumerate(signalpoints):
-	scriptName = 'submit_{index}.sh'.format(**locals())
-	open(scriptName, 'w').write(submitScript.format(**locals()))
-	bash.call('bsub -q 8nm -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
-	bash.call('rm {scriptName}'.format(**locals()), shell=True)
+if not args.LOCAL:
+	for index, (mH, mX, cTau) in enumerate(signalpoints):
+		scriptName = 'submit_{index}.sh'                     .format(**locals())
+		open(scriptName, 'w').write(submitScript             .format(**locals()))
+		bash.call('bsub -q 8nm -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
+		bash.call('rm {scriptName}'                          .format(**locals()), shell=True)
+else:
+	parallel_command = ['bash', '-c',  'parallel --colsep " " python recoPlots.py --signalpoints :::: <(echo -e "{ARGLIST}")'.format(
+		ARGLIST  = r'\n'.join(['{} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in signalpoints])
+	)]
+	bash.call(parallel_command)

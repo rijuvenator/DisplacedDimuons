@@ -481,6 +481,8 @@ class Canvas(R.TCanvas):
 	
 	# draws the lumi text, 'CMS', extra text, and legend 
 	def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
+		self.makeTransparent()
+
 		tMargin = float(self.mainPad.GetTopMargin())
 		lMargin = float(self.mainPad.GetLeftMargin())
 		rMargin = float(self.mainPad.GetRightMargin())
