@@ -31,7 +31,6 @@ class HistogramConfigurations(object):
 		MuPtUpper = mH/2.
 
 		# actual init code. saves constructor argument for each histogram type
-		self.keys = ('massH', 'massX', 'cTau', 'pTH', 'pTX', 'beta', 'Lxy', 'd0', 'pTmu', 'd00')
 		self.attr = ('name', 'xTitle', 'yTitle', 'nBins', 'binLow', 'binHigh')
 
 		self.data = {}
