@@ -118,7 +118,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 	edm::Handle<reco::TrackCollection> dsaMuons;
 	iEvent.getByToken(dsaMuonToken, dsaMuons);
-	dsaMuonData.Fill(*dsaMuons);
+	dsaMuonData.Fill(*dsaMuons, *vertices);
 
 	tree.Fill();
 

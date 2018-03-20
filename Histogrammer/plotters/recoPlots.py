@@ -2,6 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Histogrammer.Plotter as Plotter
 import DisplacedDimuons.Histogrammer.Primitives as Primitives
 import DisplacedDimuons.Histogrammer.RootTools as RT
+import DisplacedDimuons.Histogrammer.Selections as Selections
 from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
 from DisplacedDimuons.Histogrammer.Utilities import SPStr
 import argparse
@@ -71,7 +72,7 @@ def fillPlots(sp):
 			# fill histogram
 			for i, genMuon in enumerate((mu11, mu12, mu21, mu22)):
 				# cut genMuons outside the detector acceptance
-				if genMuon.pt < 5 or abs(genMuon.eta) > 2.4: continue
+				if not (Selections.MuonCutList['pt'].apply(genMuon) and Selections.MuonCutList['eta'].apply(genMuon)): continue
 
 				nMuons += 1
 				X = X1 if i < 2 else X1

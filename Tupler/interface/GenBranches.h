@@ -34,6 +34,7 @@ class GenBranches : BranchCollection
 			Declare("gen_z"     , gen_z     );
 
 			Declare("gen_d0"    , gen_d0    );
+			Declare("gen_d00"   , gen_d00   );
 		}
 
 		// members
@@ -51,6 +52,7 @@ class GenBranches : BranchCollection
 		std::vector<float> gen_z     ;
 
 		std::vector<float> gen_d0    ;
+		std::vector<float> gen_d00   ;
 
 		// methods
 		virtual void Reset()
@@ -69,6 +71,7 @@ class GenBranches : BranchCollection
 			gen_z     .clear();
 
 			gen_d0    .clear();
+			gen_d00   .clear();
 		}
 
 		void Fill(const reco::GenParticleCollection &gens, const GenEventInfoProduct &GEIP);

@@ -12,7 +12,8 @@ parser.add_argument('cTau', type=int)
 args = parser.parse_args(sys.argv[2:])
 signalPoint = (args.mH, args.mX, args.cTau)
 DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
-INPUTFILES = ['file:' + DIR_WS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']
+DIR_EOS = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
+INPUTFILES = ['file:' + DIR_EOS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']
 OUTPUTFILE = DIR_WS + 'simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
 #####
 

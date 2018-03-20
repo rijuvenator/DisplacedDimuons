@@ -107,6 +107,13 @@ class Muon(Particle):
 		if self.source == 'GEN' or self.source == 'DSA':
 			self.set('d0', E, prefix+'d0', i)
 
+		if self.source == 'GEN':
+			self.set('d00', E, prefix+'d00', i)
+
+		if self.source == 'DSA':
+			for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
+				self.set(attr, E, prefix+attr, i)
+
 # Vertex class
 # nothing too unusual here
 class Vertex(Primitive):

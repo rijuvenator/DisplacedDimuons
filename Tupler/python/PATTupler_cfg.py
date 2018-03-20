@@ -16,7 +16,8 @@ mcdata = DH.getMCDatasets()
 for data in mcdata:
 	if data.signalPoint() == signalPoint and data.process == 'AODSIM-ReHLT_V37-v1':
 		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
-		OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/PATTuple_' + '_'.join(map(str,signalPoint)) + '.root'
+		#OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/PATTuple_' + '_'.join(map(str,signalPoint)) + '.root'
+		OUTPUTFILE = '/eos/cms/store/user/adasgupt/DisplacedDimuons/PATTuple_' + '_'.join(map(str,signalPoint)) + '.root'
 		print '\n\nWill run over', len(INPUTFILES), 'files and attempt to create', OUTPUTFILE, '\n\n'
 		break
 else:

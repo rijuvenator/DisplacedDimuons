@@ -11,6 +11,9 @@ out = cms.OutputModule('PoolOutputModule',
 		'keep GenEventInfoProduct_generator_*_*',
 		'keep *_genParticles_*_*',
 		'keep *_displacedStandAloneMuons_*_*',
+		'keep *_refittedStandAloneMuons_*_*',
+		'keep recoTracks_*_*_*',
+		'keep recoTrackExtras_*_*_*',
 		'keep *_selectedPatMuons_*_*',
 	)
 )

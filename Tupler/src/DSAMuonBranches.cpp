@@ -1,6 +1,6 @@
 #include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 
-void DSAMuonBranches::Fill(const reco::TrackCollection &muons)
+void DSAMuonBranches::Fill(const reco::TrackCollection &muons, const reco::VertexCollection &vertices)
 {
 	Reset();
 	float mass = .105658375;
@@ -21,5 +21,15 @@ void DSAMuonBranches::Fill(const reco::TrackCollection &muons)
 		dsamu_z     .push_back(     mu.vz    () );
 
 		dsamu_d0    .push_back(fabs(mu.d0    ()));
+
+		auto maxVtx = std::min_element(vertices.begin(), vertices.end(), [] (const auto &v1, const auto &v2) {return v1.p4().Pt() < v2.p4().Pt(); });
+		dsamu_d0MV.push_back(fabs(mu.dxy(maxVtx->position())));
+
+		dsamu_normChi2     .push_back(mu.normalizedChi2()                          );
+		dsamu_d0Sig        .push_back(fabs(mu.d0())/mu.d0Error()                   );
+		dsamu_d0MVSig      .push_back(fabs(mu.dxy(maxVtx->position()))/mu.d0Error());
+		dsamu_nMuonHits    .push_back(mu.hitPattern().numberOfValidMuonHits()      );
+		dsamu_nDTStations  .push_back(mu.hitPattern().dtStationsWithValidHits()    );
+		dsamu_nCSCStations .push_back(mu.hitPattern().cscStationsWithValidHits()   );
 	}
 }

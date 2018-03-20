@@ -98,6 +98,8 @@ void GenBranches::Fill(const reco::GenParticleCollection &gens, const GenEventIn
 
 	TVector3 disp1(mu11->vx() - X1->vx(), mu11->vy() - X1->vy(), 0.);
 	TVector3 disp2(mu21->vx() - X2->vx(), mu21->vy() - X2->vy(), 0.);
+	TVector3 zero1(mu11->vx()           , mu11->vy()           , 0.);
+	TVector3 zero2(mu21->vx()           , mu21->vy()           , 0.);
 
 	TVector3 p11  (mu11->px()           , mu11->py()           , 0.);
 	TVector3 p12  (mu12->px()           , mu12->py()           , 0.);
@@ -113,5 +115,15 @@ void GenBranches::Fill(const reco::GenParticleCollection &gens, const GenEventIn
 	gen_d0.push_back(d12);
 	gen_d0.push_back(d21);
 	gen_d0.push_back(d22);
+
+	d11 = zero1.Cross(p11).Mag()/p11.Mag();
+	d12 = zero1.Cross(p12).Mag()/p12.Mag();
+	d21 = zero2.Cross(p21).Mag()/p21.Mag();
+	d22 = zero2.Cross(p22).Mag()/p22.Mag();
+
+	gen_d00.push_back(d11);
+	gen_d00.push_back(d12);
+	gen_d00.push_back(d21);
+	gen_d00.push_back(d22);
 
 }
