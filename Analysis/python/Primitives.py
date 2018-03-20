@@ -1,7 +1,7 @@
 import re
 import collections
 import math
-import DisplacedDimuons.Histogrammer.RootTools as RT
+import DisplacedDimuons.Analysis.RootTools as RT
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.

@@ -1,10 +1,10 @@
 import ROOT as R
-import DisplacedDimuons.Histogrammer.Plotter as Plotter
-import DisplacedDimuons.Histogrammer.Primitives as Primitives
-import DisplacedDimuons.Histogrammer.RootTools as RT
-import DisplacedDimuons.Histogrammer.Selections as Selections
-from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
-from DisplacedDimuons.Histogrammer.Utilities import SPStr
+import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.Primitives as Primitives
+import DisplacedDimuons.Analysis.RootTools as RT
+import DisplacedDimuons.Analysis.Selections as Selections
+from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Analysis.Utilities import SPStr
 import argparse
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -196,7 +196,7 @@ BRANCHKEYS = ('GEN', 'DSAMUON')
 if not args.SIGNALPOINT:
 	SIGNALPOINTS = [(125, 20, 13)]
 else:
-	SIGNALPOINTS = [(args.SIGNALPOINT[0], args.SIGNALPOINT[1], args.SIGNALPOINT[2])]
+	SIGNALPOINTS = [args.SIGNALPOINT]
 
 #### MAIN CODE ####
 # loop over signal points

@@ -1,6 +1,6 @@
 import ROOT as R
-import DisplacedDimuons.Histogrammer.Primitives as Primitives
-from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
+import DisplacedDimuons.Analysis.Primitives as Primitives
+from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
 
 #f = R.TFile.Open(DIR_DD + 'Tupler/ntuples/simple_ntuple.root')
 f = R.TFile.Open(DIR_WS + 'simple_ntuple_125_20_1300.root')

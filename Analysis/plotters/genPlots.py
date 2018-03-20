@@ -1,8 +1,8 @@
 import ROOT as R
-import DisplacedDimuons.Histogrammer.Plotter as Plotter
-import DisplacedDimuons.Histogrammer.RootTools as RT
-from DisplacedDimuons.Histogrammer.Constants import DIR_DD, DIR_WS, SIGNALS
-from DisplacedDimuons.Histogrammer.Utilities import SPStr
+import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
+from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Analysis.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # histogram configuration object
