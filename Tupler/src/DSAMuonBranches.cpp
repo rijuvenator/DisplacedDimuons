@@ -22,7 +22,8 @@ void DSAMuonBranches::Fill(const reco::TrackCollection &muons, const reco::Verte
 
 		dsamu_d0    .push_back(fabs(mu.d0    ()));
 
-		auto maxVtx = std::min_element(vertices.begin(), vertices.end(), [] (const auto &v1, const auto &v2) {return v1.p4().Pt() < v2.p4().Pt(); });
+		//auto maxVtx = std::min_element(vertices.begin(), vertices.end(), [] (const auto &v1, const auto &v2) {return v1.p4().Pt() < v2.p4().Pt(); });
+		auto maxVtx = vertices.begin();
 		dsamu_d0MV.push_back(fabs(mu.dxy(maxVtx->position())));
 
 		dsamu_normChi2     .push_back(mu.normalizedChi2()                          );

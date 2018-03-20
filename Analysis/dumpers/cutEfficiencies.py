@@ -16,7 +16,7 @@ args = parser.parse_args()
 if not args.SIGNALPOINT:
 	SIGNALPOINTS = [(125, 20, 13)]
 else:
-	SIGNALPOINTS = [args.SIGNALPOINT]
+	SIGNALPOINTS = [tuple(args.SIGNALPOINT)]
 
 for sp in SIGNALPOINTS:
 	f = R.TFile.Open(DIR_WS + 'simple_ntuple_{}.root'.format(SPStr(sp)))

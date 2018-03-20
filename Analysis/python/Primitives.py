@@ -17,6 +17,7 @@ BRANCHPREFIXES = {
 	'GEN'      : 'gen_'  ,
 	'MUON'     : 'mu_'   ,
 	'DSAMUON'  : 'dsamu_',
+	'RSAMUON'  : 'rsamu_',
 }
 BRANCHKEYS = tuple(BRANCHPREFIXES.keys())
 
@@ -60,6 +61,8 @@ class ETree(object):
 			return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt   ))]
 		if KEY == 'DSAMUON':
 			return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
+		if KEY == 'RSAMUON':
+			return    [Muon    (self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -98,19 +101,20 @@ class Muon(Particle):
 		elif self.source == 'GEN': prefix = 'gen_'
 		elif self.source == 'SUB': prefix = 'mu_gen_'
 		elif self.source == 'DSA': prefix = 'dsamu_'
+		elif self.source == 'RSA': prefix = 'rsamu_'
 		Particle.__init__(self, E, i, prefix)
 
 		if self.source == 'AOD':
 			self.gen = Muon(E, i, source='SUB')
 			self.set('isSlim', E, 'mu_isSlim', i)
 
-		if self.source == 'GEN' or self.source == 'DSA':
+		if self.source in ('GEN', 'DSA', 'RSA'):
 			self.set('d0', E, prefix+'d0', i)
 
 		if self.source == 'GEN':
 			self.set('d00', E, prefix+'d00', i)
 
-		if self.source == 'DSA':
+		if self.source == 'DSA' or self.source == 'RSA':
 			for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
 				self.set(attr, E, prefix+attr, i)
 

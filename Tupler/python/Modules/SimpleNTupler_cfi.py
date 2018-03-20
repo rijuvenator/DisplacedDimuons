@@ -11,5 +11,6 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 		gens = cms.InputTag('genParticles'),
 		GEIP = cms.InputTag('generator'),
 		dsaMuons = cms.InputTag('displacedStandAloneMuons'),
+		rsaMuons = cms.InputTag('refittedStandAloneMuons'),
 	)
 )

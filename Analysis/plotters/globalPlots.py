@@ -1,25 +1,7 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS, RECOSIGNALPOINTS
 from DisplacedDimuons.Analysis.Utilities import SPStr
-
-SIGNALPOINTS = [
-	(1000,  20,    2),
-	(1000,  20,   20),
-	(1000,  20,  200),
-	( 400, 150,   40),
-	( 400, 150,  400),
-	( 400, 150, 4000),
-	( 400,  20,    4),
-	( 400,  20,   40),
-	( 400,  20,  400),
-	( 125,  50,   50),
-	( 125,  50,  500),
-	( 125,  50, 5000),
-	( 125,  20,   13),
-	( 125,  20,  130),
-	( 125,  20, 1300),
-]
 
 def Cleanup(canvas, filename):
 	canvas.finishCanvas()
@@ -28,7 +10,7 @@ def Cleanup(canvas, filename):
 
 def MakePlot(key, DenKey=None):
 	f = R.TFile.Open('roots/RecoPlots.root')
-	for i, sp in enumerate(SIGNALPOINTS):
+	for i, sp in enumerate(RECOSIGNALPOINTS):
 		if i == 0:
 			h = f.Get('{}_{}'.format(key, SPStr(sp)))
 			h.SetDirectory(0)
@@ -53,7 +35,7 @@ def MakePlot(key, DenKey=None):
 
 def makeColorPlot(key):
 	f = R.TFile.Open('roots/RecoPlots.root')
-	for i, sp in enumerate(SIGNALPOINTS):
+	for i, sp in enumerate(RECOSIGNALPOINTS):
 		if i == 0:
 			h = f.Get('{}_{}'.format(key, SPStr(sp)))
 			h.SetDirectory(0)
@@ -69,6 +51,7 @@ def makeColorPlot(key):
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
 
-MakePlot('LxyEff' , DenKey='LxyDen')
-MakePlot('pTEff'  , DenKey='pTDen' )
-MakePlot('nDSALxy', DenKey='LxyDen')
+MakePlot('DSA_LxyEff', DenKey='LxyDen')
+MakePlot('DSA_pTEff' , DenKey='pTDen' )
+MakePlot('RSA_LxyEff', DenKey='LxyDen')
+MakePlot('RSA_pTEff' , DenKey='pTDen' )
