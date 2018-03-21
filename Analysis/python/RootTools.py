@@ -1,55 +1,35 @@
 import ROOT as R
 
-#### Vector Classes
-# REALLY generic init and Dist functions
-def genericInit(self, *args):
-	if len(args) == 0:
-		super(self.__class__, self).__init__()
-	else:
-		super(self.__class__, self).__init__(*args)
-def genericDist(self, vec):
-	try:
-		return (self-vec).Mag()
-	except:
-		return (self-self.__class__(*vec)).Mag()
+#### Improved Vector Classes
+def genericDist(self, second):
+	return (self-vec).Mag()
 def genericInverse(self):
-	return self.__class__(*[1./vec_i for vec_i in self])
+	return self.__class__(*[1./component for component in self])
 def genericFormat(self, format_spec):
 	if format_spec.endswith('p'):
 		fstring = '(' + ', '.join(['{{{index}:{{fs}}}}'.format(index=i) for i in range(len(self))]) + ')'
 		return fstring.format(*self, fs=format_spec[:-1]+'f')
 	else:
-		return self.__repr__()
+		return self.__format__(format_spec)
 
-# class decorator
-def improve(cls):
-	cls.__init__ = genericInit
-	cls.Dist = genericDist
-	cls.Inverse = genericInverse
-	cls.__format__ = genericFormat
-	return cls
-
-@improve
-class LorentzVector(R.TLorentzVector): pass
-@improve
-class Vector3(R.TVector3): pass
-@improve
-class Vector2(R.TVector2): pass
+for CLASS in R.TLorentzVector, R.TVector3, R.TVector2:
+	CLASS.Dist       = genericDist
+	CLASS.Inverse    = genericInverse
+	CLASS.__format__ = genericFormat
 
 # TLorentzVector doesn't implement an iterator (for..in or *) or a length, but TVector2/3 do
-LorentzVector.__len__  = lambda self : 4
-LorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[3]])
+R.TLorentzVector.__len__  = lambda self : 4
+R.TLorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[3]])
+
 # TVector2 doesn't do __mul__ correctly. Also, make Mag() return Mod().
 def fixedMul(self, second):
 	try:
 		return self.X()*second.X() + self.Y()*second.Y()
 	except:
-		return Vector2(self.X()*second, self.Y()*second)
-Vector2.__mul__ = fixedMul
-Vector2.__rmul__ = fixedMul
-Vector2.Mag = R.TVector2.Mod
-# make Vector3.XYvector return a Vector2 instead of a TVector2
-Vector3.XYvector = lambda self : Vector2(self.X(), self.Y())
+		return R.TVector2(self.X()*second, self.Y()*second)
+R.TVector2.__mul__ = fixedMul
+R.TVector2.__rmul__ = fixedMul
+R.TVector2.Mag = R.TVector2.Mod
 
 #### TTree Tools
 # takes an ntuple tree with gen_ branches of length 8

@@ -1,7 +1,8 @@
 import re
 import collections
 import math
-import DisplacedDimuons.Analysis.RootTools as RT
+import ROOT as R
+import DisplacedDimuons.Analysis.RootTools
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
@@ -81,13 +82,13 @@ class Particle(Primitive):
 		Primitive.__init__(self)
 		for attr in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
 			self.set(attr, E, prefix+attr, i)
-		self.pos = RT.Vector3(self.x, self.y, self.z)
+		self.pos = R.TVector3(self.x, self.y, self.z)
 
-		self.p4 = RT.LorentzVector()
+		self.p4 = R.TLorentzVector()
 		self.p4.SetPtEtaPhiE(self.pt, self.eta, self.phi, self.energy)
 
 		# this is an XYZ 3-vector!
-		self.p3 = RT.Vector3(*self.p4.Vect())
+		self.p3 = R.TVector3(*self.p4.Vect())
 
 # Muon class
 # sets all the particle variables
@@ -118,6 +119,16 @@ class Muon(Particle):
 			for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
 				self.set(attr, E, prefix+attr, i)
 
+	def Lxy(self, mother=None):
+		if mother is None:
+			mother = R.TVector2(0., 0.)
+		else:
+			try:
+				mother = mother.pos.XYvector()
+			except:
+				pass
+		return (self.pos.XYvector() - mother).Mag()
+
 # Vertex class
 # nothing too unusual here
 class Vertex(Primitive):
@@ -126,4 +137,4 @@ class Vertex(Primitive):
 		for attr in ('x', 'y', 'z', 'chi2', 'ndof'):
 			self.set(attr, E, 'vtx_'+attr, i)
 
-		self.pos = RT.Vector3(self.x, self.y, self.z)
+		self.pos = R.TVector3(self.x, self.y, self.z)

@@ -1,11 +1,11 @@
 import ROOT as R
-import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Primitives as Primitives
-import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS, RECOSIGNALPOINTS
 from DisplacedDimuons.Analysis.Utilities import SPStr
 import argparse
+
+R.gROOT.SetBatch(True)
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # opens file, gets tree, fills histograms, closes file
@@ -38,145 +38,52 @@ def fillPlots(sp):
 	for key in HISTS[sp]:
 		HISTS[sp][key].SetDirectory(0)
 
-	nMuons = 0
-	nDouble = 0
-
 	# loop over tree
-	if DOLOOP:
-		Primitives.SelectBranches(t, BRANCHKEYS)
-		for i, event in enumerate(t):
+	Primitives.SelectBranches(t, BRANCHKEYS)
+	for i, event in enumerate(t):
 
-			if args.DEVELOP:
-				if i == 1000: break
+		if args.DEVELOP:
+			if i == 1000: break
 
-			E = Primitives.ETree(t, BRANCHKEYS)
-			mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
-			DSAmuons = E.getPrimitives('DSAMUON')
-			RSAmuons = E.getPrimitives('RSAMUON')
+		E = Primitives.ETree(t, BRANCHKEYS)
+		mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
+		DSAmuons = E.getPrimitives('DSAMUON')
+		RSAmuons = E.getPrimitives('RSAMUON')
 
-			def findClosestMuon(muon, muons):
-				closestDeltaR = float('inf')
-				closestMuon = None
-				closestMuonIndex = None
-				for i, mu in enumerate(muons):
-					thisDeltaR = muon.p4.DeltaR(mu.p4)
-					if thisDeltaR < 0.3 and thisDeltaR < closestDeltaR:
-						closestDeltaR = thisDeltaR
-						closestMuon = mu
-						closestMuonIndex = i
-				return closestMuonIndex, closestMuon
+		def matchedMuons(genMuon, recoMuons):
+			matches = []
+			for i,muon in enumerate(recoMuons):
+				deltaR = muon.p4.DeltaR(genMuon.p4)
+				if deltaR < 0.3:
+					matches.append((i,deltaR,muon.pt))
+			return sorted(matches, key=lambda tup:tup[1])
 
-			def getLxy(muon, X):
-				return ((muon.x-X.x)**2. + (muon.y-X.y)**2.)**0.5
+		# fill histogram
+		for genMuon in (mu11, mu12, mu21, mu22):
+			# cut genMuons outside the detector acceptance
+			genMuonSelection = Selections.MuonSelection(genMuon, cutList=Selections.MuonAcceptanceCutList)
+			if not genMuonSelection: continue
 
-			# see https://en.wikipedia.org/wiki/Skew_lines#Distance
-			def getLineDistance(a, b, c, d):
-				return abs((c-a).Dot(b.Cross(d).Unit()))
+			genMuonLxy = genMuon.Lxy()
+			HISTS[sp]['LxyDen'].Fill(genMuonLxy)
+			HISTS[sp]['pTDen' ].Fill(genMuon.pt)
 
-			alreadyFound = []
+			PREFIX = 'DSA'
+			for recoMuons in (DSAmuons, RSAmuons):
+				matches = matchedMuons(genMuon, recoMuons)
+				if len(matches) != 0:
+					closestRecoMuon = recoMuons[matches[0][0]]
+					if Selections.MuonCuts['pt'].apply(closestRecoMuon):
+						HISTS[sp][PREFIX+'_pTRes' ].Fill((closestRecoMuon.pt - genMuon.pt)/genMuon.pt)
+						HISTS[sp][PREFIX+'_d0Dif' ].Fill((closestRecoMuon.d0 - genMuon.d0))
+						HISTS[sp][PREFIX+'_LxyEff'].Fill(genMuonLxy)
+						HISTS[sp][PREFIX+'_pTEff' ].Fill(genMuon.pt)
+				PREFIX = 'RSA'
 
-			# fill histogram
-			for i, genMuon in enumerate((mu11, mu12, mu21, mu22)):
-				# cut genMuons outside the detector acceptance
-				if not (Selections.MuonCutList['pt'].apply(genMuon) and Selections.MuonCutList['eta'].apply(genMuon)): continue
-
-				nMuons += 1
-				X = X1 if i < 2 else X1
-				Lxy = getLxy(genMuon, X)
-				HISTS[sp]['LxyDen'].Fill(Lxy)
-				HISTS[sp]['pTDen' ].Fill(genMuon.pt)
-
-				closestDSAMuonIndex, closestDSAMuon = findClosestMuon(genMuon, DSAmuons)
-				if closestDSAMuonIndex is not None:
-					if False: #Lxy > 650:
-						#genPos = RT.Vector3(genMuon       .pos.X()-X.x, genMuon       .pos.Y()-X.y, 0.)
-						#genMom = RT.Vector3(genMuon       .p3 .X()    , genMuon       .p3 .Y()    , 0.)
-						#DSAPos = RT.Vector3(closestDSAMuon.pos.X()    , closestDSAMuon.pos.Y()    , 0.)
-						#DSAMom = RT.Vector3(closestDSAMuon.p3 .X()    , closestDSAMuon.p3 .Y()    , 0.)
-
-						lineDistance = getLineDistance(genMuon.pos, genMuon.p3, closestDSAMuon.pos, closestDSAMuon.p3)
-						nCols = 5
-						print ('[DEBUG] ' + '{:8.2f} '*nCols + '\n' + '[DEBUG]          ' + '{:8.2f} '*(nCols) + '\n').format(
-							Lxy,
-							genMuon.pt,
-							genMuon.eta,
-							genMuon.phi,
-							genMuon.d0,
-							#genPos.Cross(genMom).Mag()/genMom.Mag(),
-							closestDSAMuon.pt,
-							closestDSAMuon.eta,
-							closestDSAMuon.phi,
-							closestDSAMuon.d0,
-							#DSAPos.Cross(DSAMom).Mag()/DSAMom.Mag(),
-							lineDistance
-						)
-					if closestDSAMuonIndex in alreadyFound:
-						nDouble += 1
-					alreadyFound.append(closestDSAMuonIndex)
-				if closestDSAMuon is not None:
-					HISTS[sp]['DSA_pTRes' ].Fill((closestDSAMuon.pt - genMuon.pt)/genMuon.pt)
-					HISTS[sp]['DSA_d0Dif' ].Fill((closestDSAMuon.d0 - genMuon.d0))#/genMuon.d0)
-					HISTS[sp]['DSA_LxyEff'].Fill(Lxy)
-					HISTS[sp]['DSA_pTEff' ].Fill(genMuon.pt)
-
-				closestRSAMuonIndex, closestRSAMuon = findClosestMuon(genMuon, RSAmuons)
-				if closestRSAMuonIndex is not None:
-					if closestRSAMuonIndex in alreadyFound:
-						nDouble += 1
-					alreadyFound.append(closestRSAMuonIndex)
-				if closestRSAMuon is not None:
-					HISTS[sp]['RSA_pTRes' ].Fill((closestRSAMuon.pt - genMuon.pt)/genMuon.pt)
-					HISTS[sp]['RSA_d0Dif' ].Fill((closestRSAMuon.d0 - genMuon.d0))#/genMuon.d0)
-					HISTS[sp]['RSA_LxyEff'].Fill(Lxy)
-					HISTS[sp]['RSA_pTEff' ].Fill(genMuon.pt)
-
-		print '{:5} {} {} : {} multiple matches out of {} muons'.format(sp[0], sp[1], sp[2], nDouble, nMuons)
 	# cleanup
 	del t
 	f.Close()
 	del f
-
-# makes plot using Plotter class
-def makePerSignalPlots(sp):
-	CONFIG = {
-		'DSA_pTRes' : {'DOFIT' :  True},
-		'DSA_d0Dif' : {'DOFIT' : False},
-		'DSA_nMuon' : {'DOFIT' : False},
-		'RSA_pTRes' : {'DOFIT' :  True},
-		'RSA_d0Dif' : {'DOFIT' : False},
-		'RSA_nMuon' : {'DOFIT' : False},
-	}
-	for key in CONFIG:
-		if key not in HLIST: continue
-		h = HISTS[sp][key]
-		p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
-		fname = 'pdfs/{}_{}.pdf'.format(key, SPStr(sp)) if not args.DEVELOP else 'test_{}.pdf'.format(key)
-
-		if CONFIG[key]['DOFIT']:
-			func = R.TF1('f1', 'gaus', -0.5, 0.4)
-			h.Fit('f1')
-			f = Plotter.Plot(func, 'Gaussian fit', 'l', '')
-
-		canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
-		canvas.addMainPlot(p)
-		if CONFIG[key]['DOFIT']:
-			canvas.addMainPlot(f)
-		canvas.makeLegend(lWidth=.25, pos='tr')
-		canvas.legend.moveLegend(Y=-.3)
-		canvas.legend.resizeHeight()
-		p.SetLineColor(R.kBlue)
-		canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
-		canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
-		if CONFIG[key]['DOFIT']:
-			f.SetLineColor(R.kRed)
-			canvas.setFitBoxStyle(h, lWidth=0.35, pos='tr')
-			p.FindObject('stats').SetTextColor(R.kRed)
-			p.FindObject('stats').SetY1NDC(p.FindObject('stats').GetY1NDC() - .5)
-			p.FindObject('stats').SetY2NDC(p.FindObject('stats').GetY2NDC() - .5)
-		canvas.makeTransparent()
-		canvas.finishCanvas()
-		canvas.save(fname)
-		canvas.deleteCanvas()
 
 # write histograms
 def writeHistograms(sp):
@@ -193,29 +100,26 @@ def writeHistograms(sp):
 parser = argparse.ArgumentParser()
 parser.add_argument('--signalpoints', dest='SIGNALPOINT', type=int, nargs=3  , help='the mH mX cTau tuple'         )
 parser.add_argument('--develop'     , dest='DEVELOP'    , action='store_true', help='run test mode for 1000 events')
-parser.add_argument('--fromfile'    , dest='FROMFILE'   , action='store_true', help='whether to rerun over trees'  )
 args = parser.parse_args()
 
 HISTS = {}
-# name : requiresLoop
-DEFAULT_HLIST = {
-	'DSA_pTRes'  :True,
-	'DSA_pTEff'  :True,
-	'DSA_pTDen'  :True,
-	'DSA_LxyEff' :True,
-	'DSA_LxyDen' :True,
-	'DSA_d0Dif'  :True,
-	'DSA_nMuon'  :False,
-	'RSA_pTRes'  :True,
-	'RSA_pTEff'  :True,
-	'RSA_pTDen'  :True,
-	'RSA_LxyEff' :True,
-	'RSA_LxyDen' :True,
-	'RSA_d0Dif'  :True,
-	'RSA_nMuon'  :False,
-}
-HLIST = DEFAULT_HLIST.keys()
-DOLOOP = any([DEFAULT_HLIST[name] for name in HLIST])
+DEFAULT_HLIST = [
+	'DSA_pTRes' ,
+	'DSA_pTEff' ,
+	'DSA_pTDen' ,
+	'DSA_LxyEff',
+	'DSA_LxyDen',
+	'DSA_d0Dif' ,
+	'DSA_nMuon' ,
+	'RSA_pTRes' ,
+	'RSA_pTEff' ,
+	'RSA_pTDen' ,
+	'RSA_LxyEff',
+	'RSA_LxyDen',
+	'RSA_d0Dif' ,
+	'RSA_nMuon' ,
+]
+HLIST = DEFAULT_HLIST
 BRANCHKEYS = ('GEN', 'DSAMUON', 'RSAMUON')
 
 if not args.SIGNALPOINT:
@@ -231,20 +135,7 @@ else:
 #		for cTau in SIGNALS[mH][mX]:
 #			sp = (mH, mX, cTau)
 
-if not args.FROMFILE:
-	for sp in SIGNALPOINTS:
-		HISTS[sp] = {}
-
-		fillPlots(sp)
-		makePerSignalPlots(sp)
-
-	writeHistograms(sp)
-else:
-	f = R.TFile.Open('roots/RecoPlots.root')
-
-	for sp in RECOSIGNALPOINTS:
-		HISTS[sp] = {}
-		for key in HLIST:
-			HISTS[sp][key] = f.Get(key + '_' + SPStr(sp))
-
-		makePerSignalPlots(sp)
+for sp in SIGNALPOINTS:
+	HISTS[sp] = {}
+	fillPlots(sp)
+writeHistograms(sp)

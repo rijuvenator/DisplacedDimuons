@@ -23,7 +23,7 @@ if not args.LOCAL:
 	for index, (mH, mX, cTau) in enumerate(RECOSIGNALPOINTS):
 		scriptName = 'submit_{index}.sh'                     .format(**locals())
 		open(scriptName, 'w').write(submitScript             .format(**locals()))
-		bash.call('bsub -q 8nm -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
+		bash.call('bsub -q 1nh -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
 		bash.call('rm {scriptName}'                          .format(**locals()), shell=True)
 else:
 	parallel_command = ['bash', '-c',  'parallel --colsep " " python recoPlots.py --signalpoints :::: <(echo -e "{ARGLIST}")'.format(

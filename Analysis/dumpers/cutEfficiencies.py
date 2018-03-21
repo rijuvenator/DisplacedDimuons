@@ -22,7 +22,7 @@ for sp in SIGNALPOINTS:
 	f = R.TFile.Open(DIR_WS + 'simple_ntuple_{}.root'.format(SPStr(sp)))
 	t = f.Get('SimpleNTupler/DDTree')
 
-	EffDict = {cutkey:0 for cutkey in Selections.MuonCutList}
+	EffDict = {key:0 for key in Selections.MuonCutList}
 	EffDict['all'] = 0
 	Total = 0
 
@@ -43,8 +43,7 @@ for sp in SIGNALPOINTS:
 	del t
 	f.Close()
 	del f
-	
-	print SPStr(sp).replace('_', ' ')
-	for key in EffDict:
-		print '  {:9s} {:6d} {:6d} {:.3f}'.format(key, EffDict[key], Total, EffDict[key]/float(Total))
-	print ''
+
+	fstring = 'SUMMARY: {mH:<9d} {mX:<9d} {cTau:<9d} '
+	fstring += ' '.join(['{'+key+':<9.3f}' for key in ('all', 'pt', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig')])
+	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in EffDict.iteritems()})
