@@ -1,0 +1,60 @@
+/* MAIN STYLES */
+* { margin: 0; padding: 0; border: none; }
+html {
+    height: 100%;
+}
+body {
+    font-family: Helvetica, sans-serif;
+    background-color: white;
+    height: 100%;
+}
+.page {
+    background-color: white;
+    margin: auto;
+    width: 60%;
+    height: 100%;
+    min-height: 100%;
+}
+@media only screen and (max-width: 1000px) {
+	.page {
+		width: 90%;
+	}
+}
+
+/* FIGURE STYLES */
+div.figure {
+    display: block;
+    width:  75%;
+    padding: 10px;
+	padding-top: 50px;
+    margin: auto;
+}
+img.figure {
+    width: 100%;
+}
+
+/* SBOX STYLES */
+h3.sbox {
+	padding-bottom: 10px;
+}
+div.sbox {
+	display: block;
+	width: 100%;
+	padding: 10px;
+/*	margin: auto;
+	text-align: center;
+*/
+}
+label.sbox {
+	padding-left: 4px;
+	padding-right: 10px;
+}
+
+/* CONTAINER STYLES */
+.float {
+	float:left;
+	display:inline;
+}
+h4.float {
+	padding-bottom: 10px;
+}
