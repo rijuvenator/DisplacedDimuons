@@ -266,7 +266,8 @@ class Canvas(R.TCanvas):
 	# the first plot controls the axes, labels, titles, etc. and is referred to as firstPlot
 	# by default, the draw order (stored in plotList) is also used for the legend order
 	# just in case, if necessary, addToPlotList won't add a plot to plotList
-	def addMainPlot(self, plot, addToPlotList=True):
+	# addS is for drawing with option 'sames', required for fit boxes
+	def addMainPlot(self, plot, addToPlotList=True, addS=False):
 		plot.UseCurrentStyle()
 		self.cd()
 		self.mainPad.cd()
@@ -285,7 +286,10 @@ class Canvas(R.TCanvas):
 			if self.ratioFactor != 0:
 				plot.GetXaxis().SetLabelSize(0)
 		else:
-			plot.Draw(plot.option+' same')
+			if not addS:
+				plot.Draw(plot.option+' same')
+			else:
+				plot.Draw(plot.option+' sames')
 
 	# sets the canvas maximum to 5% above the maximum of all the plots in plotList
 	def setMaximum(self):

@@ -22,28 +22,56 @@ for sp in SIGNALPOINTS:
 	f = R.TFile.Open(DIR_WS + 'simple_ntuple_{}.root'.format(SPStr(sp)))
 	t = f.Get('SimpleNTupler/DDTree')
 
-	EffDict = {key:0 for key in Selections.MuonCutList}
-	EffDict['all'] = 0
+	IndivEffDict = {key:0 for key in Selections.MuonCutListPlusAll}
+	CumEffDict = {key:0 for key in Selections.MuonCutListPlusNone}
 	Total = 0
 
-	Primitives.SelectBranches(t, ('DSAMUON',))
+	Primitives.SelectBranches(t, ('DSAMUON', 'GEN'))
+	#Primitives.SelectBranches(t, ('DSAMUON', 'RSAMUON', 'GEN'))
 	for i, event in enumerate(t):
+
 		if args.DEVELOP:
 			if i == 1000: break
 
-		E = Primitives.ETree(t, ('DSAMUON',))
+		E = Primitives.ETree(t, ('DSAMUON', 'GEN'))
+		#E = Primitives.ETree(t, ('DSAMUON', 'RSAMUON', 'GEN'))
+		mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
 		DSAmuons = E.getPrimitives('DSAMUON')
-		Total += len(DSAmuons)
-		for muon in DSAmuons:
-			Selection = Selections.MuonSelection(muon)
-			for key in EffDict:
-				if Selection[key]:
-					EffDict[key] += 1
-	
+		#RSAmuons = E.getPrimitives('RSAMUON')
+
+		def matchedMuons(genMuon, recoMuons):
+			matches = []
+			for i,muon in enumerate(recoMuons):
+				deltaR = muon.p4.DeltaR(genMuon.p4)
+				if deltaR < 0.3:
+					matches.append((i,deltaR))
+			return sorted(matches, key=lambda tup:tup[1])
+
+		for genMuon in (mu11, mu12, mu21, mu22):
+			# cut genMuons outside the detector acceptance
+			genMuonSelection = Selections.MuonSelection(genMuon, cutList=Selections.MuonAcceptanceCutList)
+			if not genMuonSelection: continue
+
+			Total += 1
+
+			PREFIX = 'DSA'
+			for recoMuons in (DSAmuons,):
+			#for recoMuons in (DSAmuons, RSAmuons):
+				matches = matchedMuons(genMuon, recoMuons)
+				if len(matches) != 0:
+					closestRecoMuon = recoMuons[matches[0][0]]
+					Selection = Selections.MuonSelection(closestRecoMuon)
+					Selection.IndividualIncrement(IndivEffDict)
+					Selection.SequentialIncrement(CumEffDict)
+
 	del t
 	f.Close()
 	del f
 
-	fstring = 'SUMMARY: {mH:<9d} {mX:<9d} {cTau:<9d} '
-	fstring += ' '.join(['{'+key+':<9.3f}' for key in ('all', 'pt', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig')])
-	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in EffDict.iteritems()})
+	fstring = 'IND: {mH:<9d} {mX:<9d} {cTau:<9d} '
+	fstring += ' '.join(['{'+key+':<9.3f}' for key in Selections.MuonCutListPlusAll])
+	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in IndivEffDict.iteritems()})
+
+	fstring = 'CUM: {mH:<9d} {mX:<9d} {cTau:<9d} '
+	fstring += ' '.join(['{'+key+':<9.3f}' for key in Selections.MuonCutListPlusNone])
+	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in CumEffDict.iteritems()})

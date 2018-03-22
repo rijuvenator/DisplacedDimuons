@@ -26,11 +26,14 @@ MuonCuts = {
 }
 MuonCutList = ('pt', 'eta', 'Lxy', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig')
 MuonAcceptanceCutList = ('pt', 'eta', 'Lxy')
+MuonCutListPlusAll = MuonCutList + ('all',)
+MuonCutListPlusNone = ('none',) + MuonCutList
 
 class MuonSelection(object):
 	def __init__(self, muon, cutList=MuonCutList):
 		self.results = {key:MuonCuts[key].apply(muon) for key in cutList}
 		self.results['all'] = all(self.results.values())
+		self.results['none'] = True
 	
 	def __getitem__(self, key):
 		return self.results[key]
@@ -39,11 +42,21 @@ class MuonSelection(object):
 		return self.results['all']
 	__nonzero__ = __bool__
 
+	def IndividualIncrement(self, dictionary):
+		for key in MuonCutListPlusAll:
+			if key in dictionary and key in self.results:
+				dictionary[key] += self.results[key]
+
+	def SequentialIncrement(self, dictionary):
+		for i, key in enumerate(MuonCutListPlusNone):
+			if key in dictionary and key in self.results:
+				dictionary[key] += all([self.results[cutkey] for cutkey in MuonCutListPlusNone[:i+1]])
+
 	def passesAcceptance(self):
 		return all([self.results[key] for key in MuonAcceptanceCutList])
 
 	def allExcept(self, *omittedCutKeys):
-		return all([self.results[key] for key in self.results if key not in omittedCutKeys and key != 'all'])
+		return all([self.results[key] for key in MuonCutList if key not in omittedCutKeys])
 
 if __name__ == '__main__':
 	for key in MuonCutList:

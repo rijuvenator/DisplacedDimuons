@@ -277,29 +277,24 @@ var SIGNALS = [
 // or else the indexing isn't going to work
 // the fourth is if this is a per signal plot or a global plot
 var TYPES = [
-	['massH'     , 'm' + 'H'.sub()               , 0, 'per'],
-	['massX'     , 'm' + 'X'.sub()               , 0, 'per'],
-	['cTau'      , 'c&tau;'                      , 0, 'per'],
-	['Lxy'       , 'L' + 'xy'.sub()              , 0, 'per'],
-	['d00'       , '&Delta;d' + '0'.sub()        , 0, 'per'],
+	['massH'      , 'm' + 'H'.sub()               , 0, 'per'],
+	['massX'      , 'm' + 'X'.sub()               , 0, 'per'],
+	['cTau'       , 'c&tau;'                      , 0, 'per'],
+	['Lxy'        , 'L' + 'xy'.sub()              , 0, 'per'],
+	['d00'        , '&Delta;d' + '0'.sub()        , 0, 'per'],
 
-	['pTH'       , 'p' + 'T'.sub() +' H'         , 1, 'per'],
-	['pTX'       , 'p' + 'T'.sub() +' X'         , 1, 'per'],
-	['beta'      , '&beta; X'                    , 1, 'per'],
-	['d0'        , 'd' + '0'.sub()               , 1, 'per'],
-	['pTmu'      , 'p' + 'T'.sub() + ' &mu;'     , 1, 'per'],
+	['pTH'        , 'p' + 'T'.sub() +' H'         , 1, 'per'],
+	['pTX'        , 'p' + 'T'.sub() +' X'         , 1, 'per'],
+	['beta'       , '&beta; X'                    , 1, 'per'],
+	['d0'         , 'd' + '0'.sub()               , 1, 'per'],
+	['pTmu'       , 'p' + 'T'.sub() + ' &mu;'     , 1, 'per'],
 
-	['DSA_pTRes' , 'DSA p' + 'T'.sub() + ' Res'  , 2, 'per'],
-	['DSA_d0Dif' , 'DSA d' + '0'.sub() + ' Diff' , 2, 'per'],
-	['DSA_nMuon' , 'DSA N' + '&mu;'.sub()        , 2, 'per'],
-	['DSA_pTEff' , 'DSA p' + 'T'.sub() + ' Eff'  , 2, 'glo'],
-	['DSA_LxyEff', 'DSA L' + 'xy'.sub() + ' Eff' , 2, 'glo'],
-
-	['RSA_pTRes' , 'RSA p' + 'T'.sub() + ' Res'  , 3, 'per'],
-	['RSA_d0Dif' , 'RSA d' + '0'.sub() + ' Diff' , 3, 'per'],
-	['RSA_nMuon' , 'RSA N' + '&mu;'.sub()        , 3, 'per'],
-	['RSA_pTEff' , 'RSA p' + 'T'.sub() + ' Eff'  , 3, 'glo'],
-	['RSA_LxyEff', 'RSA L' + 'xy'.sub() + ' Eff' , 3, 'glo']
+	['Reco_pTRes'    , 'Reco p' + 'T'.sub() + ' Res'  , 2, 'per'],
+	['Reco_d0Dif'    , 'Reco d' + '0'.sub() + ' Diff' , 2, 'per'],
+	['Reco_nMuon'    , 'Reco N' + '&mu;'.sub()        , 2, 'per'],
+	['Reco_NMinusOne', 'Reco N&minus;1'               , 2, 'per'],
+	['Reco_pTEff'    , 'Reco p' + 'T'.sub() + ' Eff'  , 2, 'glo'],
+	['Reco_LxyEff'   , 'Reco L' + 'xy'.sub() + ' Eff' , 2, 'glo'],
 ];
 
 //**** MAIN CODE ****
