@@ -76,9 +76,11 @@ def makeIndividualPlots():
 		canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
 		canvas.addMainPlot(PLOTS[sp])
 		canvas.firstPlot.SetMaximum(1.)
+		canvas.firstPlot.SetMarkerColor(R.kBlue)
+		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
 		canvas.save('pdfs/Reco_NMinusOne_{}.pdf'.format(SPStr(sp)))
 		canvas.deleteCanvas()
 
-#makeIndividualPlots()
-makeCombinedPlot()
+makeIndividualPlots()
+#makeCombinedPlot()
