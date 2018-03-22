@@ -61,6 +61,7 @@ def makeCombinedPlot():
 		PLOTS[sp].SetLineColor(COLORS[sp])
 
 	canvas.firstPlot.SetMaximum(1.)
+	canvas.firstPlot.SetMinimum(0.)
 	canvas.scaleMargins(3.5, 'R')
 
 	canvas.makeLegend()
@@ -76,6 +77,7 @@ def makeIndividualPlots():
 		canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
 		canvas.addMainPlot(PLOTS[sp])
 		canvas.firstPlot.SetMaximum(1.)
+		canvas.firstPlot.SetMinimum(0.)
 		canvas.firstPlot.SetMarkerColor(R.kBlue)
 		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
@@ -83,4 +85,4 @@ def makeIndividualPlots():
 		canvas.deleteCanvas()
 
 makeIndividualPlots()
-#makeCombinedPlot()
+makeCombinedPlot()

@@ -139,11 +139,15 @@ def makeGlobalPlot(key, DenKey=None):
 				hDen.Add(f.Get('{}_{}'.format(DenKey, SPStr(sp))))
 
 	h.Rebin(10)
+
 	if DenKey is not None:
 		hDen.Rebin(10)
-		h.Divide(hDen)
+		g = R.TGraphAsymmErrors(h, hDen, 'cp')
+		g.SetNameTitle('g_'+key, ';'+h.GetXaxis().GetTitle()+';'+h.GetYaxis().GetTitle())
+		p = Plotter.Plot(g, '', 'elp', 'pe')
+	else:
+		p = Plotter.Plot(h, '', 'p', 'hist p')
 
-	p = Plotter.Plot(h, '', 'p', 'hist p')
 	canvas = Plotter.Canvas()
 	canvas.addMainPlot(p)
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
@@ -168,14 +172,25 @@ def makeOverlayGlobalPlots(key, DenKey=None):
 
 	h['DSA'].Rebin(10)
 	h['RSA'].Rebin(10)
-	if DenKey is not None:
-		hDen.Rebin(10)
-		h['DSA'].Divide(hDen)
-		h['RSA'].Divide(hDen)
 
 	p = {}
-	p['DSA'] = Plotter.Plot(h['DSA'], 'DSA', 'lp', 'hist p')
-	p['RSA'] = Plotter.Plot(h['RSA'], 'RSA', 'lp', 'hist p')
+
+	if DenKey is not None:
+		hDen.Rebin(10)
+
+		g = {}
+		g['DSA'] = R.TGraphAsymmErrors(h['DSA'], hDen, 'cp')
+		g['RSA'] = R.TGraphAsymmErrors(h['RSA'], hDen, 'cp')
+
+		g['DSA'].SetNameTitle('g_DSA_'+key, ';'+h['DSA'].GetXaxis().GetTitle()+';'+'Reco Match Efficiency')#+h['DSA'].GetYaxis().GetTitle())
+		g['RSA'].SetNameTitle('g_RSA_'+key, ';'+h['RSA'].GetXaxis().GetTitle()+';'+'Reco Match Efficiency')#+h['RSA'].GetYaxis().GetTitle())
+
+		p['DSA'] = Plotter.Plot(g['DSA'], 'DSA', 'elp', 'pe')
+		p['RSA'] = Plotter.Plot(g['RSA'], 'RSA', 'elp', 'pe')
+	else:
+		p['DSA'] = Plotter.Plot(h['DSA'], 'DSA', 'lp', 'hist p')
+		p['RSA'] = Plotter.Plot(h['RSA'], 'RSA', 'lp', 'hist p')
+
 	canvas = Plotter.Canvas()
 	canvas.addMainPlot(p['DSA'])
 	canvas.addMainPlot(p['RSA'])
@@ -183,10 +198,10 @@ def makeOverlayGlobalPlots(key, DenKey=None):
 	p['RSA'].SetMarkerColor(R.kBlue)
 	p['DSA'].SetLineColor(R.kRed)
 	p['RSA'].SetLineColor(R.kBlue)
-	canvas.makeLegend(pos='br')
+
+	canvas.makeLegend(pos='br' if key == 'pTEff' else 'tr')
 	canvas.firstPlot.SetMaximum(1.)
 	Cleanup(canvas, 'pdfs/{}.pdf'.format('Reco_'+key))
-
 
 # make 3D color plots
 def makeColorPlot(key):
@@ -209,6 +224,6 @@ def makeColorPlot(key):
 #makeGlobalPlot('DSA_pTEff' , DenKey='pTDen' )
 #makeGlobalPlot('RSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('RSA_pTEff' , DenKey='pTDen' )
-makeOverlayPerSignalPlots()
+#makeOverlayPerSignalPlots()
 makeOverlayGlobalPlots('LxyEff', DenKey='LxyDen')
 makeOverlayGlobalPlots('pTEff' , DenKey='pTDen' )
