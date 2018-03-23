@@ -27,6 +27,9 @@ def fillPlots(sp):
 	HISTS[sp]['RSA_d0Dif' ] = R.TH1F('RSA_d0Dif_{}' .format(SPStr(sp)), ';RSA d_{0} #minus gen d_{0};Counts'            , 1000, -10., 10.  )
 	HISTS[sp]['RSA_nMuon' ] = R.TH1F('RSA_nMuon_{}' .format(SPStr(sp)), ';RSA Muon Multiplicity;Counts'                 , 11  , 0.  , 11.  )
 
+	HISTS[sp]['ExtraLxy'  ] = R.TH1F('ExtraLxy_{}'  .format(SPStr(sp)), ';L_{xy} [cm];Efficiency'                       , 1000, 0.  , 1500.)
+	HISTS[sp]['ExtraPt'   ] = R.TH1F('ExtraPt_{}'   .format(SPStr(sp)), ';p_{T} [GeV];Efficiency'                       , 1000, 0.  , 500. )
+
 	HISTS[sp]['pTDen'     ] = R.TH1F('pTDen_{}'     .format(SPStr(sp)), ''                                              , 1000, 0.  , 500. )
 	HISTS[sp]['LxyDen'    ] = R.TH1F('LxyDen_{}'    .format(SPStr(sp)), ''                                              , 1000, 0.  , 1500.)
 
@@ -69,6 +72,7 @@ def fillPlots(sp):
 			HISTS[sp]['pTDen' ].Fill(genMuon.pt)
 
 			PREFIX = 'DSA'
+			foundDSA = False
 			for recoMuons in (DSAmuons, RSAmuons):
 				matches = matchedMuons(genMuon, recoMuons)
 				if len(matches) != 0:
@@ -78,6 +82,13 @@ def fillPlots(sp):
 						HISTS[sp][PREFIX+'_d0Dif' ].Fill((closestRecoMuon.d0 - genMuon.d0))
 						HISTS[sp][PREFIX+'_LxyEff'].Fill(genMuonLxy)
 						HISTS[sp][PREFIX+'_pTEff' ].Fill(genMuon.pt)
+
+						if PREFIX == 'DSA':
+							foundDSA = True
+
+						if PREFIX == 'RSA' and not foundDSA:
+							HISTS[sp]['ExtraLxy'].Fill(genMuonLxy)
+							HISTS[sp]['ExtraPt' ].Fill(genMuon.pt)
 				PREFIX = 'RSA'
 
 	# cleanup
@@ -118,6 +129,8 @@ DEFAULT_HLIST = [
 	'RSA_LxyDen',
 	'RSA_d0Dif' ,
 	'RSA_nMuon' ,
+	'ExtraLxy'  ,
+	'ExtraPt'   ,
 ]
 HLIST = DEFAULT_HLIST
 BRANCHKEYS = ('GEN', 'DSAMUON', 'RSAMUON')

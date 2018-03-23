@@ -150,28 +150,38 @@ def makeGlobalPlot(key, DenKey=None):
 
 	canvas = Plotter.Canvas()
 	canvas.addMainPlot(p)
+	canvas.firstPlot.SetMinimum(0.)
+	canvas.firstPlot.SetMaximum(1.)
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
 # make overlaid plots that combine all signal points
 def makeOverlayGlobalPlots(key, DenKey=None):
+	ExtraKey = 'ExtraPt' if key == 'pTEff' else 'ExtraLxy'
 	for i, sp in enumerate(RECOSIGNALPOINTS):
 		if i == 0:
 			h = {}
 			h['DSA'] = f.Get('{}_{}'.format('DSA_'+key, SPStr(sp)))
 			h['RSA'] = f.Get('{}_{}'.format('RSA_'+key, SPStr(sp)))
+			h['Ext'] = f.Get('{}_{}'.format(ExtraKey  , SPStr(sp)))
+
 			h['DSA'].SetDirectory(0)
 			h['RSA'].SetDirectory(0)
+			h['Ext'].SetDirectory(0)
+
 			if DenKey is not None:
 				hDen = f.Get('{}_{}'.format(DenKey, SPStr(sp)))
 				hDen.SetDirectory(0)
 		else:
 			h['DSA'].Add(f.Get('{}_{}'.format('DSA_'+key, SPStr(sp))))
 			h['RSA'].Add(f.Get('{}_{}'.format('RSA_'+key, SPStr(sp))))
+			h['Ext'].Add(f.Get('{}_{}'.format(ExtraKey  , SPStr(sp))))
+
 			if DenKey is not None:
 				hDen.Add(f.Get('{}_{}'.format(DenKey, SPStr(sp))))
 
 	h['DSA'].Rebin(10)
 	h['RSA'].Rebin(10)
+	h['Ext'].Rebin(10)
 
 	p = {}
 
@@ -181,12 +191,15 @@ def makeOverlayGlobalPlots(key, DenKey=None):
 		g = {}
 		g['DSA'] = R.TGraphAsymmErrors(h['DSA'], hDen, 'cp')
 		g['RSA'] = R.TGraphAsymmErrors(h['RSA'], hDen, 'cp')
+		g['Ext'] = R.TGraphAsymmErrors(h['Ext'], hDen, 'cp')
 
 		g['DSA'].SetNameTitle('g_DSA_'+key, ';'+h['DSA'].GetXaxis().GetTitle()+';'+'Reco Match Efficiency')#+h['DSA'].GetYaxis().GetTitle())
 		g['RSA'].SetNameTitle('g_RSA_'+key, ';'+h['RSA'].GetXaxis().GetTitle()+';'+'Reco Match Efficiency')#+h['RSA'].GetYaxis().GetTitle())
+		g['Ext'].SetNameTitle('g_Ext_'+key, ';'+h['Ext'].GetXaxis().GetTitle()+';'+'Reco Match Efficiency')#+h['Ext'].GetYaxis().GetTitle())
 
-		p['DSA'] = Plotter.Plot(g['DSA'], 'DSA', 'elp', 'pe')
-		p['RSA'] = Plotter.Plot(g['RSA'], 'RSA', 'elp', 'pe')
+		p['DSA'] = Plotter.Plot(g['DSA'], 'DSA'  , 'elp', 'pe')
+		p['RSA'] = Plotter.Plot(g['RSA'], 'RSA'  , 'elp', 'pe')
+		p['Ext'] = Plotter.Plot(g['Ext'], 'Extra', 'elp', 'pe')
 	else:
 		p['DSA'] = Plotter.Plot(h['DSA'], 'DSA', 'lp', 'hist p')
 		p['RSA'] = Plotter.Plot(h['RSA'], 'RSA', 'lp', 'hist p')
@@ -194,12 +207,18 @@ def makeOverlayGlobalPlots(key, DenKey=None):
 	canvas = Plotter.Canvas()
 	canvas.addMainPlot(p['DSA'])
 	canvas.addMainPlot(p['RSA'])
+	canvas.addMainPlot(p['Ext'])
 	p['DSA'].SetMarkerColor(R.kRed)
 	p['RSA'].SetMarkerColor(R.kBlue)
+	p['Ext'].SetMarkerColor(R.kMagenta)
 	p['DSA'].SetLineColor(R.kRed)
 	p['RSA'].SetLineColor(R.kBlue)
+	p['Ext'].SetLineColor(R.kMagenta)
 
 	canvas.makeLegend(pos='br' if key == 'pTEff' else 'tr')
+	if key == 'pTEff':
+		canvas.legend.moveLegend(Y=.1)
+	canvas.firstPlot.SetMinimum(0.)
 	canvas.firstPlot.SetMaximum(1.)
 	Cleanup(canvas, 'pdfs/{}.pdf'.format('Reco_'+key))
 

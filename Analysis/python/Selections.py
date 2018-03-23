@@ -29,6 +29,18 @@ MuonAcceptanceCutList = ('pt', 'eta', 'Lxy')
 MuonCutListPlusAll = MuonCutList + ('all',)
 MuonCutListPlusNone = ('none',) + MuonCutList
 
+PrettyTitles = {
+	'pt'        : 'p_{T}',
+	'eta'       : '#eta',
+	'Lxy'       : 'L_{xy}',
+	'normChi2'  : '#chi^{2}/dof',
+	'nMuonHits' : 'N(Hits)',
+	'nStations' : 'N(Stations)',
+	'd0Sig'     : '|d_{0}|/#sigma_{d_{0}}',
+	'all'       : 'all',
+	'none'      : 'none',
+}
+
 class MuonSelection(object):
 	def __init__(self, muon, cutList=MuonCutList):
 		self.results = {key:MuonCuts[key].apply(muon) for key in cutList}

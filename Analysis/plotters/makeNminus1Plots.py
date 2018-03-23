@@ -25,7 +25,7 @@ for fields in data:
 
 	for i,header in enumerate(Selections.MuonCutListPlusNone):
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
-		HISTS[sp].GetXaxis().SetBinLabel(i+1, header)
+		HISTS[sp].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
 
 f = R.TFile('roots/NMinusOne.root', 'RECREATE')
 for sp in HISTS:
