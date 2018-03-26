@@ -39,6 +39,7 @@
 #include "DisplacedDimuons/Tupler/interface/MuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/RSAMuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
 
 // class declaration
 class SimpleNTupler : public edm::EDAnalyzer
@@ -62,6 +63,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		MuonBranches muonData;
 		DSAMuonBranches dsaMuonData;
 		RSAMuonBranches rsaMuonData;
+		DimuonBranches dimData;
 
 		edm::EDGetTokenT<edm::TriggerResults> triggerToken;
 		edm::EDGetTokenT<reco::BeamSpot> beamspotToken;
@@ -84,6 +86,7 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	muonData(tree),
 	dsaMuonData(tree),
 	rsaMuonData(tree),
+	dimData(tree),
 	triggerToken(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 	beamspotToken(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamspot"))),
 	vertexToken(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
@@ -128,6 +131,8 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	edm::Handle<reco::TrackCollection> rsaMuons;
 	iEvent.getByToken(rsaMuonToken, rsaMuons);
 	rsaMuonData.Fill(*rsaMuons, *vertices);
+
+	dimData.Fill(iSetup, dsaMuons, *vertices);
 
 	tree.Fill();
 

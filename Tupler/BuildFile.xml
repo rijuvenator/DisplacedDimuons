@@ -11,6 +11,10 @@
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="SimDataFormats/GeneratorProducts"/>
+<use name="TrackingTools/TransientTrack"/>
+<use name="TrackingTools/Records"/>
+<use name="RecoVertex/VertexPrimitives"/>
+<use name="RecoVertex/KalmanVertexFit"/>
 <export>
 	<lib name="1"/>
 </export>
