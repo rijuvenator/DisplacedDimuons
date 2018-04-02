@@ -22,22 +22,24 @@ for sp in SIGNALPOINTS:
 	f = R.TFile.Open(DIR_WS + 'simple_ntuple_{}.root'.format(SPStr(sp)))
 	t = f.Get('SimpleNTupler/DDTree')
 
-	IndivEffDict = {key:0 for key in Selections.MuonCutListPlusAll}
-	CumEffDict = {key:0 for key in Selections.MuonCutListPlusNone}
-	Total = 0
+	Counters = {'Muon':{'IND':{}, 'CUM':{}, 'TOTAL':0}, 'Dimuon':{'IND':{}, 'CUM':{}, 'TOTAL':0}}
+	for PREFIX in ('Muon', 'Dimuon'):
+		for DTYPE, SUFFIX in zip(('IND', 'CUM'),('All', 'None')):
+			Counters[PREFIX][DTYPE] = {key:0 for key in Selections.CutLists[PREFIX+'CutListPlus'+SUFFIX]}
 
-	Primitives.SelectBranches(t, ('DSAMUON', 'GEN'))
+	Primitives.SelectBranches(t, ('DSAMUON', 'GEN', 'DIMUON'))
 	#Primitives.SelectBranches(t, ('DSAMUON', 'RSAMUON', 'GEN'))
 	for i, event in enumerate(t):
 
 		if args.DEVELOP:
 			if i == 1000: break
 
-		E = Primitives.ETree(t, ('DSAMUON', 'GEN'))
+		E = Primitives.ETree(t, ('DSAMUON', 'GEN', 'DIMUON'))
 		#E = Primitives.ETree(t, ('DSAMUON', 'RSAMUON', 'GEN'))
 		mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
 		DSAmuons = E.getPrimitives('DSAMUON')
 		#RSAmuons = E.getPrimitives('RSAMUON')
+		Dimuons = E.getPrimitives('DIMUON')
 
 		def matchedMuons(genMuon, recoMuons):
 			matches = []
@@ -49,10 +51,10 @@ for sp in SIGNALPOINTS:
 
 		for genMuon in (mu11, mu12, mu21, mu22):
 			# cut genMuons outside the detector acceptance
-			genMuonSelection = Selections.MuonSelection(genMuon, cutList=Selections.MuonAcceptanceCutList)
+			genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
 			if not genMuonSelection: continue
 
-			Total += 1
+			Counters['Muon']['TOTAL'] += 1
 
 			PREFIX = 'DSA'
 			for recoMuons in (DSAmuons,):
@@ -61,17 +63,30 @@ for sp in SIGNALPOINTS:
 				if len(matches) != 0:
 					closestRecoMuon = recoMuons[matches[0][0]]
 					Selection = Selections.MuonSelection(closestRecoMuon)
-					Selection.IndividualIncrement(IndivEffDict)
-					Selection.SequentialIncrement(CumEffDict)
+					Selection.IndividualIncrement(Counters['Muon']['IND'])
+					Selection.SequentialIncrement(Counters['Muon']['CUM'])
+
+		for dimuon in Dimuons:
+			Muon1Selection = Selections.MuonSelection(DSAmuons[dimuon.idx1])
+			Muon2Selection = Selections.MuonSelection(DSAmuons[dimuon.idx2])
+			if Muon1Selection.allExcept('d0Sig') and Muon2Selection.allExcept('d0Sig'):
+				Counters['Dimuon']['TOTAL'] += 1
+			else:
+				continue
+			dimuonSelection = Selections.DimuonSelection(dimuon)
+			dimuonSelection.IndividualIncrement(Counters['Dimuon']['IND'])
+			dimuonSelection.SequentialIncrement(Counters['Dimuon']['CUM'])
 
 	del t
 	f.Close()
 	del f
 
-	fstring = 'IND: {mH:<9d} {mX:<9d} {cTau:<9d} '
-	fstring += ' '.join(['{'+key+':<9.3f}' for key in Selections.MuonCutListPlusAll])
-	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in IndivEffDict.iteritems()})
+	for PREFIX,SHORT in zip(('Muon', 'Dimuon'),('MUO','DIM')):
+		for DTYPE,SUFFIX in zip(('IND', 'CUM'),('All', 'None')):
+			fstring = SHORT+' '+DTYPE+': {mH:<9s} {mX:<9s} {cTau:<9s} '
+			fstring += ' '.join(['{'+key+':<9s}' for key in Selections.CutLists[PREFIX+'CutListPlus'+SUFFIX]])
+			print fstring.format(mH='mH', mX='mX', cTau='cTau', **{key:key for key in Selections.CutLists[PREFIX+'CutListPlus'+SUFFIX]})
 
-	fstring = 'CUM: {mH:<9d} {mX:<9d} {cTau:<9d} '
-	fstring += ' '.join(['{'+key+':<9.3f}' for key in Selections.MuonCutListPlusNone])
-	print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Total) for key, value in CumEffDict.iteritems()})
+			fstring = SHORT+' '+DTYPE+': {mH:<9d} {mX:<9d} {cTau:<9d} '
+			fstring += ' '.join(['{'+key+':<9.3f}' for key in Selections.CutLists[PREFIX+'CutListPlus'+SUFFIX]])
+			print fstring.format(mH=sp[0], mX=sp[1], cTau=sp[2], **{key:value/float(Counters[PREFIX]['TOTAL']) for key, value in Counters[PREFIX][DTYPE].iteritems()})

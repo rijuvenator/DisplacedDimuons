@@ -19,6 +19,7 @@ BRANCHPREFIXES = {
 	'MUON'     : 'mu_'   ,
 	'DSAMUON'  : 'dsamu_',
 	'RSAMUON'  : 'rsamu_',
+	'DIMUON'   : 'dim_'  ,
 }
 BRANCHKEYS = tuple(BRANCHPREFIXES.keys())
 
@@ -64,6 +65,8 @@ class ETree(object):
 			return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
 		if KEY == 'RSAMUON':
 			return    [Muon    (self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
+		if KEY == 'DIMUON':
+			return    [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -92,9 +95,10 @@ class Particle(Primitive):
 
 # Muon class
 # sets all the particle variables
-# distinguishes three "kinds" of muons:
+# distinguishes several "kinds" of muons:
 # reco AOD muon, GEN muon, and the GEN particle attached to the reco AOD muon
 # the last one is called "SUB"
+# and also DSA reco muon and RSA reco muon
 class Muon(Particle):
 	def __init__(self, E, i, source=None):
 		self.source = source
@@ -138,3 +142,10 @@ class Vertex(Primitive):
 			self.set(attr, E, 'vtx_'+attr, i)
 
 		self.pos = R.TVector3(self.x, self.y, self.z)
+
+# Dimuon class
+class Dimuon(Particle):
+	def __init__(self, E, i):
+		Particle.__init__(self, E, i, 'dim_')
+		for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy'):
+			self.set(attr, E, 'dim_'+attr, i)

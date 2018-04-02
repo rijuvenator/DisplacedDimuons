@@ -3,27 +3,29 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Analysis.Utilities import SPStr
 from DisplacedDimuons.Analysis.Constants import RECOSIGNALPOINTS
+import re
 
+MuonCutListPlusNone = Selections.CutLists['MuonCutListPlusNone']
 data = []
-headers = ('mH', 'mX', 'cTau') + Selections.MuonCutListPlusNone
+headers = ('mH', 'mX', 'cTau') + MuonCutListPlusNone
 
-f = open('../dumpers/cutEfficiencyTable.txt')
+f = open('../dumpers/newCutTable.txt')
 for line in f:
-	if line[0:3] != 'CUM': continue
+	if not re.match(r'MUO CUM: \d', line): continue
 	cols = line.strip('\n').split()
 
 	fields = {}
 	for i,header in enumerate(headers):
-		fields[header] = cols[i+1]
+		fields[header] = cols[i+2]
 	data.append(fields)
 f.close()
 
 HISTS = {}
 for fields in data:
 	sp = (int(fields['mH']), int(fields['mX']), int(fields['cTau']))
-	HISTS[sp] = R.TH1F('NM1_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(Selections.MuonCutListPlusNone), 0, len(Selections.MuonCutListPlusNone))
+	HISTS[sp] = R.TH1F('NM1_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
 
-	for i,header in enumerate(Selections.MuonCutListPlusNone):
+	for i,header in enumerate(MuonCutListPlusNone):
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
 		HISTS[sp].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
 

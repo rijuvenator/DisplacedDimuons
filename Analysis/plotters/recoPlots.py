@@ -64,7 +64,7 @@ def fillPlots(sp):
 		# fill histogram
 		for genMuon in (mu11, mu12, mu21, mu22):
 			# cut genMuons outside the detector acceptance
-			genMuonSelection = Selections.MuonSelection(genMuon, cutList=Selections.MuonAcceptanceCutList)
+			genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
 			if not genMuonSelection: continue
 
 			genMuonLxy = genMuon.Lxy()
