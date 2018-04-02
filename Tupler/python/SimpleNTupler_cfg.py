@@ -14,12 +14,12 @@ signalPoint = (args.mH, args.mX, args.cTau)
 DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
 DIR_EOS = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
 INPUTFILES = ['file:' + DIR_EOS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']
-#OUTPUTFILE = DIR_WS + 'simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
-OUTPUTFILE = './simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
+OUTPUTFILE = DIR_WS + 'simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
+#OUTPUTFILE = './simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
 #####
 
 # parameters and constants
-MAXEVENTS   = 10
+MAXEVENTS   = -1
 
 # just to make the module declarations a bit cleaner
 MODULES = 'DisplacedDimuons.Tupler.Modules.'
@@ -53,11 +53,12 @@ process.load(MODULES+'SimpleNTupler_cfi')
 process.TFileService.fileName = cms.string(OUTPUTFILE)
 
 # add transient track builder
-process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
-process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+#process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = 'auto:run2_mc'
+process.GlobalTag.globaltag = '92X_upgrade2017_realistic_v12'
 
 # declare final path
 process.nTuplerPath = cms.Path(process.SimpleNTupler)
