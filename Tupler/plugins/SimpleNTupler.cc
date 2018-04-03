@@ -132,7 +132,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	iEvent.getByToken(rsaMuonToken, rsaMuons);
 	rsaMuonData.Fill(*rsaMuons, *vertices);
 
-	dimData.Fill(iSetup, dsaMuons, *vertices);
+	dimData.Fill(iSetup, *dsaMuons, *vertices);
 
 	tree.Fill();
 

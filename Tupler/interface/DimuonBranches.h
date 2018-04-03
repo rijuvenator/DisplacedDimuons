@@ -19,6 +19,7 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // ROOT includes
+#include "TVector3.h"
 #include "TLorentzVector.h"
 
 // muon branch collection
@@ -43,6 +44,8 @@ class DimuonBranches : BranchCollection
 			Declare("dim_Lxy"     , dim_Lxy     );
 			Declare("dim_deltaR"  , dim_deltaR  );
 			Declare("dim_normChi2", dim_normChi2);
+			Declare("dim_cosAlpha", dim_cosAlpha);
+			Declare("dim_deltaPhi", dim_deltaPhi);
 		}
 
 		// members
@@ -61,6 +64,8 @@ class DimuonBranches : BranchCollection
 		std::vector<float       > dim_Lxy     ;
 		std::vector<float       > dim_deltaR  ;
 		std::vector<float       > dim_normChi2;
+		std::vector<float       > dim_cosAlpha;
+		std::vector<float       > dim_deltaPhi;
 
 
 		// methods
@@ -81,9 +86,11 @@ class DimuonBranches : BranchCollection
 			dim_Lxy     .clear();
 			dim_deltaR  .clear();
 			dim_normChi2.clear();
+			dim_cosAlpha.clear();
+			dim_deltaPhi.clear();
 		}
 
-		void Fill(const edm::EventSetup& iSetup, edm::Handle<reco::TrackCollection> &muonHandle, const reco::VertexCollection &vertices);
+		void Fill(const edm::EventSetup& iSetup, const reco::TrackCollection &muons, const reco::VertexCollection &vertices);
 };
 
 #endif

@@ -1,20 +1,26 @@
 <use name="root"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="DataFormats/BeamSpot"/>
+<use name="DataFormats/Common"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="DataFormats/TrackReco"/>
+<use name="DataFormats/VertexReco"/>
+<use name="FWCore/Common"/>
 <use name="FWCore/Framework"/>
 <use name="FWCore/ParameterSet"/>
-
 <use name="FWCore/ServiceRegistry"/>
-<use name="CommonTools/UtilAlgos"/>
-
-<use name="DataFormats/Common"/>
-<use name="DataFormats/BeamSpot"/>
-<use name="DataFormats/VertexReco"/>
-<use name="DataFormats/PatCandidates"/>
-<use name="DataFormats/HepMCCandidate"/>
-<use name="SimDataFormats/GeneratorProducts"/>
-<use name="TrackingTools/TransientTrack"/>
-<use name="TrackingTools/Records"/>
-<use name="RecoVertex/VertexPrimitives"/>
 <use name="RecoVertex/KalmanVertexFit"/>
+<use name="RecoVertex/VertexPrimitives"/>
+<use name="SimDataFormats/GeneratorProducts"/>
+<use name="TrackingTools/Records"/>
+<use name="TrackingTools/TransientTrack"/>
 <export>
 	<lib name="1"/>
 </export>
+
+<!-- To keep this up to date, run this command. It searches for all #includes and returns a list of CMSSW packages in XML format
+
+	grep -r '#include ".*\/' | awk '!/DisplacedD/{sub(/\/interface\/.*\.h/,"",$NF); sub(/^/,"<use name=",$NF); sub(/$/,"/>",$NF); print $NF}' | sort | uniq
+
+-->
