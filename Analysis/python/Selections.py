@@ -1,4 +1,5 @@
 import operator
+import math
 
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264'}
@@ -21,24 +22,26 @@ class Cut(object):
 
 # dictionaries of Cut objects
 MuonCuts = {
-	'pt'        : Cut('pt'       , lambda muon: muon.pt                             , operator.gt,  26.),
-	'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.),
-	'Lxy'       : Cut('Lxy'      , lambda muon: muon.Lxy()                          , operator.lt, 650.),
-	'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.),
-	'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17 ),
-	'nStations' : Cut('nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   3 ),
-	'd0Sig'     : Cut('d0Sig'    , lambda muon: muon.d0MVSig                        , operator.gt,   4.),
+	'pt'        : Cut('pt'       , lambda muon: muon.pt                             , operator.gt,  26.      ),
+	'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
+	'Lxy'       : Cut('Lxy'      , lambda muon: muon.Lxy()                          , operator.lt, 500.      ),
+	'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
+	'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17       ),
+	'nStations' : Cut('nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   3       ),
+	'd0Sig'     : Cut('d0Sig'    , lambda muon: muon.d0MVSig                        , operator.gt,   4.      ),
 }
 DimuonCuts = {
-	'vtxChi2'   : Cut('vtxChi2'  , lambda dimuon: dimuon.normChi2                   , operator.lt,  4. ),
-	'deltaR'    : Cut('deltaR'   , lambda dimuon: dimuon.deltaR                     , operator.gt,  0.2),
-	'mass'      : Cut('mass'     , lambda dimuon: dimuon.mass                       , operator.gt, 15. ),
+	'vtxChi2'   : Cut('vtxChi2'  , lambda dimuon: dimuon.normChi2                   , operator.lt,  4.       ),
+	'deltaR'    : Cut('deltaR'   , lambda dimuon: dimuon.deltaR                     , operator.gt,  0.2      ),
+	'mass'      : Cut('mass'     , lambda dimuon: dimuon.mass                       , operator.gt, 15.       ),
+	'deltaPhi'  : Cut('deltaPhi' , lambda dimuon: dimuon.deltaPhi                   , operator.lt, math.pi/2.),
+	'cosAlpha'  : Cut('cosAlpha' , lambda dimuon: dimuon.cosAlpha                   , operator.gt, -0.75     ),
 }
 
 # CutLists for access convenience (and ordering)
 CutLists = {
 	'MuonCutList'  : ('pt', 'eta', 'Lxy', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
-	'DimuonCutList': ('vtxChi2', 'deltaR', 'mass'),
+	'DimuonCutList': ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha'),
 }
 
 CutLists['MuonAcceptanceCutList'] = CutLists['MuonCutList'][0:3]
@@ -58,6 +61,8 @@ PrettyTitles = {
 	'vtxChi2'   : 'vtx #chi^{2}/dof',
 	'deltaR'    : '#DeltaR',
 	'mass'      : 'M(#mu#mu)',
+	'deltaPhi'  : '|#Delta#Phi|',
+	'cosAlpha'  : '#cos(#alpha)',
 	'all'       : 'all',
 	'none'      : 'none',
 }

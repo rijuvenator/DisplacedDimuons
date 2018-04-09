@@ -9,7 +9,7 @@ f = R.TFile.Open('roots/RecoPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
 	parts = hkey.split('_')
 	sp = tuple(map(int, parts[-3:]))
-	key = parts[0] + '_' + parts[1] # this is peculiar to my DSA RSA naming convention
+	key = '_'.join(parts[:-3])
 	if sp not in HISTS:
 		HISTS[sp] = {}
 	HISTS[sp][key] = f.Get(hkey)
@@ -22,28 +22,35 @@ def Cleanup(canvas, filename):
 
 # make plots that are per signal point
 def makePerSignalPlots():
-	CONFIG = {
-		'DSA_pTRes' : {'DOFIT' :  True},
-		'DSA_d0Dif' : {'DOFIT' : False},
-		'DSA_nMuon' : {'DOFIT' : False},
-		'RSA_pTRes' : {'DOFIT' :  True},
-		'RSA_d0Dif' : {'DOFIT' : False},
-		'RSA_nMuon' : {'DOFIT' : False},
-	}
+	KEYS = (
+#		'DSA_pTRes',
+#		'DSA_d0Dif',
+#		'DSA_nMuon',
+#		'RSA_pTRes',
+#		'RSA_d0Dif',
+#		'RSA_nMuon',
+		'Dim_vtxChi2',
+		'Dim_deltaR',
+		'Dim_mass',
+		'Dim_deltaPhi',
+		'Dim_cosAlpha',
+	)
+
 	for sp in RECOSIGNALPOINTS:
-		for key in CONFIG:
+		for key in KEYS:
+			DOFIT = 'pTRes' in key
 			h = HISTS[sp][key]
 			p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
 			fname = 'pdfs/{}_{}.pdf'.format(key, SPStr(sp))
 
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				func = R.TF1('f1', 'gaus', -0.5, 0.4)
 				h.Fit('f1')
 				f = Plotter.Plot(func, 'Gaussian fit', 'l', '')
 
 			canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
 			canvas.addMainPlot(p)
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				canvas.addMainPlot(f)
 			canvas.makeLegend(lWidth=.25, pos='tr')
 			canvas.legend.moveLegend(Y=-.3)
@@ -51,7 +58,7 @@ def makePerSignalPlots():
 			p.SetLineColor(R.kBlue)
 			canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
 			canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				f.SetLineColor(R.kRed)
 				canvas.setFitBoxStyle(h, lWidth=0.35, pos='tr')
 				p.FindObject('stats').SetTextColor(R.kRed)
@@ -61,13 +68,14 @@ def makePerSignalPlots():
 
 # make DSA RSA overlaid per signal plots
 def makeOverlayPerSignalPlots():
-	CONFIG = {
-		'pTRes' : {'DOFIT' :  True},
-		'd0Dif' : {'DOFIT' : False},
-		'nMuon' : {'DOFIT' : False},
-	}
+	KEYS = (
+		'pTRes',
+		'd0Dif',
+		'nMuon',
+	)
 	for sp in RECOSIGNALPOINTS:
-		for key in CONFIG:
+		for key in KEYS:
+			DOFIT = key == 'pTRes'
 			h = {}
 			h['DSA'] = HISTS[sp]['DSA_'+key]
 			h['RSA'] = HISTS[sp]['RSA_'+key]
@@ -76,7 +84,7 @@ def makeOverlayPerSignalPlots():
 				p[rtype] = Plotter.Plot(h[rtype], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(rtype), 'l', 'hist')
 			fname = 'pdfs/{}_{}.pdf'.format('Reco_'+key, SPStr(sp))
 
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				funcs = {}
 				fplots = {}
 				for rtype in h:
@@ -88,7 +96,7 @@ def makeOverlayPerSignalPlots():
 			canvas.addMainPlot(p['DSA'])
 			canvas.addMainPlot(p['RSA'], addS=True)
 
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				canvas.addMainPlot(fplots['DSA'])
 				canvas.addMainPlot(fplots['RSA'])
 
@@ -107,7 +115,7 @@ def makeOverlayPerSignalPlots():
 			if key == 'nMuon':
 				canvas.firstPlot.SetMaximum(1.05 * max(p['DSA'].GetMaximum(), p['RSA'].GetMaximum()))
 
-			if CONFIG[key]['DOFIT']:
+			if DOFIT:
 				fplots['DSA'].SetLineColor(R.kBlack)
 				fplots['RSA'].SetLineColor(R.kGreen+1)
 
@@ -238,11 +246,11 @@ def makeColorPlot(key):
 	canvas.scaleMargins(0.75, edges='L')
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
-#makePerSignalPlots()
+makePerSignalPlots()
 #makeGlobalPlot('DSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('DSA_pTEff' , DenKey='pTDen' )
 #makeGlobalPlot('RSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('RSA_pTEff' , DenKey='pTDen' )
-#makeOverlayPerSignalPlots()
+makeOverlayPerSignalPlots()
 makeOverlayGlobalPlots('LxyEff', DenKey='LxyDen')
 makeOverlayGlobalPlots('pTEff' , DenKey='pTDen' )

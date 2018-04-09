@@ -295,6 +295,12 @@ var TYPES = [
 	['Reco_NMinusOne', 'Reco N&minus;1'               , 2, 'per'],
 	['Reco_pTEff'    , 'Reco p' + 'T'.sub() + ' Eff'  , 2, 'glo'],
 	['Reco_LxyEff'   , 'Reco L' + 'xy'.sub() + ' Eff' , 2, 'glo'],
+
+	['Dim_vtxChi2'   , '&mu;&mu; vtx &chi;' + '2'.sup() + '/dof', 3, 'per'],
+	['Dim_deltaR'    , '&mu;&mu; &Delta;R'                      , 3, 'per'],
+	['Dim_mass'      , 'M(&mu;&mu;)'                            , 3, 'per'],
+	['Dim_deltaPhi'  , '&mu;&mu; &Delta;&Phi;'                  , 3, 'per'],
+	['Dim_cosAlpha'  , '&mu;&mu; cos(&alpha;)'                  , 3, 'per'],
 ];
 
 //**** MAIN CODE ****

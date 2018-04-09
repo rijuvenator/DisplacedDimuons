@@ -147,5 +147,5 @@ class Vertex(Primitive):
 class Dimuon(Particle):
 	def __init__(self, E, i):
 		Particle.__init__(self, E, i, 'dim_')
-		for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy'):
+		for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy', 'deltaPhi', 'cosAlpha'):
 			self.set(attr, E, 'dim_'+attr, i)
