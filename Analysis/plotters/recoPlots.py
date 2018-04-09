@@ -13,7 +13,7 @@ def matchedMuons(genMuon, recoMuons):
 	matches = []
 	for i,muon in enumerate(recoMuons):
 		deltaR = muon.p4.DeltaR(genMuon.p4)
-		if deltaR < 0.3 and Selections.MuonCuts['pt'].apply(muon):
+		if deltaR < 0.3 and Selections.MuonCuts['pt'].apply(muon) and muon.charge == genMuon.charge:
 			matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt})
 	return sorted(matches, key=lambda dic:dic['pt'])
 
@@ -66,6 +66,19 @@ def fillPlots(sp):
 		RSAmuons = E.getPrimitives('RSAMUON')
 		Dimuons  = E.getPrimitives('DIMUON' )
 
+		DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
+		RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+
+		nDSA, nRSA = 0, 0
+		for sel in DSASelections:
+			if sel.passesAcceptance():
+				nDSA += 1
+		for sel in RSASelections:
+			if sel.passesAcceptance():
+				nRSA += 1
+		HISTS[sp]['DSA_nMuon'].Fill(nDSA)
+		HISTS[sp]['RSA_nMuon'].Fill(nRSA)
+
 		# loop over genMuons and fill histograms based on matches
 		for genMuon in (mu11, mu12, mu21, mu22):
 			# cut genMuons outside the detector acceptance
@@ -80,7 +93,6 @@ def fillPlots(sp):
 			foundDSA = False
 			for recoMuons in (DSAmuons, RSAmuons):
 				matches = matchedMuons(genMuon, recoMuons)
-				HISTS[sp][PREFIX+'_nMuon'].Fill(len(matches))
 				if len(matches) != 0:
 					closestRecoMuon = recoMuons[matches[0]['idx']]
 					HISTS[sp][PREFIX+'_pTRes' ].Fill((closestRecoMuon.pt - genMuon.pt)/genMuon.pt)
@@ -97,9 +109,7 @@ def fillPlots(sp):
 				PREFIX = 'RSA'
 
 		for dimuon in Dimuons:
-			Muon1Selection = Selections.MuonSelection(DSAmuons[dimuon.idx1])
-			Muon2Selection = Selections.MuonSelection(DSAmuons[dimuon.idx2])
-			if Muon1Selection.passesAcceptance() and Muon2Selection.passesAcceptance():
+			if DSASelections[dimuon.idx1].passesAcceptance() and DSASelections[dimuon.idx2].passesAcceptance():
 				HISTS[sp]['Dim_vtxChi2' ].Fill(dimuon.normChi2)
 				HISTS[sp]['Dim_deltaR'  ].Fill(dimuon.deltaR  )
 				HISTS[sp]['Dim_mass'    ].Fill(dimuon.mass    )
@@ -130,27 +140,6 @@ parser.add_argument('--develop'     , dest='DEVELOP'    , action='store_true', h
 args = parser.parse_args()
 
 HISTS = {}
-DEFAULT_HLIST = [
-	'DSA_pTRes'   ,
-	'DSA_pTEff'   ,
-	'DSA_pTDen'   ,
-	'DSA_LxyEff'  ,
-	'DSA_LxyDen'  ,
-	'DSA_d0Dif'   ,
-	'DSA_nMuon'   ,
-	'RSA_pTRes'   ,
-	'RSA_pTEff'   ,
-	'RSA_pTDen'   ,
-	'RSA_LxyEff'  ,
-	'RSA_LxyDen'  ,
-	'RSA_d0Dif'   ,
-	'RSA_nMuon'   ,
-	'ExtraLxy'    ,
-	'ExtraPt'     ,
-	'Dim_deltaPhi',
-	'Dim_cosAlpha',
-]
-HLIST = DEFAULT_HLIST
 BRANCHKEYS = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON')
 
 if not args.SIGNALPOINT:

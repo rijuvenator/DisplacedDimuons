@@ -96,6 +96,8 @@ def makeOverlayPerSignalPlots():
 			canvas.addMainPlot(p['DSA'])
 			canvas.addMainPlot(p['RSA'], addS=True)
 
+			canvas.firstPlot.setTitles(X=canvas.firstPlot.GetXaxis().GetTitle().replace('DSA','Reco'))
+
 			if DOFIT:
 				canvas.addMainPlot(fplots['DSA'])
 				canvas.addMainPlot(fplots['RSA'])
