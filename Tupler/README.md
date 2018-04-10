@@ -22,19 +22,19 @@ There are two plugins in `plugins/`:
     * implement the `Reset()` method, which specifies reset/default values
     * implement a `Fill()` method, which takes as arguments the CMSSW collections and sets values for the branches. These are the methods implemented in the `.cc` files.
   
-  The current list of _BranchCollection_ classes are:
+The current list of _BranchCollection_ classes are:
   
-    * **EventBranches**: for event, run, lumi, bx (`edm::Event`)
-    * **TriggerBranches**: for trigger data (`TriggerResults`)
-    * **BeamspotBranches**: for beamspot data (`offlineBeamSpot`)
-    * **VertexBranches**: for vertex data (`offlinePrimaryVertices`)
-    * **GenBranches**: for gen particle data (`genParticles`, `GEIP`)
-    * **MuonBranches**: for `pat::Muon` data (`selectedPatMuons`)
-    * **DSAMuonBranches**: for `reco::Track` data (`displacedStandAloneMuons`)
-    * **RSAMuonBranches**: for `reco::Track` data (`refittedStandAloneMuons`)
-    * **DimuonBranches**: for dimuon data (composite DSA muons)
+  * **EventBranches**: for event, run, lumi, bx (`edm::Event`)
+  * **TriggerBranches**: for trigger data (`TriggerResults`)
+  * **BeamspotBranches**: for beamspot data (`offlineBeamSpot`)
+  * **VertexBranches**: for vertex data (`offlinePrimaryVertices`)
+  * **GenBranches**: for gen particle data (`genParticles`, `GEIP`)
+  * **MuonBranches**: for `pat::Muon` data (`selectedPatMuons`)
+  * **DSAMuonBranches**: for `reco::Track` data (`displacedStandAloneMuons`)
+  * **RSAMuonBranches**: for `reco::Track` data (`refittedStandAloneMuons`)
+  * **DimuonBranches**: for dimuon data (composite DSA muons)
 
-  The _TreeContainer_ and each of these _BranchCollection_ classes are added as members of the EDAnalyzer nTupler. The nTupler calls the `Fill()` method on the object, passing the appropriate CMSSW collections, obtained from tokens or tags.
+The _TreeContainer_ and each of these _BranchCollection_ classes are added as members of the EDAnalyzer nTupler. The nTupler calls the `Fill()` method on the object, passing the appropriate CMSSW collections, obtained from tokens or tags.
   
 ## Python
 
