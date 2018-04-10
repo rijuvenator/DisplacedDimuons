@@ -1,5 +1,7 @@
 # Displaced Dimuons Tupler
 
+Last updated: 10 April 2018
+
 This subpackage contains code to produce tuples: PATTuples, nTuples, etc.
 
 ## Plugins
@@ -51,3 +53,17 @@ I have tried to be organized with how the configuration files call modules by or
 `python/Utilities/` contains:
 
   * **dataHandler.py**: a Python library for working with DAS and datasets. It will call the appropriate command-line DAS commands and get lists of datasets and files automatically, given the correct parameters. Other classes for other types of datasets should be added here, too, so that any file that deals with datasets has object-oriented information about the dataset, e.g. files, MC parameters, the dataset name, etc.
+
+## Scripts
+
+The `scripts/` directory contains a few useful scripts, and also serve as examples of how to use the `dataHandler` library:
+
+  * **dumpData.py** runs the DAS client and dumps information about all the `HTo2LongLivedTo4mu` samples.
+  * **dumpOne.py** runs the DAS client and dumps information about one specified `HTo2LongLivedTo4mu` signal point sample.
+  * **dumpEvents.py** runs the DAS client and dumps the number of events in each dataset.
+  * **filterData.py** runs the DAS client dumps the datasets that match some condition.
+  * **printBranches.py** takes the output of `edmDumpEventContent` on an AOD file and prints it in a neater format.
+
+## Test
+
+`test/` contains a couple test configuration scripts, when I was trying to figure out why the PATTupler wasn't running.
