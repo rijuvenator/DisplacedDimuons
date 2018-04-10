@@ -12,38 +12,38 @@ The `python/` directory contains the following libraries:
   * **Plotter.py** is my general-purpose plot making and styling library, with plots based on standard TDR style and with a large number of useful functions and classes that I've found useful when creating and managing plots. See the _Plotter_ documentation for full documentation.
   * **Primitives.py** is my starting point for creating Python objects from flat nTuples. The basic idea is that it's much easier to write code like
 
-   ```python
-  for muon in muons:
-  		if muon.pt > 5:
-  			print muon.eta
-  ```
+```python
+for muon in muons:
+	if muon.pt > 5:
+		print muon.eta
+```
 
   than
   
-  ```python
-  for i in range(len(tree.muon_pdgID)):
-  		if tree.muon_pt[i] > 5:
-  			print tree.muon_eta[i]
+```python
+for i in range(len(tree.muon_pdgID)):
+	if tree.muon_pt[i] > 5:
+		print tree.muon_eta[i]
   ```
   
   So the _Primitives_ library takes in an addressed _TTree_, creates an "_ETree_", which is a namespace structure with copied _TTree_ branches turned into Python lists, and defines several object structures that build a list of high-level objects, such as _Vertex_, _Muon_, _Particle_, and so on. The _ETree_ also presents a unified way of only turning on some branches in the _TTree_.
   
   The basic idiom for using the _Primitives_ library is as follows:
   
-  ```python
-  import ROOT
-  import DisplacedDimuons.Analysis.Primitives as Primitives
-  
-  f = ROOT.TFile.Open('test.root')
-  t = f.Get('DDTree')
-  
-  for event in t:
-  		E = Primitives.ETree(t)
-  		muons = E.getPrimitives('MUON')
-  		
-  		for muon in muons:
-  			print muon.pt, muon.eta, muon.phi, muon.energy
-  ```
+```python
+import ROOT
+import DisplacedDimuons.Analysis.Primitives as Primitives
+
+f = ROOT.TFile.Open('test.root')
+t = f.Get('DDTree')
+
+for event in t:
+	E = Primitives.ETree(t)
+	muons = E.getPrimitives('MUON')
+
+	for muon in muons:
+		print muon.pt, muon.eta, muon.phi, muon.energy
+```
   * **RootTools.py** contains a few small ROOT-related additions.
     * The _TVector_ section improves the Python implementation of _TVector2_, _TVector3_, and _TLorentzVector_ by adding a few functions and fixing the interface so as to be a bit more uniform.
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
@@ -68,4 +68,3 @@ For the purposes of the Javascript-based **Viewer**, I have a script, **converto
 ```bash
 parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 ```
-   
