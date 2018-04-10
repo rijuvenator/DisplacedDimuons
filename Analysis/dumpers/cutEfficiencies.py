@@ -10,7 +10,6 @@ R.PyConfig.IgnoreCommandLineOptions = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--signalpoints', dest='SIGNALPOINT', type=int, nargs=3  , help='the mH mX cTau tuple'         )
 parser.add_argument('--develop'     , dest='DEVELOP'    , action='store_true', help='run test mode for 1000 events')
-parser.add_argument('--fromfile'    , dest='FROMFILE'   , action='store_true', help='whether to rerun over trees'  )
 args = parser.parse_args()
 
 if not args.SIGNALPOINT:

@@ -1,26 +1,9 @@
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 import itertools
 
-SIGNALPOINT = (125, 20, 1300)
-PROCESS     = 'AODSIM-ReHLT_V13-v1'
-ALLFILES    = False
-
-SIGNALPOINT = (1000, 350, 3500)
-PROCESS     = 'GS-v1'
-ALLFILES    = False
-
 SIGNALPOINT = (125, 20, 13)
-PROCESS     = 'mAODSIM-ReHLT_V37-v1'
+PROCESS     = 'AODSIM-ReHLT_V37-v1'
 ALLFILES    = False
-
-SIGNALPOINT = (1000, 20, 200)
-PROCESS     = 'GSR-v1'
-ALLFILES    = False
-
-SIGNALPOINT = (1000, 350, 3500)
-PROCESS     = 'GSR-v1'
-ALLFILES    = False
-
 datasets = DH.getMCDatasets()
 
 datasets.sort(key=lambda x: x.signalPoint())
