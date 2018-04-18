@@ -59,8 +59,8 @@ for event in t:
 `plotters/` is where I keep my plotting scripts. 
 
   * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. This script produces `.pdf` files directly.
-  * **recoPlots.py** produces resolution and efficiency plots, and a few dimuon plots at the moment. Basically, any plots at reco level. It uses the full _Primitives_ machinery, uses _Selections_, and only writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
-  * **makeRecoPlots.py** opens the `hadd`-ed ROOT files produced by **recoPlots.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
+  * **analyzeReco.py** produces resolution and efficiency plots, and a few dimuon plots at the moment. Basically, any plots at reco level. It uses the full _Primitives_ machinery, uses _Selections_, and only writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
+  * **makeRecoPlots.py** opens the `hadd`-ed ROOT files produced by **analyzeReco.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
 
   
 For the purposes of the Javascript-based **Viewer**, I have a script, **convertone.sh**, that converts the `.pdf` files into `.png` files. I recommend the following for multiple conversions:
