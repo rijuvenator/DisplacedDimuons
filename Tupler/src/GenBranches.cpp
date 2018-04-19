@@ -126,4 +126,13 @@ void GenBranches::Fill(const reco::GenParticleCollection &gens, const GenEventIn
 	gen_d00.push_back(d21);
 	gen_d00.push_back(d22);
 
+	// fill pair delta R
+	
+	float dR1 = TVector3(mu11->px(), mu11->py(), mu11->pz()).DeltaR(TVector3(mu12->px(), mu12->py(), mu12->pz()));
+	float dR2 = TVector3(mu21->px(), mu21->py(), mu21->pz()).DeltaR(TVector3(mu22->px(), mu22->py(), mu22->pz()));
+	gen_pairDeltaR.push_back(dR1);
+	gen_pairDeltaR.push_back(dR1);
+	gen_pairDeltaR.push_back(dR2);
+	gen_pairDeltaR.push_back(dR2);
+	
 }
