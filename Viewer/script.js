@@ -282,6 +282,7 @@ var TYPES = [
 	['cTau'       , 'c&tau;'                      , 0, 'per'],
 	['Lxy'        , 'L' + 'xy'.sub()              , 0, 'per'],
 	['d00'        , '&Delta;d' + '0'.sub()        , 0, 'per'],
+	['dR'         , '&Delta;R'                    , 0, 'per'],
 
 	['pTH'        , 'p' + 'T'.sub() +' H'         , 1, 'per'],
 	['pTX'        , 'p' + 'T'.sub() +' X'         , 1, 'per'],

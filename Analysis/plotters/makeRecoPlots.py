@@ -241,6 +241,7 @@ def makeColorPlot(key):
 		else:
 			h.Add(f.Get('{}_{}'.format(key, SPStr(sp))))
 
+	h.Rebin2D(10, 10)
 	p = Plotter.Plot(h, '', '', 'colz')
 	canvas = Plotter.Canvas()
 	canvas.addMainPlot(p)
@@ -248,11 +249,14 @@ def makeColorPlot(key):
 	canvas.scaleMargins(0.75, edges='L')
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
-makePerSignalPlots()
 #makeGlobalPlot('DSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('DSA_pTEff' , DenKey='pTDen' )
 #makeGlobalPlot('RSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('RSA_pTEff' , DenKey='pTDen' )
+makePerSignalPlots()
 makeOverlayPerSignalPlots()
 makeOverlayGlobalPlots('LxyEff', DenKey='LxyDen')
 makeOverlayGlobalPlots('pTEff' , DenKey='pTDen' )
+makeColorPlot('DSA_pTResVSLxy')
+makeColorPlot('DSA_pTResVSpT')
+makeColorPlot('DSA_pTResVSdR')

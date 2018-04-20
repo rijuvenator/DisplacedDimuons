@@ -12,8 +12,8 @@ parser.add_argument('mX'  , type=int)
 parser.add_argument('cTau', type=int)
 args = parser.parse_args(sys.argv[2:])
 signalPoint = (args.mH, args.mX, args.cTau)
-mcdata = DH.getMCDatasets()
-for data in mcdata:
+H2X4Mdata = DH.get_H2X4M_Datasets()
+for data in H2X4Mdata:
 	if data.signalPoint() == signalPoint and data.process == 'AODSIM-ReHLT_V37-v1':
 		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
 		#OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/PATTuple_' + '_'.join(map(str,signalPoint)) + '.root'

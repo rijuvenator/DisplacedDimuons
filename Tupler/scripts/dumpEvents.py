@@ -1,6 +1,6 @@
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 
-datasets = DH.getMCDatasets()
+datasets = DH.get_H2X4M_Datasets()
 
 for data in datasets:
 	if data.mH == 125 and data.process == 'AODSIM-ReHLT_V37-v1':

@@ -15,7 +15,7 @@ submitScript = '''
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
 cd DisplacedDimuons/Analysis/plotters
-python recoPlots.py --signalpoints {mH} {mX} {cTau}
+python analyzeReco.py --signalpoint {mH} {mX} {cTau}
 rm -f core.*
 '''
 
@@ -26,7 +26,7 @@ if not args.LOCAL:
 		bash.call('bsub -q 1nh -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
 		bash.call('rm {scriptName}'                          .format(**locals()), shell=True)
 else:
-	parallel_command = ['bash', '-c',  'parallel --colsep " " python recoPlots.py --signalpoints :::: <(echo -e "{ARGLIST}")'.format(
+	parallel_command = ['bash', '-c',  'parallel --colsep " " python analyzeReco.py --signalpoint :::: <(echo -e "{ARGLIST}")'.format(
 		ARGLIST  = r'\n'.join(['{} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in RECOSIGNALPOINTS])
 	)]
 	bash.call(parallel_command)

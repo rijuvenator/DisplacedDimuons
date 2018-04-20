@@ -117,7 +117,8 @@ class Muon(Particle):
 			self.set('d0', E, prefix+'d0', i)
 
 		if self.source == 'GEN':
-			self.set('d00', E, prefix+'d00', i)
+			for attr in ('d00', 'pairDeltaR'):
+				self.set(attr, E, prefix+attr, i)
 
 		if self.source == 'DSA' or self.source == 'RSA':
 			for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
