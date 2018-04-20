@@ -27,26 +27,7 @@ class DimuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		DimuonBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("dim_idx1"    , dim_idx1    );
-			Declare("dim_idx2"    , dim_idx2    );
-			Declare("dim_pdgID"   , dim_pdgID   );
-			Declare("dim_pt"      , dim_pt      );
-			Declare("dim_eta"     , dim_eta     );
-			Declare("dim_phi"     , dim_phi     );
-			Declare("dim_mass"    , dim_mass    );
-			Declare("dim_energy"  , dim_energy  );
-			Declare("dim_charge"  , dim_charge  );
-			Declare("dim_x"       , dim_x       );
-			Declare("dim_y"       , dim_y       );
-			Declare("dim_z"       , dim_z       );
-			Declare("dim_Lxy"     , dim_Lxy     );
-			Declare("dim_deltaR"  , dim_deltaR  );
-			Declare("dim_normChi2", dim_normChi2);
-			Declare("dim_cosAlpha", dim_cosAlpha);
-			Declare("dim_deltaPhi", dim_deltaPhi);
-		}
+		DimuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		std::vector<unsigned int> dim_idx1    ;
@@ -67,8 +48,28 @@ class DimuonBranches : BranchCollection
 		std::vector<float       > dim_cosAlpha;
 		std::vector<float       > dim_deltaPhi;
 
-
 		// methods
+		virtual void Declarations()
+		{
+			Declare("dim_idx1"    , dim_idx1    );
+			Declare("dim_idx2"    , dim_idx2    );
+			Declare("dim_pdgID"   , dim_pdgID   );
+			Declare("dim_pt"      , dim_pt      );
+			Declare("dim_eta"     , dim_eta     );
+			Declare("dim_phi"     , dim_phi     );
+			Declare("dim_mass"    , dim_mass    );
+			Declare("dim_energy"  , dim_energy  );
+			Declare("dim_charge"  , dim_charge  );
+			Declare("dim_x"       , dim_x       );
+			Declare("dim_y"       , dim_y       );
+			Declare("dim_z"       , dim_z       );
+			Declare("dim_Lxy"     , dim_Lxy     );
+			Declare("dim_deltaR"  , dim_deltaR  );
+			Declare("dim_normChi2", dim_normChi2);
+			Declare("dim_cosAlpha", dim_cosAlpha);
+			Declare("dim_deltaPhi", dim_deltaPhi);
+		}
+
 		virtual void Reset()
 		{
 			dim_idx1    .clear();

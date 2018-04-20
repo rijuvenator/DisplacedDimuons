@@ -6,11 +6,9 @@ import sys
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('mH'  , type=int)
-parser.add_argument('mX'  , type=int)
-parser.add_argument('cTau', type=int)
+parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
 args = parser.parse_args(sys.argv[2:])
-signalPoint = (args.mH, args.mX, args.cTau)
+signalPoint = tuple(args.SIGNALPOINT)
 DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
 DIR_EOS = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
 INPUTFILES = ['file:' + DIR_EOS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']

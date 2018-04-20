@@ -55,46 +55,46 @@ class SimpleNTupler : public edm::EDAnalyzer
 
 		TreeContainer tree;
 
-		EventBranches eventData;
-		TriggerBranches triggerData;
+		EventBranches    eventData;
+		TriggerBranches  triggerData;
 		BeamspotBranches beamspotData;
-		VertexBranches vertexData;
-		GenBranches genData;
-		MuonBranches muonData;
-		DSAMuonBranches dsaMuonData;
-		RSAMuonBranches rsaMuonData;
-		DimuonBranches dimData;
+		VertexBranches   vertexData;
+		GenBranches      genData;
+		MuonBranches     muonData;
+		DSAMuonBranches  dsaMuonData;
+		RSAMuonBranches  rsaMuonData;
+		DimuonBranches   dimData;
 
-		edm::EDGetTokenT<edm::TriggerResults> triggerToken;
-		edm::EDGetTokenT<reco::BeamSpot> beamspotToken;
-		edm::EDGetTokenT<reco::VertexCollection> vertexToken;
+		edm::EDGetTokenT<edm::TriggerResults        > triggerToken;
+		edm::EDGetTokenT<reco::BeamSpot             > beamspotToken;
+		edm::EDGetTokenT<reco::VertexCollection     > vertexToken;
 		edm::EDGetTokenT<reco::GenParticleCollection> genToken;
-		edm::EDGetTokenT<GenEventInfoProduct> GEIPToken;
-		edm::EDGetTokenT<pat::MuonCollection> muonToken;
-		edm::EDGetTokenT<reco::TrackCollection> dsaMuonToken;
-		edm::EDGetTokenT<reco::TrackCollection> rsaMuonToken;
+		edm::EDGetTokenT<GenEventInfoProduct        > GEIPToken;
+		edm::EDGetTokenT<pat::MuonCollection        > muonToken;
+		edm::EDGetTokenT<reco::TrackCollection      > dsaMuonToken;
+		edm::EDGetTokenT<reco::TrackCollection      > rsaMuonToken;
 
 };
 
 SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	tree("DDTree", ""),
-	eventData(tree),
-	triggerData(tree),
+	eventData   (tree),
+	triggerData (tree),
 	beamspotData(tree),
-	vertexData(tree),
-	genData(tree),
-	muonData(tree),
-	dsaMuonData(tree),
-	rsaMuonData(tree),
-	dimData(tree),
-	triggerToken(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
-	beamspotToken(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamspot"))),
-	vertexToken(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
-	genToken(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"))),
-	GEIPToken(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("GEIP"))),
-	muonToken(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
-	dsaMuonToken(consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("dsaMuons"))),
-	rsaMuonToken(consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("rsaMuons")))
+	vertexData  (tree),
+	genData     (tree),
+	muonData    (tree),
+	dsaMuonData (tree),
+	rsaMuonData (tree),
+	dimData     (tree),
+	triggerToken (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
+	beamspotToken(consumes<reco::BeamSpot             >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
+	vertexToken  (consumes<reco::VertexCollection     >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
+	genToken     (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"          ))),
+	GEIPToken    (consumes<GenEventInfoProduct        >(iConfig.getParameter<edm::InputTag>("GEIP"          ))),
+	muonToken    (consumes<pat::MuonCollection        >(iConfig.getParameter<edm::InputTag>("muons"         ))),
+	dsaMuonToken (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("dsaMuons"      ))),
+	rsaMuonToken (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("rsaMuons"      )))
 {};
 
 void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)

@@ -7,11 +7,9 @@ import argparse
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 
 parser = argparse.ArgumentParser()
-parser.add_argument('mH'  , type=int)
-parser.add_argument('mX'  , type=int)
-parser.add_argument('cTau', type=int)
+parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
 args = parser.parse_args(sys.argv[2:])
-signalPoint = (args.mH, args.mX, args.cTau)
+signalPoint = tuple(args.SIGNALPOINT)
 H2X4Mdata = DH.get_H2X4M_Datasets()
 for data in H2X4Mdata:
 	if data.signalPoint() == signalPoint and data.process == 'AODSIM-ReHLT_V37-v1':
