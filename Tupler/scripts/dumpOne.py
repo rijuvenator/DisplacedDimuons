@@ -4,8 +4,8 @@ import itertools
 SIGNALPOINT = (125, 20, 13)
 PROCESS     = 'AODSIM-ReHLT_V37-v1'
 ALLFILES    = False
-datasets = DH.getMCDatasets()
 
+datasets = DH.get_H2X4M_Datasets()
 datasets.sort(key=lambda x: x.signalPoint())
 
 for key, group in itertools.groupby(datasets, key=lambda x: x.signalPoint()):

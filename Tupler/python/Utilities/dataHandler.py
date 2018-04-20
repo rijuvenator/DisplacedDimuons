@@ -48,7 +48,7 @@ class Dataset(object):
 
 # derived class for HTo2LongLivedTo4mu MC
 # dataset is a dataset string from DAS: /*/*/*
-class MCData(Dataset):
+class H2X4M_Data(Dataset):
 	def __init__(self, dataset, regex):
 		Dataset.__init__(self, dataset)
 
@@ -70,7 +70,7 @@ class MCData(Dataset):
 
 # get HTo2LongLivedTo4mu MC data
 # wrapped in a function because it's a module
-def getMCDatasets():
+def get_H2X4M_Datasets():
 	datasetStrings = DASQueryList('dataset=/HTo2LongLivedTo4mu*/*/* instance={instance}'.format(instance=DEFAULT_INSTANCE))
 
 	# regex to match dataset
@@ -79,20 +79,20 @@ def getMCDatasets():
 	datasetRegex = re.compile(datasetPatternString)
 
 	# make dataset objects
-	mcDatasets = [MCData(ds, datasetRegex) for ds in datasetStrings]
+	H2X4M_Datasets = [H2X4M_Data(ds, datasetRegex) for ds in datasetStrings]
 
-	return mcDatasets
+	return H2X4M_Datasets
 
 ######################
 # RUN AS MAIN MODULE #
 ######################
 
 if __name__ == '__main__':
-	mcDatasets = getMCDatasets()
+	H2X4M_Datasets = get_H2X4M_Datasets()
 
-	for mc in mcDatasets:
-		if 'AOD' in mc.process:
-			print mc.process, mc.signalPoint()
+	for ds in H2X4M_Datasets:
+		if 'AOD' in ds.process:
+			print ds.process, ds.signalPoint()
 
 # HTo2LongLivedTo4mu MC signal points: (mH, mX, cTau)
 signalpoints = [
