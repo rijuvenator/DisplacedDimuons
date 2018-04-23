@@ -501,7 +501,7 @@ class Canvas(R.TCanvas):
 		self.mainPad.cd()
 
 		tBaseline = 1-self.margins['t']+0.02
-		LEFT, RIGHT = self.margins['l'], self.margins['r']
+		LEFT, RIGHT = self.margins['l'], 1-self.margins['r']
 
 		if mode == '':
 			if drawCMS:
