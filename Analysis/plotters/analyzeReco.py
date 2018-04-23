@@ -11,7 +11,8 @@ def matchedMuons(genMuon, recoMuons):
 	matches = []
 	for i,muon in enumerate(recoMuons):
 		deltaR = muon.p4.DeltaR(genMuon.p4)
-		if deltaR < min(0.3,genMuon.pairDeltaR) and Selections.MuonCuts['pt'].apply(muon) and muon.charge == genMuon.charge:
+		#if deltaR < min(0.3,genMuon.pairDeltaR) and Selections.MuonCuts['pt'].apply(muon) and muon.charge == genMuon.charge:
+		if deltaR < min(0.3,genMuon.pairDeltaR) and muon.charge == genMuon.charge:
 			matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt})
 	return sorted(matches, key=lambda dic:dic['deltaR'])
 
@@ -29,9 +30,10 @@ def declareHistograms(self):
 			'd0Dif'      : {'TITLE':';*** d_{0} #minus gen d_{0};Counts'            , 'AXES':(1000, -10., 10. )},
 			'nMuon'      : {'TITLE':';*** Muon Multiplicity;Counts'                 , 'AXES':(11  ,   0., 11. )},
 	}
-	CONFIG['pTResVSLxy'] = {'TITLE':';L_{xy} [cm];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 10. , 1000, -1., 1.)}
-	CONFIG['pTResVSpT' ] = {'TITLE':';p_{T} [GeV];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 500., 1000, -1., 1.)}
-	CONFIG['pTResVSdR' ] = {'TITLE':';#DeltaR;*** p_{T} Res;Counts'                 , 'AXES':(1000, 0., 5.  , 1000, -1., 1.)}
+	CONFIG['pTResVSLxy'] = {'TITLE':';L_{xy} [cm];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 10. , 1000, -1., 1.  )}
+	CONFIG['pTResVSpT' ] = {'TITLE':';p_{T} [GeV];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 500., 1000, -1., 1.  )}
+	CONFIG['pTResVSdR' ] = {'TITLE':';#DeltaR;*** p_{T} Res;Counts'                 , 'AXES':(1000, 0., 5.  , 1000, -1., 1.  )}
+	CONFIG['pTVSpT'    ] = {'TITLE':';gen p_{T} [GeV];*** p_{T} [GeV]'              , 'AXES':(1000, 0., 500., 1000,  0., 500.)}
 	for MUON in ('DSA', 'RSA'):
 		for KEY in CONFIG:
 			self.HistInit(MUON+'_'+KEY, CONFIG[KEY]['TITLE'].replace('***',MUON), *CONFIG[KEY]['AXES'])
@@ -98,6 +100,7 @@ def analyze(self, E):
 				self.HISTS[PREFIX+'_pTResVSLxy'].Fill(genMuonLxy,pTRes(closestRecoMuon, genMuon))
 				self.HISTS[PREFIX+'_pTResVSpT' ].Fill(genMuon.pt,pTRes(closestRecoMuon, genMuon))
 				self.HISTS[PREFIX+'_pTResVSdR' ].Fill(genMuon.pairDeltaR,pTRes(closestRecoMuon, genMuon))
+				self.HISTS[PREFIX+'_pTVSpT'    ].Fill(genMuon.pt,closestRecoMuon.pt)
 
 				if PREFIX == 'DSA':
 					foundDSA = True

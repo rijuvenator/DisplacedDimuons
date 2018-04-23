@@ -19,8 +19,9 @@ R.gROOT.SetBatch(True)
 def globalSetStyle():
 	style = R.TStyle('style','Style')
 
-	# rainbow
-	style.SetPalette(55)
+	# inverted black body radiator
+	style.SetPalette(56)
+	style.SetNumberContours(100)
 
 	# generic line thicknesses
 	style.SetLineWidth(2)
@@ -137,6 +138,41 @@ def setStyle(width=800, height=600, font=42, fontsize=0.04):
 
 	style.cd()
 
+# wrapper for the Set(Get()) idioms, for shifting, scaling, and moving
+def GETSET(Object, Attr, Value, Op):
+	if Op == '+':
+		getattr(Object, 'Set'+Attr)(getattr(Object, 'Get'+Attr)() + float(Value))
+	elif Op == '*':
+		getattr(Object, 'Set'+Attr)(getattr(Object, 'Get'+Attr)() * float(Value))
+
+def SHIFT(Object, Attr, Value, Axes=None):
+	if Axes is None:
+		GETSET(Object, Attr, Value, '+')
+	else:
+		for axis in Axes:
+			GETSET(getattr(Object, 'Get'+axis+'axis')(), Attr, Value, '+')
+
+def SCALE(Object, Attr, Value, Axes=None):
+	if Axes is None:
+		GETSET(Object, Attr, Value, '*')
+	else:
+		for axis in Axes:
+			GETSET(getattr(Object, 'Get'+axis+'axis')(), Attr, Value, '*')
+
+def MOVE_OBJECT(Object, X=0., Y=0., NDC=False):
+	EXTRA = '' if not NDC else 'NDC'
+	SHIFT(Object, 'X1'+EXTRA, X)
+	SHIFT(Object, 'X2'+EXTRA, X)
+	SHIFT(Object, 'Y1'+EXTRA, Y)
+	SHIFT(Object, 'Y2'+EXTRA, Y)
+
+def MOVE_EDGES(Object, L=0., R=0., T=0., B=0., NDC=False):
+	EXTRA = '' if not NDC else 'NDC'
+	SHIFT(Object, 'X1'+EXTRA, L)
+	SHIFT(Object, 'X2'+EXTRA, R)
+	SHIFT(Object, 'Y1'+EXTRA, B)
+	SHIFT(Object, 'Y2'+EXTRA, T)
+
 # Enhances a plot object, expected to be a hist, graph, or hstack
 # legName is the legend display name, legType is the legend symbol draw option, option is the draw option
 class Plot(object):
@@ -152,27 +188,20 @@ class Plot(object):
 
 	# scales axis title sizes
 	def scaleTitles(self, factor, axes='XY'):
-		if 'X' in axes: self.GetXaxis().SetTitleSize(self.GetXaxis().GetTitleSize() * float(factor))
-		if 'Y' in axes: self.GetYaxis().SetTitleSize(self.GetYaxis().GetTitleSize() * float(factor))
-		if 'Z' in axes: self.GetZaxis().SetTitleSize(self.GetZaxis().GetTitleSize() * float(factor))
+		SCALE(self, 'TitleSize', float(factor), Axes=axes)
 
 	# scales axis label sizes
 	def scaleLabels(self, factor, axes='XY'):
-		if 'X' in axes: self.GetXaxis().SetLabelSize(self.GetXaxis().GetLabelSize() * float(factor))
-		if 'Y' in axes: self.GetYaxis().SetLabelSize(self.GetYaxis().GetLabelSize() * float(factor))
-		if 'Z' in axes: self.GetZaxis().SetLabelSize(self.GetZaxis().GetLabelSize() * float(factor))
+		SCALE(self, 'LabelSize', float(factor), Axes=axes)
 	
 	# scales axis title offsets from axis
 	def scaleTitleOffsets(self, factor, axes='XY'):
-		if 'X' in axes: self.GetXaxis().SetTitleOffset(self.GetXaxis().GetTitleOffset() * float(factor))
-		if 'Y' in axes: self.GetYaxis().SetTitleOffset(self.GetYaxis().GetTitleOffset() * float(factor))
-		if 'Z' in axes: self.GetZaxis().SetTitleOffset(self.GetZaxis().GetTitleOffset() * float(factor))
+		SCALE(self, 'TitleOffset', float(factor), Axes=axes)
 	
 	# sets axis titles
 	def setTitles(self, X=None, Y=None, Z=None):
-		if X is not None: self.GetXaxis().SetTitle(X)
-		if Y is not None: self.GetYaxis().SetTitle(Y)
-		if Z is not None: self.GetZaxis().SetTitle(Z)
+		for axis,title in zip(('X', 'Y', 'Z'),(X, Y, Z)):
+			if title is not None: getattr(self, 'Get'+axis+'axis')().SetTitle(title)
 
 # Enhances a TLegend, providing some much needed geometry functionality
 # X1, X2, Y1, Y2 construct the parent TLegend object; corner is a pos string (see Canvas)
@@ -189,17 +218,11 @@ class Legend(R.TLegend):
 	
 	# moves the entire legend X, Y units in the x and y directions
 	def moveLegend(self, X=0., Y=0.):
-		self.SetX1(self.GetX1() + X)
-		self.SetX2(self.GetX2() + X)
-		self.SetY1(self.GetY1() + Y)
-		self.SetY2(self.GetY2() + Y)
+		MOVE_OBJECT(self, X=X, Y=Y)
 	
 	# moves the L, R, T, B edges. Positive is right/up; negative is left/down
 	def moveEdges(self, L=0., R=0., T=0., B=0.):
-		self.SetX1(self.GetX1() + L)
-		self.SetX2(self.GetX2() + R)
-		self.SetY1(self.GetY1() + B)
-		self.SetY2(self.GetY2() + T)
+		MOVE_EDGES(self, L=L, R=R, T=T, B=B)
 	
 	# resizes the legend bounding box based on the number of entries
 	# scale allows for some extra padding if desired
@@ -261,11 +284,18 @@ class Canvas(R.TCanvas):
 		self.mainPad.Draw()
 		self.mainPad.SetLogy(self.logy)
 
+		self.margins = {
+			't' : float(self.mainPad.GetTopMargin()),
+			'l' : float(self.mainPad.GetLeftMargin()),
+			'r' : float(self.mainPad.GetRightMargin()),
+			'b' : float(self.mainPad.GetBottomMargin())
+		}
+
 	# adds a plot Plot to the main pad
 	# the order in which this is called determines the draw order
 	# the first plot controls the axes, labels, titles, etc. and is referred to as firstPlot
 	# by default, the draw order (stored in plotList) is also used for the legend order
-	# just in case, if necessary, addToPlotList won't add a plot to plotList
+	# just in case, if necessary, addToPlotList=False won't add a plot to plotList
 	# addS is for drawing with option 'sames', required for fit boxes
 	def addMainPlot(self, plot, addToPlotList=True, addS=False):
 		plot.UseCurrentStyle()
@@ -302,21 +332,16 @@ class Canvas(R.TCanvas):
 	# autoOrder is if the legend should get its order from the plotList (draw order) or manually
 	# if manually, call addLegendEntry on plot objects in the order desired
 	def makeLegend(self, lWidth=0.125, pos='tr', fontscale=1., autoOrder=True):
-		tMargin = float(self.mainPad.GetTopMargin())
-		lMargin = float(self.mainPad.GetLeftMargin())
-		rMargin = float(self.mainPad.GetRightMargin())
-		bMargin = float(self.mainPad.GetBottomMargin())
-
 		self.cd()
 		self.mainPad.cd()
 		xOffset = 0.03
 		yOffset = 0.03
 		lHeight = 0.2
 
-		X1 = {'r' : 1-rMargin-xOffset-lWidth , 'l' : lMargin+xOffset        }
-		X2 = {'r' : 1-rMargin-xOffset        , 'l' : lMargin+xOffset+lWidth }
-		Y1 = {'t' : 1-tMargin-yOffset-lHeight, 'b' : bMargin+yOffset        }
-		Y2 = {'t' : 1-tMargin-yOffset        , 'b' : bMargin+yOffset+lHeight}
+		X1 = {'r' : 1-self.margins['r']-xOffset-lWidth , 'l' : self.margins['l']+xOffset        }
+		X2 = {'r' : 1-self.margins['r']-xOffset        , 'l' : self.margins['l']+xOffset+lWidth }
+		Y1 = {'t' : 1-self.margins['t']-yOffset-lHeight, 'b' : self.margins['b']+yOffset        }
+		Y2 = {'t' : 1-self.margins['t']-yOffset        , 'b' : self.margins['b']+yOffset+lHeight}
 
 		if pos not in ['tr', 'tl', 'br', 'bl']:
 			print 'Invalid legend position string; defaulting to top-right'
@@ -339,11 +364,6 @@ class Canvas(R.TCanvas):
 	# lWidth is width as fraction of pad, lHeight is height as fraction of pad, lOffset is offset from corner as fraction of pad
 	# pos can be tr, tl, br, bl for each of the four corners
 	def setFitBoxStyle(self, owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75):
-		tMargin = float(self.mainPad.GetTopMargin())
-		lMargin = float(self.mainPad.GetLeftMargin())
-		rMargin = float(self.mainPad.GetRightMargin())
-		bMargin = float(self.mainPad.GetBottomMargin())
-
 		self.cd()
 		self.mainPad.cd()
 		self.mainPad.Update()
@@ -356,10 +376,10 @@ class Canvas(R.TCanvas):
 		xOffset = 0.03
 		yOffset = 0.03
 
-		X1 = {'r' : 1-rMargin-xOffset-lWidth , 'l' : lMargin+xOffset        }
-		X2 = {'r' : 1-rMargin-xOffset        , 'l' : lMargin+xOffset+lWidth }
-		Y1 = {'t' : 1-tMargin-yOffset-lHeight, 'b' : bMargin+yOffset        }
-		Y2 = {'t' : 1-tMargin-yOffset        , 'b' : bMargin+yOffset+lHeight}
+		X1 = {'r' : 1-self.margins['r']-xOffset-lWidth , 'l' : self.margins['l']+xOffset        }
+		X2 = {'r' : 1-self.margins['r']-xOffset        , 'l' : self.margins['l']+xOffset+lWidth }
+		Y1 = {'t' : 1-self.margins['t']-yOffset-lHeight, 'b' : self.margins['b']+yOffset        }
+		Y2 = {'t' : 1-self.margins['t']-yOffset        , 'b' : self.margins['b']+yOffset+lHeight}
 
 		if pos not in ['tr', 'tl', 'br', 'bl']:
 			print 'Invalid legend position string; defaulting to top-left'
@@ -387,15 +407,13 @@ class Canvas(R.TCanvas):
 
 		if (xtit != ''):
 			self.rat.GetXaxis().SetTitle(xtit)
-		self.rat.GetXaxis().SetTitleSize (self.rat.GetXaxis().GetTitleSize()  * factor)
-		self.rat.GetXaxis().SetLabelSize (self.rat.GetYaxis().GetLabelSize()  * factor)
-		self.rat.GetXaxis().SetTickLength(self.rat.GetXaxis().GetTickLength() * factor)
+		SCALE(self.rat, 'TitleSize', factor, Axes='XY')
+		SCALE(self.rat, 'LabelSize', factor, Axes='XY')
+		SCALE(self.rat, 'TickLength', factor, Axes='X')
 		self.rat.GetXaxis().CenterTitle()
 
 		self.rat.GetYaxis().SetTitle(ytit)
-		self.rat.GetYaxis().SetTitleOffset(self.rat.GetYaxis().GetTitleOffset() / factor)
-		self.rat.GetYaxis().SetTitleSize  (self.rat.GetYaxis().GetTitleSize()   * factor)
-		self.rat.GetYaxis().SetLabelSize  (self.rat.GetYaxis().GetLabelSize()   * factor)
+		SCALE(self.rat, 'TitleOffset', 1./factor, Axes='Y')
 		self.rat.GetYaxis().SetTickLength (0.01)
 		self.rat.GetYaxis().CenterTitle()
 		self.rat.GetYaxis().SetNdivisions(5)
@@ -443,13 +461,10 @@ class Canvas(R.TCanvas):
 		if Ymax    is None: Ymax    = self.firstPlot.GetMaximum()
 		if Yoffset is None: Yoffset = (Ymax-Ymin) * Yoffsetscale * (1-self.ratioFactor)
 		axis = R.TGaxis(Xmin, Ymin-Yoffset, Xmax, Ymin-Yoffset, xmin, xmax, 510)
-		axis.SetLabelFont  (xaxis.GetLabelFont  ())
-		axis.SetLabelOffset(xaxis.GetLabelOffset())
-		axis.SetLabelSize  (xaxis.GetLabelSize  () if self.ratioFactor == 0. else self.firstPlot.GetYaxis().GetLabelSize())
-		axis.SetTitleFont  (xaxis.GetTitleFont  ())
-		axis.SetTitleOffset(xaxis.GetTitleOffset())
-		axis.SetTitleSize  (xaxis.GetTitleSize  ())
-		axis.SetTitle      (title)
+		for attr in ('LabelFont', 'LabelOffset', 'TitleFont', 'TitleOffset', 'TitleSize'):
+			getattr(axis, 'Set'+attr)(getattr(xaxis, 'Get'+attr)())
+		axis.SetLabelSize(xaxis.GetLabelSize() if self.ratioFactor == 0. else self.firstPlot.GetYaxis().GetLabelSize())
+		axis.SetTitle    (title)
 		axis.CenterTitle()
 		axis.Draw()
 		return axis
@@ -458,14 +473,10 @@ class Canvas(R.TCanvas):
 	# factor is the scale factor
 	# edges is a string containing a subset of 'LRTB' controlling which margins
 	def scaleMargins(self, factor, edges=''):
-		if 'L' in edges:
-			self.mainPad.SetLeftMargin  (self.mainPad.GetLeftMargin  () * factor)
-		if 'R' in edges:
-			self.mainPad.SetRightMargin (self.mainPad.GetRightMargin () * factor)
-		if 'T' in edges:
-			self.mainPad.SetTopMargin   (self.mainPad.GetTopMargin   () * factor)
-		if 'B' in edges:
-			self.mainPad.SetBottomMargin(self.mainPad.GetBottomMargin() * factor)
+		EdgeDict = {'L' : 'Left', 'R' : 'Right', 'T' : 'Top', 'B' : 'Bottom'}
+		for edge in edges:
+			SCALE(self.mainPad, EdgeDict[edge]+'Margin', float(factor))
+			self.margins[edge.lower()] = float(getattr(self.mainPad, 'Get'+EdgeDict[edge]+'Margin')())
 
 	# draws some text onto the canvas
 	# text is the text
@@ -486,28 +497,24 @@ class Canvas(R.TCanvas):
 	# draws the lumi text, 'CMS', extra text, and legend 
 	def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
 		self.makeTransparent()
-
-		tMargin = float(self.mainPad.GetTopMargin())
-		lMargin = float(self.mainPad.GetLeftMargin())
-		rMargin = float(self.mainPad.GetRightMargin())
-
-		tOffset = 0.02
-
 		self.cd()
 		self.mainPad.cd()
+
+		tBaseline = 1-self.margins['t']+0.02
+		LEFT, RIGHT = self.margins['l'], self.margins['r']
 
 		if mode == '':
 			if drawCMS:
 				# 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
-				extraOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth * extrascale
-				self.drawText(text='CMS'     , pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode='b'          , fontscale=1.25*extrascale)
-				self.drawText(text=self.extra, pos=(  lMargin+extraOffset, 1-tMargin+tOffset), align='bl', fontcode='i'          , fontscale=1.  *extrascale)
-				self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  *extrascale)
+				CMSOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth * extrascale
+				self.drawText(text='CMS'     , pos=(LEFT          , tBaseline), align='bl', fontcode='b'          ,fontscale=1.25*extrascale)
+				self.drawText(text=self.extra, pos=(LEFT+CMSOffset, tBaseline), align='bl', fontcode='i'          ,fontscale=1.  *extrascale)
+				self.drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
 			else:
-				self.drawText(text=self.extra, pos=(  lMargin            , 1-tMargin+tOffset), align='bl', fontcode=self.fontcode, fontscale=1.  *extrascale)
-				self.drawText(text=self.lumi , pos=(1-rMargin            , 1-tMargin+tOffset), align='br', fontcode=self.fontcode, fontscale=1.  *extrascale)
+				self.drawText(text=self.extra, pos=(LEFT          , tBaseline), align='bl', fontcode=self.fontcode,fontscale=1.  *extrascale)
+				self.drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
 		elif mode == 'BOB':
-			self.drawText(text=self.lumi , pos=((1-rMargin+lMargin)/2, 1-tMargin+tOffset), align='bc', fontcode=self.fontcode, fontscale=1.5 *extrascale)
+			self    .drawText(text=self.lumi , pos=((RIGHT+LEFT)/2, tBaseline), align='bc', fontcode=self.fontcode,fontscale=1.5 *extrascale)
 
 		if self.legend is not None:
 			self.legend.Draw()
