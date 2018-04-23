@@ -28,9 +28,10 @@ process.MessageLogger.cerr.threshold = 'INFO'
 process.MessageLogger.categories.append('PATSummaryTables')
 process.MessageLogger.cerr.PATSummaryTables = cms.untracked.PSet(limit = cms.untracked.int32(-1))
 
-## switch to uncheduled mode
-#process.options.allowUnscheduled = cms.untracked.bool(True)
+# Run in "uncheduled" mode (default starting from CMSSW_9_1_X)
+process.options.allowUnscheduled = cms.untracked.bool(True)
 
+# Default PAT sequence
 process.load('PhysicsTools.PatAlgos.patSequences_cff')
 process.p = cms.Path(process.patDefaultSequence)
 
@@ -88,8 +89,8 @@ switchOnTrigger(process, outputModule = '')
 #                               triggerMatchers = [ 'muonTriggerMatchHLTMuons' ],
 #                               outputModule = ''
 #                               )
-# Not sure why 'switchOnTrigger' does not add trigger producers to the path...
-process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patTrigger * process.patTriggerEvent)
+# This line is only needed in the "scheduled" mode
+# process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patTrigger * process.patTriggerEvent)
 # Input for cleanPatMuonsTriggerMatch not found; not sure why
 # process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patTrigger * process.patTriggerEvent * process.cleanPatMuonsTriggerMatch)
 # Possible alternative to the above: standalone trigger objects.  Saves ~20 kB/event in data.
@@ -100,6 +101,7 @@ process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * proc
 # PAT MET; does not get added to the path either...
 from PhysicsTools.PatAlgos.tools.metTools import addMETCollection 
 addMETCollection(process, labelName='patMETsPF', metSource='pfMetT1')
+# Again this is only needed in the "scheduled" mode
 #process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patMETsPF)
 
 # MET filters, see https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2
