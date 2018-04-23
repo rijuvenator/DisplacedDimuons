@@ -16,29 +16,7 @@ class DSAMuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		DSAMuonBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("dsamu_pdgID"        , dsamu_pdgID        );
-			Declare("dsamu_pt"           , dsamu_pt           );
-			Declare("dsamu_eta"          , dsamu_eta          );
-			Declare("dsamu_phi"          , dsamu_phi          );
-			Declare("dsamu_mass"         , dsamu_mass         );
-			Declare("dsamu_energy"       , dsamu_energy       );
-			Declare("dsamu_charge"       , dsamu_charge       );
-			Declare("dsamu_x"            , dsamu_x            );
-			Declare("dsamu_y"            , dsamu_y            );
-			Declare("dsamu_z"            , dsamu_z            );
-
-			Declare("dsamu_d0"           , dsamu_d0           );
-			Declare("dsamu_d0MV"         , dsamu_d0MV         );
-
-			Declare("dsamu_normChi2"     , dsamu_normChi2     );
-			Declare("dsamu_d0Sig"        , dsamu_d0Sig        );
-			Declare("dsamu_d0MVSig"      , dsamu_d0MVSig      );
-			Declare("dsamu_nMuonHits"    , dsamu_nMuonHits    );
-			Declare("dsamu_nDTStations"  , dsamu_nDTStations  );
-			Declare("dsamu_nCSCStations" , dsamu_nCSCStations );
-		}
+		DSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		std::vector<int  > dsamu_pdgID        ;
@@ -63,6 +41,30 @@ class DSAMuonBranches : BranchCollection
 		std::vector<int  > dsamu_nCSCStations ;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("dsamu_pdgID"        , dsamu_pdgID        );
+			Declare("dsamu_pt"           , dsamu_pt           );
+			Declare("dsamu_eta"          , dsamu_eta          );
+			Declare("dsamu_phi"          , dsamu_phi          );
+			Declare("dsamu_mass"         , dsamu_mass         );
+			Declare("dsamu_energy"       , dsamu_energy       );
+			Declare("dsamu_charge"       , dsamu_charge       );
+			Declare("dsamu_x"            , dsamu_x            );
+			Declare("dsamu_y"            , dsamu_y            );
+			Declare("dsamu_z"            , dsamu_z            );
+
+			Declare("dsamu_d0"           , dsamu_d0           );
+			Declare("dsamu_d0MV"         , dsamu_d0MV         );
+
+			Declare("dsamu_normChi2"     , dsamu_normChi2     );
+			Declare("dsamu_d0Sig"        , dsamu_d0Sig        );
+			Declare("dsamu_d0MVSig"      , dsamu_d0MVSig      );
+			Declare("dsamu_nMuonHits"    , dsamu_nMuonHits    );
+			Declare("dsamu_nDTStations"  , dsamu_nDTStations  );
+			Declare("dsamu_nCSCStations" , dsamu_nCSCStations );
+		}
+
 		virtual void Reset()
 		{
 			dsamu_pdgID        .clear();

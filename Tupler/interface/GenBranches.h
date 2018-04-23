@@ -18,26 +18,7 @@ class GenBranches : BranchCollection
 {
 	public:
 		// constructor
-		GenBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("gen_weight"    , gen_weight, "F");
-
-			Declare("gen_pdgID"     , gen_pdgID      );
-			Declare("gen_pt"        , gen_pt         );
-			Declare("gen_eta"       , gen_eta        );
-			Declare("gen_phi"       , gen_phi        );
-			Declare("gen_mass"      , gen_mass       );
-			Declare("gen_energy"    , gen_energy     );
-			Declare("gen_charge"    , gen_charge     );
-			Declare("gen_x"         , gen_x          );
-			Declare("gen_y"         , gen_y          );
-			Declare("gen_z"         , gen_z          );
-
-			Declare("gen_d0"        , gen_d0         );
-			Declare("gen_d00"       , gen_d00        );
-
-			Declare("gen_pairDeltaR", gen_pairDeltaR );
-		}
+		GenBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		float              gen_weight    ;
@@ -59,6 +40,27 @@ class GenBranches : BranchCollection
 		std::vector<float> gen_pairDeltaR;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("gen_weight"    , gen_weight, "F");
+
+			Declare("gen_pdgID"     , gen_pdgID      );
+			Declare("gen_pt"        , gen_pt         );
+			Declare("gen_eta"       , gen_eta        );
+			Declare("gen_phi"       , gen_phi        );
+			Declare("gen_mass"      , gen_mass       );
+			Declare("gen_energy"    , gen_energy     );
+			Declare("gen_charge"    , gen_charge     );
+			Declare("gen_x"         , gen_x          );
+			Declare("gen_y"         , gen_y          );
+			Declare("gen_z"         , gen_z          );
+
+			Declare("gen_d0"        , gen_d0         );
+			Declare("gen_d00"       , gen_d00        );
+
+			Declare("gen_pairDeltaR", gen_pairDeltaR );
+		}
+
 		virtual void Reset()
 		{
 			gen_weight = 0;

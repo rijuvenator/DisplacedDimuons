@@ -14,15 +14,17 @@ class TriggerBranches : BranchCollection
 {
 	public:
 		// constructor
-		TriggerBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("trig_goodVtx", trig_goodVtx, "B");
-		}
+		TriggerBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		bool trig_goodVtx;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("trig_goodVtx", trig_goodVtx, "B");
+		}
+
 		virtual void Reset()
 		{
 			trig_goodVtx = false;

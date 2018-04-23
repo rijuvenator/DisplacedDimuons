@@ -16,29 +16,7 @@ class RSAMuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		RSAMuonBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("rsamu_pdgID"        , rsamu_pdgID        );
-			Declare("rsamu_pt"           , rsamu_pt           );
-			Declare("rsamu_eta"          , rsamu_eta          );
-			Declare("rsamu_phi"          , rsamu_phi          );
-			Declare("rsamu_mass"         , rsamu_mass         );
-			Declare("rsamu_energy"       , rsamu_energy       );
-			Declare("rsamu_charge"       , rsamu_charge       );
-			Declare("rsamu_x"            , rsamu_x            );
-			Declare("rsamu_y"            , rsamu_y            );
-			Declare("rsamu_z"            , rsamu_z            );
-
-			Declare("rsamu_d0"           , rsamu_d0           );
-			Declare("rsamu_d0MV"         , rsamu_d0MV         );
-
-			Declare("rsamu_normChi2"     , rsamu_normChi2     );
-			Declare("rsamu_d0Sig"        , rsamu_d0Sig        );
-			Declare("rsamu_d0MVSig"      , rsamu_d0MVSig      );
-			Declare("rsamu_nMuonHits"    , rsamu_nMuonHits    );
-			Declare("rsamu_nDTStations"  , rsamu_nDTStations  );
-			Declare("rsamu_nCSCStations" , rsamu_nCSCStations );
-		}
+		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		std::vector<int  > rsamu_pdgID        ;
@@ -63,6 +41,30 @@ class RSAMuonBranches : BranchCollection
 		std::vector<int  > rsamu_nCSCStations ;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("rsamu_pdgID"        , rsamu_pdgID        );
+			Declare("rsamu_pt"           , rsamu_pt           );
+			Declare("rsamu_eta"          , rsamu_eta          );
+			Declare("rsamu_phi"          , rsamu_phi          );
+			Declare("rsamu_mass"         , rsamu_mass         );
+			Declare("rsamu_energy"       , rsamu_energy       );
+			Declare("rsamu_charge"       , rsamu_charge       );
+			Declare("rsamu_x"            , rsamu_x            );
+			Declare("rsamu_y"            , rsamu_y            );
+			Declare("rsamu_z"            , rsamu_z            );
+
+			Declare("rsamu_d0"           , rsamu_d0           );
+			Declare("rsamu_d0MV"         , rsamu_d0MV         );
+
+			Declare("rsamu_normChi2"     , rsamu_normChi2     );
+			Declare("rsamu_d0Sig"        , rsamu_d0Sig        );
+			Declare("rsamu_d0MVSig"      , rsamu_d0MVSig      );
+			Declare("rsamu_nMuonHits"    , rsamu_nMuonHits    );
+			Declare("rsamu_nDTStations"  , rsamu_nDTStations  );
+			Declare("rsamu_nCSCStations" , rsamu_nCSCStations );
+		}
+
 		virtual void Reset()
 		{
 			rsamu_pdgID        .clear();

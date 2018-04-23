@@ -13,31 +13,7 @@ class MuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		MuonBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("mu_pdgID" , mu_pdgID );
-			Declare("mu_pt"    , mu_pt    );
-			Declare("mu_eta"   , mu_eta   );
-			Declare("mu_phi"   , mu_phi   );
-			Declare("mu_mass"  , mu_mass  );
-			Declare("mu_energy", mu_energy);
-			Declare("mu_charge", mu_charge);
-			Declare("mu_x"     , mu_x     );
-			Declare("mu_y"     , mu_y     );
-			Declare("mu_z"     , mu_z     );
-			Declare("mu_isSlim", mu_isSlim);
-
-			Declare("mu_gen_pdgID" , mu_gen_pdgID );
-			Declare("mu_gen_pt"    , mu_gen_pt    );
-			Declare("mu_gen_eta"   , mu_gen_eta   );
-			Declare("mu_gen_phi"   , mu_gen_phi   );
-			Declare("mu_gen_mass"  , mu_gen_mass  );
-			Declare("mu_gen_energy", mu_gen_energy);
-			Declare("mu_gen_charge", mu_gen_charge);
-			Declare("mu_gen_x"     , mu_gen_x     );
-			Declare("mu_gen_y"     , mu_gen_y     );
-			Declare("mu_gen_z"     , mu_gen_z     );
-		}
+		MuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		std::vector<int  > mu_pdgID ;
@@ -64,6 +40,32 @@ class MuonBranches : BranchCollection
 		std::vector<float> mu_gen_z     ;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("mu_pdgID" , mu_pdgID );
+			Declare("mu_pt"    , mu_pt    );
+			Declare("mu_eta"   , mu_eta   );
+			Declare("mu_phi"   , mu_phi   );
+			Declare("mu_mass"  , mu_mass  );
+			Declare("mu_energy", mu_energy);
+			Declare("mu_charge", mu_charge);
+			Declare("mu_x"     , mu_x     );
+			Declare("mu_y"     , mu_y     );
+			Declare("mu_z"     , mu_z     );
+			Declare("mu_isSlim", mu_isSlim);
+
+			Declare("mu_gen_pdgID" , mu_gen_pdgID );
+			Declare("mu_gen_pt"    , mu_gen_pt    );
+			Declare("mu_gen_eta"   , mu_gen_eta   );
+			Declare("mu_gen_phi"   , mu_gen_phi   );
+			Declare("mu_gen_mass"  , mu_gen_mass  );
+			Declare("mu_gen_energy", mu_gen_energy);
+			Declare("mu_gen_charge", mu_gen_charge);
+			Declare("mu_gen_x"     , mu_gen_x     );
+			Declare("mu_gen_y"     , mu_gen_y     );
+			Declare("mu_gen_z"     , mu_gen_z     );
+		}
+
 		virtual void Reset()
 		{
 			mu_pdgID .clear();

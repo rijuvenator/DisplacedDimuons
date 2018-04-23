@@ -13,7 +13,18 @@ class BeamspotBranches : BranchCollection
 {
 	public:
 		// constructor
-		BeamspotBranches(TreeContainer &tree) : BranchCollection(tree)
+		BeamspotBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+
+		// members
+		float bs_x    ;
+		float bs_y    ;
+		float bs_z    ;
+		float bs_x_err;
+		float bs_y_err;
+		float bs_z_err;
+
+		// methods
+		virtual void Declarations()
 		{
 			Declare("bs_x"    , bs_x    , "F");
 			Declare("bs_y"    , bs_y    , "F");
@@ -22,16 +33,7 @@ class BeamspotBranches : BranchCollection
 			Declare("bs_y_err", bs_y_err, "F");
 			Declare("bs_z_err", bs_z_err, "F");
 		}
-	
-		// members
-		float bs_x    ;
-		float bs_y    ;
-		float bs_z    ;
-		float bs_x_err;
-		float bs_y_err;
-		float bs_z_err;
-		
-		// methods
+
 		virtual void Reset()
 		{
 			bs_x     = -999.;

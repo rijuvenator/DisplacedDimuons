@@ -13,13 +13,7 @@ class EventBranches : BranchCollection
 {
 	public:
 		// constructor
-		EventBranches(TreeContainer &tree) : BranchCollection(tree)
-		{
-			Declare("evt_event", evt_event, "I");
-			Declare("evt_run"  , evt_run  , "I");
-			Declare("evt_lumi" , evt_lumi , "I");
-			Declare("evt_bx"   , evt_bx   , "I");
-		}
+		EventBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
 		// members
 		int evt_event ;
@@ -28,6 +22,14 @@ class EventBranches : BranchCollection
 		int evt_bx    ;
 
 		// methods
+		virtual void Declarations()
+		{
+			Declare("evt_event", evt_event, "I");
+			Declare("evt_run"  , evt_run  , "I");
+			Declare("evt_lumi" , evt_lumi , "I");
+			Declare("evt_bx"   , evt_bx   , "I");
+		}
+
 		virtual void Reset()
 		{
 			evt_event = -1;

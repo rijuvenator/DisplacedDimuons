@@ -41,19 +41,19 @@ class GenOnlyNTupler : public edm::EDAnalyzer
 		TreeContainer tree;
 
 		EventBranches eventData;
-		GenBranches genData;
+		GenBranches   genData;
 
 		edm::EDGetTokenT<reco::GenParticleCollection> genToken;
-		edm::EDGetTokenT<GenEventInfoProduct> GEIPToken;
+		edm::EDGetTokenT<GenEventInfoProduct        > GEIPToken;
 
 };
 
 GenOnlyNTupler::GenOnlyNTupler(const edm::ParameterSet& iConfig):
 	tree("DDTree", ""),
 	eventData(tree),
-	genData(tree),
-	genToken(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"))),
-	GEIPToken(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("GEIP")))
+	genData  (tree),
+	genToken (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"))),
+	GEIPToken(consumes<GenEventInfoProduct        >(iConfig.getParameter<edm::InputTag>("GEIP")))
 {};
 
 void GenOnlyNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
