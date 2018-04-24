@@ -1,7 +1,7 @@
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 import itertools
 
-datasets = DH.get_H2X4M_Datasets()
+datasets = DH.getHTo2XTo4MuSamples()
 
 datasets.sort(key=lambda x: x.signalPoint())
 
