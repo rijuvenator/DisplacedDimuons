@@ -33,7 +33,7 @@ def declareHistograms(self):
 	CONFIG['pTResVSLxy'] = {'TITLE':';L_{xy} [cm];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 10. , 1000, -1., 1.  )}
 	CONFIG['pTResVSpT' ] = {'TITLE':';p_{T} [GeV];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 500., 1000, -1., 1.  )}
 	CONFIG['pTResVSdR' ] = {'TITLE':';#DeltaR;*** p_{T} Res;Counts'                 , 'AXES':(1000, 0., 5.  , 1000, -1., 1.  )}
-	CONFIG['pTVSpT'    ] = {'TITLE':';gen p_{T} [GeV];*** p_{T} [GeV]'              , 'AXES':(1000, 0., 500., 1000,  0., 500.)}
+	CONFIG['pTVSpT'    ] = {'TITLE':';gen p_{T} [GeV];*** p_{T} [GeV];Counts'       , 'AXES':(1000, 0., 500., 1000,  0., 500.)}
 	for MUON in ('DSA', 'RSA'):
 		for KEY in CONFIG:
 			self.HistInit(MUON+'_'+KEY, CONFIG[KEY]['TITLE'].replace('***',MUON), *CONFIG[KEY]['AXES'])
