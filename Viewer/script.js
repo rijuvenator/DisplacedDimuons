@@ -53,7 +53,9 @@ function makePlotTypeOptions()
 		document.getElementById("plottype_1"),
 		document.getElementById("plottype_2"),
 		document.getElementById("plottype_3"),
-		document.getElementById("plottype_4")
+		document.getElementById("plottype_4"),
+		document.getElementById("plottype_5"),
+		document.getElementById("plottype_6"),
 	];
 	//let disabled = [false, false, false, false, false, false];
 
@@ -308,6 +310,20 @@ var TYPES = [
 	['DSA_pTResVSpT' , 'DSA p' + 'T'.sub() + ' Res vs. gen p' + 'T'.sub() , 4, 'glo'],
 	['DSA_pTResVSdR' , 'DSA p' + 'T'.sub() + ' Res vs. gen &Delta;R'      , 4, 'glo'],
 	['DSA_pTVSpT'    , 'DSA p' + 'T'.sub() + ' vs. gen p' + 'T'.sub()     , 4, 'glo'],
+
+	['NM1_nMuonHits_Less', 'N(Hits)'                           , 5, 'per'],
+	['NM1_nStations_Less', 'N(Stations)'                       , 5, 'per'],
+	['NM1_normChi2_Less' , '&chi;' + '2'.sup() + '/dof'        , 5, 'per'],
+	['NM1_vtxChi2_Less'  , 'vertex &chi;' + '2'.sup() + '/dof' , 5, 'per'],
+	['NM1_deltaR_Less'   , '&Delta;R'                          , 5, 'per'],
+	['NM1_cosAlpha_Less' , 'cos(&alpha;)'                      , 5, 'per'],
+
+	['NM1_nMuonHits_More', 'N(Hits)'                           , 6, 'per'],
+	['NM1_nStations_More', 'N(Stations)'                       , 6, 'per'],
+	['NM1_normChi2_More' , '&chi;' + '2'.sup() + '/dof'        , 6, 'per'],
+	['NM1_vtxChi2_More'  , 'vertex &chi;' + '2'.sup() + '/dof' , 6, 'per'],
+	['NM1_deltaR_More'   , '&Delta;R'                          , 6, 'per'],
+	['NM1_cosAlpha_More' , 'cos(&alpha;)'                      , 6, 'per'],
 ];
 
 //**** MAIN CODE ****

@@ -6,8 +6,8 @@ import DisplacedDimuons.Analysis.Utilities as Utilities
 
 # set up a configuration dictionary with the same cut keys as in Selections
 CUTKEYS = {
-	'nMuonHits': {'AXES':(51 ,  0., 50.)},
-	'nStations': {'AXES':(10 ,  0.,  9.)},
+	'nMuonHits': {'AXES':(50 ,  0., 50.)},
+	'nStations': {'AXES':(10 ,  0., 10.)},
 	'normChi2' : {'AXES':(100,  0.,  5.)},
 	'vtxChi2'  : {'AXES':(100,  0.,  5.)},
 	'deltaR'   : {'AXES':(100,  0.,  5.)},
@@ -85,4 +85,4 @@ if __name__ == '__main__':
 		BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
 		DEVELOP     = ARGS.DEVELOP
 	)
-	analyzer.writeHistograms('roots/CutParameterPlots_{}.root')
+	analyzer.writeHistograms('roots/nMinusOne_{}.root')

@@ -56,5 +56,9 @@ label.sbox {
 	display:inline;
 }
 h4.float {
+	padding-top: 5px;
 	padding-bottom: 10px;
+}
+h5.float {
+	padding-bottom: 5px;
 }
