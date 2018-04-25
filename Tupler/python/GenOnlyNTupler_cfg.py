@@ -10,8 +10,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
 args = parser.parse_args(sys.argv[2:])
 signalPoint = tuple(args.SIGNALPOINT)
-H2X4Mdata = DH.get_H2X4M_Datasets()
-for data in H2X4Mdata:
+HTo2XTo4MuSamples = DH.getHTo2XTo4MuSamples()
+for data in HTo2XTo4MuSamples:
 	if data.signalPoint() == signalPoint and data.process == 'GS-v2':
 		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
 		OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/genOnly_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'

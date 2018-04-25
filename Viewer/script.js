@@ -52,7 +52,8 @@ function makePlotTypeOptions()
 		document.getElementById("plottype_0"),
 		document.getElementById("plottype_1"),
 		document.getElementById("plottype_2"),
-		document.getElementById("plottype_3")
+		document.getElementById("plottype_3"),
+		document.getElementById("plottype_4")
 	];
 	//let disabled = [false, false, false, false, false, false];
 
@@ -302,6 +303,11 @@ var TYPES = [
 	['Dim_mass'      , 'M(&mu;&mu;)'                            , 3, 'per'],
 	['Dim_deltaPhi'  , '&mu;&mu; &Delta;&Phi;'                  , 3, 'per'],
 	['Dim_cosAlpha'  , '&mu;&mu; cos(&alpha;)'                  , 3, 'per'],
+
+	['DSA_pTResVSLxy', 'DSA p' + 'T'.sub() + ' Res vs. gen L' + 'xy'.sub(), 4, 'glo'],
+	['DSA_pTResVSpT' , 'DSA p' + 'T'.sub() + ' Res vs. gen p' + 'T'.sub() , 4, 'glo'],
+	['DSA_pTResVSdR' , 'DSA p' + 'T'.sub() + ' Res vs. gen &Delta;R'      , 4, 'glo'],
+	['DSA_pTVSpT'    , 'DSA p' + 'T'.sub() + ' vs. gen p' + 'T'.sub()     , 4, 'glo'],
 ];
 
 //**** MAIN CODE ****

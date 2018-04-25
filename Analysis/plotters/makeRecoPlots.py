@@ -62,8 +62,7 @@ def makePerSignalPlots():
 				f.SetLineColor(R.kRed)
 				canvas.setFitBoxStyle(h, lWidth=0.35, pos='tr')
 				p.FindObject('stats').SetTextColor(R.kRed)
-				p.FindObject('stats').SetY1NDC(p.FindObject('stats').GetY1NDC() - .5)
-				p.FindObject('stats').SetY2NDC(p.FindObject('stats').GetY2NDC() - .5)
+				Plotter.MOVE_OBJECT(p.FindObject('stats'), Y=-.5, NDC=True)
 			Cleanup(canvas, fname)
 
 # make DSA RSA overlaid per signal plots
@@ -125,12 +124,10 @@ def makeOverlayPerSignalPlots():
 				canvas.setFitBoxStyle(h['RSA'], lWidth=0.35, pos='tr')
 
 				p['DSA'].FindObject('stats').SetTextColor(R.kBlack)
-				p['DSA'].FindObject('stats').SetY1NDC(p['DSA'].FindObject('stats').GetY1NDC() - .25)
-				p['DSA'].FindObject('stats').SetY2NDC(p['DSA'].FindObject('stats').GetY2NDC() - .25)
+				Plotter.MOVE_OBJECT(p['DSA'].FindObject('stats'), Y=-.25, NDC=True)
 
 				p['RSA'].FindObject('stats').SetTextColor(R.kGreen+1)
-				p['RSA'].FindObject('stats').SetY1NDC(p['RSA'].FindObject('stats').GetY1NDC() - .5)
-				p['RSA'].FindObject('stats').SetY2NDC(p['RSA'].FindObject('stats').GetY2NDC() - .5)
+				Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.5, NDC=True)
 
 			Cleanup(canvas, fname)
 
@@ -244,15 +241,17 @@ def makeColorPlot(key):
 	h.Rebin2D(10, 10)
 	p = Plotter.Plot(h, '', '', 'colz')
 	canvas = Plotter.Canvas()
+	canvas.mainPad.SetLogz(True)
 	canvas.addMainPlot(p)
 	canvas.scaleMargins(1.75, edges='R')
-	canvas.scaleMargins(0.75, edges='L')
+	canvas.scaleMargins(0.8, edges='L')
 	Cleanup(canvas, 'pdfs/{}.pdf'.format(key))
 
 #makeGlobalPlot('DSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('DSA_pTEff' , DenKey='pTDen' )
 #makeGlobalPlot('RSA_LxyEff', DenKey='LxyDen')
 #makeGlobalPlot('RSA_pTEff' , DenKey='pTDen' )
+
 makePerSignalPlots()
 makeOverlayPerSignalPlots()
 makeOverlayGlobalPlots('LxyEff', DenKey='LxyDen')
@@ -260,3 +259,4 @@ makeOverlayGlobalPlots('pTEff' , DenKey='pTDen' )
 makeColorPlot('DSA_pTResVSLxy')
 makeColorPlot('DSA_pTResVSpT')
 makeColorPlot('DSA_pTResVSdR')
+makeColorPlot('DSA_pTVSpT')
