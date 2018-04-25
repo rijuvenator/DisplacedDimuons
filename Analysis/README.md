@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: 10 April 2018
+Last updated: 25 April 2018
 
 This subpackage contains code to analyze nTuples produced by the Tupler subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -8,6 +8,7 @@ This subpackage contains code to analyze nTuples produced by the Tupler subpacka
 
 The `python/` directory contains the following libraries:
 
+  * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `analyzeReco.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis.
   * **Constants.py** contains common literals: file paths and lists of signal points. It's better to import these from a central location so that they don't have to changed in multiple places.
   * **Plotter.py** is my general-purpose plot making and styling library, with plots based on standard TDR style and with a large number of useful functions and classes that I've found useful when creating and managing plots. See the _Plotter_ documentation for full documentation.
   * **Primitives.py** is my starting point for creating Python objects from flat nTuples. The basic idea is that it's much easier to write code like
