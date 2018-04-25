@@ -294,7 +294,7 @@ var TYPES = [
 	['Reco_pTRes'    , 'Reco p' + 'T'.sub() + ' Res'  , 2, 'per'],
 	['Reco_d0Dif'    , 'Reco d' + '0'.sub() + ' Diff' , 2, 'per'],
 	['Reco_nMuon'    , 'Reco N' + '&mu;'.sub()        , 2, 'per'],
-	['Reco_NMinusOne', 'Reco N&minus;1'               , 2, 'per'],
+	['Reco_CutTable' , 'Reco Cut Table'               , 2, 'per'],
 	['Reco_pTEff'    , 'Reco p' + 'T'.sub() + ' Eff'  , 2, 'glo'],
 	['Reco_LxyEff'   , 'Reco L' + 'xy'.sub() + ' Eff' , 2, 'glo'],
 

@@ -29,7 +29,7 @@ for fields in data:
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
 		HISTS[sp].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
 
-f = R.TFile('roots/NMinusOne.root', 'RECREATE')
+f = R.TFile('roots/CutTable.root', 'RECREATE')
 for sp in HISTS:
 	HISTS[sp].Write()
 
@@ -71,7 +71,7 @@ def makeCombinedPlot():
 	canvas.legend.moveLegend(X=.18)
 
 	canvas.finishCanvas()
-	canvas.save('NMinusOne.pdf')
+	canvas.save('CutTable.pdf')
 	canvas.deleteCanvas()
 
 def makeIndividualPlots():
@@ -83,7 +83,7 @@ def makeIndividualPlots():
 		canvas.firstPlot.SetMarkerColor(R.kBlue)
 		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
-		canvas.save('pdfs/Reco_NMinusOne_{}.pdf'.format(SPStr(sp)))
+		canvas.save('pdfs/Reco_CutTable_{}.pdf'.format(SPStr(sp)))
 		canvas.deleteCanvas()
 
 makeIndividualPlots()
