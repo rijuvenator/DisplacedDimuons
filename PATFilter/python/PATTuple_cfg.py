@@ -52,19 +52,19 @@ process.out = cms.OutputModule(
         'drop *_refittedStandAloneMuons_UpdatedAtVtx_*',
         'keep patMuons_cleanPatMuons__*',
         'keep patMETs_patMETs*__PAT',
-##        'keep recoGenParticles_prunedMCLeptons_*_*',
-        'keep recoGenParticles_*_*_*',
+#        'keep recoGenParticles_*_*_SIM',               # full genParticles collection
+        'keep recoGenParticles_prunedGenParticles_*_*', # genParticles after pruning
         'keep GenEventInfoProduct_*_*_*',
         'keep *_offlineBeamSpot_*_*',
         'keep *_offlinePrimaryVertices_*_*',
-        'keep *_offlinePrimaryVerticesWithBS_*_*', # w/ BS contraint in the vtx fit
+        'keep *_offlinePrimaryVerticesWithBS_*_*',      # w/ BS contraint in the vtx fit
         'keep edmTriggerResults_TriggerResults__HLT*',
-##        'keep L1GlobalTriggerObjectMaps_l1L1GtObjectMap_*_*', # drop later if embedding of L1 into PAT works fine
+##        'keep L1GlobalTriggerObjectMaps_l1L1GtObjectMap_*_*', # no longer exists
         'keep L1GlobalTriggerReadoutRecord_gtDigis__RECO',
         'keep *_hltTriggerSummaryAOD__HLT*',
-        'keep edmTriggerResults_TriggerResults__PAT', # for post-tuple filtering on the goodData paths
-        'keep PileupSummaryInfos_addPileupInfo_*_*',  # needed for pile-up reweighting?
-#        'keep *_cleanPatMuonsTriggerMatch_*_*',
+        'keep edmTriggerResults_TriggerResults__PAT',   # for post-tuple filtering on the goodData paths
+        'keep PileupSummaryInfos_addPileupInfo_*_*',    # needed for pile-up reweighting?
+#        'keep *_cleanPatMuonsTriggerMatch_*_*',        # if embed trigger match
         'keep *_patTrigger_*_*', 
         'keep *_patTriggerEvent_*_*'
         )
