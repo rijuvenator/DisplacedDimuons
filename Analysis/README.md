@@ -8,6 +8,7 @@ This subpackage contains code to analyze nTuples produced by the Tupler subpacka
 
 The `python/` directory contains the following libraries:
 
+  * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT or to simplify working with Python
   * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `analyzeReco.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis.
   * **Constants.py** contains common literals: file paths and lists of signal points. It's better to import these from a central location so that they don't have to changed in multiple places.
   * **Plotter.py** is my general-purpose plot making and styling library, with plots based on standard TDR style and with a large number of useful functions and classes that I've found useful when creating and managing plots. See the _Plotter_ documentation for full documentation.
@@ -55,13 +56,21 @@ for event in t:
 
 `dumpers/` is my name for Python analysis scripts that print text to the screen, as opposed to making plots. Currently, the only relevant dumper is `cutEfficiencies.py`, which is a sort of test script for computing selection efficiences. As always, `runAll` submits jobs to the batch system.
 
+## Analyzers
+
+`analyzers/` is where I keep my analyzers: scripts that run over trees and create ROOT files containing histograms.
+
+  * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. It writes histograms to ROOT files and runs quickly enough that a `runAll` is not necessary.
+  * **analyzeReco.py** produces resolution and efficiency plots, and a few dimuon plots at the moment. Basically, any plots at reco level. It uses the full _Primitives_ machinery, uses _Selections_, and writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
+  * **cutParameterDistributions.py** makes N-1 plots, distributions of the cut parameters. It uses the full _Primitives_ machinery, uses _Selections_, and writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
+
 ## Plotters
 
-`plotters/` is where I keep my plotting scripts. 
+`plotters/` is where I keep my plotting scripts. Mostly, they take root files from `../analyzers/roots/` and create PDFs.
 
-  * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. This script produces `.pdf` files directly.
-  * **analyzeReco.py** produces resolution and efficiency plots, and a few dimuon plots at the moment. Basically, any plots at reco level. It uses the full _Primitives_ machinery, uses _Selections_, and only writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
+  * **makeGenPlots.py** opens the `hadd`-ed ROOT files produced by **genPlots.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
   * **makeRecoPlots.py** opens the `hadd`-ed ROOT files produced by **analyzeReco.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
+  * **TO DO**: make a **makeCutParameterDistributions.py** script which among other things draws a dashed line for the cut value
 
   
 For the purposes of the Javascript-based **Viewer**, I have a script, **convertone.sh**, that converts the `.pdf` files into `.png` files. I recommend the following for multiple conversions:

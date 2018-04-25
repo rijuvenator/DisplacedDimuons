@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PREFIX="$1"
+if [ -z $PREFIX ]; then
+	echo "No prefix given; assuming PREFIX = RecoPlots"
+	PREFIX="RecoPlots"
+fi
+
+rm ${PREFIX}.root; hadd ${PREFIX}.root ${PREFIX}_*

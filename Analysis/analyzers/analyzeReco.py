@@ -3,22 +3,9 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Utilities as Utilities
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
 
 #### CLASS AND FUNCTION DEFINITIONS ####
-# defines a match between a genMuon (Primitives.Muon with source=GEN) and a recoMuon (Primitives.Muon with source=DSA or RSA)
-# retuns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
-def matchedMuons(genMuon, recoMuons):
-	matches = []
-	for i,muon in enumerate(recoMuons):
-		deltaR = muon.p4.DeltaR(genMuon.p4)
-		#if deltaR < min(0.3,genMuon.pairDeltaR) and Selections.MuonCuts['pt'].apply(muon) and muon.charge == genMuon.charge:
-		if deltaR < min(0.3,genMuon.pairDeltaR) and muon.charge == genMuon.charge:
-			matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt})
-	return sorted(matches, key=lambda dic:dic['deltaR'])
-
-def pTRes(recoMuon, genMuon):
-	return (recoMuon.pt - genMuon.pt)/genMuon.pt
-
 # declare histograms for Analyzer class
 def declareHistograms(self):
 	# DSA and RSA specific plots

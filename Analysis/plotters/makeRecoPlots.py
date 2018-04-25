@@ -5,7 +5,7 @@ from DisplacedDimuons.Analysis.Utilities import SPStr
 
 # get all histograms
 HISTS = {}
-f = R.TFile.Open('roots/RecoPlots.root')
+f = R.TFile.Open('../analyzers/roots/RecoPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
 	parts = hkey.split('_')
 	sp = tuple(map(int, parts[-3:]))

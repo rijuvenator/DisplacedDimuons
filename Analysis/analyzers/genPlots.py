@@ -1,7 +1,7 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS, SIGNALPOINTS
 from DisplacedDimuons.Analysis.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -66,6 +66,7 @@ def Draw(t, HConfig, key, expressions):
 def fillPlots(sp, HList):
 	# get file and tree
 	f = R.TFile.Open(DIR_WS + 'genOnly_ntuple_{}.root'.format(SPStr(sp)))
+	f.cd()
 	t = f.Get('GenOnlyNTupler/DDTree')
 
 	# set basic particle aliases
@@ -91,25 +92,11 @@ def fillPlots(sp, HList):
 	f.Close()
 	del f
 
-# makes plot using Plotter class
-def makePlots(sp, HList):
-	for key in HList:
-		h = HISTS[sp][key]
-
-		p = Plotter.Plot(h, '', 'p', 'hist')
-		canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
-		canvas.addMainPlot(p)
-		p.SetLineColor(R.kBlue)
-		canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
-		canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
-		canvas.makeTransparent()
-		canvas.finishCanvas()
-		canvas.save('pdfs/{}_{}.pdf'.format(key, SPStr(sp)))
-		canvas.deleteCanvas()
-
 #### ALL GLOBAL VARIABLES DECLARED HERE ####
 # empty histogram dictionary
 HISTS = {}
+# empty files dictionary
+FILES = {}
 
 # list of histogram keys to actually fill this time
 #HList = (
@@ -166,13 +153,14 @@ HExpressions = {
 
 #### MAIN CODE ####
 # loop over signal points
-for mH in SIGNALS:
-	for mX in SIGNALS[mH]:
-		for cTau in SIGNALS[mH][mX]:
-			sp = (mH, mX, cTau)
-			HISTS[sp] = {}
-
-			fillPlots(sp, HList)
-			makePlots(sp, HList)
-
-			print 'Did', sp
+for sp in SIGNALPOINTS:
+	HISTS[sp] = {}
+	fillPlots(sp, HList)
+	print 'Created plots for', sp
+# now that plots are filled, loop over signal points and write to files
+for key in HList:
+	FILES[key] = R.TFile.Open('roots/GenPlots_{}.root'.format(key), 'RECREATE')
+	FILES[key].cd()
+	for sp in SIGNALPOINTS:
+		HISTS[sp][key].Write()
+	print 'Written ROOT file for all signal points for', key
