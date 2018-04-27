@@ -23,13 +23,13 @@ f.close()
 HISTS = {}
 for fields in data:
 	sp = (int(fields['mH']), int(fields['mX']), int(fields['cTau']))
-	HISTS[sp] = R.TH1F('NM1_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
+	HISTS[sp] = R.TH1F('CutTable_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
 
 	for i,header in enumerate(MuonCutListPlusNone):
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
 		HISTS[sp].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
 
-f = R.TFile('roots/NMinusOne.root', 'RECREATE')
+f = R.TFile('../analyzers/roots/CutTable.root', 'RECREATE')
 for sp in HISTS:
 	HISTS[sp].Write()
 
@@ -56,7 +56,7 @@ for sp in HISTS:
 	PLOTS[sp] = Plotter.Plot(HISTS[sp], legName='({}, {}, {})'.format(*sp), legType='lp', option='hist p')
 
 def makeCombinedPlot():
-	canvas = Plotter.Canvas(lumi='N#minus1 Plot', cWidth=1000)
+	canvas = Plotter.Canvas(lumi='CutTable Plot', cWidth=1000)
 	for sp in RECOSIGNALPOINTS:
 		canvas.addMainPlot(PLOTS[sp])
 		PLOTS[sp].SetMarkerColor(COLORS[sp])
@@ -71,7 +71,7 @@ def makeCombinedPlot():
 	canvas.legend.moveLegend(X=.18)
 
 	canvas.finishCanvas()
-	canvas.save('NMinusOne.pdf')
+	canvas.save('CutTable.pdf')
 	canvas.deleteCanvas()
 
 def makeIndividualPlots():
@@ -83,7 +83,7 @@ def makeIndividualPlots():
 		canvas.firstPlot.SetMarkerColor(R.kBlue)
 		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
-		canvas.save('pdfs/Reco_NMinusOne_{}.pdf'.format(SPStr(sp)))
+		canvas.save('pdfs/Reco_CutTable_{}.pdf'.format(SPStr(sp)))
 		canvas.deleteCanvas()
 
 makeIndividualPlots()

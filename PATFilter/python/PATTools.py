@@ -11,23 +11,23 @@ def redefineMCMatching(process):
         x.checkCharge = False
         x.maxDPtRel = 1e6
 
-def pruneMCLeptons(process, use_sim=False):
-    process.load('SUSYBSMAnalysis.Zprime2muAnalysis.PrunedMCLeptons_cfi')
-    obj = process.prunedMCLeptons
-    
+def pruneGenPartsAndRedefineMCMatching(process, use_sim=False):
+    process.load('DisplacedDimuons.PATFilter.PrunedGenParticles_cfi')
+    obj = process.prunedGenParticles
+
     if use_sim:
         # For muon and electron MC matching, want to be able to match to
         # decays-in-flight produced in SIM (whether by GEANT or FastSim),
         # so make some genParticles out of the simTracks.
         # This works only with RECO, so it will be disabled later for AOD.
         process.load('SUSYBSMAnalysis.Zprime2muAnalysis.GenPlusSim_cfi')
-        process.prunedMCLeptons.src = 'genSimLeptons'
-        obj = process.genSimLeptons * process.prunedMCLeptons
+        process.prunedGenParticles.src = 'genSimLeptons'
+        obj = process.genSimLeptons * process.prunedGenParticles
 
     for x in (process.muonMatch, process.electronMatch):
-        # Switch to use the new GEN+SIM particles created above.
-        x.matched = cms.InputTag('prunedMCLeptons')
-        
+        # Switch to use the new pruned (GEN+SIM) particles created above.
+        x.matched = cms.InputTag('prunedGenParticles')
+
         # Default PAT muon/electron-MC matching requires, in addition
         # to deltaR < 0.5, the MC and reconstructed leptons to have
         # the same charge, and (reco pt - gen pt)/gen pt <
@@ -71,12 +71,12 @@ def removeMuonMCClassification(process):
 def removeSimLeptons(process):
     if hasattr(process, 'genSimLeptons'):
         process.patDefaultSequence.remove(process.genSimLeptons)
-        if hasattr(process, 'prunedMCLeptons'):
-            process.prunedMCLeptons.src = 'genParticles'
+        if hasattr(process, 'prunedGenParticles'):
+            process.prunedGenParticles.src = 'genParticles'
 
-def removePrunedMCLeptons(process):
-    if hasattr(process, 'prunedMCLeptons'):
-        process.patDefaultSequence.remove(process.prunedMCLeptons)
+def removePrunedGenParticles(process):
+    if hasattr(process, 'prunedGenParticles'):
+        process.patDefaultSequence.remove(process.prunedGenParticles)
 
 def removeMCUse(process):
     # Remove anything that requires MC truth.
@@ -106,7 +106,7 @@ def removeMCUse(process):
     # removeMCMatching(process, ['METs'], postfix='PF')
     # removeMuonMCClassification(process)
     # removeSimLeptons(process)
-    # removePrunedMCLeptons(process)
+    # removePrunedGenParticles(process)
     
 def switchHLTProcessName(process, name):
     # As the correct trigger process name is different from the

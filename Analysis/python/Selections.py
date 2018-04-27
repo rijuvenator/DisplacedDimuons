@@ -13,6 +13,10 @@ class Cut(object):
 		self.expr = expr
 		self.op   = op
 		self.val  = val
+		if self.op in (operator.gt, operator.ge):
+			self.mfunc = min
+		elif self.op in (operator.lt, operator.le):
+			self.mfunc = max
 	
 	def apply(self, *objs):
 		return self.op(self.expr(*objs), self.val)
@@ -62,7 +66,7 @@ PrettyTitles = {
 	'deltaR'    : '#DeltaR',
 	'mass'      : 'M(#mu#mu)',
 	'deltaPhi'  : '|#Delta#Phi|',
-	'cosAlpha'  : '#cos(#alpha)',
+	'cosAlpha'  : 'cos(#alpha)',
 	'all'       : 'all',
 	'none'      : 'none',
 }

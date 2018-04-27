@@ -20,14 +20,12 @@ process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_TrancheIV_v6'
 # CMSSW_9_2_X
 # process.GlobalTag.globaltag = '92X_upgrade2017_realistic_v12'
 
+# Prune the list of GEN particles and use the reduced genParticles collection for REC-GEN matching for PAT muons
 # "switchHLTProcessName" is not needed for RunIISummer16 campaign, but leave it in
-from DisplacedDimuons.PATFilter.PATTools import redefineMCMatching, switchHLTProcessName
+from DisplacedDimuons.PATFilter.PATTools import pruneGenPartsAndRedefineMCMatching, switchHLTProcessName
+pruneGenPartsAndRedefineMCMatching(process)
 
-# Redefine reco-gen matching cuts
-redefineMCMatching(process)
-# Current MC pruning cuts are only good for Z' studies; may need to rework
-# them later
-#pruneMCLeptons(process, use_sim=True)
+# To switch off parts using RECO tier; not needed at the moment
 #AODOnly(process)
 
 # Filter on HLT paths
@@ -49,6 +47,17 @@ process.hlTrigReport = cms.EDAnalyzer("HLTrigReport",
                                       )
 process.MessageLogger.categories.append("HLTrigReport")
 process.report = cms.EndPath(process.hlTrigReport)
+
+# Dump the list of genParticles in a format similar to that from turning on PYTHIA's verbosity
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+process.particleListDrawer = cms.EDAnalyzer("ParticleListDrawer",
+                                            maxEventsToPrint = cms.untracked.int32(20),
+                                            src = cms.InputTag("genParticles","","SIM"),
+                                            printOnlyHardInteraction = cms.untracked.bool(False),
+                                            useMessageLogger = cms.untracked.bool(True)
+                                            )
+process.MessageLogger.categories.append("ParticleListDrawer")
+#process.p += process.particleListDrawer
 
 #print process.dumpPython()
 
