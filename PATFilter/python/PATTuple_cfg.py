@@ -60,8 +60,8 @@ process.out = cms.OutputModule(
         'keep *_offlinePrimaryVerticesWithBS_*_*',      # w/ BS contraint in the vtx fit
         'keep edmTriggerResults_TriggerResults__HLT*',
 ##        'keep L1GlobalTriggerObjectMaps_l1L1GtObjectMap_*_*', # no longer exists
-        'keep L1GlobalTriggerReadoutRecord_gtDigis__RECO',
-        'keep *_hltTriggerSummaryAOD__HLT*',
+#        'keep L1GlobalTriggerReadoutRecord_gtDigis__RECO', # superseded by pat::Trigger
+#        'keep *_hltTriggerSummaryAOD__HLT*',               # superseded by pat::Trigger
         'keep edmTriggerResults_TriggerResults__PAT',   # for post-tuple filtering on the goodData paths
         'keep PileupSummaryInfos_addPileupInfo_*_*',    # needed for pile-up reweighting?
 #        'keep *_cleanPatMuonsTriggerMatch_*_*',        # if embed trigger match
@@ -98,7 +98,7 @@ switchOnTrigger(process, outputModule = '')
 # switchOnTriggerStandAlone(process, outputModule = '')
 # process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patTrigger)
 
-# PAT MET; does not get added to the path either...
+# Type-1-corrected PAT MET
 from PhysicsTools.PatAlgos.tools.metTools import addMETCollection 
 addMETCollection(process, labelName='patMETsPF', metSource='pfMetT1')
 # Again this is only needed in the "scheduled" mode
