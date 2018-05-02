@@ -1,76 +1,8 @@
 import os
 
-DIR_DD = os.environ['CMSSW_BASE'] + '/src/DisplacedDimuons/'
-DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
-
-# signal points as nested dictionaries
-# SIGNALS[mH] is a dictionary of mX:list(cTau)
-# SIGNALS[mH][mX] is a list of cTau
-SIGNALS = {
-	125 : {
-		20 : [
-			13,  
-			130, 
-			1300,
-		],
-		50 : [
-			50,   
-			500,  
-			5000, 
-		]
-	},
-	200 : {
-		20 : [
-			7,    
-			70,   
-			700,  
-		],
-		50 : [
-			20,   
-			200,  
-			2000, 
-		]
-	},
-	400 : {
-		20 : [
-			4,    
-			40,   
-			400,  
-		],
-		50 : [
-			8,    
-			80,   
-			800,  
-		],
-		150 : [
-			40,   
-			400,  
-			4000, 
-		]
-	},
-	1000 : {
-		20 : [
-			2,    
-			20,   
-			200,  
-		],
-		50 : [
-			4,    
-			40,   
-			400,  
-		],
-		150 : [
-			10,   
-			100,  
-			1000, 
-		],
-		350 : [
-			35,   
-			350,  
-			3500, 
-		]
-	}
-}
+DIR_WS_RIJU  = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
+DIR_EOS_RIJU = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
+DIR_DD       = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
 
 # signal points as list of tuples
 SIGNALPOINTS = [
@@ -145,3 +77,72 @@ RECOSIGNALPOINTS = [
 	( 125,  20,  130),
 	( 125,  20, 1300),
 ]
+
+# signal points as nested dictionaries
+# SIGNALS[mH] is a dictionary of mX:list(cTau)
+# SIGNALS[mH][mX] is a list of cTau
+SIGNALS = {
+	125 : {
+		20 : [
+			13,  
+			130, 
+			1300,
+		],
+		50 : [
+			50,   
+			500,  
+			5000, 
+		]
+	},
+	200 : {
+		20 : [
+			7,    
+			70,   
+			700,  
+		],
+		50 : [
+			20,   
+			200,  
+			2000, 
+		]
+	},
+	400 : {
+		20 : [
+			4,    
+			40,   
+			400,  
+		],
+		50 : [
+			8,    
+			80,   
+			800,  
+		],
+		150 : [
+			40,   
+			400,  
+			4000, 
+		]
+	},
+	1000 : {
+		20 : [
+			2,    
+			20,   
+			200,  
+		],
+		50 : [
+			4,    
+			40,   
+			400,  
+		],
+		150 : [
+			10,   
+			100,  
+			1000, 
+		],
+		350 : [
+			35,   
+			350,  
+			3500, 
+		]
+	}
+}

@@ -2,9 +2,10 @@ import FWCore.ParameterSet.Config as cms
 
 ##### Batch cmsRun from command line arguments
 # get signal point as 3 numbers
-import sys
-import argparse
+import sys, os, argparse
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+from DisplacedDimuons.Common.Constants import DIR_WS_RIJU, DIR_EOS_RIJU
+from DisplacedDimuons.Common.Utilities import SPStr
 
 parser = argparse.ArgumentParser()
 parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
@@ -14,7 +15,7 @@ HTo2XTo4MuSamples = DH.getHTo2XTo4MuSamples()
 for data in HTo2XTo4MuSamples:
 	if data.signalPoint() == signalPoint and data.process == 'GS-v2':
 		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
-		OUTPUTFILE = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/genOnly_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
+		OUTPUTFILE = os.path.join(DIR_WS_RIJU, 'gen_ntuple_{}_{}.root'.format(data.name, SPStr(signalPoint)))
 		print '\n\nWill run over', len(INPUTFILES), 'files and attempt to create', OUTPUTFILE, '\n\n'
 		break
 else:

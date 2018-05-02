@@ -2,7 +2,7 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
-import DisplacedDimuons.Analysis.Utilities as Utilities
+import DisplacedDimuons.Common.Utilities as Utilities
 
 # set up a configuration dictionary with the same cut keys as in Selections
 CUTKEYS = {

@@ -2,18 +2,17 @@ import FWCore.ParameterSet.Config as cms
 
 ##### Batch cmsRun from command line arguments
 # get signal point as 3 numbers
-import sys
-import argparse
+import sys, os, argparse
+import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+from DisplacedDimuons.Common.Constants import DIR_WS_RIJU, DIR_EOS_RIJU
+from DisplacedDimuons.Common.Utilities import SPStr
 
 parser = argparse.ArgumentParser()
 parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
 args = parser.parse_args(sys.argv[2:])
 signalPoint = tuple(args.SIGNALPOINT)
-DIR_WS = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
-DIR_EOS = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
-INPUTFILES = ['file:' + DIR_EOS + 'PATTuple_' + '_'.join(map(str,signalPoint)) + '.root']
-OUTPUTFILE = DIR_WS + 'simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
-#OUTPUTFILE = './simple_ntuple_' + '_'.join(map(str,signalPoint)) + '.root'
+INPUTFILES = ['file:{}PAT_{}_{}.root'.format(DIR_EOS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))]
+OUTPUTFILE = '{}ntuple_{}_{}.root'.format(DIR_WS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))
 #####
 
 # parameters and constants

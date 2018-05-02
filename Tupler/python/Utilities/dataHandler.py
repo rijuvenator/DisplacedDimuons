@@ -21,9 +21,9 @@ def DASQuery(query):
 def DASQueryList(query):
 	return DASQuery(query).split('\n')
 
-#########################
-# GENERAL DATASET TOOLS #
-#########################
+###################
+# DATASET CLASSES #
+###################
 
 # regex patterns, compiled for ... speed?
 PATTERNS = {

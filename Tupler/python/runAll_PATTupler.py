@@ -1,6 +1,6 @@
 import os
 import subprocess as bash
-from DisplacedDimuons.Analysis.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
 
 CMSSW_BASE = os.environ['CMSSW_BASE']
 

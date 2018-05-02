@@ -1,8 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS, SIGNALPOINTS
-from DisplacedDimuons.Analysis.Utilities import SPStr
+from DisplacedDimuons.Common.Constants import DIR_WS_RIJU, SIGNALS, SIGNALPOINTS
+from DisplacedDimuons.Common.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # histogram configuration object
@@ -65,7 +65,7 @@ def Draw(t, HConfig, key, expressions):
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
 def fillPlots(sp, HList):
 	# get file and tree
-	f = R.TFile.Open(DIR_WS + 'genOnly_ntuple_{}.root'.format(SPStr(sp)))
+	f = R.TFile.Open(DIR_WS_RIJU + 'genOnly_ntuple_{}.root'.format(SPStr(sp)))
 	f.cd()
 	t = f.Get('GenOnlyNTupler/DDTree')
 

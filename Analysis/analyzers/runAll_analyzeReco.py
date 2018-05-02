@@ -1,7 +1,7 @@
 import os
 import subprocess as bash
 import argparse
-from DisplacedDimuons.Analysis.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--local', dest='LOCAL', action='store_true', help='whether to run locally')

@@ -1,8 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS, RECOSIGNALPOINTS
-from DisplacedDimuons.Analysis.Utilities import SPStr
+from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Utilities import SPStr
 
 # get all histograms
 HISTS = {}
