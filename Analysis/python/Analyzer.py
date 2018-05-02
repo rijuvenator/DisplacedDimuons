@@ -10,7 +10,7 @@ PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
 PARSER.add_argument('--develop'    , dest='DEVELOP'    , action='store_true',                        help='run test mode for 1000 events')
 
-F_NTUPLE = os.path.join(Constants.DIR_WS_RIJU, 'simple_ntuple_{}.root')
+F_NTUPLE = os.path.join(Constants.DIR_WS_RIJU, 'ntuple_HTo2XTo4Mu_{}.root')
 T_NTUPLE = 'SimpleNTupler/DDTree'
 
 F_DEFAULT = F_NTUPLE

@@ -11,8 +11,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('signalpoint', dest='SIGNALPOINT', type=int, nargs=3)
 args = parser.parse_args(sys.argv[2:])
 signalPoint = tuple(args.SIGNALPOINT)
-INPUTFILES = ['file:{}PAT_{}_{}.root'.format(DIR_EOS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))]
-OUTPUTFILE = '{}ntuple_{}_{}.root'.format(DIR_WS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))
+HTo2XTo4MuSamples = DH.getHTo2XTo4MuSamples()
+for data in HTo2XTo4MuSamples:
+	if data.signalPoint() == signalPoint:
+	INPUTFILES = ['file:{}PAT_{}_{}.root'.format(DIR_EOS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))]
+	OUTPUTFILE = '{}ntuple_{}_{}.root'.format(DIR_WS_RIJU, 'HTo2XTo4Mu', SPStr(signalPoint))
+	break
+else:
+	print '\n\nNo sample found; exiting now\n\n'
+	exit()
 #####
 
 # parameters and constants
