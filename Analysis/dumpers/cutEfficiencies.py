@@ -1,8 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
-from DisplacedDimuons.Analysis.Utilities import SPStr
+from DisplacedDimuons.Common.Constants import DIR_WS_RIJU
+from DisplacedDimuons.Common.Utilities import SPStr
 import argparse
 
 R.PyConfig.IgnoreCommandLineOptions = True
@@ -18,7 +18,7 @@ else:
 	SIGNALPOINTS = [tuple(args.SIGNALPOINT)]
 
 for sp in SIGNALPOINTS:
-	f = R.TFile.Open(DIR_WS + 'simple_ntuple_{}.root'.format(SPStr(sp)))
+	f = R.TFile.Open(DIR_WS_RIJU + 'simple_ntuple_{}.root'.format(SPStr(sp)))
 	t = f.Get('SimpleNTupler/DDTree')
 
 	Counters = {'Muon':{'IND':{}, 'CUM':{}, 'TOTAL':0}, 'Dimuon':{'IND':{}, 'CUM':{}, 'TOTAL':0}}

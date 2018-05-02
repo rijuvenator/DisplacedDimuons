@@ -1,8 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Analysis.Utilities import SPStr
-from DisplacedDimuons.Analysis.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
 import re
 
 MuonCutListPlusNone = Selections.CutLists['MuonCutListPlusNone']

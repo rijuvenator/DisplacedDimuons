@@ -13,28 +13,28 @@
 // trigger branch collection
 class TriggerBranches : BranchCollection
 {
- public:
-  // constructor
- TriggerBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+	public:
+		// constructor
+		TriggerBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
 
-  // members
-  bool trig_goodVtx;
+		// members
+		bool trig_goodVtx;
 
-  // methods
-  virtual void Declarations()
-  {
-    Declare("trig_goodVtx", trig_goodVtx, "B");
-  }
+		// methods
+		virtual void Declarations()
+		{
+			Declare("trig_goodVtx", trig_goodVtx, "B");
+		}
 
-  virtual void Reset()
-  {
-    trig_goodVtx = false;
-  }
+		virtual void Reset()
+		{
+			trig_goodVtx = false;
+		}
 
-  bool Fill(const pat::TriggerEvent& triggerEvent,
-	    const edm::Handle<pat::PackedTriggerPrescales>& prescales,
-	    const edm::TriggerNames& triggerNames,
-	    const std::vector<std::string>& ddmHLTPaths);
+		bool Fill(const pat::TriggerEvent& triggerEvent,
+				const edm::Handle<pat::PackedTriggerPrescales>& prescales,
+				const edm::TriggerNames& triggerNames,
+				const std::vector<std::string>& ddmHLTPaths);
 };
 
 #endif

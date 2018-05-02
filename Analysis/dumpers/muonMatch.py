@@ -1,9 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
-from DisplacedDimuons.Analysis.Constants import DIR_DD, DIR_WS, SIGNALS
+from DisplacedDimuons.Common.Constants import DIR_WS_RIJU
 
-#f = R.TFile.Open(DIR_DD + 'Tupler/ntuples/simple_ntuple.root')
-f = R.TFile.Open(DIR_WS + 'simple_ntuple_125_20_1300.root')
+f = R.TFile.Open(DIR_WS_RIJU + 'simple_ntuple_125_20_1300.root')
 t = f.Get('SimpleNTupler/DDTree')
 
 #cTau = []
