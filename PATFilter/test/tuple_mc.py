@@ -2,7 +2,6 @@
 
 import sys, os
 from DisplacedDimuons.PATFilter.PATTuple_cfg import cms, process
-from crab_cfg import crab_cfg
 
 #process.maxEvents.input = -1
 process.maxEvents.input = 500
@@ -61,11 +60,26 @@ process.MessageLogger.categories.append("ParticleListDrawer")
 
 #print process.dumpPython()
 
-if __name__ == '__main__' and hasattr(sys, 'argv') and 'submit' in sys.argv:
-    job_control = '''
-config.Data.splitting = 'EventAwareLumiBased'        
+if __name__ == '__main__' and 'submit' in sys.argv:
+    crab_cfg = '''
+from CRABClient.UserUtilities import config
+config = config()
+config.General.requestName = 'MC2016_%(name)s'
+config.General.workArea = 'crab'
+#config.General.transferLogs = True
+config.JobType.pluginName = 'Analysis'
+config.JobType.psetName = 'crab/psets/tuple_mc_crab_%(name)s.py'
+config.Data.inputDataset =  '%(dataset)s'
+config.Data.inputDBS = 'global'                       
+config.Data.publication = True
+config.Data.outputDatasetTag = 'MC2016_%(name)s'
+config.Data.outLFNDirBase = '/store/user/alfloren'
+#config.Data.ignoreLocality = True
+config.Data.splitting = 'EventAwareLumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob  = 5000
+config.Data.unitsPerJob = 5000
+#config.Site.whitelist = ["T2_CH_CERN"]
+config.Site.storageSite = 'T2_CH_CERN'
 '''
 
     just_testing = 'testing' in sys.argv
@@ -74,27 +88,27 @@ config.Data.unitsPerJob  = 5000
 
     from DisplacedDimuons.PATFilter.MCSamples import samples
     for sample in samples:
-        print sample.name
+       
+        if 'dy100T' in sample.name:
+            print sample.name
+            print sample.dataset
+ 
+            new_py = open('tuple_mc.py').read()
+            sample.pset = 'crab/psets/tuple_mc_crab_%(name)s.py' % sample.__dict__
+            os.system('mkdir -p crab/psets')
+            open(sample.pset,'wt').write(new_py)
 
-        new_py = open('tuple_mc.py').read()
-        new_py += '\nswitchHLTProcessName(process, "%(hlt_process_name)s")\n' % sample.__dict__
+
+
+            open('crabConfig.py', 'wt').write(crab_cfg % sample.__dict__)
+           
+
+            os.system('crab submit -c crabConfig.py')
+            
+            os.system('rm crabConfig.py')
 
         # Keep all events in signal samples in order to study efficiencies, etc.
-        if sample.is_signal:
-            new_py += '\nprocess.patDefaultSequence.remove(process.hltFilter)\n'
-            new_py += '\nprocess.patDefaultSequence.remove(process.dimuonPreselector)\n'
+       # if sample.is_signal:
+         #   new_py += '\nprocess.patDefaultSequence.remove(process.hltFilter)\n'
+         #   new_py += '\nprocess.patDefaultSequence.remove(process.dimuonPreselector)\n'
 
-        sample.pset = 'crab/psets/tuple_mc_crab_%(name)s.py' % sample.__dict__
-        os.system('mkdir -p crab/psets')
-        open(sample.pset,'wt').write(new_py)
-
-        sample.job_control = job_control % sample.__dict__
-        #print sample.__dict__
-        #sample.job = 'crab_%(name)s.py' % sample.__dict__
-        open('crabConfig.py', 'wt').write(crab_cfg % sample.__dict__)
-        if not just_testing:
-#            if create_only:
-#                os.system('crab submit -c ' + sample.job)
-#            else:
-            os.system('crab submit -c crabConfig.py')
-            os.system('rm crabConfig.py')
