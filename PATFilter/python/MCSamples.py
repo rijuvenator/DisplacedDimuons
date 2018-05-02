@@ -110,11 +110,6 @@ samples = [
 
 samples.reverse()
 
-for sample in samples:
-   exec '%s = sample' % sample.name
-   sample.ana_dataset = '/%s/rradogna-datamc_%s-c4b4ec8fa143ea00cec443e9d0afb38f/USER'  % (sample.dataset.split('/')[1], sample.name)
-
-#dy100to200.ana_dataset = '/DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/rradogna-datamc_dy100to200-1e36332d8badf10b79a5027340f46eb1/USER'
 
 __all__ = ['samples'] + [s.name for s in samples]
 
