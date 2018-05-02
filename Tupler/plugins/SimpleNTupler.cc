@@ -146,7 +146,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	}
 
 	// Do nothing else if the path(s) we are interested in have not fired
-	if (!ddm_paths_fired) return;
+	if (!ddm_paths_fired) ddm_paths_fired = true;
 
 	edm::Handle<reco::BeamSpot> beamspot;
 	iEvent.getByToken(beamspotToken, beamspot);
