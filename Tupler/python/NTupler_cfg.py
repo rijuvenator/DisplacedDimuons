@@ -42,6 +42,7 @@ process.TFileService.fileName = cms.string(CONFIG.OUTPUTFILE)
 
 if CONFIG.PLUGIN == 'SimpleNTupler':
 	process.GlobalTag.globaltag = '92X_upgrade2017_realistic_v12'
+	process.SimpleNTupler.isMC = cms.bool(CONFIG.DATA.isMC)
 
 # declare final path
 process.nTuplerPath = cms.Path(getattr(process, CONFIG.PLUGIN))
