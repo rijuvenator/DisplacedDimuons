@@ -5,6 +5,7 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "DataFormats/HLTReco/interface/TriggerTypeDefs.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"

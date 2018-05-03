@@ -1,5 +1,5 @@
 import subprocess as bash
-import re
+import os, re
 
 #########################
 # GENERAL DATASET TOOLS #
@@ -123,7 +123,7 @@ def getHTo2XTo4MuSamples():
 # be in the same order as the records in BackgroundMCSamples.dat
 # then the parameters are stored in a list, and can be unpacked with *
 def getBackgroundSamples():
-	f = open('BackgroundMCSamples.dat')
+	f = open(os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons/Tupler/python/Utilities/BackgroundMCSamples.dat'))
 	BackgroundParameters = []
 	Entry = []
 	for line in f:

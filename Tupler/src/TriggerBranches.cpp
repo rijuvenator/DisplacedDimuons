@@ -1,7 +1,3 @@
-#include "FWCore/Framework/interface/MakerMacros.h"
-
-#include "DataFormats/HLTReco/interface/TriggerTypeDefs.h"
-
 #include "DisplacedDimuons/Tupler/interface/TriggerBranches.h"
 
 bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,

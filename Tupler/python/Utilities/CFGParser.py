@@ -41,11 +41,11 @@ def getConfiguration(returnArgs=False):
 
 	# this is expected to be used only for cmsRun files, for which sys.argv is
 	# ['cmsRun', 'Config_cfg.py', 'arg1', 'arg2' ... ]
-	# cmsRun doesn't like options, with --
-	# So I will indicate options with # and replace them manually
-	# So, the list to be parsed is sys.argv[2:], and as follows:
+	# cmsRun doesn't like my options, with - or --
+	# So I will indicate options from the CLI with __ and replace them manually
+	# The list to be parsed is sys.argv[2:], and as follows:
 
-	args = parser.parse_args([s.replace('#', '--') for s in sys.argv[2:]])
+	args = parser.parse_args([s.replace('__', '--') for s in sys.argv[2:]])
 
 	# now we can get the particular Dataset object
 	data = findSample(args)

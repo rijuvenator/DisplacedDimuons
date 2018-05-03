@@ -1,6 +1,9 @@
 #ifndef BRANCHCOLLECTION_H
 #define BRANCHCOLLECTION_H
 
+// CMSSW includes
+#include "FWCore/Framework/interface/MakerMacros.h"
+
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
 
