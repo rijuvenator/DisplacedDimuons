@@ -16,7 +16,7 @@ class DSAMuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		DSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		DSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		std::vector<int  > dsamu_pdgID        ;
@@ -41,7 +41,7 @@ class DSAMuonBranches : BranchCollection
 		std::vector<int  > dsamu_nCSCStations ;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("dsamu_pdgID"        , dsamu_pdgID        );
 			Declare("dsamu_pt"           , dsamu_pt           );
@@ -65,7 +65,7 @@ class DSAMuonBranches : BranchCollection
 			Declare("dsamu_nCSCStations" , dsamu_nCSCStations );
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			dsamu_pdgID        .clear();
 			dsamu_pt           .clear();

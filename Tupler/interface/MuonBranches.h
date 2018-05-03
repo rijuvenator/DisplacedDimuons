@@ -13,7 +13,7 @@ class MuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		MuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		MuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		std::vector<int  > mu_pdgID ;
@@ -40,7 +40,7 @@ class MuonBranches : BranchCollection
 		std::vector<float> mu_gen_z     ;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("mu_pdgID" , mu_pdgID );
 			Declare("mu_pt"    , mu_pt    );
@@ -66,7 +66,7 @@ class MuonBranches : BranchCollection
 			Declare("mu_gen_z"     , mu_gen_z     );
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			mu_pdgID .clear();
 			mu_pt    .clear();

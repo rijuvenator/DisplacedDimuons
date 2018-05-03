@@ -14,7 +14,7 @@ class VertexBranches : BranchCollection
 {
 	public:
 		// constructor
-		VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		std::vector<float> vtx_x   ;
@@ -24,7 +24,7 @@ class VertexBranches : BranchCollection
 		std::vector<float> vtx_ndof;
 		
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("vtx_x"   , vtx_x   );
 			Declare("vtx_y"   , vtx_y   );
@@ -33,7 +33,7 @@ class VertexBranches : BranchCollection
 			Declare("vtx_ndof", vtx_ndof);
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			vtx_x   .clear();
 			vtx_y   .clear();

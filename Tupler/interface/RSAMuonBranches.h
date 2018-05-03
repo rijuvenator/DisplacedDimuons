@@ -16,7 +16,7 @@ class RSAMuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		std::vector<int  > rsamu_pdgID        ;
@@ -41,7 +41,7 @@ class RSAMuonBranches : BranchCollection
 		std::vector<int  > rsamu_nCSCStations ;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("rsamu_pdgID"        , rsamu_pdgID        );
 			Declare("rsamu_pt"           , rsamu_pt           );
@@ -65,7 +65,7 @@ class RSAMuonBranches : BranchCollection
 			Declare("rsamu_nCSCStations" , rsamu_nCSCStations );
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			rsamu_pdgID        .clear();
 			rsamu_pt           .clear();

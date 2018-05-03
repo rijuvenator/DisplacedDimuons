@@ -27,7 +27,7 @@ class DimuonBranches : BranchCollection
 {
 	public:
 		// constructor
-		DimuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		DimuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		std::vector<unsigned int> dim_idx1    ;
@@ -49,7 +49,7 @@ class DimuonBranches : BranchCollection
 		std::vector<float       > dim_deltaPhi;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("dim_idx1"    , dim_idx1    );
 			Declare("dim_idx2"    , dim_idx2    );
@@ -70,7 +70,7 @@ class DimuonBranches : BranchCollection
 			Declare("dim_deltaPhi", dim_deltaPhi);
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			dim_idx1    .clear();
 			dim_idx2    .clear();
