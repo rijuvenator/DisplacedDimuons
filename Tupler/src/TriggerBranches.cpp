@@ -12,12 +12,13 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 
 	// Dump the list of all triggers that fired
 	/* 
-	   std::cout << "List of all triggers that fired: " << std::endl;
-	   for (unsigned i=0; i < triggerEvent.acceptedPaths().size(); i++) {
-	   std::string trigname(triggerEvent.acceptedPaths()[i]->name());
-	   std::cout << trigname << " ";
-	   }
-	   std::cout << std::endl;
+	std::cout << "List of all triggers that fired: " << std::endl;
+	for (unsigned i=0; i < triggerEvent.acceptedPaths().size(); i++)
+	{
+		std::string trigname(triggerEvent.acceptedPaths()[i]->name());
+		std::cout << trigname << " ";
+	}
+	std::cout << std::endl;
 	   */
 
 	// Loop over the trigger paths used in the analysis

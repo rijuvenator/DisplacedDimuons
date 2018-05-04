@@ -19,12 +19,14 @@ void EventBranches::Fill(const edm::Event &iEvent, const edm::Handle<pat::METCol
 			<< " bx = " << evt_bx << std::endl;
 
 	// MET
-	if (patMET.failedToGet() && ifois == 0) {
+	if (patMET.failedToGet() && ifois == 0)
+	{
 		edm::LogWarning("EventBranches")
 			<< "+++ Warning: pat::METs collection is not found; MET variables will not be filled +++";
 		ifois = 1;
 	}
-	else {
+	else
+	{
 		if (patMET->size() != 1) 
 			throw cms::Exception("CorruptData", "More than one MET in the pat::METs collection");
 		// Expect PF MET; check if this is true

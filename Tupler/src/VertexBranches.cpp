@@ -8,7 +8,8 @@ void VertexBranches::Fill(const reco::VertexCollection &vertices)
 
 	// Total number of vertices found; useful for pile-up reweighting?
 	vtx_nvtx = 0;
-	for (unsigned ivtx = 0; ivtx < vertices.size(); ivtx++) {
+	for (unsigned ivtx = 0; ivtx < vertices.size(); ivtx++)
+	{
 		if (!vertices[ivtx].isFake()) vtx_nvtx++; // or maybe we should check on isValid() instead?
 	}
 
@@ -25,7 +26,8 @@ void VertexBranches::Fill(const reco::VertexCollection &vertices)
 	vtx_pv_ndof = pv.ndof();
 	vtx_pv_ntrk = pv.nTracks();
 
-	if (debug) {
+	if (debug)
+	{
 		std::cout << "Vertex info: total / valid vertices = " << vertices.size()
 			<< " / " << vtx_nvtx << std::endl;
 		std::cout << "Primary vtx: (" << vtx_pv_x << "+/-" << vtx_pv_dx
