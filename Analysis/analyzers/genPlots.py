@@ -65,7 +65,7 @@ def Draw(t, HConfig, key, expressions):
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
 def fillPlots(sp, HList):
 	# get file and tree
-	f = R.TFile.Open(DIR_WS_RIJU + 'genOnly_ntuple_{}.root'.format(SPStr(sp)))
+	f = R.TFile.Open(DIR_WS_RIJU + 'gen_ntuple_{}_{}.root'.format('HTo2XTo4Mu', SPStr(sp)))
 	f.cd()
 	t = f.Get('GenOnlyNTupler/DDTree')
 

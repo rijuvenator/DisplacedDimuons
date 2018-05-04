@@ -55,8 +55,10 @@ class SimpleNTupler : public edm::EDAnalyzer
 		virtual void analyze(const edm::Event&, const edm::EventSetup&);
 		virtual void endJob() { tree.Write(); }
 
+		// the tree
 		TreeContainer tree;
 
+		// the branch collection classes
 		EventBranches    eventData;
 		TriggerBranches  triggerData;
 		BeamspotBranches beamspotData;
@@ -67,6 +69,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		RSAMuonBranches  rsaMuonData;
 		DimuonBranches   dimData;
 
+		// the tokens
 		edm::EDGetTokenT<pat::TriggerEvent          > triggerEventToken;
 		edm::EDGetTokenT<pat::PackedTriggerPrescales> prescalesToken;
 		edm::EDGetTokenT<edm::TriggerResults        > triggerToken;
@@ -79,7 +82,9 @@ class SimpleNTupler : public edm::EDAnalyzer
 		edm::EDGetTokenT<reco::TrackCollection      > dsaMuonToken;
 		edm::EDGetTokenT<reco::TrackCollection      > rsaMuonToken;
 
+		// other parameters from the cmsRun cfg file
 		std::vector<std::string> ddmHLTPaths;
+		bool                     isMC;
 };
 
 SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
@@ -107,15 +112,12 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	dsaMuonToken     (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("dsaMuons"      ))),
 	rsaMuonToken     (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("rsaMuons"      ))),
 
-	ddmHLTPaths(iConfig.getParameter<std::vector<std::string> >("ddmHLTPaths"))
+	ddmHLTPaths(iConfig.getParameter<std::vector<std::string>>("ddmHLTPaths")),
+	isMC       (iConfig.getParameter<bool                    >("isMC"       ))
 {};
 
 void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	// to be improved later
-	// bool isMC = false;
-        bool isMC = true;
-
 	// Trigger: check whether the DDM path(s) fired or not and if yes,
 	// save the Level-1/HLT muons.
 	bool ddm_paths_fired = false;

@@ -10,7 +10,7 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 #### PARAMETERS ####
 ####################
 
-		isMC           = cms.bool(False),
+		isMC           = cms.bool(True),
 
 #######################
 #### TRIGGER BLOCK ####
@@ -34,9 +34,18 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 		beamspot       = cms.InputTag('offlineBeamSpot'),
 		vertices       = cms.InputTag('offlinePrimaryVertices'),
 		muons          = cms.InputTag('cleanPatMuons'),
+#		muons          = cms.InputTag('selectedPatMuons'),
 		gens           = cms.InputTag('prunedGenParticles', '', 'PAT'),
+#		gens           = cms.InputTag('genParticles'),
 		GEIP           = cms.InputTag('generator'),
 		dsaMuons       = cms.InputTag('displacedStandAloneMuons'),
 		rsaMuons       = cms.InputTag('refittedStandAloneMuons'),
 	)
 )
+
+# add transient track builder
+from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import *
+# from Configuration.Geometry.GeometryIdeal_cff import *
+from Configuration.Geometry.GeometryRecoDB_cff import *
+from Configuration.StandardSequences.MagneticField_cff import *
+from Configuration.StandardSequences.FrontierConditions_GlobalTag_cff import *

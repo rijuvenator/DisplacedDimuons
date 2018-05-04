@@ -13,8 +13,8 @@
 class EventBranches : BranchCollection
 {
 	public:
-                // constructor
-                EventBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		// constructor
+		EventBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		int evt_run   ;
@@ -28,7 +28,7 @@ class EventBranches : BranchCollection
 		float evt_gen_met ;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("evt_run"  , evt_run  , "I");
 			Declare("evt_lumi" , evt_lumi , "I");
@@ -40,7 +40,7 @@ class EventBranches : BranchCollection
 			Declare("evt_gen_met", evt_gen_met, "F");
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			evt_run   = -999;
 			evt_lumi  = -999;

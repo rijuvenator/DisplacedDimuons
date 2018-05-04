@@ -14,7 +14,7 @@ class VertexBranches : BranchCollection
 {
  public:
   // constructor
- VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+ VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
   // members
   int   vtx_nvtx;
@@ -29,7 +29,7 @@ class VertexBranches : BranchCollection
   int   vtx_pv_ntrk;
 
   // methods
-  virtual void Declarations()
+  void Declarations()
   {
     Declare("vtx_nvtx"   , vtx_nvtx,    "I");
     Declare("vtx_pv_x"   , vtx_pv_x,    "F");
@@ -43,7 +43,7 @@ class VertexBranches : BranchCollection
     Declare("vtx_pv_ntrk", vtx_pv_ntrk, "I");
   }
 
-  virtual void Reset()
+  void Reset()
   {
     vtx_nvtx    = -999;
     vtx_pv_x    = -999.;

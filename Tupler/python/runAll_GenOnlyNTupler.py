@@ -10,7 +10,7 @@ export X509_USER_PROXY=/afs/cern.ch/user/a/adasgupt/x509up_u79337
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
 cd DisplacedDimuons/Tupler/python
-cmsRun GenOnlyNTupler_cfg.py {mH} {mX} {cTau}
+cmsRun NTupler_cfg.py HTo2XTo4Mu __signalpoint {mH} {mX} {cTau} __genonly
 rm -f core.*
 '''
 

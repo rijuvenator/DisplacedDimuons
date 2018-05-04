@@ -63,7 +63,7 @@ void GenBranches::Fill(const reco::GenParticleCollection &gens, const GenEventIn
 		X1   == nullptr || X2   == nullptr ||
 		H    == nullptr || P    == nullptr)
 	{
-		puts("ERROR: At least one pointer is null. Filling nothing.");
+		edm::LogWarning("NTupler::GenBranches") << "+++ Warning: At least one pointer is null. Filling nothing. +++";
 		return;
 	}
 

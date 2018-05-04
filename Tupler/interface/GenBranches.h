@@ -18,7 +18,7 @@ class GenBranches : BranchCollection
 {
 	public:
 		// constructor
-		GenBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree, DECLARE) {}
+		GenBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
 		// members
 		float              gen_weight    ;
@@ -40,7 +40,7 @@ class GenBranches : BranchCollection
 		std::vector<float> gen_pairDeltaR;
 
 		// methods
-		virtual void Declarations()
+		void Declarations()
 		{
 			Declare("gen_weight"    , gen_weight, "F");
 
@@ -61,7 +61,7 @@ class GenBranches : BranchCollection
 			Declare("gen_pairDeltaR", gen_pairDeltaR );
 		}
 
-		virtual void Reset()
+		void Reset()
 		{
 			gen_weight = 0;
 
