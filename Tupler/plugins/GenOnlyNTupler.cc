@@ -58,7 +58,8 @@ GenOnlyNTupler::GenOnlyNTupler(const edm::ParameterSet& iConfig):
 
 void GenOnlyNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	eventData.Fill(iEvent);
+        edm::Handle<pat::METCollection> met; // dummy MET collection
+        eventData.Fill(iEvent, met);
 
 	edm::Handle<reco::GenParticleCollection> gens;
 	edm::Handle<GenEventInfoProduct> GEIP;

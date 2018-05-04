@@ -10,7 +10,7 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 		const std::vector<std::string>& ddmHLTPaths)
 {
 	bool fired = false;
-	bool debug = false;
+	static bool debug = false;
 
 	Reset();
 

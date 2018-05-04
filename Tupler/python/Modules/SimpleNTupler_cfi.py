@@ -30,6 +30,7 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 #### ANALYSIS COLLECTIONS ####
 ##############################
 
+		patMet         = cms.InputTag('patMETs'),
 		beamspot       = cms.InputTag('offlineBeamSpot'),
 		vertices       = cms.InputTag('offlinePrimaryVertices'),
 		muons          = cms.InputTag('cleanPatMuons'),
