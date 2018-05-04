@@ -51,7 +51,7 @@ process.out = cms.OutputModule(
         'keep *_refittedStandAloneMuons_*_*',
         'drop *_refittedStandAloneMuons_UpdatedAtVtx_*',
         'keep patMuons_cleanPatMuons__*',
-        'keep patMETs_patMETs*__PAT',
+        'keep patMETs_patMETs__PAT',
 #        'keep recoGenParticles_*_*_SIM',               # full genParticles collection
         'keep recoGenParticles_prunedGenParticles_*_*', # genParticles after pruning
         'keep GenEventInfoProduct_*_*_*',
@@ -98,11 +98,12 @@ switchOnTrigger(process, outputModule = '')
 # switchOnTriggerStandAlone(process, outputModule = '')
 # process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patTrigger)
 
-# Type-1-corrected PAT MET
-from PhysicsTools.PatAlgos.tools.metTools import addMETCollection 
-addMETCollection(process, labelName='patMETsPF', metSource='pfMetT1')
+# PAT MET
+# Type-1-corrected MET is the PAT default in CMSSW_8_0_X, so this part below is not needed
+# from PhysicsTools.PatAlgos.tools.metTools import addMETCollection 
+# addMETCollection(process, labelName='patMETsPF', metSource='pfMetT1')
 # Again this is only needed in the "scheduled" mode
-#process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patMETsPF)
+# process.patDefaultSequence = cms.Sequence(process.patDefaultSequence._seq * process.patMETsPF)
 
 # MET filters, see https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2
 process.load("PhysicsTools.PatAlgos.slimming.metFilterPaths_cff")

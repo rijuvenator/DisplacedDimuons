@@ -27,9 +27,9 @@ process.hltFilter = cms.EDFilter("HLTHighLevel",
                                  )
 process.p += process.hltFilter
 
-# Filter on displaced muons
-process.load("DisplacedDimuons.PATFilter.DimuonPreselector_cfi")
-process.p += process.dimuonPreselector
+# Filter on displaced standalone and/or global muons if needed; disabled for now
+# process.load("DisplacedDimuons.PATFilter.DimuonPreselector_cfi")
+# process.p += process.dimuonPreselector
 
 # Dump all HLT paths and pass/fail counts at the end of each run/job
 process.hlTrigReport = cms.EDAnalyzer("HLTrigReport",
