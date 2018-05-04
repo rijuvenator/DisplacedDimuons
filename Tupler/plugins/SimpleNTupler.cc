@@ -70,6 +70,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		edm::EDGetTokenT<pat::TriggerEvent          > triggerEventToken;
 		edm::EDGetTokenT<pat::PackedTriggerPrescales> prescalesToken;
 		edm::EDGetTokenT<edm::TriggerResults        > triggerToken;
+                edm::EDGetTokenT<pat::METCollection         > patMetToken;
 		edm::EDGetTokenT<reco::BeamSpot             > beamspotToken;
 		edm::EDGetTokenT<reco::VertexCollection     > vertexToken;
 		edm::EDGetTokenT<reco::GenParticleCollection> genToken;
@@ -97,6 +98,7 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	triggerEventToken(consumes<pat::TriggerEvent          >(iConfig.getParameter<edm::InputTag>("triggerEvent"  ))),
 	prescalesToken   (consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales"     ))),
 	triggerToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
+	patMetToken      (consumes<pat::METCollection         >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
 	beamspotToken    (consumes<reco::BeamSpot             >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
 	vertexToken      (consumes<reco::VertexCollection     >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
 	genToken         (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"          ))),
@@ -112,9 +114,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 {
 	// to be improved later
 	// bool isMC = false;
-	bool isMC = true;
-
-	eventData.Fill(iEvent);
+        bool isMC = true;
 
 	// Trigger: check whether the DDM path(s) fired or not and if yes,
 	// save the Level-1/HLT muons.
@@ -148,13 +148,25 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	// Do nothing else if the path(s) we are interested in have not fired
 	if (!ddm_paths_fired) return;
 
+	edm::Handle<pat::METCollection> met;
+	iEvent.getByToken(patMetToken, met);
+	eventData.Fill(iEvent, met);
+
 	edm::Handle<reco::BeamSpot> beamspot;
 	iEvent.getByToken(beamspotToken, beamspot);
-	beamspotData.Fill(*beamspot);
+	if (beamspot.failedToGet())
+	  edm::LogWarning("SimpleNTupler")
+	    << "+++ Warning: beam spot is not found +++";
+	else
+	  beamspotData.Fill(*beamspot);
 
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vertexToken, vertices);
-	vertexData.Fill(*vertices);
+	if (vertices.failedToGet() || vertices->size() == 0)
+	  edm::LogWarning("SimpleNTupler")
+	    << "+++ Warning: primary vertex is not found +++";
+	else
+	  vertexData.Fill(*vertices);
 
 	if (isMC)
 	{
