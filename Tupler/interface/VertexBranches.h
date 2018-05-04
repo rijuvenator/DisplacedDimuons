@@ -12,52 +12,52 @@
 // vertex branch collection
 class VertexBranches : BranchCollection
 {
- public:
-  // constructor
- VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+	public:
+		// constructor
+		VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
 
-  // members
-  int   vtx_nvtx;
-  float vtx_pv_x;
-  float vtx_pv_y;
-  float vtx_pv_z;
-  float vtx_pv_dx;
-  float vtx_pv_dy;
-  float vtx_pv_dz;
-  float vtx_pv_chi2;
-  float vtx_pv_ndof; // ndof is not int because tracks contribute to the vertex with fractional weights
-  int   vtx_pv_ntrk;
+		// members
+		int   vtx_nvtx;
+		float vtx_pv_x;
+		float vtx_pv_y;
+		float vtx_pv_z;
+		float vtx_pv_dx;
+		float vtx_pv_dy;
+		float vtx_pv_dz;
+		float vtx_pv_chi2;
+		float vtx_pv_ndof; // ndof is not int because tracks contribute to the vertex with fractional weights
+		int   vtx_pv_ntrk;
 
-  // methods
-  void Declarations()
-  {
-    Declare("vtx_nvtx"   , vtx_nvtx,    "I");
-    Declare("vtx_pv_x"   , vtx_pv_x,    "F");
-    Declare("vtx_pv_y"   , vtx_pv_y,    "F");
-    Declare("vtx_pv_z"   , vtx_pv_z,    "F");
-    Declare("vtx_pv_dx"  , vtx_pv_dx,   "F");
-    Declare("vtx_pv_dy"  , vtx_pv_dy,   "F");
-    Declare("vtx_pv_dz"  , vtx_pv_dz,   "F");
-    Declare("vtx_pv_chi2", vtx_pv_chi2, "F");
-    Declare("vtx_pv_ndof", vtx_pv_ndof, "F");
-    Declare("vtx_pv_ntrk", vtx_pv_ntrk, "I");
-  }
+		// methods
+		void Declarations()
+		{
+			Declare("vtx_nvtx"   , vtx_nvtx,    "I");
+			Declare("vtx_pv_x"   , vtx_pv_x,    "F");
+			Declare("vtx_pv_y"   , vtx_pv_y,    "F");
+			Declare("vtx_pv_z"   , vtx_pv_z,    "F");
+			Declare("vtx_pv_dx"  , vtx_pv_dx,   "F");
+			Declare("vtx_pv_dy"  , vtx_pv_dy,   "F");
+			Declare("vtx_pv_dz"  , vtx_pv_dz,   "F");
+			Declare("vtx_pv_chi2", vtx_pv_chi2, "F");
+			Declare("vtx_pv_ndof", vtx_pv_ndof, "F");
+			Declare("vtx_pv_ntrk", vtx_pv_ntrk, "I");
+		}
 
-  void Reset()
-  {
-    vtx_nvtx    = -999;
-    vtx_pv_x    = -999.;
-    vtx_pv_y    = -999.;
-    vtx_pv_z    = -999.;
-    vtx_pv_dx   = -999.;
-    vtx_pv_dy   = -999.;
-    vtx_pv_dz   = -999.;
-    vtx_pv_chi2 = -999.;
-    vtx_pv_ndof = -999.;
-    vtx_pv_ntrk = -999;
-  }
+		void Reset()
+		{
+			vtx_nvtx    = -999;
+			vtx_pv_x    = -999.;
+			vtx_pv_y    = -999.;
+			vtx_pv_z    = -999.;
+			vtx_pv_dx   = -999.;
+			vtx_pv_dy   = -999.;
+			vtx_pv_dz   = -999.;
+			vtx_pv_chi2 = -999.;
+			vtx_pv_ndof = -999.;
+			vtx_pv_ntrk = -999;
+		}
 
-  void Fill(const reco::VertexCollection &vertices);
+		void Fill(const reco::VertexCollection &vertices);
 };
 
 #endif

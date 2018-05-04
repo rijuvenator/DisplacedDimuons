@@ -73,7 +73,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		edm::EDGetTokenT<pat::TriggerEvent          > triggerEventToken;
 		edm::EDGetTokenT<pat::PackedTriggerPrescales> prescalesToken;
 		edm::EDGetTokenT<edm::TriggerResults        > triggerToken;
-                edm::EDGetTokenT<pat::METCollection         > patMetToken;
+		edm::EDGetTokenT<pat::METCollection         > patMetToken;
 		edm::EDGetTokenT<reco::BeamSpot             > beamspotToken;
 		edm::EDGetTokenT<reco::VertexCollection     > vertexToken;
 		edm::EDGetTokenT<reco::GenParticleCollection> genToken;
@@ -157,18 +157,18 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	edm::Handle<reco::BeamSpot> beamspot;
 	iEvent.getByToken(beamspotToken, beamspot);
 	if (beamspot.failedToGet())
-	  edm::LogWarning("SimpleNTupler")
-	    << "+++ Warning: beam spot is not found +++";
+		edm::LogWarning("SimpleNTupler")
+			<< "+++ Warning: beam spot is not found +++";
 	else
-	  beamspotData.Fill(*beamspot);
+		beamspotData.Fill(*beamspot);
 
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vertexToken, vertices);
 	if (vertices.failedToGet() || vertices->size() == 0)
-	  edm::LogWarning("SimpleNTupler")
-	    << "+++ Warning: primary vertex is not found +++";
+		edm::LogWarning("SimpleNTupler")
+			<< "+++ Warning: primary vertex is not found +++";
 	else
-	  vertexData.Fill(*vertices);
+		vertexData.Fill(*vertices);
 
 	if (isMC)
 	{
