@@ -9,13 +9,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // muon branch collection
-class MuonBranches : BranchCollection
+class MuonBranches : public BranchCollection
 {
 	public:
 		// constructor
-		MuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		MuonBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "pat::Muon", "PAT Muon info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		std::vector<int  > mu_pdgID ;
 		std::vector<float> mu_pt    ;
 		std::vector<float> mu_eta   ;
@@ -92,8 +99,11 @@ class MuonBranches : BranchCollection
 			mu_gen_z     .clear();
 		}
 
-		void Fill(const pat::MuonCollection &muons);
+		void Fill(const edm::Handle<pat::MuonCollection> &muonsHandle);
 		bool isSlim(const pat::Muon &mu);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

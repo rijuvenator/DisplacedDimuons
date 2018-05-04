@@ -1,5 +1,7 @@
 #include "DisplacedDimuons/Tupler/interface/TriggerBranches.h"
 
+bool TriggerBranches::alreadyPrinted_ = false;
+
 bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 		const edm::Handle<pat::PackedTriggerPrescales>& prescales,
 		const edm::TriggerNames& triggerNames,

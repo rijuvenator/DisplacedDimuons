@@ -14,13 +14,21 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // gen particle branch collection
-class GenBranches : BranchCollection
+class GenBranches : public BranchCollection
 {
 	public:
 		// constructor
-		GenBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		GenBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::GenParticle collection", "gen info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+		static bool alreadyPrinted_GEIP;
+
 		float              gen_weight    ;
 
 		std::vector<int  > gen_pdgID     ;
@@ -82,7 +90,14 @@ class GenBranches : BranchCollection
 			gen_pairDeltaR.clear();
 		}
 
-		void Fill(const reco::GenParticleCollection &gens, const GenEventInfoProduct &GEIP);
+		void Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+				const edm::Handle<GenEventInfoProduct> &GEIPHandle);
+
+		bool FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+				const edm::Handle<GenEventInfoProduct> &GEIPHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_ && alreadyPrinted_GEIP; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

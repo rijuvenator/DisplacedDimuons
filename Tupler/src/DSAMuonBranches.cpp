@@ -1,9 +1,19 @@
 #include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 
-void DSAMuonBranches::Fill(const reco::TrackCollection &muons, const reco::VertexCollection &vertices)
+bool DSAMuonBranches::alreadyPrinted_ = false;
+
+void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+		const edm::Handle<reco::VertexCollection> &verticesHandle)
 {
 	Reset();
-	float mass = .105658375;
+	static float mass = .105658375;
+
+	// Check if failed to get
+	// already checked if vertices are valid
+	if (FailedToGet(muonsHandle)) return;
+	const reco::TrackCollection &muons = *muonsHandle;
+	const reco::VertexCollection &vertices = *verticesHandle;
+
 	for (const auto &mu : muons)
 	{
 		int   pdgID  = -13 * mu.charge()/fabs(mu.charge());

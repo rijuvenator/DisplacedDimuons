@@ -10,13 +10,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // vertex branch collection
-class VertexBranches : BranchCollection
+class VertexBranches : public BranchCollection
 {
 	public:
 		// constructor
-		VertexBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		VertexBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::Vertex collection", "Vertex info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		int   vtx_nvtx;
 		float vtx_pv_x;
 		float vtx_pv_y;
@@ -57,7 +64,10 @@ class VertexBranches : BranchCollection
 			vtx_pv_ntrk = -999;
 		}
 
-		void Fill(const reco::VertexCollection &vertices);
+		void Fill(const edm::Handle<reco::VertexCollection> &verticesHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

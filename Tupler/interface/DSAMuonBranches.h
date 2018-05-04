@@ -12,13 +12,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // muon branch collection
-class DSAMuonBranches : BranchCollection
+class DSAMuonBranches : public BranchCollection
 {
 	public:
 		// constructor
-		DSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		DSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::Track displacedStandAloneMuon collection", "DSA Muon info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		std::vector<int  > dsamu_pdgID        ;
 		std::vector<float> dsamu_pt           ;
 		std::vector<float> dsamu_eta          ;
@@ -89,7 +96,11 @@ class DSAMuonBranches : BranchCollection
 			dsamu_nCSCStations .clear();
 		}
 
-		void Fill(const reco::TrackCollection &muons, const reco::VertexCollection &vertices);
+		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+				const edm::Handle<reco::VertexCollection> &verticesHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

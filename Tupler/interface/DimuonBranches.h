@@ -23,13 +23,20 @@
 #include "TLorentzVector.h"
 
 // muon branch collection
-class DimuonBranches : BranchCollection
+class DimuonBranches : public BranchCollection
 {
 	public:
 		// constructor
-		DimuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		DimuonBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree)
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		std::vector<unsigned int> dim_idx1    ;
 		std::vector<unsigned int> dim_idx2    ;
 		std::vector<int         > dim_pdgID   ;
@@ -91,7 +98,12 @@ class DimuonBranches : BranchCollection
 			dim_deltaPhi.clear();
 		}
 
-		void Fill(const edm::EventSetup& iSetup, const reco::TrackCollection &muons, const reco::VertexCollection &vertices);
+		void Fill(const edm::EventSetup& iSetup,
+				const edm::Handle<reco::TrackCollection> &muonsHandle,
+				const edm::Handle<reco::VertexCollection> &verticesHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

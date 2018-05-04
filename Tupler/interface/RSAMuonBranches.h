@@ -12,13 +12,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // muon branch collection
-class RSAMuonBranches : BranchCollection
+class RSAMuonBranches : public BranchCollection
 {
 	public:
 		// constructor
-		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::Track refittedStandAloneMuon collection", "RSA Muon info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		std::vector<int  > rsamu_pdgID        ;
 		std::vector<float> rsamu_pt           ;
 		std::vector<float> rsamu_eta          ;
@@ -89,7 +96,10 @@ class RSAMuonBranches : BranchCollection
 			rsamu_nCSCStations .clear();
 		}
 
-		void Fill(const reco::TrackCollection &muons, const reco::VertexCollection &vertices);
+		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle, const edm::Handle<reco::VertexCollection> &verticesHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

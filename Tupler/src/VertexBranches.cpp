@@ -1,10 +1,15 @@
 #include "DisplacedDimuons/Tupler/interface/VertexBranches.h"
 
-void VertexBranches::Fill(const reco::VertexCollection &vertices)
+bool VertexBranches::alreadyPrinted_ = false;
+
+void VertexBranches::Fill(const edm::Handle<reco::VertexCollection> &verticesHandle)
 {
 	static bool debug = false;
-
 	Reset();
+
+	// Check if failed to get
+	if (FailedToGet(verticesHandle)) return;
+	const reco::VertexCollection &vertices = *verticesHandle;
 
 	// Total number of vertices found; useful for pile-up reweighting?
 	vtx_nvtx = 0;

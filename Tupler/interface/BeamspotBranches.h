@@ -9,13 +9,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // beamspot branch collection
-class BeamspotBranches : BranchCollection
+class BeamspotBranches : public BranchCollection
 {
 	public:
 		// constructor
-		BeamspotBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		BeamspotBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::BeamSpot", "BeamSpot info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		float bs_x ;
 		float bs_y ;
 		float bs_z ;
@@ -44,7 +51,10 @@ class BeamspotBranches : BranchCollection
 			bs_dz = -999.;
 		}
 
-		void Fill(const reco::BeamSpot &beamspot);
+		void Fill(const edm::Handle<reco::BeamSpot> &beamspotHandle);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

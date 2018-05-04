@@ -1,10 +1,16 @@
 #include "DisplacedDimuons/Tupler/interface/BeamspotBranches.h"
 
-void BeamspotBranches::Fill(const reco::BeamSpot &beamspot)
+bool BeamspotBranches::alreadyPrinted_ = false;
+
+void BeamspotBranches::Fill(const edm::Handle<reco::BeamSpot> &beamspotHandle)
 {
 	static bool debug = false;
-
 	Reset();
+
+	// Check if failed to get
+	if (FailedToGet(beamspotHandle)) return;
+	const reco::BeamSpot &beamspot = *beamspotHandle;
+
 	bs_x  = beamspot.x0()     ;
 	bs_y  = beamspot.y0()     ;
 	bs_z  = beamspot.z0()     ;

@@ -1,8 +1,15 @@
 #include "DisplacedDimuons/Tupler/interface/MuonBranches.h"
 
-void MuonBranches::Fill(const pat::MuonCollection &muons)
+bool MuonBranches::alreadyPrinted_ = false;
+
+void MuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle)
 {
 	Reset();
+
+	// Check if failed to get
+	if (FailedToGet(muonsHandle)) return;
+	const pat::MuonCollection &muons = *muonsHandle;
+
 	for (const auto &mu : muons)
 	{
 		mu_pdgID .push_back(mu.pdgId ());

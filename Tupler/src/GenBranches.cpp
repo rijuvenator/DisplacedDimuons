@@ -1,5 +1,8 @@
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
 
+bool GenBranches::alreadyPrinted_ = false;
+bool GenBranches::alreadyPrinted_GEIP = false;
+
 namespace PDGID
 {
 	const int MUON   = 13;
@@ -8,9 +11,45 @@ namespace PDGID
 	const int PROTON = 2212;
 }
 
-void GenBranches::Fill(const reco::GenParticleCollection &gens, const GenEventInfoProduct &GEIP)
+bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+		const edm::Handle<GenEventInfoProduct> &GEIPHandle)
+{
+	if (gensHandle.failedToGet())
+	{
+		if (!alreadyPrinted_)
+		{
+			edm::LogWarning("SimpleNTupler")
+				<< "+++ Warning: "
+				<< primaryHandleName
+				<< " is not found; "
+				<< primaryExtraText
+				<< "+++";
+			alreadyPrinted_ = true;
+		}
+		return true;
+	}
+	if (GEIPHandle.failedToGet())
+	{
+		if (!alreadyPrinted_GEIP)
+		{
+			edm::LogWarning("SimpleNTupler")
+				<< "+++ Warning: GenEventInfoProduct is not found +++";
+			alreadyPrinted_GEIP = true;
+		}
+		return true;
+	}
+	return false;
+}
+
+void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+		const edm::Handle<GenEventInfoProduct> &GEIPHandle)
 {
 	Reset();
+
+	// Check if failed to get
+	if (FailedToGet(gensHandle, GEIPHandle)) return;
+	const reco::GenParticleCollection &gens = *gensHandle;
+	const GenEventInfoProduct &GEIP = *GEIPHandle;
 
 	// set gen weight
 	gen_weight = GEIP.weight();

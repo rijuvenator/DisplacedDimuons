@@ -22,6 +22,7 @@
 #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -35,6 +36,7 @@
 // local includes
 #include "DisplacedDimuons/Tupler/interface/EventBranches.h"
 #include "DisplacedDimuons/Tupler/interface/TriggerBranches.h"
+#include "DisplacedDimuons/Tupler/interface/METBranches.h"
 #include "DisplacedDimuons/Tupler/interface/BeamspotBranches.h"
 #include "DisplacedDimuons/Tupler/interface/VertexBranches.h"
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
@@ -55,12 +57,16 @@ class SimpleNTupler : public edm::EDAnalyzer
 		virtual void analyze(const edm::Event&, const edm::EventSetup&);
 		virtual void endJob() { tree.Write(); }
 
+		template<class Type>
+		bool FailedToGet(Type&, const std::string&);
+
 		// the tree
 		TreeContainer tree;
 
 		// the branch collection classes
 		EventBranches    eventData;
 		TriggerBranches  triggerData;
+		METBranches      metData;
 		BeamspotBranches beamspotData;
 		VertexBranches   vertexData;
 		GenBranches      genData;
@@ -87,11 +93,13 @@ class SimpleNTupler : public edm::EDAnalyzer
 		bool                     isMC;
 };
 
+// class constructor
 SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	tree("DDTree", ""),
 
 	eventData   (tree),
 	triggerData (tree),
+	metData     (tree),
 	beamspotData(tree),
 	vertexData  (tree),
 	genData     (tree),
@@ -116,28 +124,43 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	isMC       (iConfig.getParameter<bool                    >("isMC"       ))
 {};
 
+// wrapper for failedToGet
+template<class Type>
+bool SimpleNTupler::FailedToGet(Type& Handle, const std::string& name)
+{
+	if (Handle.failedToGet())
+	{
+		edm::LogWarning("SimpleNTupler")
+			<< "+++ Warning: "
+			<< name
+			<< " is not found +++";
+		return true;
+	}
+	return false;
+}
+
+// analyze method
 void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	// Trigger: check whether the DDM path(s) fired or not and if yes,
-	// save the Level-1/HLT muons.
+	// ******************
+	// *** EVENT DATA ***
+	// ******************
+	eventData.Fill(iEvent);
+
+
+	// ********************
+	// *** TRIGGER DATA ***
+	// ********************
+	// Check whether the DDM paths(s) fired or not
+	// If fired, save the Level-1/HLT muons
 	bool ddm_paths_fired = false;
 	edm::Handle<pat::TriggerEvent> triggerEvent;
 	iEvent.getByToken(triggerEventToken, triggerEvent);
-	if (triggerEvent.failedToGet())
-	{
-		edm::LogWarning("SimpleNTupler")
-			<< "+++ Warning: pat::TriggerEvent collection is not found +++";
-	}
-	else
+	if (!FailedToGet(triggerEvent, "pat::TriggerEvent collection"))
 	{
 		edm::Handle<edm::TriggerResults> triggerResults;
 		iEvent.getByToken(triggerToken, triggerResults);
-		if (triggerResults.failedToGet())
-		{
-			edm::LogWarning("SimpleNTupler")
-				<< "+++ Warning: edm::TriggerResults collection is not found +++";
-		}
-		else
+		if (!FailedToGet(triggerResults, "edm::TriggerResults collection"))
 		{
 			edm::Handle<pat::PackedTriggerPrescales> prescales;
 			iEvent.getByToken(prescalesToken, prescales);
@@ -146,53 +169,81 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 				triggerData.Fill(*triggerEvent, prescales, triggerNames, ddmHLTPaths);
 		}
 	}
-
 	// Do nothing else if the path(s) we are interested in have not fired
 	if (!ddm_paths_fired) return;
 
+
+	// ****************
+	// *** MET DATA ***
+	// ****************
 	edm::Handle<pat::METCollection> met;
 	iEvent.getByToken(patMetToken, met);
-	eventData.Fill(iEvent, met);
+	metData.Fill(met);
 
+
+	// *********************
+	// *** BEAMSPOT DATA ***
+	// *********************
 	edm::Handle<reco::BeamSpot> beamspot;
 	iEvent.getByToken(beamspotToken, beamspot);
-	if (beamspot.failedToGet())
-		edm::LogWarning("SimpleNTupler")
-			<< "+++ Warning: beam spot is not found +++";
-	else
-		beamspotData.Fill(*beamspot);
+	beamspotData.Fill(beamspot);
 
+
+	// ******************
+	// *** VERTEX DATA **
+	// ******************
 	edm::Handle<reco::VertexCollection> vertices;
 	iEvent.getByToken(vertexToken, vertices);
-	if (vertices.failedToGet() || vertices->size() == 0)
-		edm::LogWarning("SimpleNTupler")
-			<< "+++ Warning: primary vertex is not found +++";
-	else
-		vertexData.Fill(*vertices);
+	vertexData.Fill(vertices);
 
+
+	// ****************
+	// *** GEN DATA ***
+	// ****************
 	if (isMC)
 	{
 		edm::Handle<reco::GenParticleCollection> gens;
 		edm::Handle<GenEventInfoProduct> GEIP;
 		iEvent.getByToken(genToken, gens);
 		iEvent.getByToken(GEIPToken, GEIP);
-		genData.Fill(*gens, *GEIP);
+		genData.Fill(gens, GEIP);
 	}
 
+
+	// *********************
+	// *** PAT MUON DATA ***
+	// *********************
 	edm::Handle<pat::MuonCollection> muons;
 	iEvent.getByToken(muonToken, muons);
-	muonData.Fill(*muons);
+	muonData.Fill(muons);
 
+
+	// *********************
+	// *** DSA MUON DATA ***
+	// *********************
 	edm::Handle<reco::TrackCollection> dsaMuons;
 	iEvent.getByToken(dsaMuonToken, dsaMuons);
-	dsaMuonData.Fill(*dsaMuons, *vertices);
+	if (vertexData.isValid())
+		dsaMuonData.Fill(dsaMuons, vertices);
 
+
+	// *********************
+	// *** RSA MUON DATA ***
+	// *********************
 	edm::Handle<reco::TrackCollection> rsaMuons;
 	iEvent.getByToken(rsaMuonToken, rsaMuons);
-	rsaMuonData.Fill(*rsaMuons, *vertices);
+	if (vertexData.isValid())
+		rsaMuonData.Fill(rsaMuons, vertices);
 
-	dimData.Fill(iSetup, *dsaMuons, *vertices);
 
+	// *******************
+	// *** DIMUON DATA ***
+	// *******************
+	if (dsaMuonData.isValid() && vertexData.isValid())
+		dimData.Fill(iSetup, dsaMuons, vertices);
+
+
+	// Final tree fill
 	tree.Fill();
 };
 

@@ -12,13 +12,20 @@
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
 // trigger branch collection
-class TriggerBranches : BranchCollection
+class TriggerBranches : public BranchCollection
 {
 	public:
 		// constructor
-		TriggerBranches(TreeContainer &tree, const bool DECLARE=true) : BranchCollection(tree) { Reset(); if (DECLARE) {Declarations();} }
+		TriggerBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree)
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
 		// members
+		static bool alreadyPrinted_;
+
 		bool trig_goodVtx;
 
 		// methods
@@ -36,6 +43,9 @@ class TriggerBranches : BranchCollection
 				const edm::Handle<pat::PackedTriggerPrescales>& prescales,
 				const edm::TriggerNames& triggerNames,
 				const std::vector<std::string>& ddmHLTPaths);
+
+		virtual bool alreadyPrinted() { return alreadyPrinted_; }
+		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
 };
 
 #endif

@@ -1,9 +1,17 @@
 #include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
 
-void DimuonBranches::Fill(const edm::EventSetup& iSetup, const reco::TrackCollection &muons, const reco::VertexCollection &vertices)
+bool DimuonBranches::alreadyPrinted_ = false;
+
+void DimuonBranches::Fill(const edm::EventSetup& iSetup,
+		const edm::Handle<reco::TrackCollection> &muonsHandle,
+		const edm::Handle<reco::VertexCollection> &verticesHandle)
 {
 	Reset();
-	float mass = .105658375;
+	static float mass = .105658375;
+
+	// already checked if muons and vertices are valid
+	const reco::TrackCollection &muons = *muonsHandle;
+	const reco::VertexCollection &vertices = *verticesHandle;
 
 	edm::ESHandle<TransientTrackBuilder> ttB;
 	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
