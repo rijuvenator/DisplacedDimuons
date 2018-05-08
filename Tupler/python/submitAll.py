@@ -5,6 +5,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS, RECOSIGNALPOINTS
 #    --crab  (submit to CRAB)
 #    --batch (submit to LXBATCH)
 #    --test  (run locally for 1000 events)
+#    <empty> (run locally for the entire dataset)
 MODE = '--crab'
 
 ## submit all HTo2XTo4Mu signal gen only jobs
@@ -16,5 +17,11 @@ for mH, mX, cTau in enumerate(RECOSIGNALPOINTS):
 	bash.call('python runNTupler.py HTo2XTo4Mu --signalpoint {mH} {mX} {cTau} {MODE}'.format(**locals()), shell=True)
 
 # submit all background MC jobs
+mcSamples = DH.getBackgroundMCSamples()
 for data in mcSamples:
+	bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)
+
+# submit all data jobs
+dataSamples = DH.getDataSamples()
+for data in dataSamples:
 	bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)

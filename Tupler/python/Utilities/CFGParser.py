@@ -3,6 +3,10 @@ import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 from DisplacedDimuons.Common.Constants import DIR_WS_RIJU, DIR_EOS_RIJU
 from DisplacedDimuons.Common.Utilities import SPStr
 
+# various default parameters; only change if necessary
+# (prefer to specify the parameters externally with the parser)
+# in particular the AOD process and GEN process don't have CLI parameters
+# so change them here if they're supposed to be different
 DEFAULT_SP          = (125, 20, 13)
 DEFAULT_AOD_PROCESS = 'AODSIM-ReHLT_V37-v1'
 DEFAULT_GEN_PROCESS = 'GS-v2'
@@ -10,6 +14,12 @@ DEFAULT_OUTDIR      = DIR_WS_RIJU
 DEFAULT_EOSDIR      = DIR_EOS_RIJU.replace('/eos/cms','')
 DEFAULT_OUTFILE     = 'ntuple_{}.root'
 
+# cmsRun configuration and submission parser
+# expected syntax: python runNTupler.py [NAME] [OPTIONS]
+# full command line access to most common parameters, more can be added as necessary
+# returns a CONFIG Namespace with all the relevant parameters, for use
+# in the cmsRun config, in batch scripts, in CRAB config files, and so on
+# uses the full dataHandler apparatus
 def getConfiguration(returnArgs=False):
 	parser = argparse.ArgumentParser()
 
@@ -24,6 +34,7 @@ def getConfiguration(returnArgs=False):
 	# test       : whether or not to run in test mode: restrict max events to 1000 (or as specified), create the output locally, etc
 	# maxevents  : maximum events, will be used only if the TEST option is specified
 	# verbose    : print debug info
+	# nosubmit   : don't actually submit the job, whether it's crab, lxbatch, or local. useful with verbose if just testing.
 
 	parser.add_argument('NAME'         ,                                                            help='sample name'                            )
 	parser.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3, default=DEFAULT_SP, help='3 ints defining HTo2XTo4Mu signal point')
@@ -36,6 +47,7 @@ def getConfiguration(returnArgs=False):
 	parser.add_argument('--test'       , dest='TEST'       , action='store_true',                   help='run in test mode'                       )
 	parser.add_argument('--maxevents'  , dest='MAXEVENTS'  , type=int, default=1000,                help='max events'                             )
 	parser.add_argument('--verbose'    , dest='VERBOSE'    , action='store_true',                   help='print debug info'                       )
+	parser.add_argument('--nosubmit'   , dest='SUBMIT'     , action='store_false',                  help='don\'t actually submit job'             )
 
 	# this is expected to be run from an external script, for which sys.argv is
 	# ['run.py', 'arg1', 'arg2' ... ]
@@ -65,7 +77,7 @@ def getConfiguration(returnArgs=False):
 	
 	# create final configuration namespace and return
 	CONFIG            = argparse.Namespace()
-	for attr in ('NAME', 'TEST', 'CRAB', 'BATCH', 'VERBOSE', 'EOSDIR'):
+	for attr in ('NAME', 'TEST', 'CRAB', 'BATCH', 'VERBOSE', 'EOSDIR', 'SUBMIT'):
 		setattr(CONFIG, attr, getattr(args, attr))
 	CONFIG.MAXEVENTS  = -1 if not args.TEST else args.MAXEVENTS
 	CONFIG.OUTPUTFILE = OUTPUTFILE
@@ -89,8 +101,14 @@ def findSample(args):
 		for data in samples:
 			if data.signalPoint() == SIGNALPOINT and data.process == DP:
 				return data
+	elif args.NAME.startswith('DoubleMuon'):
+		samples = DH.getDataSamples()
+		for data in samples:
+			if data.name == args.NAME:
+				return data
 	else:
 		samples = DH.getBackgroundSamples()
 		for data in samples:
 			if data.name == args.NAME:
 				return data
+	raise Exception('"' + args.NAME + '" is not a known dataset name; see .dat files in Utilities')

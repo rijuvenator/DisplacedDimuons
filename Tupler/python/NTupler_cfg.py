@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 ##### CONFIGURATION #####
 #########################
 
-# Note: ___.py will look for the first instance of
+# Note: runNTupler.py will look for the first instance of
 # ^PARAMETER\s+= and set values accordingly, so
 # please don't add any similar lines above these 5
 MAXEVENTS  = -1

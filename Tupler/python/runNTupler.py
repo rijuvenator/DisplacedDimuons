@@ -29,7 +29,7 @@ WriteCMSRUNConfig(CONFIG)
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
     CRAB_CFG = '''
-from CRABClient.UserUtilities import config
+from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 config.General.requestName   = 'nTupler_{NAME}'
 config.General.workArea      = 'crab'
@@ -46,25 +46,24 @@ config.Data.totalUnits       = {TOTAL_UNITS}
 config.Data.unitsPerJob      = {UNITS_PER_JOB}
 config.Data.runRange         = '{RUN_RANGE}'
 config.Data.lumiMask         = '{LUMI_MASK}'
-config.Data.outLFNDirBase    = '{OUTPUT_DIR}'
+config.Data.outLFNDirBase    = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.outputDatasetTag = 'ntuple_{NAME}'
 config.Site.storageSite      = 'T2_CH_CERN'
-config.Site.whiteList        = ['T2_CH_CERN']
+config.Site.whitelist        = ['T2_CH_CERN']
 '''
     CRAB_CFG = CRAB_CFG.format(
         NAME            = CONFIG.DATA.name,
         PSET_NAME       = F_CMS_CFG,
-        INPUT_DATASET   = CONFIG.DATA.dataset,
-        INPUT_DBS       = CONFIG.DATA.instance.replace('prod/', ''),
+        INPUT_DATASET   = CONFIG.DATA.PATDataset,
+        INPUT_DBS       = CONFIG.DATA.PATInstance.replace('prod/', ''),
         PUBLISH         = False,
         PUBLISH_DBS     = 'phys03',
         IGNORE_LOCALITY = True,
-        SPLITTING       = 'FileBased',
+        SPLITTING       = 'Automatic',
         TOTAL_UNITS     = -1,
-        UNITS_PER_JOB   = 10,
+        UNITS_PER_JOB   = 20,
         RUN_RANGE       = '',
         LUMI_MASK       = '',
-        OUTPUT_DIR      = CONFIG.EOSDIR,
     )
     # comment out lines not needed -- to be improved by doing it based on data vs mc
     COMMENTS = ('transferLogs', 'ignoreLocality', 'runRange', 'lumiMask')
@@ -75,8 +74,9 @@ config.Site.whiteList        = ['T2_CH_CERN']
 
     F_CRAB_CFG = 'crabConfig.py'
     open(F_CRAB_CFG, 'w').write(CRAB_CFG)
-    #bash.call('crab submit -c {}'.format(F_CRAB_CFG), shell=True)
-    bash.call('rm {}'.format(F_CRAB_CFG), shell=True)
+    if CONFIG.SUBMIT:
+        bash.call('crab submit -c {}'.format(F_CRAB_CFG), shell=True)
+    bash.call('rm {F} {F}c'.format(F=F_CRAB_CFG), shell=True)
 
 
 # submit to LXBATCH
@@ -98,13 +98,14 @@ rm -f core.*
 
     F_LXBATCH = 'submit_lxbatch.sh'
     open(F_LXBATCH, 'w').write(LXBATCH)
-    #bash.call('bsub -q 1nh -J tup_{} < {}'.format(CONFIG.DATA.name, F_LXBATCH), shell=True)
+    if CONFIG.SUBMIT:
+        bash.call('bsub -q 1nh -J tup_{} < {}'.format(CONFIG.DATA.name, F_LXBATCH), shell=True)
     bash.call('rm {}'.format(F_LXBATCH), shell=True)
 
-# run locally
+# run locally, test mode or otherwise
 else:
-    pass
-    #bash.call('cmsRun {}'.format(F_CMS_CFG), shell=True)
+    if CONFIG.SUBMIT:
+        bash.call('cmsRun {}'.format(F_CMS_CFG), shell=True)
 
-# remove the cmsRun configuration file
-bash.call('rm {}'.format(F_CMS_CFG), shell=True)
+# remove the cmsRun configuration file and .pyc
+bash.call('rm {F} {F}c'.format(F=F_CMS_CFG), shell=True)

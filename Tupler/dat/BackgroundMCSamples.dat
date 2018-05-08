@@ -1,4 +1,5 @@
 /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/AODSIM
+_
 DY50toInf
 122547040
 209
@@ -6,6 +7,7 @@ DY50toInf
 5941.
 -
 /DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+/DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/alfloren-MC2016_dy100To200-1f3b8c9856797cc8218eed4f9594f861/USER
 DY100to200
 1083606
 209
@@ -13,6 +15,7 @@ DY100to200
 226.6
 -
 /DYJetsToLL_M-200to400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v2/AODSIM
+_
 DY200to400
 298679
 209
@@ -20,6 +23,7 @@ DY200to400
 7.77
 -
 /DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY400to500
 287262
 209
@@ -27,6 +31,7 @@ DY400to500
 0.4065
 -
 /DYJetsToLL_M-500to700_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY500to700
 280940
 209
@@ -34,6 +39,7 @@ DY500to700
 0.2334
 -
 /DYJetsToLL_M-700to800_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY700to800
 276235
 209
@@ -41,6 +47,7 @@ DY700to800
 0.03614
 -
 /DYJetsToLL_M-800to1000_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY800to1000
 271768
 209
@@ -48,6 +55,7 @@ DY800to1000
 0.03047
 -
 /DYJetsToLL_M-1000to1500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY1000to1500
 258620
 209
@@ -55,6 +63,7 @@ DY1000to1500
 0.01636
 -
 /DYJetsToLL_M-1500to2000_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY1500to2000
 258625
 209
@@ -62,6 +71,7 @@ DY1500to2000
 0.00218
 -
 /DYJetsToLL_M-2000to3000_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 DY2000to3000
 255342
 209
@@ -69,6 +79,7 @@ DY2000to3000
 0.0005156
 -
 /WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 WZ
 1000000
 98
@@ -76,6 +87,7 @@ WZ
 47.13
 -
 /WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 WZ_ext
 2997571
 98
@@ -83,6 +95,7 @@ WZ_ext
 47.13
 -
 /ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 ZZ
 990064
 94
@@ -90,6 +103,7 @@ ZZ
 16.523
 -
 /ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 ZZ_ext
 998034
 94
@@ -97,6 +111,7 @@ ZZ_ext
 16.523
 -
 /WWTo2L2Nu_13TeV-powheg-herwigpp/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 WW
 1999000
 208
@@ -104,6 +119,7 @@ WW
 12.178
 -
 /TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 ttbar
 79140880
 4
@@ -111,6 +127,7 @@ ttbar
 87.31
 -
 /ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 tW
 6952830
 66
@@ -118,6 +135,7 @@ tW
 35.8
 -
 /ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
+_
 tbarW
 6933094
 63
@@ -125,6 +143,7 @@ tbarW
 35.8
 -
 /WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 WJets
 29804825
 52
@@ -132,6 +151,7 @@ WJets
 61526.7
 -
 /QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
+_
 QCD
 22094081
 43
