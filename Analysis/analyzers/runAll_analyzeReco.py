@@ -14,7 +14,7 @@ submitScript = '''
 #export X509_USER_PROXY=/afs/cern.ch/user/a/adasgupt/x509up_u79337
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
-cd DisplacedDimuons/Analysis/plotters
+cd DisplacedDimuons/Analysis/analyzers
 python analyzeReco.py --signalpoint {mH} {mX} {cTau}
 rm -f core.*
 '''

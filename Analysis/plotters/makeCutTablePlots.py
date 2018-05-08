@@ -9,7 +9,7 @@ MuonCutListPlusNone = Selections.CutLists['MuonCutListPlusNone']
 data = []
 headers = ('mH', 'mX', 'cTau') + MuonCutListPlusNone
 
-f = open('../dumpers/newCutTable.txt')
+f = open('../dumpers/cutTable.txt')
 for line in f:
 	if not re.match(r'MUO CUM: \d', line): continue
 	cols = line.strip('\n').split()
