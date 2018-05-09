@@ -47,8 +47,16 @@ process.load(MODULES+PLUGIN+'_cfi')
 process.TFileService.fileName = cms.string(OUTPUTFILE)
 
 if PLUGIN == 'SimpleNTupler':
-	process.GlobalTag.globaltag = '92X_upgrade2017_realistic_v12'
 	process.SimpleNTupler.isMC = cms.bool(ISMC)
+
+	if process.SimpleNTupler.isMC:
+		# RunIISummer16DR80Premix (aka "Moriond17") campaign, CMSSW_8_0_X
+		process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_TrancheIV_v6'
+		# CMSSW_9_2_X
+		# process.GlobalTag.globaltag = '92X_upgrade2017_realistic_v12'
+	else:
+		# 2016 data
+		process.GlobalTag.globaltag = '80X_dataRun2_2016LegacyRepro_v4'
 
 # declare final path
 process.nTuplerPath = cms.Path(getattr(process, PLUGIN))
