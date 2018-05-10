@@ -2,8 +2,9 @@
 
 PREFIX="$1"
 if [ -z $PREFIX ]; then
-	echo "No prefix given; assuming PREFIX = RecoPlots"
-	PREFIX="RecoPlots"
+	echo "No prefix given; exiting now"
+    exit
 fi
 
+echo "Will run: rm ${PREFIX}.root; hadd ${PREFIX}.root ${PREFIX}_*"
 rm ${PREFIX}.root; hadd ${PREFIX}.root ${PREFIX}_*

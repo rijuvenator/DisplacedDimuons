@@ -31,6 +31,6 @@ def makePerSignalPlots():
 			p.SetLineColor(R.kBlue)
 			canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
 			canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
-			Cleanup(canvas, 'pdfs/{}_{}.pdf'.format(key, SPStr(sp)))
+			Cleanup(canvas, 'pdfs/Gen_{}_HTo2XTo4Mu_{}.pdf'.format(key, SPStr(sp)))
 
 makePerSignalPlots()

@@ -23,7 +23,7 @@ f.close()
 HISTS = {}
 for fields in data:
 	sp = (int(fields['mH']), int(fields['mX']), int(fields['cTau']))
-	HISTS[sp] = R.TH1F('CutTable_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
+	HISTS[sp] = R.TH1F('CutTable_HTo2XTo4Mu_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
 
 	for i,header in enumerate(MuonCutListPlusNone):
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
@@ -83,7 +83,7 @@ def makeIndividualPlots():
 		canvas.firstPlot.SetMarkerColor(R.kBlue)
 		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
-		canvas.save('pdfs/Reco_CutTable_{}.pdf'.format(SPStr(sp)))
+		canvas.save('pdfs/CutTable_HTo2XTo4Mu_{}.pdf'.format(SPStr(sp)))
 		canvas.deleteCanvas()
 
 makeIndividualPlots()

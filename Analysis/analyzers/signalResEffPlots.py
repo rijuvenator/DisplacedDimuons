@@ -32,19 +32,11 @@ def declareHistograms(self):
     self.HistInit('pTDen'       , ''                                           , *CONFIG['pTEff' ]['AXES'])
     self.HistInit('LxyDen'      , ''                                           , *CONFIG['LxyEff']['AXES'])
 
-    # dimuon plots
-    self.HistInit('Dim_vtxChi2' , ';vtx #chi^{2}/dof;Counts'                   , 1000,   0., 5.           )
-    self.HistInit('Dim_deltaR'  , ';#DeltaR;Counts'                            , 1000,   0., 5.           )
-    self.HistInit('Dim_mass'    , ';M(#mu#mu);Counts'                          , 1000,   0., self.SP.mX*2 )
-    self.HistInit('Dim_deltaPhi', ';|#Delta#Phi|;Counts'                       , 1000,   0., math.pi      )
-    self.HistInit('Dim_cosAlpha', ';cos(#alpha);Counts'                        , 1000,  -1., 1.           )
-
 # internal loop function for Analyzer class
 def analyze(self, E):
     mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
-    Dimuons  = E.getPrimitives('DIMUON' )
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
@@ -97,15 +89,6 @@ def analyze(self, E):
                     self.HISTS['ExtraPt' ].Fill(genMuon.pt)
             PREFIX = 'RSA'
 
-    for dimuon in Dimuons:
-        if DSASelections[dimuon.idx1].passesAcceptance() and DSASelections[dimuon.idx2].passesAcceptance():
-            self.HISTS['Dim_vtxChi2' ].Fill(dimuon.normChi2)
-            self.HISTS['Dim_deltaR'  ].Fill(dimuon.deltaR  )
-            self.HISTS['Dim_mass'    ].Fill(dimuon.mass    )
-            self.HISTS['Dim_deltaPhi'].Fill(dimuon.deltaPhi)
-            self.HISTS['Dim_cosAlpha'].Fill(dimuon.cosAlpha)
-            #dimuonSelection = Selections.DimuonSelection(dimuon)
-
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
@@ -118,4 +101,4 @@ if __name__ == '__main__':
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING
     )
-    analyzer.writeHistograms('roots/RecoPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalResEffPlots_{}.root')

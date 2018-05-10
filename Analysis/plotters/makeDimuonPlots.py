@@ -1,7 +1,6 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
@@ -13,7 +12,7 @@ for sample in ('DY100to200', 'DoubleMuonRun2016D-07Aug17'):
 
 # get all histograms
 HISTS = {}
-f = R.TFile.Open('../analyzers/roots/nMinusOne.root')
+f = R.TFile.Open('../analyzers/roots/DimuonPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
     if 'HTo2XTo4Mu' in hkey:
         # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
@@ -39,7 +38,7 @@ def Cleanup(canvas, filename):
     canvas.save(filename)
     canvas.deleteCanvas()
 
-# make per signal plots
+# make plots that are per signal point
 def makePerSignalPlots():
     for ref in HISTS:
         for key in HISTS[ref]:
@@ -52,25 +51,16 @@ def makePerSignalPlots():
 
             h = HISTS[ref][key]
             p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
-            fname = 'pdfs/NM1_{}_{}.pdf'.format(key, name)
+            fname = 'pdfs/{}_{}.pdf'.format(key, name)
+
             canvas = Plotter.Canvas(lumi=lumi)
-            canvas.lumi += ' : |#Delta#Phi| ' + ('<' if '_Less' in key else '>') + ' #pi/2'
             canvas.addMainPlot(p)
             canvas.makeLegend(lWidth=.25, pos='tr')
             canvas.legend.moveLegend(Y=-.3)
             canvas.legend.resizeHeight()
             p.SetLineColor(R.kBlue)
-
-            cutKey = key.replace('_Less','').replace('_More','')
-            try:
-                cutVal = Selections.MuonCuts[cutKey].val
-            except:
-                cutVal = Selections.DimuonCuts[cutKey].val
-
-            l = R.TLine(cutVal, p.GetMinimum(), cutVal, p.GetMaximum()*1.05)
-            l.SetLineStyle(2)
-            l.SetLineWidth(2)
-            l.Draw()
-
+            canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
+            canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
             Cleanup(canvas, fname)
+
 makePerSignalPlots()
