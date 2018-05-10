@@ -71,7 +71,7 @@ def makeCombinedPlot():
 	canvas.legend.moveLegend(X=.18)
 
 	canvas.finishCanvas()
-	canvas.save('CutTable.pdf')
+	canvas.save('pdfs/CutTable.pdf')
 	canvas.deleteCanvas()
 
 def makeIndividualPlots():

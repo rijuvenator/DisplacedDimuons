@@ -12,8 +12,6 @@ def declareHistograms(self):
     # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
     CONFIG = {
             'pTRes'      : {'TITLE':';(*** p_{T} #minus gen p_{T})/gen p_{T};Counts', 'AXES':(1000,  -1., 3.  )},
-            'pTEff'      : {'TITLE':';p_{T} [GeV];*** Match Efficiency'             , 'AXES':(1000,   0., 500.)},
-            'LxyEff'     : {'TITLE':';L_{xy} [cm];*** Match Efficiency'             , 'AXES':(1000,   0., 500.)},
             'd0Dif'      : {'TITLE':';*** d_{0} #minus gen d_{0};Counts'            , 'AXES':(1000, -10., 10. )},
             'nMuon'      : {'TITLE':';*** Muon Multiplicity;Counts'                 , 'AXES':(11  ,   0., 11. )},
     }
@@ -24,13 +22,6 @@ def declareHistograms(self):
     for MUON in ('DSA', 'RSA'):
         for KEY in CONFIG:
             self.HistInit(MUON+'_'+KEY, CONFIG[KEY]['TITLE'].replace('***',MUON), *CONFIG[KEY]['AXES'])
-
-    # "extra" and denominator plots, can reuse the axes
-    self.HistInit('ExtraPt'     , CONFIG['pTEff' ]['TITLE'].replace('*** ','') , *CONFIG['pTEff' ]['AXES'])
-    self.HistInit('ExtraLxy'    , CONFIG['LxyEff']['TITLE'].replace('*** ','') , *CONFIG['LxyEff']['AXES'])
-
-    self.HistInit('pTDen'       , ''                                           , *CONFIG['pTEff' ]['AXES'])
-    self.HistInit('LxyDen'      , ''                                           , *CONFIG['LxyEff']['AXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E):
@@ -58,9 +49,6 @@ def analyze(self, E):
         if not genMuonSelection: continue
 
         genMuonLxy = genMuon.Lxy()
-        self.HISTS['LxyDen'].Fill(genMuonLxy)
-        self.HISTS['pTDen' ].Fill(genMuon.pt)
-
         PREFIX = 'DSA'
         foundDSA = False
         for recoMuons in (DSAmuons, RSAmuons):
@@ -74,19 +62,10 @@ def analyze(self, E):
                     #print ''
                 self.HISTS[PREFIX+'_pTRes'     ].Fill(pTRes(closestRecoMuon, genMuon))
                 self.HISTS[PREFIX+'_d0Dif'     ].Fill((closestRecoMuon.d0 - genMuon.d0))
-                self.HISTS[PREFIX+'_LxyEff'    ].Fill(genMuonLxy)
-                self.HISTS[PREFIX+'_pTEff'     ].Fill(genMuon.pt)
                 self.HISTS[PREFIX+'_pTResVSLxy'].Fill(genMuonLxy,pTRes(closestRecoMuon, genMuon))
                 self.HISTS[PREFIX+'_pTResVSpT' ].Fill(genMuon.pt,pTRes(closestRecoMuon, genMuon))
                 self.HISTS[PREFIX+'_pTResVSdR' ].Fill(genMuon.pairDeltaR,pTRes(closestRecoMuon, genMuon))
                 self.HISTS[PREFIX+'_pTVSpT'    ].Fill(genMuon.pt,closestRecoMuon.pt)
-
-                if PREFIX == 'DSA':
-                    foundDSA = True
-
-                if PREFIX == 'RSA' and not foundDSA:
-                    self.HISTS['ExtraLxy'].Fill(genMuonLxy)
-                    self.HISTS['ExtraPt' ].Fill(genMuon.pt)
             PREFIX = 'RSA'
 
 #### RUN ANALYSIS ####
@@ -97,8 +76,8 @@ if __name__ == '__main__':
     analyzer = Analyzer.Analyzer(
         NAME        = ARGS.NAME,
         SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING
     )
-    analyzer.writeHistograms('roots/SignalResEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalMiscPlots_{}.root')
