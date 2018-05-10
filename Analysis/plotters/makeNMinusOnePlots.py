@@ -73,4 +73,54 @@ def makePerSignalPlots():
             l.Draw()
 
             Cleanup(canvas, fname)
+
+# make stack plots
+def makeStackPlots(DataMC=False):
+    #for hkey in HISTS[(125, 20, 13)]:
+    for hkey in ('deltaR_Less',):
+        h = {
+            'DY100to200' : HISTS['DY100to200'                ][hkey],
+            'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey],
+            'Signal'     : HISTS[(125, 20, 13)               ][hkey],
+            'BG'         : R.THStack('hBG', '')
+        }
+
+        PConfig = {
+            'DY100to200' : ('Drell-Yan 100-200 GeV'        , 'f' , 'hist'),
+            'Data'       : ('DoubleMuon2016D'              , 'pe', 'pe'  ),
+            'Signal'     : ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist'),
+            'BG'         : (''                             , ''  , 'hist'),
+        }
+
+        h['BG'].Add(h['DY100to200'])
+
+        p = {}
+        for key in h:
+            p[key] = Plotter.Plot(h[key], *PConfig[key])
+
+        fname = 'NM1_Stack_{}.pdf'.format(hkey)
+
+        p['DY100to200'].SetLineColor(R.kOrange)
+        p['DY100to200'].SetFillColor(R.kOrange)
+
+        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800)
+        canvas.addMainPlot(p['BG'])
+        canvas.addMainPlot(p['Data'])
+        canvas.addMainPlot(p['Signal'])
+
+        canvas.makeLegend(lWidth=.25, pos='tl', autoOrder=False)
+        canvas.addLegendEntry(p['Data'      ])
+        canvas.addLegendEntry(p['DY100to200'])
+        canvas.addLegendEntry(p['Signal'    ])
+        canvas.legend.resizeHeight()
+
+        if DataMC:
+            canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
+
+        p['Signal'    ].SetLineStyle(2)
+        p['Signal'    ].SetLineColor(R.kRed)
+
+        Cleanup(canvas, fname)
+
 makePerSignalPlots()
+#makeStackPlots(True)
