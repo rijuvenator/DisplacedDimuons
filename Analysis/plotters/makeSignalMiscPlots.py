@@ -29,13 +29,11 @@ def Cleanup(canvas, filename):
 # make DSA RSA overlaid per signal plots
 def makeOverlayPerSignalPlots():
     KEYS = (
-        'pTRes',
         'd0Dif',
         'nMuon',
     )
     for sp in RECOSIGNALPOINTS:
         for key in KEYS:
-            DOFIT = key == 'pTRes'
             h = {}
             h['DSA'] = HISTS[sp]['DSA_'+key]
             h['RSA'] = HISTS[sp]['RSA_'+key]
@@ -44,23 +42,11 @@ def makeOverlayPerSignalPlots():
                 p[rtype] = Plotter.Plot(h[rtype], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(rtype), 'l', 'hist')
             fname = 'pdfs/SMP_{}_HTo2XTo4Mu_{}.pdf'.format(key, SPStr(sp))
 
-            if DOFIT:
-                funcs = {}
-                fplots = {}
-                for rtype in h:
-                    funcs[rtype] = R.TF1('f'+rtype, 'gaus', -0.5, 0.4)
-                    h[rtype].Fit('f'+rtype)
-                    fplots[rtype] = Plotter.Plot(funcs[rtype], 'Gaussian fit ({})'.format(rtype), 'l', '')
-
             canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
             canvas.addMainPlot(p['DSA'])
             canvas.addMainPlot(p['RSA'], addS=True)
 
             canvas.firstPlot.setTitles(X=canvas.firstPlot.GetXaxis().GetTitle().replace('DSA','Reco'))
-
-            if DOFIT:
-                canvas.addMainPlot(fplots['DSA'])
-                canvas.addMainPlot(fplots['RSA'])
 
             canvas.makeLegend(lWidth=.25, pos='tr' if key == 'pTRes' else 'tl')
             canvas.legend.moveLegend(X=-.3 if key == 'pTRes' else 0.)
@@ -77,41 +63,6 @@ def makeOverlayPerSignalPlots():
             if key == 'nMuon':
                 canvas.firstPlot.SetMaximum(1.05 * max(p['DSA'].GetMaximum(), p['RSA'].GetMaximum()))
 
-            if DOFIT:
-                fplots['DSA'].SetLineColor(R.kBlack)
-                fplots['RSA'].SetLineColor(R.kGreen+1)
-
-                canvas.setFitBoxStyle(h['DSA'], lWidth=0.35, pos='tr')
-                canvas.setFitBoxStyle(h['RSA'], lWidth=0.35, pos='tr')
-
-                p['DSA'].FindObject('stats').SetTextColor(R.kBlack)
-                Plotter.MOVE_OBJECT(p['DSA'].FindObject('stats'), Y=-.25, NDC=True)
-
-                p['RSA'].FindObject('stats').SetTextColor(R.kGreen+1)
-                Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.5, NDC=True)
-
             Cleanup(canvas, fname)
 
-# make 3D color plots
-def makeColorPlot(key):
-    for i, sp in enumerate(RECOSIGNALPOINTS):
-        if i == 0:
-            h = f.Get('{}_HTo2XTo4Mu_{}'.format(key, SPStr(sp)))
-            h.SetDirectory(0)
-        else:
-            h.Add(f.Get('{}_HTo2XTo4Mu_{}'.format(key, SPStr(sp))))
-
-    h.Rebin2D(10, 10)
-    p = Plotter.Plot(h, '', '', 'colz')
-    canvas = Plotter.Canvas()
-    canvas.mainPad.SetLogz(True)
-    canvas.addMainPlot(p)
-    canvas.scaleMargins(1.75, edges='R')
-    canvas.scaleMargins(0.8, edges='L')
-    Cleanup(canvas, 'pdfs/SMP_{}_HTo2XTo4Mu_Global.pdf'.format(key))
-
 makeOverlayPerSignalPlots()
-makeColorPlot('DSA_pTResVSLxy')
-makeColorPlot('DSA_pTResVSpT')
-makeColorPlot('DSA_pTResVSdR')
-makeColorPlot('DSA_pTVSpT')

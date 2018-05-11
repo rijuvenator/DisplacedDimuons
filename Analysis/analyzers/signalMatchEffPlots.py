@@ -6,12 +6,17 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
-CONFIG = {
-        'pT'  : {'XTITLE':'p_{T} [GeV]', 'AXES':(1000,       0.,    500.), 'LAMBDA':lambda muon: muon.pt   },
-        'eta' : {'XTITLE':'#eta'       , 'AXES':(1000,      -3.,      3.), 'LAMBDA':lambda muon: muon.eta  },
-        'phi' : {'XTITLE':'#phi'       , 'AXES':(1000, -math.pi, math.pi), 'LAMBDA':lambda muon: muon.phi  },
-        'Lxy' : {'XTITLE':'L_{xy} [cm]', 'AXES':(1000,       0.,    500.), 'LAMBDA':lambda muon: muon.Lxy()},
-}
+HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
+VALUES  = (
+    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
+    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
+    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' ),
+)
+CONFIG = {}
+for VAL in VALUES:
+    KEY, VALS = VAL[0], VAL[1:]
+    CONFIG[KEY] = dict(zip(HEADERS, VALS))
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
@@ -46,11 +51,12 @@ def analyze(self, E):
 
         # fill the gen denominator histograms
         for KEY in CONFIG:
-            self.HISTS[KEY+'Den'].Fill(CONFIG[KEY]['LAMBDA'](genMuon))
+            F = CONFIG[KEY]['LAMBDA']
+            self.HISTS[KEY+'Den'].Fill(F(genMuon))
 
         # find closest matched reco muon for DSA and RSA
         foundDSA = False
-        for PREFIX, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
+        for MUON, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
             if len(matches) != 0:
                 # take the closest match
@@ -58,19 +64,21 @@ def analyze(self, E):
                 # fill all the quantities
                 # also fill the charge denominator histograms: denominator is +1 for each dR match
                 for KEY in CONFIG:
-                    self.HISTS[PREFIX+'_'+KEY+'Eff'      ].Fill(CONFIG[KEY]['LAMBDA'](genMuon))
-                    self.HISTS[PREFIX+'_'+KEY+'ChargeDen'].Fill(CONFIG[KEY]['LAMBDA'](genMuon))
+                    F = CONFIG[KEY]['LAMBDA']
+                    self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuon))
+                    self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuon))
 
                     # THEN if the charges are the same, fill. Should be flat and close to 1.
                     if genMuon.charge == closestRecoMuon.charge:
-                        self.HISTS[PREFIX+'_'+KEY+'ChargeEff'].Fill(CONFIG[KEY]['LAMBDA'](genMuon))
+                        self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuon))
 
-                if PREFIX == 'DSA':
+                if MUON == 'DSA':
                     foundDSA = True
 
-                if PREFIX == 'RSA' and not foundDSA:
+                if MUON == 'RSA' and not foundDSA:
                     for KEY in CONFIG:
-                        self.HISTS[KEY+'Extra'].Fill(CONFIG[KEY]['LAMBDA'](genMuon))
+                        F = CONFIG[KEY]['LAMBDA']
+                        self.HISTS[KEY+'Extra'].Fill(F(genMuon))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

@@ -146,6 +146,7 @@ class Analyzer(object):
             CHUNK, JOB = self.SPLITTING
             ELOW, EHIGH = JOB*CHUNK, min((JOB+1)*CHUNK, t.GetEntries())
             for INDEX in xrange(ELOW, EHIGH):
+                self.INDEX = INDEX
                 if self.TEST:
                     if INDEX == self.MAX:
                         break
@@ -154,6 +155,7 @@ class Analyzer(object):
                 self.analyze(E)
         else:
             for INDEX, EVENT in enumerate(t):
+                self.INDEX = INDEX
                 if self.TEST:
                     if INDEX == self.MAX:
                         break

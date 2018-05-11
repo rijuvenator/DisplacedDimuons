@@ -11,14 +11,9 @@ def declareHistograms(self):
     # DSA and RSA specific plots
     # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
     CONFIG = {
-            'pTRes'      : {'TITLE':';(*** p_{T} #minus gen p_{T})/gen p_{T};Counts', 'AXES':(1000,  -1., 3.  )},
             'd0Dif'      : {'TITLE':';*** d_{0} #minus gen d_{0};Counts'            , 'AXES':(1000, -10., 10. )},
             'nMuon'      : {'TITLE':';*** Muon Multiplicity;Counts'                 , 'AXES':(11  ,   0., 11. )},
     }
-    CONFIG['pTResVSLxy'] = {'TITLE':';L_{xy} [cm];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 10. , 1000, -1., 1.  )}
-    CONFIG['pTResVSpT' ] = {'TITLE':';p_{T} [GeV];*** p_{T} Res;Counts'             , 'AXES':(1000, 0., 500., 1000, -1., 1.  )}
-    CONFIG['pTResVSdR' ] = {'TITLE':';#DeltaR;*** p_{T} Res;Counts'                 , 'AXES':(1000, 0., 5.  , 1000, -1., 1.  )}
-    CONFIG['pTVSpT'    ] = {'TITLE':';gen p_{T} [GeV];*** p_{T} [GeV];Counts'       , 'AXES':(1000, 0., 500., 1000,  0., 500.)}
     for MUON in ('DSA', 'RSA'):
         for KEY in CONFIG:
             self.HistInit(MUON+'_'+KEY, CONFIG[KEY]['TITLE'].replace('***',MUON), *CONFIG[KEY]['AXES'])
@@ -60,12 +55,7 @@ def analyze(self, E):
                     #print 'GEN: {:9.4f} {:7.4f} {:7.4f}'.format(genMuon.pt, genMuon.eta, genMuon.phi)
                     #print '{}: {:9.4f} {:7.4f} {:7.4f}'.format(PREFIX, closestRecoMuon.pt, closestRecoMuon.eta, closestRecoMuon.phi)
                     #print ''
-                self.HISTS[PREFIX+'_pTRes'     ].Fill(pTRes(closestRecoMuon, genMuon))
                 self.HISTS[PREFIX+'_d0Dif'     ].Fill((closestRecoMuon.d0 - genMuon.d0))
-                self.HISTS[PREFIX+'_pTResVSLxy'].Fill(genMuonLxy,pTRes(closestRecoMuon, genMuon))
-                self.HISTS[PREFIX+'_pTResVSpT' ].Fill(genMuon.pt,pTRes(closestRecoMuon, genMuon))
-                self.HISTS[PREFIX+'_pTResVSdR' ].Fill(genMuon.pairDeltaR,pTRes(closestRecoMuon, genMuon))
-                self.HISTS[PREFIX+'_pTVSpT'    ].Fill(genMuon.pt,closestRecoMuon.pt)
             PREFIX = 'RSA'
 
 #### RUN ANALYSIS ####
