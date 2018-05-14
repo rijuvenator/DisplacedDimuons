@@ -91,7 +91,8 @@ class GenBranches : public BranchCollection
 		}
 
 		void Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
-				const edm::Handle<GenEventInfoProduct> &GEIPHandle);
+				const edm::Handle<GenEventInfoProduct> &GEIPHandle,
+        const bool isSignal);
 
 		bool FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
 				const edm::Handle<GenEventInfoProduct> &GEIPHandle);

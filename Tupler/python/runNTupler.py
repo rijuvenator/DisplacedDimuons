@@ -19,6 +19,7 @@ def WriteCMSRUNConfig(CONFIG):
         r'^(PLUGIN\s+=).*'    : r"\1 '{}'".format(CONFIG.PLUGIN         ),
         r'^(OUTPUTFILE\s+=).*': r"\1 '{}'".format(CONFIG.OUTPUTFILE     ),
         r'^(ISMC\s+=).*'      : r"\1 {}"  .format(CONFIG.DATA.isMC      ),
+        r'^(ISSIGNAL\s+=).*'  : r"\1 {}"  .format(CONFIG.DATA.isSignal  ),
     }
     for key, val in replaceDict.iteritems():
         CMS_CFG = re.sub(key, val, CMS_CFG, count=1, flags=re.MULTILINE)

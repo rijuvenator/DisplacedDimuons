@@ -91,6 +91,7 @@ class SimpleNTupler : public edm::EDAnalyzer
 		// other parameters from the cmsRun cfg file
 		std::vector<std::string> ddmHLTPaths;
 		bool                     isMC;
+		bool                     isSignal;
 };
 
 // class constructor
@@ -121,7 +122,8 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
 	rsaMuonToken     (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("rsaMuons"      ))),
 
 	ddmHLTPaths(iConfig.getParameter<std::vector<std::string>>("ddmHLTPaths")),
-	isMC       (iConfig.getParameter<bool                    >("isMC"       ))
+	isMC       (iConfig.getParameter<bool                    >("isMC"       )),
+	isSignal   (iConfig.getParameter<bool                    >("isSignal"   ))
 {};
 
 // wrapper for failedToGet
@@ -206,7 +208,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 		edm::Handle<GenEventInfoProduct> GEIP;
 		iEvent.getByToken(genToken, gens);
 		iEvent.getByToken(GEIPToken, GEIP);
-		genData.Fill(gens, GEIP);
+		genData.Fill(gens, GEIP, isSignal);
 	}
 
 
