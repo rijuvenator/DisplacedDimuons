@@ -1,6 +1,5 @@
 import sys, os, argparse
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
-from DisplacedDimuons.Common.Constants import DIR_WS_RIJU, DIR_EOS_RIJU
 from DisplacedDimuons.Common.Utilities import SPStr
 
 # various default parameters; only change if necessary
@@ -10,8 +9,7 @@ from DisplacedDimuons.Common.Utilities import SPStr
 DEFAULT_SP          = (125, 20, 13)
 DEFAULT_AOD_PROCESS = 'AODSIM-ReHLT_V37-v1'
 DEFAULT_GEN_PROCESS = 'GS-v2'
-DEFAULT_OUTDIR      = DIR_WS_RIJU
-DEFAULT_EOSDIR      = DIR_EOS_RIJU.replace('/eos/cms','')
+DEFAULT_OUTDIR      = ''
 DEFAULT_OUTFILE     = 'ntuple_{}.root'
 
 # cmsRun configuration and submission parser
@@ -27,7 +25,6 @@ def getConfiguration(returnArgs=False):
 	# signalpoint: three integers defining the HTo2XTo4Mu signal point, e.g. 125 20 13
 	# genonly    : whether or not to only run the Gen part of the nTuple, e.g. for GEN-SIM
 	# outdir     : output directory. Common paths should be stored in DisplacedDimuons.Common.Constants
-	# eosdir     : EOS LFN output directory, e.g. /store/user/adasgupt. Common paths should be stored in DisplacedDimuons.Common.Constants
 	# outfile    : output file pattern. Can contain {} for later .format use
 	# crab       : submit to crab
 	# batch      : submit to lxbatch
@@ -40,7 +37,6 @@ def getConfiguration(returnArgs=False):
 	parser.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3, default=DEFAULT_SP, help='3 ints defining HTo2XTo4Mu signal point')
 	parser.add_argument('--genonly'    , dest='GENONLY'    , action='store_true',                   help='run gen only'                           )
 	parser.add_argument('--outdir'     , dest='OUTDIR'     , default=DEFAULT_OUTDIR,                help='output directory'                       )
-	parser.add_argument('--eosdir'     , dest='EOSDIR'     , default=DEFAULT_EOSDIR,                help='EOS LFN directory for CRAB'             )
 	parser.add_argument('--outfile'    , dest='OUTFILE'    , default=DEFAULT_OUTFILE,               help='output file pattern'                    )
 	parser.add_argument('--crab'       , dest='CRAB'       , action='store_true',                   help='submit to CRAB'                         )
 	parser.add_argument('--batch'      , dest='BATCH'      , action='store_true',                   help='submit to LXBATCH'                      )
@@ -61,23 +57,26 @@ def getConfiguration(returnArgs=False):
 	# now we can get the particular Dataset object
 	data = findSample(args)
 
+	# if GENONLY, use the "AOD" dataset (i.e. the parent EDM, in this case GEN-SIM)
+	DATASET = 'AOD' if args.GENONLY else None
+
 	# set input and output files according to mode: crab, batch, test, or none (local)
 	if args.CRAB:
 		INPUTFILES = ['file:dummy.root']
 		OUTPUTFILE = args.OUTFILE.format(data.name)
 	elif args.BATCH:
-		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
+		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX, dataset=DATASET)
 		OUTPUTFILE = os.path.join(args.OUTDIR, args.OUTFILE.format(data.name))
 	elif args.TEST:
-		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)[0:1]
+		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX, dataset=DATASET)[0:1]
 		OUTPUTFILE = './test.root'
 	else:
-		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX)
+		INPUTFILES = data.getFiles(prefix=DH.ROOT_PREFIX, dataset=DATASET)
 		OUTPUTFILE = os.path.join(args.OUTDIR, args.OUTFILE.format(data.name))
 	
 	# create final configuration namespace and return
 	CONFIG            = argparse.Namespace()
-	for attr in ('NAME', 'TEST', 'CRAB', 'BATCH', 'VERBOSE', 'EOSDIR', 'SUBMIT'):
+	for attr in ('NAME', 'TEST', 'CRAB', 'BATCH', 'VERBOSE', 'SUBMIT'):
 		setattr(CONFIG, attr, getattr(args, attr))
 	CONFIG.MAXEVENTS  = -1 if not args.TEST else args.MAXEVENTS
 	CONFIG.OUTPUTFILE = OUTPUTFILE
@@ -86,8 +85,8 @@ def getConfiguration(returnArgs=False):
 	CONFIG.PLUGIN     = 'SimpleNTupler' if not args.GENONLY else 'GenOnlyNTupler'
 
 	if args.VERBOSE:
-		print 'ARGS:     \n' + '\n'.join(['   {} : {}'.format(attr, args  .__dict__[attr]) for attr in args  .__dict__])
-		print 'CONFIG:   \n' + '\n'.join(['   {} : {}'.format(attr, CONFIG.__dict__[attr]) for attr in CONFIG.__dict__])
+		print 'ARGS:  \n' + '\n'.join(['   {} : {}'.format(attr, args  .__dict__[attr]) for attr in args  .__dict__])
+		print 'CONFIG:\n' + '\n'.join(['   {} : {}'.format(attr, CONFIG.__dict__[attr]) for attr in CONFIG.__dict__])
 		print ''
 
 	return CONFIG if not returnArgs else (CONFIG, args)

@@ -128,7 +128,7 @@ class SignalSample(MCSample):
 			self.process     =     match.group(4)
 			self.ID          =     match.group(5)
 
-			self.name = 'HTo2XTo4Mu' + '_'.join(map(str,(self.mH, self.mX, self.cTau)))
+			self.name = 'HTo2XTo4Mu_' + '_'.join(map(str,(self.mH, self.mX, self.cTau)))
 	
 	def signalPoint(self):
 		if self.name.startswith('HTo2XTo4Mu'):
