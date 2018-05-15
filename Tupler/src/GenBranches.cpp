@@ -6,6 +6,7 @@ bool GenBranches::alreadyPrinted_GEIP = false;
 namespace PDGID
 {
 	const int MUON   = 13;
+  const int LLXP   = 6000111;
 	const int LLX    = 6000113;
 	const int HIGGS  = 35;
 	const int PROTON = 2212;
@@ -191,6 +192,11 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
 			gen_x     .push_back(p.vx    ());
 			gen_y     .push_back(p.vy    ());
 			gen_z     .push_back(p.vz    ());
+
+      size_t mIndex = -1;
+      if (p.numberOfMothers() > 0) { mIndex = p.motherRef(0).key(); }
+
+      gen_mother.push_back(mIndex    );
 		}
 	}
 	
