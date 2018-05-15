@@ -29,6 +29,7 @@ WriteCMSRUNConfig(CONFIG)
 
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
+    DATASETKEY = 'PAT' if CONFIG.PLUGIN != 'GenOnlyNTupler' else 'GS-v2'
     # crab submission script
     # note the output directory: T2_CH_CERN, and /store/user/USER/
     # change this if desired
@@ -58,8 +59,8 @@ config.Site.whitelist        = ['T2_CH_CERN']
     CRAB_CFG = CRAB_CFG.format(
         NAME            = CONFIG.DATA.name,
         PSET_NAME       = F_CMS_CFG,
-        INPUT_DATASET   = CONFIG.DATA.PATDataset if CONFIG.PLUGIN != 'GenOnlyNTupler' else CONFIG.DATA.AODDataset,
-        INPUT_DBS       = CONFIG.DATA.PATInstance.replace('prod/', ''),
+        INPUT_DATASET   = CONFIG.DATA.datasets[DATASETKEY],
+        INPUT_DBS       = CONFIG.DATA.instances[DATASETKEY].replace('prod/', ''),
         PUBLISH         = False,
         PUBLISH_DBS     = 'phys03',
         IGNORE_LOCALITY = True,
