@@ -126,7 +126,11 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
 		for (const auto &p : particles)
 		{
 			gen_pdgID .push_back(p->pdgId ());
+			gen_p     .push_back(p->p    ());
 			gen_pt    .push_back(p->pt    ());
+			gen_px    .push_back(p->px    ());
+			gen_py    .push_back(p->py    ());
+			gen_pz    .push_back(p->pz    ());
 			gen_eta   .push_back(p->eta   ());
 			gen_phi   .push_back(p->phi   ());
 			gen_mass  .push_back(p->mass  ());
@@ -136,6 +140,7 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
 			gen_y     .push_back(p->vy    ());
 			gen_z     .push_back(p->vz    ());
 		}
+
 
 		// fill d0
 
@@ -185,7 +190,11 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
 		for (const auto &p : gens)
 		{
 			gen_pdgID .push_back(p.pdgId ());
+			gen_p     .push_back(p.p     ());
 			gen_pt    .push_back(p.pt    ());
+			gen_px    .push_back(p.px    ());
+			gen_py    .push_back(p.py    ());
+			gen_pz    .push_back(p.pz    ());
 			gen_eta   .push_back(p.eta   ());
 			gen_phi   .push_back(p.phi   ());
 			gen_mass  .push_back(p.mass  ());
