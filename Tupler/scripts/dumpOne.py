@@ -1,23 +1,21 @@
 import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
-import itertools
 
+FINALSTATE  = '4Mu'
 SIGNALPOINT = (125, 20, 13)
 PROCESS     = 'AODSIM-ReHLT_V37-v1'
 ALLFILES    = False
 
-datasets = DH.getHTo2XTo4MuSamples()
-datasets.sort(key=lambda x: x.signalPoint())
-
-for key, group in itertools.groupby(datasets, key=lambda x: x.signalPoint()):
-	if key == SIGNALPOINT:
-		for data in group:
-			if data.process == PROCESS:
-				files = data.getFiles(prefix=DH.ROOT_PREFIX)
-				if ALLFILES:
-					for f in files:
-						print f
-				else:
-					print files[0]
-				break
-		break
-
+datasets = getattr(DH, 'getHTo2XTo'+FINALSTATE+'Samples')()
+for data in datasets:
+    if data.signalPoint() == SIGNALPOINT:
+        if PROCESS in data.datasets:
+            print 'HTo2XTo{} : {} : {}'.format(FINALSTATE, SIGNALPOINT, PROCESS)
+            files = data.getFiles(prefix=DH.ROOT_PREFIX, dataset=PROCESS, instance=PROCESS)
+            if ALLFILES:
+                for f in files:
+                    print '  ', f
+            else:
+                print '  ', files[0]
+            break
+        else:
+            raise Exception('No HTo2XTo{} dataset found with signal point {} and process {}'.format(FINALSTATE, SIGNALPOINT, PROCESS))

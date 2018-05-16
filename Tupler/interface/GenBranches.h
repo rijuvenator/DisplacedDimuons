@@ -29,23 +29,25 @@ class GenBranches : public BranchCollection
 		static bool alreadyPrinted_;
 		static bool alreadyPrinted_GEIP;
 
-		float              gen_weight    ;
+		float               gen_weight    ;
 
-		std::vector<int  > gen_pdgID     ;
-		std::vector<float> gen_pt        ;
-		std::vector<float> gen_eta       ;
-		std::vector<float> gen_phi       ;
-		std::vector<float> gen_mass      ;
-		std::vector<float> gen_energy    ;
-		std::vector<float> gen_charge    ;
-		std::vector<float> gen_x         ;
-		std::vector<float> gen_y         ;
-		std::vector<float> gen_z         ;
+		std::vector<int   > gen_pdgID     ;
+		std::vector<float > gen_pt        ;
+		std::vector<float > gen_eta       ;
+		std::vector<float > gen_phi       ;
+		std::vector<float > gen_mass      ;
+		std::vector<float > gen_energy    ;
+		std::vector<float > gen_charge    ;
+		std::vector<float > gen_x         ;
+		std::vector<float > gen_y         ;
+		std::vector<float > gen_z         ;
 
-		std::vector<float> gen_d0        ;
-		std::vector<float> gen_d00       ;
+    std::vector<size_t> gen_mother    ;
 
-		std::vector<float> gen_pairDeltaR;
+		std::vector<float > gen_d0        ;
+		std::vector<float > gen_d00       ;
+
+		std::vector<float > gen_pairDeltaR;
 
 		// methods
 		void Declarations()
@@ -62,6 +64,8 @@ class GenBranches : public BranchCollection
 			Declare("gen_x"         , gen_x          );
 			Declare("gen_y"         , gen_y          );
 			Declare("gen_z"         , gen_z          );
+
+      Declare("gen_mother"    , gen_mother     );
 
 			Declare("gen_d0"        , gen_d0         );
 			Declare("gen_d00"       , gen_d00        );
@@ -83,6 +87,8 @@ class GenBranches : public BranchCollection
 			gen_x         .clear();
 			gen_y         .clear();
 			gen_z         .clear();
+
+      gen_mother    .clear();
 
 			gen_d0        .clear();
 			gen_d00       .clear();
