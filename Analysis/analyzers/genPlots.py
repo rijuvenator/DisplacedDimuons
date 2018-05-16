@@ -39,10 +39,13 @@ class HistogramConfigurations(object):
         self.data['cTau' ] = self.makeAttrDict((self.HName('cTau' ), 'c#tau [mm]'       , 'Counts', 100, 0.         , cTau*6.    ))
         self.data['pTH'  ] = self.makeAttrDict((self.HName('pTH'  ), 'Higgs p_{T} [GeV]', 'Counts', 100, 0.         , HPtUpper   ))
         self.data['pTX'  ] = self.makeAttrDict((self.HName('pTX'  ), 'X p_{T} [GeV]'    , 'Counts', 100, 0.         , XPtUpper   ))
+        self.data['pTmu' ] = self.makeAttrDict((self.HName('pTmu' ), '#mu p_{T} [GeV]'  , 'Counts', 100, 0.         , MuPtUpper  ))
         self.data['beta' ] = self.makeAttrDict((self.HName('beta' ), '#beta = v/c'      , 'Counts', 100, 0.         , 1.         ))
+        self.data['eta'  ] = self.makeAttrDict((self.HName('eta'  ), '#eta'             , 'Counts', 100, 0.         , 5          ))
+        self.data['dPhi' ] = self.makeAttrDict((self.HName('dPhi' ), 'd#Phi'            , 'Counts', 100, 0.         , 6.3        ))
+        self.data['cosa' ] = self.makeAttrDict((self.HName('cosa' ), 'cos#alpha'        , 'Counts', 100, -1.        , 1.         ))
         self.data['Lxy'  ] = self.makeAttrDict((self.HName('Lxy'  ), 'L_{xy} [mm]'      , 'Counts', 100, 0.         , LxyUpper   ))
         self.data['d0'   ] = self.makeAttrDict((self.HName('d0'   ), 'd_{0} [mm]'       , 'Counts', 100, 0.         , cTau*2.    ))
-        self.data['pTmu' ] = self.makeAttrDict((self.HName('pTmu' ), '#mu p_{T} [GeV]'  , 'Counts', 100, 0.         , MuPtUpper  ))
         self.data['d00'  ] = self.makeAttrDict((self.HName('d00'  ), '#Deltad_{0} [cm]' , 'Counts', 100, -.1        , .1         ))
         self.data['dR'   ] = self.makeAttrDict((self.HName('dR'   ), '#DeltaR'          , 'Counts', 100, 0.         , 4.5        ))
 
@@ -60,12 +63,15 @@ class HistogramConfigurations(object):
 # wrapper for TTree::Draw
 def Draw(t, HConfig, key, expressions):
     for i, expr in enumerate(expressions):
-        t.Draw('{expr}>>{isFirst}{hName}'.format(expr=expr, isFirst='' if i==0 else '+', hName=HConfig.HName(key)))
+        drawCMD = '{expr}>>{isFirst}{hName}'.format(expr=expr, isFirst='' if i==0 else '+', hName=HConfig.HName(key))
+        print drawCMD
+        t.Draw(drawCMD)
 
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
 def fillPlots(sp, HList):
     # get file and tree
-    f = R.TFile.Open(DIR_EOS_RIJU + 'NTuples/gen_ntuple_{}_{}.root'.format('HTo2XTo4Mu', SPStr(sp)))
+    #f = R.TFile.Open(DIR_EOS_RIJU + 'NTuples/gen_ntuple_{}_{}.root'.format('HTo2XTo4Mu', SPStr(sp)))
+    f = R.TFile.Open('../../Tupler/python/tester/ntuple_HTo2XTo4Mu_125_20_13.root')
     f.cd()
     t = f.Get('GenOnlyNTupler/DDTree')
 
@@ -105,10 +111,13 @@ FILES = {}
 #   'cTau',
 #   'pTH',
 #   'pTX',
+#   'pTmu',
 #   'beta',
+#   'eta',
+#   'dPhi',
+#   'cosa',
 #   'Lxy',
 #   'd0',
-#   'pTmu',
 #   'd00',
 #)
 # with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX beta Lxy d0 pTmu d00 dR
@@ -122,6 +131,10 @@ HAliases = {
     'cTau2' : 'X2.mass/sqrt(pow(X2.energy,2)-pow(X2.mass,2))*sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2) + pow(mu21.z-X2.z,2))*10.',
     'beta1' : 'sqrt(pow(X1.energy,2)-pow(X1.mass,2))/X1.energy',
     'beta2' : 'sqrt(pow(X2.energy,2)-pow(X2.mass,2))/X2.energy',
+    'dPhi1' : 'mu11.phi - mu12.phi',
+    'dPhi2' : 'mu21.phi - mu22.phi',
+    'cosa1' : '(mu11.pt*mu12.pt*(TMath::Sin(mu11.phi)*TMath::Sin(mu12.phi) + TMath::Cos(mu11.phi)*TMath::Cos(mu12.phi)) + sqrt(mu11.p*mu11.p - mu11.pt*mu11.pt)*sqrt(mu12.p*mu12.p - mu12.pt*mu12.pt))/(mu11.p*mu12.p)',
+    'cosa2' : '(mu21.pt*mu22.pt*(TMath::Sin(mu21.phi)*TMath::Sin(mu22.phi) + TMath::Cos(mu21.phi)*TMath::Cos(mu22.phi)) + sqrt(mu21.p*mu21.p - mu21.pt*mu21.pt)*sqrt(mu22.p*mu22.p - mu22.pt*mu22.pt))/(mu21.p*mu22.p)',
     'Lxy1'  : 'sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2))*10.',
     'Lxy2'  : 'sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2))*10.',
     'd011'  : '(mu11.d0)*10.',
@@ -143,10 +156,13 @@ HExpressions = {
     'cTau'  : ('cTau1', 'cTau2'),
     'pTH'   : ('H.pt',),
     'pTX'   : ('X1.pt', 'X2.pt'),
+    'pTmu'  : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
     'beta'  : ('beta1', 'beta2'),
+    'eta'   : ('mu11.eta', 'mu12.eta', 'mu21.eta', 'mu22.eta'),
+    'dPhi'  : ('dPhi1', 'dPhi2'),
+    'cosa'  : ('cosa1', 'cosa2'),
     'Lxy'   : ('Lxy1', 'Lxy2'),
     'd0'    : ('d011', 'd012', 'd021', 'd022'),
-    'pTmu'  : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
     'd00'   : ('d0011', 'd0012', 'd0021', 'd0022'),
     'dR'    : ('dR1', 'dR2'),
 }
@@ -162,5 +178,6 @@ for key in HList:
     FILES[key] = R.TFile.Open('roots/GenPlots_{}.root'.format(key), 'RECREATE')
     FILES[key].cd()
     for sp in SIGNALPOINTS:
+        print HISTS[sp][key].GetName(), HISTS[sp][key].GetEntries()
         HISTS[sp][key].Write()
     print 'Written ROOT file for all signal points for', key

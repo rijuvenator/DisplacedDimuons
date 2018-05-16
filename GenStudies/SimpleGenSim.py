@@ -62,6 +62,7 @@ h_alpha     = createSimple1DPlot("", "h_alpha",    100,  0.,   6.3, samples)
 h_dphi      = createSimple1DPlot("", "h_dphi",     100,  0.,   6.3, samples)
 h_lxyVslz   = createSimple2DPlot("h_lxyVslz", "lxy vs lz", 350, 0, 1000, 200, 0, 700, samples)
 h_dxyVsptrel = createSimple2DPlot("h_dxyVsptrel", "dxy vs pTrel", 100, 0., 50., 100, 0., 50., samples)
+h_mOverTau = createSimple2DPlot("h_mOverTau","m/tau vs L and E",5, 0., 5.,40,0.,400.,samples)
 
 for index, ksamples in enumerate(sampleName):
     print "SAMPLE: "+ksamples+"\n"
@@ -118,6 +119,9 @@ for index, ksamples in enumerate(sampleName):
                             deta = fabs(fsmuons[0].eta() - fsmuons[1].eta())
                             dR = sqrt(dphi**2 + deta**2)
                             h_dRMuons[index].Fill(dR)
+
+                            if( fsmuons[0].vertex().rho() != 0.): h_mOverTau[index].Fill(fsmuons[0].vertex().rho(),fsmuons[1].p() +fsmuons[0].p(),2.*(fsmuons[0].p()+fsmuons[1].p())/fsmuons[0].vertex().rho()) 
+
 
                             # count events in various acceptance regions
 
@@ -188,3 +192,4 @@ makeSimple1DPlot(h_dRMuons,  'h_dRMuons',  samples, '', 'dR',         '', 'h_dRM
 makeSimple1DPlot(h_cosalpha, 'h_cosalpha', samples, '', 'cos(alpha)', '', 'h_cosalpha', plotsFolder, logy=False)
 makeSimple1DPlot(h_alpha,    'h_alpha',    samples, '', 'alpha',      '', 'h_alpha',    plotsFolder, logy=False)
 makeSimple1DPlot(h_dphi,     'h_dphi',     samples, '', 'dphi',       '', 'h_dphi',     plotsFolder, logy=True)
+makeSimple2DPlot(h_mOverTau, 'h_mOverTau', samples,'', 'm/tau', 'L', 'E', 'h_mOverTau', plotsFolder)

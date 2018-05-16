@@ -5,6 +5,7 @@ TFileService = cms.Service('TFileService', fileName = cms.string('output_ntuple_
 GenOnlyNTupler = cms.EDAnalyzer('GenOnlyNTupler',
 	cms.untracked.PSet(
 		gens = cms.InputTag('genParticles'),
+#		gens = cms.InputTag('prunedGenParticles'),
 		GEIP = cms.InputTag('generator'),
 	)
 )
