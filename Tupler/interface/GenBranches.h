@@ -32,7 +32,12 @@ class GenBranches : public BranchCollection
 		float               gen_weight    ;
 
 		std::vector<int   > gen_pdgID     ;
+		std::vector<int   > gen_status    ;
+		std::vector<float > gen_p         ;
 		std::vector<float > gen_pt        ;
+		std::vector<float > gen_px        ;
+		std::vector<float > gen_py        ;
+		std::vector<float > gen_pz        ;
 		std::vector<float > gen_eta       ;
 		std::vector<float > gen_phi       ;
 		std::vector<float > gen_mass      ;
@@ -55,7 +60,12 @@ class GenBranches : public BranchCollection
 			Declare("gen_weight"    , gen_weight, "F");
 
 			Declare("gen_pdgID"     , gen_pdgID      );
+			Declare("gen_status"    , gen_status     );
+			Declare("gen_p"         , gen_p          );
 			Declare("gen_pt"        , gen_pt         );
+			Declare("gen_px"        , gen_px         );
+			Declare("gen_py"        , gen_py         );
+			Declare("gen_pz"        , gen_pz         );
 			Declare("gen_eta"       , gen_eta        );
 			Declare("gen_phi"       , gen_phi        );
 			Declare("gen_mass"      , gen_mass       );
@@ -78,7 +88,12 @@ class GenBranches : public BranchCollection
 			gen_weight = 0;
 
 			gen_pdgID     .clear();
+			gen_status    .clear();
+			gen_p         .clear();
 			gen_pt        .clear();
+			gen_px        .clear();
+			gen_py        .clear();
+			gen_pz        .clear();
 			gen_eta       .clear();
 			gen_phi       .clear();
 			gen_mass      .clear();
