@@ -32,6 +32,7 @@ class GenBranches : public BranchCollection
 		float               gen_weight    ;
 
 		std::vector<int   > gen_pdgID     ;
+		std::vector<int   > gen_status    ;
 		std::vector<float > gen_p         ;
 		std::vector<float > gen_pt        ;
 		std::vector<float > gen_px        ;
@@ -59,6 +60,7 @@ class GenBranches : public BranchCollection
 			Declare("gen_weight"    , gen_weight, "F");
 
 			Declare("gen_pdgID"     , gen_pdgID      );
+			Declare("gen_status"    , gen_status     );
 			Declare("gen_p"         , gen_p          );
 			Declare("gen_pt"        , gen_pt         );
 			Declare("gen_px"        , gen_px         );
@@ -86,6 +88,7 @@ class GenBranches : public BranchCollection
 			gen_weight = 0;
 
 			gen_pdgID     .clear();
+			gen_status    .clear();
 			gen_p         .clear();
 			gen_pt        .clear();
 			gen_px        .clear();
