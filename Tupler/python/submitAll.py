@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS, RECOSIGNALPOINTS
 #    --batch (submit to LXBATCH)
 #    --test  (run locally for 1000 events)
 #    <empty> (run locally for the entire dataset)
-MODE = '--batch --nosubmit'
+MODE = '--crab'
 
 # block booleans
 Do_4Mu_GenOnly = True
@@ -29,7 +29,7 @@ if Do_4Mu_GenOnly:
 if Do_4Mu:
     for mH, mX, cTau in RECOSIGNALPOINTS:
         verbose('SIGNAL {} : {} {} {}'.format('HTo2XTo4Mu', mH, mX, cTau))
-        bash.call('python runNTupler.py HTo2XTo4Mu --signalpoint {mH} {mX} {cTau} {MODE}'.format(**locals()), shell=True)
+        bash.call('python runNTupler.py HTo2XTo4Mu --signalpoint {mH} {mX} {cTau} {MODE} --aodonly'.format(**locals()), shell=True)
 
 # submit all background MC jobs
 if Do_Background:

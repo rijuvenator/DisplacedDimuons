@@ -31,7 +31,7 @@ WriteCMSRUNConfig(CONFIG)
 
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
-    DATASETKEY = CFGParser.DEFAULT_DATASETS[CONFIG.SOURCE]
+    DATASETKEY = CFGParser.DEFAULT_DATASETS[CONFIG.NAME][CONFIG.SOURCE]
     # crab submission script
     # note the output directory: T2_CH_CERN, and /store/user/USER/
     # change this if desired
@@ -56,10 +56,10 @@ config.Data.lumiMask         = '{LUMI_MASK}'
 config.Data.outLFNDirBase    = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.outputDatasetTag = 'ntuple_{NAME}'
 config.Site.storageSite      = 'T2_CH_CERN'
-config.Site.whitelist        = ['T2_CH_CERN']
+config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
 '''
     CRAB_CFG = CRAB_CFG.format(
-        NAME            = CONFIG.DATA.name,
+        NAME            = CONFIG.DATA.name + ('_GEN' if CONFIG.SOURCE == 'GEN' else '') + ('_AOD' if CONFIG.SOURCE == 'AOD' else ''),
         PSET_NAME       = F_CMS_CFG,
         INPUT_DATASET   = CONFIG.DATA.datasets[DATASETKEY],
         INPUT_DBS       = CONFIG.DATA.instances[DATASETKEY].replace('prod/', ''),

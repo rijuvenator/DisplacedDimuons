@@ -49,11 +49,11 @@ process.source = cms.Source(
 process.load(MODULES+'SimpleNTupler_cfi')
 process.TFileService.fileName = cms.string(OUTPUTFILE)
 
-processSimpleNTupler.isMC       = cms.bool(ISMC)
-processSimpleNTupler.isSignal   = cms.bool(ISSIGNAL)
-processSimpleNTupler.finalState = cms.string(FINALSTATE)
-processSimpleNTupler.gens       = cms.InputTag(*GENS_TAG)
-processSimpleNTupler.source     = cms.string(SOURCE)
+process.SimpleNTupler.isMC       = cms.bool(ISMC)
+process.SimpleNTupler.isSignal   = cms.bool(ISSIGNAL)
+process.SimpleNTupler.finalState = cms.string(FINALSTATE)
+process.SimpleNTupler.gens       = cms.InputTag(*GENS_TAG)
+process.SimpleNTupler.source     = cms.string(SOURCE)
 
 if process.SimpleNTupler.isMC:
     # RunIISummer16DR80Premix (aka "Moriond17") campaign, CMSSW_8_0_X
