@@ -6,10 +6,12 @@ This subpackage contains code to produce nTuples from PAT Tuples created from th
 
 ## Plugins
 
-There are two plugins in `plugins/`:
+There is one plugin in `plugins/`:
 
-  * **SimpleNTupler** is a fairly standard _EDAnalyzer_-based nTupler, running over an EDM format ROOT file and writing a tree, called _SimpleNTupler/DDTree_, to a ROOT file. It uses wrapper classes, including _TreeContainer_ and _*Branches_ classes, and has the _EDTokens_ as members. Currently, _SimpleNTupler_ expects a PAT Tuple produced by PATFilter.
-  * **GenOnlyNTupler** is exactly the same as _SimpleNTupler_, except that it only requires the generated branches and only writes _EventBranches_ and _GenBranches_ to the tree. As such, _GenOnlyNTupler_ only expects collections from GEN-SIM.
+  * **SimpleNTupler** is a fairly standard _EDAnalyzer_-based nTupler, running over an EDM format ROOT file and writing a tree, called _SimpleNTupler/DDTree_, to a ROOT file. It uses wrapper classes, including _TreeContainer_ and _*Branches_ classes, and has the _EDTokens_ as members. _SimpleNTupler_ can take one of three different input sources:
+    * `SOURCE == "PAT"`: a PAT Tuple produced by the PATFilter package. This will write the full collection of branches available to the nTupler.
+    * `SOURCE == "AOD"`: an AOD or AODSIM file in EDM format. This will ignore the PAT collections, e.g. trigger, MET, and pat::Muons.
+    * `SOURCE == "GEN"`: a GEN-SIM file in EDM format. This will only write EventBranches and GenBranches to the output nTuple.
 
 ## Tree and Branch Code
 

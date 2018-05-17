@@ -15,7 +15,7 @@ def DASQuery(query):
         estring = ''
         if 'voms-proxy-init' in e.output:
             estring += '[DATAHANDLER ERROR]: did you forget to initialize your grid certificate?\n'
-        estring += '[DATAHANDLER ERROR]: Error message from dasgoclient below\n'
+        estring += '[DATAHANDLER ERROR]: Error message from dasgoclient below\n\n'
         estring += e.output
         print estring
         exit()

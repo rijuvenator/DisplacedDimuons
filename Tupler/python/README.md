@@ -12,7 +12,6 @@ This directory contains three top-level files.
 **NTupler_cfg.py** is the `cmsRun` configuration file to run the _SimpleNTupler_. It is a plain configuration file, loading only CMSSW Python modules and fragments, as well as the initialization files in `Modules/`. The lines at the top indicate the external parameters. They may be set manually, however, **runNTupler.py** and **submitAll.py** set all of these parameters automatically and handle submitting of jobs.
   * `MAXEVENTS` is the maximum number of events to process
   * `INPUTFILES` is a list of filenames, the input to `cms.Source`
-  * `PLUGIN` is either `"SimpleNTupler"` or `"GenOnlyNTupler"`, depending on whether the full nTupler is desired, or just the gen information
   * `OUTPUTFILE` is the name of the output file
   * `ISMC` is whether or not the input files are MC
   * `ISSIGNAL` is whether or not the input files are signal
@@ -21,7 +20,7 @@ This directory contains three top-level files.
 
 **runNTupler.py** is the main atomic submitter script. The basic usage is
 
-```python
+```bash
 python runNTupler.py NAME [OPTIONS]
 ```
 
@@ -37,17 +36,20 @@ Exactly one of the following options may be passed:
 
 If running on signal (e.g. `HTo2XTo4Mu`), parameterized by (m<sub>H</sub>, m<sub>X</sub>, c&tau;), the `--signalpoint` option specifies which signal point to run on. For example:
 
-```python
+```bash
 python runNTupler.py HTo2XTo4Mu --signalpoint 125 20 13
 ```
 
-The `--genonly` option specifies that the plugin to be run is `GenOnlyNTupler.cc`, and not `SimpleNTupler.cc`. This plugin runs only the _GenBranches_ section of the nTupler code, and can run on GEN-SIM instead of a PAT Tuple.
+Exactly one of the following options may be passed:
+  * `--genonly`: specifies that the input source is GEN-SIM, and that the nTupler is only to access and write GenBranches, such as genParticles and GenEventInfoProduct.
+  * `--aodonly`: specifies that the input source is AOD, and that the nTupler should write everything except the branches that involve the PAT collections, such as trigger, MET, and pat::Muons.
+  * no option: specifies that the input source is a PAT Tuple created by PATFilter, and that the nTupler should write everything.
 
 The `--verbose` option prints the arguments, the configuration object, the newly created cmsRun file, and the grid submission script, if any. The `--nosubmit` option is a final flag to prevent any submission, useful if, say, checking the content of the submission scripts is desired.
 
 Some examples of usage:
 
-```python
+```bash
 python runNTupler.py DY100to200 --crab
 python runNTupler.py HTo2XTo4Mu --signalpoint 125 20 13 --batch --outdir /afs/cern.ch/user/a/adasgupt/
 python runNTupler.py HTo2XTo4Mu --signalpoint 200 20 7 --genonly --crab

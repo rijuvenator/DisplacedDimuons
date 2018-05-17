@@ -1,6 +1,3 @@
 <library file="SimpleNTupler.cc" name="SimpleNTupler">
 	<use name="DisplacedDimuons/Tupler"/>
 </library>
-<library file="GenOnlyNTupler.cc" name="GenOnlyNTupler">
-	<use name="DisplacedDimuons/Tupler"/>
-</library>

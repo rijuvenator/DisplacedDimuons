@@ -16,10 +16,12 @@ def WriteCMSRUNConfig(CONFIG):
     replaceDict = {
         r'^(MAXEVENTS\s+=).*' : r"\1 {}"  .format(CONFIG.MAXEVENTS      ),
         r'^(INPUTFILES\s+=).*': r"\1 {}"  .format(str(CONFIG.INPUTFILES)),
-        r'^(PLUGIN\s+=).*'    : r"\1 '{}'".format(CONFIG.PLUGIN         ),
         r'^(OUTPUTFILE\s+=).*': r"\1 '{}'".format(CONFIG.OUTPUTFILE     ),
         r'^(ISMC\s+=).*'      : r"\1 {}"  .format(CONFIG.DATA.isMC      ),
         r'^(ISSIGNAL\s+=).*'  : r"\1 {}"  .format(CONFIG.DATA.isSignal  ),
+        r'^(FINALSTATE\s+=).*': r"\1 '{}'".format(CONFIG.FINALSTATE     ),
+        r'^(GENS_TAG\s+=).*'  : r"\1 {}"  .format(str(CONFIG.GENS_TAG)  ),
+        r'^(SOURCE\s+=).*'    : r"\1 '{}'".format(CONFIG.SOURCE         ),
     }
     for key, val in replaceDict.iteritems():
         CMS_CFG = re.sub(key, val, CMS_CFG, count=1, flags=re.MULTILINE)
@@ -29,7 +31,7 @@ WriteCMSRUNConfig(CONFIG)
 
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
-    DATASETKEY = 'PAT' if CONFIG.PLUGIN != 'GenOnlyNTupler' else 'GS-v2'
+    DATASETKEY = CFGParser.DEFAULT_DATASETS[CONFIG.SOURCE]
     # crab submission script
     # note the output directory: T2_CH_CERN, and /store/user/USER/
     # change this if desired
