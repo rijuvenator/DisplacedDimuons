@@ -241,12 +241,14 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *********************
   // *** DSA MUON DATA ***
   // *********************
+  edm::ESHandle<TransientTrackBuilder> ttB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
   edm::Handle<reco::TrackCollection> dsaMuons;
   if (source != "GEN")
   {
     iEvent.getByToken(dsaMuonToken, dsaMuons);
     if (vertexData.isValid())
-      dsaMuonData.Fill(dsaMuons, vertices);
+      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot);
   }
 
   // *********************
