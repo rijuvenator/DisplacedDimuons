@@ -11,28 +11,28 @@ import DisplacedDimuons.Analysis.RootTools
 ##########
 
 BRANCHPREFIXES = {
-	'EVENT'    : 'evt_'  ,
-	'TRIGGER'  : 'trig_' ,
+    'EVENT'    : 'evt_'  ,
+    'TRIGGER'  : 'trig_' ,
     'MET'      : 'met_'  ,
-	'BEAMSPOT' : 'bs_'   ,
-	'VERTEX'   : 'vtx_'  ,
-	'GEN'      : 'gen_'  ,
-	'MUON'     : 'mu_'   ,
-	'DSAMUON'  : 'dsamu_',
-	'RSAMUON'  : 'rsamu_',
-	'DIMUON'   : 'dim_'  ,
+    'BEAMSPOT' : 'bs_'   ,
+    'VERTEX'   : 'vtx_'  ,
+    'GEN'      : 'gen_'  ,
+    'MUON'     : 'mu_'   ,
+    'DSAMUON'  : 'dsamu_',
+    'RSAMUON'  : 'rsamu_',
+    'DIMUON'   : 'dim_'  ,
 }
 BRANCHKEYS = tuple(BRANCHPREFIXES.keys())
 
 # Select Branches: 2-5x speedup
 def SelectBranches(t, DecList=(), branches=()):
-	t.SetBranchStatus('*', 0)
-	Branches = [br for br in branches]
-	BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
-	for KEY in DecList:
-		Branches.extend([br for br in BranchList if re.match(BRANCHPREFIXES[KEY], br)])
-	for branch in Branches:
-		t.SetBranchStatus(branch, 1)
+    t.SetBranchStatus('*', 0)
+    Branches = [br for br in branches]
+    BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
+    for KEY in DecList:
+        Branches.extend([br for br in BranchList if re.match(BRANCHPREFIXES[KEY], br)])
+    for branch in Branches:
+        t.SetBranchStatus(branch, 1)
 
 # "EventTree", purely for speed purposes. Making lists from ROOT vectors is slow.
 # It should only be done once per event, not once per object! So create this,
@@ -40,59 +40,59 @@ def SelectBranches(t, DecList=(), branches=()):
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
 class ETree(object):
-	def __init__(self, t, DecList=BRANCHKEYS):
-		BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
-		for KEY in DecList:
-			for br in BranchList:
-				if re.match(BRANCHPREFIXES[KEY], br):
-					self.copyBranch(t, br)
-	
-	def copyBranch(self, t, branch):
-		if 'vector' in type(getattr(t, branch)).__name__:
-			setattr(self, branch, list(getattr(t, branch)))
-		else:
-			setattr(self, branch, getattr(t, branch))
-	
-	def getPrimitives(self, KEY):
-		if KEY == 'GEN':
-			muons   = [Muon    (self, i, 'GEN' ) for i in range(4)                 ]
-			mothers = [Particle(self, i, 'gen_') for i in range(4, 8)              ]
-			return muons + mothers
-		if KEY == 'VERTEX':
-			return    [Vertex  (self, i        ) for i in range(len(self.vtx_x   ))]
-		if KEY == 'MUON':
-			return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt   ))]
-		if KEY == 'DSAMUON':
-			return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
-		if KEY == 'RSAMUON':
-			return    [Muon    (self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
-		if KEY == 'DIMUON':
-			return    [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
+    def __init__(self, t, DecList=BRANCHKEYS):
+        BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
+        for KEY in DecList:
+            for br in BranchList:
+                if re.match(BRANCHPREFIXES[KEY], br):
+                    self.copyBranch(t, br)
+ 
+    def copyBranch(self, t, branch):
+        if 'vector' in type(getattr(t, branch)).__name__:
+            setattr(self, branch, list(getattr(t, branch)))
+        else:
+            setattr(self, branch, getattr(t, branch))
+ 
+    def getPrimitives(self, KEY):
+        if KEY == 'GEN':
+            muons   = [Muon    (self, i, 'GEN' ) for i in range(4)                 ]
+            mothers = [Particle(self, i, 'gen_') for i in range(4, 8)              ]
+            return muons + mothers
+        if KEY == 'VERTEX':
+            return    [Vertex  (self, i        ) for i in range(len(self.vtx_x   ))]
+        if KEY == 'MUON':
+            return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt   ))]
+        if KEY == 'DSAMUON':
+            return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
+        if KEY == 'RSAMUON':
+            return    [Muon    (self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
+        if KEY == 'DIMUON':
+            return    [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
 # just provides a wrapper for setting attributes
 class Primitive(object):
-	def __init__(self):
-		pass
+    def __init__(self):
+        pass
 
-	def set(self, attr, E, E_attr, i):
-		setattr(self, attr, getattr(E, E_attr)[i])
+    def set(self, attr, E, E_attr, i):
+        setattr(self, attr, getattr(E, E_attr)[i])
 
 # Particle class
 # sets all the variables, also sets pos, p4, and p3 vectors
 class Particle(Primitive):
-	def __init__(self, E, i, prefix):
-		Primitive.__init__(self)
-		for attr in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
-			self.set(attr, E, prefix+attr, i)
-		self.pos = R.TVector3(self.x, self.y, self.z)
+    def __init__(self, E, i, prefix):
+        Primitive.__init__(self)
+        for attr in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
+            self.set(attr, E, prefix+attr, i)
+        self.pos = R.TVector3(self.x, self.y, self.z)
 
-		self.p4 = R.TLorentzVector()
-		self.p4.SetPtEtaPhiE(self.pt, self.eta, self.phi, self.energy)
+        self.p4 = R.TLorentzVector()
+        self.p4.SetPtEtaPhiE(self.pt, self.eta, self.phi, self.energy)
 
-		# this is an XYZ 3-vector!
-		self.p3 = R.TVector3(*self.p4.Vect())
+        # this is an XYZ 3-vector!
+        self.p3 = R.TVector3(*self.p4.Vect())
 
 # Muon class
 # sets all the particle variables
@@ -101,53 +101,54 @@ class Particle(Primitive):
 # the last one is called "SUB"
 # and also DSA reco muon and RSA reco muon
 class Muon(Particle):
-	def __init__(self, E, i, source=None):
-		self.source = source
-		if   self.source == 'AOD': prefix = 'mu_'
-		elif self.source == 'GEN': prefix = 'gen_'
-		elif self.source == 'SUB': prefix = 'mu_gen_'
-		elif self.source == 'DSA': prefix = 'dsamu_'
-		elif self.source == 'RSA': prefix = 'rsamu_'
-		Particle.__init__(self, E, i, prefix)
+    def __init__(self, E, i, source=None):
+        self.source = source
+        if   self.source == 'AOD': prefix = 'mu_'
+        elif self.source == 'GEN': prefix = 'gen_'
+        elif self.source == 'SUB': prefix = 'mu_gen_'
+        elif self.source == 'DSA': prefix = 'dsamu_'
+        elif self.source == 'RSA': prefix = 'rsamu_'
+        Particle.__init__(self, E, i, prefix)
 
-		if self.source == 'AOD':
-			self.gen = Muon(E, i, source='SUB')
-			self.set('isSlim', E, 'mu_isSlim', i)
+        if self.source == 'AOD':
+            self.gen = Muon(E, i, source='SUB')
+            self.set('isSlim', E, 'mu_isSlim', i)
 
-		if self.source in ('GEN', 'DSA', 'RSA'):
-			self.set('d0', E, prefix+'d0', i)
+        if self.source in ('GEN', 'DSA', 'RSA'):
+            self.set('d0', E, prefix+'d0', i)
 
-		if self.source == 'GEN':
-			for attr in ('d00', 'pairDeltaR'):
-				self.set(attr, E, prefix+attr, i)
+        if self.source == 'GEN':
+            for attr in ('d00', 'cosAlpha', 'Lxy', 'pairDeltaR'):
+                self.set(attr, E, prefix+attr, i)
 
-		if self.source == 'DSA' or self.source == 'RSA':
-			for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
-				self.set(attr, E, prefix+attr, i)
+        if self.source == 'DSA' or self.source == 'RSA':
+            for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
+                self.set(attr, E, prefix+attr, i)
 
-	def Lxy(self, mother=None):
-		if mother is None:
-			mother = R.TVector2(0., 0.)
-		else:
-			try:
-				mother = mother.pos.XYvector()
-			except:
-				pass
-		return (self.pos.XYvector() - mother).Mag()
+    # more intelligent function for computing Lxy
+    def LXY(self, mother=None):
+        if mother is None:
+            return self.Lxy
+        else:
+            try:
+                mother = mother.pos.XYvector()
+            except:
+                pass
+        return (self.pos.XYvector() - mother).Mag()
 
 # Vertex class
 # nothing too unusual here
 class Vertex(Primitive):
-	def __init__(self, E, i):
-		Primitive.__init__(self)
-		for attr in ('x', 'y', 'z', 'chi2', 'ndof'):
-			self.set(attr, E, 'vtx_'+attr, i)
+    def __init__(self, E, i):
+        Primitive.__init__(self)
+        for attr in ('x', 'y', 'z', 'chi2', 'ndof'):
+            self.set(attr, E, 'vtx_'+attr, i)
 
-		self.pos = R.TVector3(self.x, self.y, self.z)
+        self.pos = R.TVector3(self.x, self.y, self.z)
 
 # Dimuon class
 class Dimuon(Particle):
-	def __init__(self, E, i):
-		Particle.__init__(self, E, i, 'dim_')
-		for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy', 'deltaPhi', 'cosAlpha'):
-			self.set(attr, E, 'dim_'+attr, i)
+    def __init__(self, E, i):
+        Particle.__init__(self, E, i, 'dim_')
+        for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy', 'deltaPhi', 'cosAlpha'):
+            self.set(attr, E, 'dim_'+attr, i)

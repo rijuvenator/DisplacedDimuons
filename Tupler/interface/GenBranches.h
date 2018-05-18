@@ -31,6 +31,7 @@ class GenBranches : public BranchCollection
 
 		float               gen_weight    ;
 
+		std::vector<int   > gen_status    ;
 		std::vector<int   > gen_pdgID     ;
 		std::vector<float > gen_pt        ;
 		std::vector<float > gen_eta       ;
@@ -42,24 +43,21 @@ class GenBranches : public BranchCollection
 		std::vector<float > gen_y         ;
 		std::vector<float > gen_z         ;
 
-		std::vector<int   > gen_status    ;
-		std::vector<float > gen_p         ;
-		std::vector<float > gen_px        ;
-		std::vector<float > gen_py        ;
-		std::vector<float > gen_pz        ;
+    std::vector<float > gen_cosAlpha  ;
+    std::vector<float > gen_Lxy       ;
+    std::vector<float > gen_d0        ;
+    std::vector<float > gen_d00       ;
+    std::vector<float > gen_pairDeltaR;
 
     std::vector<size_t> gen_mother    ;
 
-    std::vector<float > gen_d0        ;
-    std::vector<float > gen_d00       ;
-
-    std::vector<float > gen_pairDeltaR;
 
     // methods
     void Declarations()
     {
       Declare("gen_weight"    , gen_weight, "F");
 
+			Declare("gen_status"    , gen_status     );
 			Declare("gen_pdgID"     , gen_pdgID      );
 			Declare("gen_pt"        , gen_pt         );
 			Declare("gen_eta"       , gen_eta        );
@@ -71,24 +69,20 @@ class GenBranches : public BranchCollection
 			Declare("gen_y"         , gen_y          );
 			Declare("gen_z"         , gen_z          );
 
-			Declare("gen_status"    , gen_status     );
-			Declare("gen_p"         , gen_p          );
-			Declare("gen_px"        , gen_px         );
-			Declare("gen_py"        , gen_py         );
-			Declare("gen_pz"        , gen_pz         );
-
-      Declare("gen_mother"    , gen_mother     );
-
+      Declare("gen_cosAlpha"  , gen_cosAlpha   );
+      Declare("gen_Lxy"       , gen_Lxy        );
       Declare("gen_d0"        , gen_d0         );
       Declare("gen_d00"       , gen_d00        );
-
       Declare("gen_pairDeltaR", gen_pairDeltaR );
+
+      Declare("gen_mother"    , gen_mother     );
     }
 
     void Reset()
     {
       gen_weight = 0;
 
+			gen_status    .clear();
 			gen_pdgID     .clear();
 			gen_pt        .clear();
 			gen_eta       .clear();
@@ -100,18 +94,13 @@ class GenBranches : public BranchCollection
 			gen_y         .clear();
 			gen_z         .clear();
 
-			gen_status    .clear();
-			gen_p         .clear();
-			gen_px        .clear();
-			gen_py        .clear();
-			gen_pz        .clear();
-
-      gen_mother    .clear();
-
+      gen_cosAlpha  .clear();
+      gen_Lxy       .clear();
       gen_d0        .clear();
       gen_d00       .clear();
-
       gen_pairDeltaR.clear();
+
+      gen_mother    .clear();
     }
 
     void Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,

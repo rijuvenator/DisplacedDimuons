@@ -5,6 +5,13 @@ import DisplacedDimuons.Tupler.Utilities.CFGParser as CFGParser
 
 CONFIG = CFGParser.getConfiguration()
 F_CMS_CFG = 'submit_cfg.py'
+if CONFIG.BATCH and not CONFIG.TEST:
+    bash.call('mkdir -p cfg', shell=True)
+    try:
+        COUNT = int(bash.check_output('ls cfg | grep -c "submit.*py"', shell=True).strip('\n'))+1
+    except bash.CalledProcessError:
+        COUNT = 1
+    F_CMS_CFG = 'cfg/submit_cfg_{}.py'.format(COUNT)
 
 # verbose printer
 def verbose(header, data):
@@ -53,7 +60,7 @@ config.Data.totalUnits       = {TOTAL_UNITS}
 config.Data.unitsPerJob      = {UNITS_PER_JOB}
 config.Data.runRange         = '{RUN_RANGE}'
 config.Data.lumiMask         = '{LUMI_MASK}'
-config.Data.outLFNDirBase    = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase    = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
 config.Data.outputDatasetTag = 'ntuple_{NAME}'
 config.Site.storageSite      = 'T2_CH_CERN'
 config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
@@ -84,6 +91,7 @@ config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
     if CONFIG.SUBMIT:
         bash.call('crab submit -c {}'.format(F_CRAB_CFG), shell=True)
     bash.call('rm {F} {F}c'.format(F=F_CRAB_CFG), shell=True)
+    bash.call('rm {F} {F}c'.format(F=F_CMS_CFG ), shell=True)
 
 
 # submit to LXBATCH
@@ -102,6 +110,7 @@ cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
 cd DisplacedDimuons/Tupler/python
 cmsRun {F_CMS_CFG}
+rm {F_CMS_CFG}
 rm -f core.*
 '''.format(
         CMSSW_BASE = CMSSW_BASE,
@@ -120,6 +129,4 @@ rm -f core.*
 else:
     if CONFIG.SUBMIT:
         bash.call('cmsRun {}'.format(F_CMS_CFG), shell=True)
-
-# remove the cmsRun configuration file and .pyc
-bash.call('rm {F} {F}c'.format(F=F_CMS_CFG), shell=True)
+        bash.call('rm {F}'.format(F=F_CMS_CFG), shell=True)

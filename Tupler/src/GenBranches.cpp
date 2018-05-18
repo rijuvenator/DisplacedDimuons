@@ -141,6 +141,7 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
   }
   for (const auto &p : particles)
   {
+    gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
@@ -151,43 +152,42 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
-
-    gen_status.push_back(p->status());
-    gen_p     .push_back(p->p     ());
-    gen_px    .push_back(p->px    ());
-    gen_py    .push_back(p->py    ());
-    gen_pz    .push_back(p->pz    ());
   }
 
-  // fill d0
-  std::vector<const reco::GenParticle*> muons = {mu11, mu12, mu21, mu22};
-  int count = 0;
-  for (const auto &mu : muons)
+  // fill d0, Lxy, cosAlpha, and deltaR
+  std::vector<std::vector<const reco::GenParticle*>> muonPairs = {{mu11, mu12}, {mu21, mu22}};
+  std::vector<            const reco::Candidate*   > XParts    = {X1, X2};
+
+  for (size_t i=0; i<2; ++i)
   {
-    TVector3 disp;
-    if (count < 2)
-             disp = TVector3(mu->vx() - X1->vx(), mu->vy() - X1->vy(), 0.);
-    else
-             disp = TVector3(mu->vx() - X1->vx(), mu->vy() - X2->vy(), 0.);
-    TVector3 zero           (mu->vx()           , mu->vy()           , 0.);
-    TVector3 p3z            (mu->px()           , mu->py()           , 0.);
+    const auto &XPart    = XParts   [i];
+    const auto &muonPair = muonPairs[i];
+    const auto &mu1      = muonPair [0];
+    const auto &mu2      = muonPair [1];
 
-    float d0  = disp.Cross(p3z).Mag()/p3z.Mag();
-    float d00 = zero.Cross(p3z).Mag()/p3z.Mag();
+    TVector3 p1(mu1->px(), mu1->py(), mu1->pz());
+    TVector3 p2(mu2->px(), mu2->py(), mu2->pz());
 
-    gen_d0 .push_back(d0 );
-    gen_d00.push_back(d00);
+    float Lxy      = mu1->vertex().Rho();
+    float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
+    float dR       = p1.DeltaR(p2);
 
-    count++;
+    for (const auto &mu : muonPair)
+    {
+      TVector3 disp(mu->vx() - XPart->vx(), mu->vy() - XPart->vy(), 0.);
+      TVector3 zero(mu->vx()              , mu->vy()              , 0.);
+      TVector3 p3zz(mu->px()              , mu->py()              , 0.);
+
+      float d0  = disp.Cross(p3zz).Mag()/p3zz.Mag();
+      float d00 = zero.Cross(p3zz).Mag()/p3zz.Mag();
+
+      gen_d0        .push_back(d0      );
+      gen_d00       .push_back(d00     );
+      gen_Lxy       .push_back(Lxy     );
+      gen_cosAlpha  .push_back(cosAlpha);
+      gen_pairDeltaR.push_back(dR      );
+    }
   }
-
-  // fill pair delta R
-  float dR1 = TVector3(mu11->px(), mu11->py(), mu11->pz()).DeltaR(TVector3(mu12->px(), mu12->py(), mu12->pz()));
-  float dR2 = TVector3(mu21->px(), mu21->py(), mu21->pz()).DeltaR(TVector3(mu22->px(), mu22->py(), mu22->pz()));
-  gen_pairDeltaR.push_back(dR1);
-  gen_pairDeltaR.push_back(dR1);
-  gen_pairDeltaR.push_back(dR2);
-  gen_pairDeltaR.push_back(dR2);
 }
 
 // fill gen branches for P -> H -> XX -> 2Mu 2Jet
@@ -204,7 +204,7 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   for (const auto &gen : gens)
   {
     // look for X -> mu1 mu2
-    if (abs(gen.pdgId()) == PDGID::MUON and gen.status() == 1)
+    if (abs(gen.pdgId()) == PDGID::MUON && gen.status() == 1)
     {
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
@@ -260,6 +260,7 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   std::vector<const reco::Candidate*> particles = {mu1, mu2, j1, j2, X, XP, H, P};
   for (const auto &p : particles)
   {
+    gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
@@ -270,12 +271,40 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
+  }
 
-    gen_status.push_back(p->status());
-    gen_p     .push_back(p->p     ());
-    gen_px    .push_back(p->px    ());
-    gen_py    .push_back(p->py    ());
-    gen_pz    .push_back(p->pz    ());
+  // fill d0, Lxy, cosAlpha, and deltaR
+  std::vector<std::vector<const reco::Candidate*>> PPairs = {{mu1, mu2}, {j1, j2}};
+  std::vector<            const reco::Candidate* > XParts = {X, XP};
+  for (size_t i=0; i<2; ++i)
+  {
+    const auto &XPart = XParts[i];
+    const auto &PPair = PPairs[i];
+    const auto part1  = PPair [0];
+    const auto part2  = PPair [1];
+
+    TVector3 p1(part1->px(), part1->py(), part1->pz());
+    TVector3 p2(part2->px(), part2->py(), part2->pz());
+
+    float Lxy      = part1->vertex().Rho();
+    float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
+    float dR       = p1.DeltaR(p2);
+
+    for (const auto &part : PPair)
+    {
+      TVector3 disp(part->vx() - XPart->vx(), part->vy() - XPart->vy(), 0.);
+      TVector3 zero(part->vx()              , part->vy()              , 0.);
+      TVector3 p3zz(part->px()              , part->py()              , 0.);
+
+      float d0  = disp.Cross(p3zz).Mag()/p3zz.Mag();
+      float d00 = zero.Cross(p3zz).Mag()/p3zz.Mag();
+
+      gen_d0        .push_back(d0      );
+      gen_d00       .push_back(d00     );
+      gen_Lxy       .push_back(Lxy     );
+      gen_cosAlpha  .push_back(cosAlpha);
+      gen_pairDeltaR.push_back(dR      );
+    }
   }
 }
 
@@ -284,6 +313,7 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 {
   for (const auto &p : gens)
   {
+    gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
     gen_pt    .push_back(p.pt    ());
     gen_eta   .push_back(p.eta   ());
@@ -294,12 +324,6 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p.vx    ());
     gen_y     .push_back(p.vy    ());
     gen_z     .push_back(p.vz    ());
-
-    gen_status.push_back(p.status());
-    gen_p     .push_back(p.p     ());
-    gen_px    .push_back(p.px    ());
-    gen_py    .push_back(p.py    ());
-    gen_pz    .push_back(p.pz    ());
 
     size_t mIndex = -1;
     if (p.numberOfMothers() > 0) { mIndex = p.motherRef(0).key(); }
