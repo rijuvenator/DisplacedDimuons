@@ -8,6 +8,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 			   const edm::Handle<reco::BeamSpot> &beamspotHandle)
 {
 	static bool debug = false;
+  static float mass = .105658375;
 	Reset();
 
 	// Check if failed to get
@@ -22,16 +23,20 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 
 	for (const auto &mu : muons)
 	{
-	        double p =
-		  sqrt(pow(mu.px(),2.) + pow(mu.py(),2.) + pow(mu.pz(),2.));
+    int pdgID = -13 * mu.charge()/fabs(mu.charge());
+    float energy = pow(pow(mu.p(),2.) + pow(mass,2.), 0.5);
+
+		dsamu_pdgID .push_back(   pdgID    );
 		dsamu_pt    .push_back(mu.pt    () );
-		dsamu_p     .push_back(p           );
 		dsamu_eta   .push_back(mu.eta   () );
 		dsamu_phi   .push_back(mu.phi   () );
+		dsamu_mass  .push_back(   mass     );
+		dsamu_energy.push_back(   energy   );
 		dsamu_charge.push_back(mu.charge() );
 		dsamu_x     .push_back(mu.vx    () );
 		dsamu_y     .push_back(mu.vy    () );
 		dsamu_z     .push_back(mu.vz    () );
+		dsamu_p     .push_back(mu.p     () );
 		dsamu_chi2  .push_back(mu.chi2  () );
 		dsamu_ndof  .push_back(mu.ndof  () );
 
@@ -49,7 +54,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 		// Get the transient track for extrapolations below
 		reco::TransientTrack ttrack=ttB->build(mu);
 		// Not sure we need to set the beam spot, but keep it for safety
-		if (!FailedToGet(beamspotHandle))
+		if (!beamspotHandle.failedToGet())
 		  ttrack.setBeamSpot(*beamspotHandle);
 
 		// d0 and dz w.r.t. the primary vertex.  The track is
@@ -73,7 +78,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 		// d0 and dz w.r.t. the beam spot, again using extrapolation
 		double d0_bs = -999., d0err_bs = -999., d0sig_bs = -999.;
 		double dz_bs = -999., dzerr_bs = -999., dzsig_bs = -999.;
-		if (!FailedToGet(beamspotHandle)) {
+		if (!beamspotHandle.failedToGet()) {
 		  const reco::BeamSpot &beamspot = *beamspotHandle;
 		  GlobalPoint bs_pos(beamspot.x0(), beamspot.y0(), beamspot.z0());
 		  d0_bs    = ttrack.trajectoryStateClosestToPoint(bs_pos).perigeeParameters().transverseImpactParameter();
@@ -102,7 +107,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 		// trajectory is a straight line
 		double d0_bs_lin = -999., d0sig_bs_lin = -999.;
 		double dz_bs_lin = -999., dzsig_bs_lin = -999.;
-		if (!FailedToGet(beamspotHandle)) {
+		if (!beamspotHandle.failedToGet()) {
 		  const reco::BeamSpot &beamspot = *beamspotHandle;
 		  d0_bs_lin    = mu.dxy(beamspot);
 		  d0sig_bs_lin = fabs(d0_bs_lin)/mu.d0Error();
@@ -130,7 +135,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 
 		if (debug) {
 		  std::cout << "DSA muon info: charge = " << mu.charge()
-			    << " pt = "  << mu.pt()  << " p = "   << p
+			    << " pt = "  << mu.pt()  << " p = "   << mu.p()
 			    << " eta = " << mu.eta() << " phi = " << mu.phi()
 			    << std::endl;
 		  std::cout << "  (x; y; z): (" << mu.vx() << ";"

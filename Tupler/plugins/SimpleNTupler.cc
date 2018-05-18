@@ -197,9 +197,9 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *********************
   // *** BEAMSPOT DATA ***
   // *********************
+  edm::Handle<reco::BeamSpot> beamspot;
   if (source != "GEN")
   {
-    edm::Handle<reco::BeamSpot> beamspot;
     iEvent.getByToken(beamspotToken, beamspot);
     beamspotData.Fill(beamspot);
   }
@@ -238,11 +238,13 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     muonData.Fill(muons);
   }
 
+  // ***** GET TRANSIENT TRACK BUILDER *****
+  edm::ESHandle<TransientTrackBuilder> ttB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
+
   // *********************
   // *** DSA MUON DATA ***
   // *********************
-  edm::ESHandle<TransientTrackBuilder> ttB;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
   edm::Handle<reco::TrackCollection> dsaMuons;
   if (source != "GEN")
   {
@@ -259,7 +261,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     edm::Handle<reco::TrackCollection> rsaMuons;
     iEvent.getByToken(rsaMuonToken, rsaMuons);
     if (vertexData.isValid())
-      rsaMuonData.Fill(rsaMuons, vertices);
+      rsaMuonData.Fill(rsaMuons, ttB, vertices, beamspot);
   }
 
   // *******************
@@ -268,7 +270,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (source != "GEN")
   {
     if (dsaMuonData.isValid() && vertexData.isValid())
-      dimData.Fill(iSetup, dsaMuons, vertices);
+      dimData.Fill(dsaMuons, ttB, vertices);
   }
 
   // Final tree fill

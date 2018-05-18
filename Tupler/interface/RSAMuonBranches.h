@@ -6,6 +6,9 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
@@ -17,7 +20,7 @@ class RSAMuonBranches : public BranchCollection
 	public:
 		// constructor
 		RSAMuonBranches(TreeContainer &tree, const bool DECLARE=true) :
-			BranchCollection(tree, "reco::Track refittedStandAloneMuon collection", "RSA Muon info will not be filled")
+			BranchCollection(tree, "reco::Track displacedStandAloneMuon collection", "RSA Muon info will not be filled")
 		{
 			Reset();
 			if (DECLARE) Declarations();
@@ -26,7 +29,7 @@ class RSAMuonBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
-		std::vector<int  > rsamu_pdgID        ;
+    std::vector<int  > rsamu_pdgID        ;
 		std::vector<float> rsamu_pt           ;
 		std::vector<float> rsamu_eta          ;
 		std::vector<float> rsamu_phi          ;
@@ -37,15 +40,33 @@ class RSAMuonBranches : public BranchCollection
 		std::vector<float> rsamu_y            ;
 		std::vector<float> rsamu_z            ;
 
-		std::vector<float> rsamu_d0           ;
-		std::vector<float> rsamu_d0MV         ;
+		std::vector<float> rsamu_p            ;
+		std::vector<float> rsamu_chi2         ;
+		std::vector<int>   rsamu_ndof         ;
 
-		std::vector<float> rsamu_normChi2     ;
-		std::vector<float> rsamu_d0Sig        ;
-		std::vector<float> rsamu_d0MVSig      ;
 		std::vector<int  > rsamu_nMuonHits    ;
+		std::vector<int  > rsamu_nDTHits      ;
+		std::vector<int  > rsamu_nCSCHits     ;
 		std::vector<int  > rsamu_nDTStations  ;
 		std::vector<int  > rsamu_nCSCStations ;
+
+		std::vector<float> rsamu_d0_pv        ;
+		std::vector<float> rsamu_d0_bs        ;
+		std::vector<float> rsamu_d0_pv_lin    ;
+		std::vector<float> rsamu_d0_bs_lin    ;
+		std::vector<float> rsamu_d0sig_pv     ;
+		std::vector<float> rsamu_d0sig_bs     ;
+		std::vector<float> rsamu_d0sig_pv_lin ;
+		std::vector<float> rsamu_d0sig_bs_lin ;
+
+		std::vector<float> rsamu_dz_pv        ;
+		std::vector<float> rsamu_dz_bs        ;
+		std::vector<float> rsamu_dz_pv_lin    ;
+		std::vector<float> rsamu_dz_bs_lin    ;
+		std::vector<float> rsamu_dzsig_pv     ;
+		std::vector<float> rsamu_dzsig_bs     ;
+		std::vector<float> rsamu_dzsig_pv_lin ;
+		std::vector<float> rsamu_dzsig_bs_lin ;
 
 		// methods
 		void Declarations()
@@ -61,42 +82,81 @@ class RSAMuonBranches : public BranchCollection
 			Declare("rsamu_y"            , rsamu_y            );
 			Declare("rsamu_z"            , rsamu_z            );
 
-			Declare("rsamu_d0"           , rsamu_d0           );
-			Declare("rsamu_d0MV"         , rsamu_d0MV         );
+			Declare("rsamu_p"            , rsamu_p            );
+			Declare("rsamu_chi2"         , rsamu_chi2         );
+			Declare("rsamu_ndof"         , rsamu_ndof         );
 
-			Declare("rsamu_normChi2"     , rsamu_normChi2     );
-			Declare("rsamu_d0Sig"        , rsamu_d0Sig        );
-			Declare("rsamu_d0MVSig"      , rsamu_d0MVSig      );
 			Declare("rsamu_nMuonHits"    , rsamu_nMuonHits    );
+			Declare("rsamu_nDTHits"      , rsamu_nDTHits      );
+			Declare("rsamu_nCSCHits"     , rsamu_nCSCHits     );
 			Declare("rsamu_nDTStations"  , rsamu_nDTStations  );
 			Declare("rsamu_nCSCStations" , rsamu_nCSCStations );
+
+			Declare("rsamu_d0_pv"        , rsamu_d0_pv        );
+			Declare("rsamu_d0_bs"        , rsamu_d0_bs        );
+			Declare("rsamu_d0_pv_lin"    , rsamu_d0_pv_lin    );
+			Declare("rsamu_d0_bs_lin"    , rsamu_d0_bs_lin    );
+			Declare("rsamu_d0sig_pv"     , rsamu_d0sig_pv     );
+			Declare("rsamu_d0sig_bs"     , rsamu_d0sig_bs     );
+			Declare("rsamu_d0sig_pv_lin" , rsamu_d0sig_pv_lin );
+			Declare("rsamu_d0sig_bs_lin" , rsamu_d0sig_bs_lin );
+
+			Declare("rsamu_dz_pv"        , rsamu_dz_pv        );
+			Declare("rsamu_dz_bs"        , rsamu_dz_bs        );
+			Declare("rsamu_dz_pv_lin"    , rsamu_dz_pv_lin    );
+			Declare("rsamu_dz_bs_lin"    , rsamu_dz_bs_lin    );
+			Declare("rsamu_dzsig_pv"     , rsamu_dzsig_pv     );
+			Declare("rsamu_dzsig_bs"     , rsamu_dzsig_bs     );
+			Declare("rsamu_dzsig_pv_lin" , rsamu_dzsig_pv_lin );
+			Declare("rsamu_dzsig_bs_lin" , rsamu_dzsig_bs_lin );
 		}
 
 		void Reset()
 		{
-			rsamu_pdgID        .clear();
+      rsamu_pdgID        .clear();
 			rsamu_pt           .clear();
 			rsamu_eta          .clear();
 			rsamu_phi          .clear();
-			rsamu_mass         .clear();
-			rsamu_energy       .clear();
+      rsamu_mass         .clear();
+      rsamu_energy       .clear();
 			rsamu_charge       .clear();
 			rsamu_x            .clear();
 			rsamu_y            .clear();
 			rsamu_z            .clear();
 
-			rsamu_d0           .clear();
-			rsamu_d0MV         .clear();
+			rsamu_p            .clear();
+			rsamu_chi2         .clear();
+			rsamu_ndof         .clear();
 
-			rsamu_normChi2     .clear();
-			rsamu_d0Sig        .clear();
-			rsamu_d0MVSig      .clear();
 			rsamu_nMuonHits    .clear();
+			rsamu_nDTHits      .clear();
+			rsamu_nCSCHits     .clear();
 			rsamu_nDTStations  .clear();
 			rsamu_nCSCStations .clear();
+
+			rsamu_d0_pv        .clear();
+			rsamu_d0_bs        .clear();
+			rsamu_d0_pv_lin    .clear();
+			rsamu_d0_bs_lin    .clear();
+			rsamu_d0sig_pv     .clear();
+			rsamu_d0sig_bs     .clear();
+			rsamu_d0sig_pv_lin .clear();
+			rsamu_d0sig_bs_lin .clear();
+
+			rsamu_dz_pv        .clear();
+			rsamu_dz_bs        .clear();
+			rsamu_dz_pv_lin    .clear();
+			rsamu_dz_bs_lin    .clear();
+			rsamu_dzsig_pv     .clear();
+			rsamu_dzsig_bs     .clear();
+			rsamu_dzsig_pv_lin .clear();
+			rsamu_dzsig_bs_lin .clear();
 		}
 
-		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle, const edm::Handle<reco::VertexCollection> &verticesHandle);
+		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+			  const edm::ESHandle<TransientTrackBuilder>& ttB,
+			  const edm::Handle<reco::VertexCollection> &verticesHandle,
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle);
 
 		virtual bool alreadyPrinted() { return alreadyPrinted_; }
 		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }

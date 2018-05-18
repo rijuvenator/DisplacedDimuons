@@ -98,8 +98,8 @@ class DimuonBranches : public BranchCollection
 			dim_deltaPhi.clear();
 		}
 
-		void Fill(const edm::EventSetup& iSetup,
-				const edm::Handle<reco::TrackCollection> &muonsHandle,
+		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+			  const edm::ESHandle<TransientTrackBuilder>& ttB,
 				const edm::Handle<reco::VertexCollection> &verticesHandle);
 
 		virtual bool alreadyPrinted() { return alreadyPrinted_; }

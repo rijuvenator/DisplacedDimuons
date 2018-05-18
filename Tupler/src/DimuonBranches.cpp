@@ -2,8 +2,8 @@
 
 bool DimuonBranches::alreadyPrinted_ = false;
 
-void DimuonBranches::Fill(const edm::EventSetup& iSetup,
-		const edm::Handle<reco::TrackCollection> &muonsHandle,
+void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+    const edm::ESHandle<TransientTrackBuilder>& ttB,
 		const edm::Handle<reco::VertexCollection> &verticesHandle)
 {
 	Reset();
@@ -12,9 +12,6 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
 	// already checked if muons and vertices are valid
 	const reco::TrackCollection &muons = *muonsHandle;
 	const reco::VertexCollection &vertices = *verticesHandle;
-
-	edm::ESHandle<TransientTrackBuilder> ttB;
-	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
 
 	std::vector<reco::TransientTrack> ttV;
 	std::vector<TLorentzVector> p4V;
