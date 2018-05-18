@@ -16,31 +16,37 @@
 // gen particle branch collection
 class GenBranches : public BranchCollection
 {
-  public:
-    // constructor
-    GenBranches(TreeContainer &tree, const bool DECLARE=true) :
-      BranchCollection(tree, "reco::GenParticle collection", "gen info will not be filled")
-    {
-      Reset();
-      if (DECLARE) Declarations();
-    }
+	public:
+		// constructor
+		GenBranches(TreeContainer &tree, const bool DECLARE=true) :
+			BranchCollection(tree, "reco::GenParticle collection", "gen info will not be filled")
+		{
+			Reset();
+			if (DECLARE) Declarations();
+		}
 
-    // members
-    static bool alreadyPrinted_;
-    static bool alreadyPrinted_GEIP;
+		// members
+		static bool alreadyPrinted_;
+		static bool alreadyPrinted_GEIP;
 
-    float               gen_weight    ;
+		float               gen_weight    ;
 
-    std::vector<int   > gen_pdgID     ;
-    std::vector<float > gen_pt        ;
-    std::vector<float > gen_eta       ;
-    std::vector<float > gen_phi       ;
-    std::vector<float > gen_mass      ;
-    std::vector<float > gen_energy    ;
-    std::vector<float > gen_charge    ;
-    std::vector<float > gen_x         ;
-    std::vector<float > gen_y         ;
-    std::vector<float > gen_z         ;
+		std::vector<int   > gen_pdgID     ;
+		std::vector<float > gen_pt        ;
+		std::vector<float > gen_eta       ;
+		std::vector<float > gen_phi       ;
+		std::vector<float > gen_mass      ;
+		std::vector<float > gen_energy    ;
+		std::vector<float > gen_charge    ;
+		std::vector<float > gen_x         ;
+		std::vector<float > gen_y         ;
+		std::vector<float > gen_z         ;
+
+		std::vector<int   > gen_status    ;
+		std::vector<float > gen_p         ;
+		std::vector<float > gen_px        ;
+		std::vector<float > gen_py        ;
+		std::vector<float > gen_pz        ;
 
     std::vector<size_t> gen_mother    ;
 
@@ -54,16 +60,22 @@ class GenBranches : public BranchCollection
     {
       Declare("gen_weight"    , gen_weight, "F");
 
-      Declare("gen_pdgID"     , gen_pdgID      );
-      Declare("gen_pt"        , gen_pt         );
-      Declare("gen_eta"       , gen_eta        );
-      Declare("gen_phi"       , gen_phi        );
-      Declare("gen_mass"      , gen_mass       );
-      Declare("gen_energy"    , gen_energy     );
-      Declare("gen_charge"    , gen_charge     );
-      Declare("gen_x"         , gen_x          );
-      Declare("gen_y"         , gen_y          );
-      Declare("gen_z"         , gen_z          );
+			Declare("gen_pdgID"     , gen_pdgID      );
+			Declare("gen_pt"        , gen_pt         );
+			Declare("gen_eta"       , gen_eta        );
+			Declare("gen_phi"       , gen_phi        );
+			Declare("gen_mass"      , gen_mass       );
+			Declare("gen_energy"    , gen_energy     );
+			Declare("gen_charge"    , gen_charge     );
+			Declare("gen_x"         , gen_x          );
+			Declare("gen_y"         , gen_y          );
+			Declare("gen_z"         , gen_z          );
+
+			Declare("gen_status"    , gen_status     );
+			Declare("gen_p"         , gen_p          );
+			Declare("gen_px"        , gen_px         );
+			Declare("gen_py"        , gen_py         );
+			Declare("gen_pz"        , gen_pz         );
 
       Declare("gen_mother"    , gen_mother     );
 
@@ -77,16 +89,22 @@ class GenBranches : public BranchCollection
     {
       gen_weight = 0;
 
-      gen_pdgID     .clear();
-      gen_pt        .clear();
-      gen_eta       .clear();
-      gen_phi       .clear();
-      gen_mass      .clear();
-      gen_energy    .clear();
-      gen_charge    .clear();
-      gen_x         .clear();
-      gen_y         .clear();
-      gen_z         .clear();
+			gen_pdgID     .clear();
+			gen_pt        .clear();
+			gen_eta       .clear();
+			gen_phi       .clear();
+			gen_mass      .clear();
+			gen_energy    .clear();
+			gen_charge    .clear();
+			gen_x         .clear();
+			gen_y         .clear();
+			gen_z         .clear();
+
+			gen_status    .clear();
+			gen_p         .clear();
+			gen_px        .clear();
+			gen_py        .clear();
+			gen_pz        .clear();
 
       gen_mother    .clear();
 

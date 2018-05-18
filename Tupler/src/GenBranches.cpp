@@ -151,6 +151,12 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
+
+    gen_status.push_back(p->status());
+    gen_p     .push_back(p->p     ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
   }
 
   // fill d0
@@ -247,14 +253,6 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
       H   == nullptr || P   == nullptr)
   {
     edm::LogWarning("NTupler::GenBranches") << "+++ Warning: At least one pointer is null. Filling nothing. +++";
-//    if (mu1 == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++ mu1 is null +++";
-//    if (mu2 == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++ mu2 is null +++";
-//    if ( j1 == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++  j1 is null +++";
-//    if ( j2 == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++  j2 is null +++";
-//    if (  X == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++   X is null +++";
-//    if ( XP == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++  XP is null +++";
-//    if (  H == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++   H is null +++";
-//    if (  P == nullptr) edm::LogWarning("NTupler::GenBranches") << "+++   P is null +++";
     return;
   }
 
@@ -272,6 +270,12 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
+
+    gen_status.push_back(p->status());
+    gen_p     .push_back(p->p     ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
   }
 }
 
@@ -290,6 +294,12 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p.vx    ());
     gen_y     .push_back(p.vy    ());
     gen_z     .push_back(p.vz    ());
+
+    gen_status.push_back(p.status());
+    gen_p     .push_back(p.p     ());
+    gen_px    .push_back(p.px    ());
+    gen_py    .push_back(p.py    ());
+    gen_pz    .push_back(p.pz    ());
 
     size_t mIndex = -1;
     if (p.numberOfMothers() > 0) { mIndex = p.motherRef(0).key(); }
