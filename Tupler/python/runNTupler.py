@@ -19,6 +19,7 @@ def WriteCMSRUNConfig(CONFIG):
         r'^(PLUGIN\s+=).*'    : r"\1 '{}'".format(CONFIG.PLUGIN         ),
         r'^(OUTPUTFILE\s+=).*': r"\1 '{}'".format(CONFIG.OUTPUTFILE     ),
         r'^(ISMC\s+=).*'      : r"\1 {}"  .format(CONFIG.DATA.isMC      ),
+        r'^(ISSIGNAL\s+=).*'  : r"\1 {}"  .format(CONFIG.DATA.isSignal  ),
     }
     for key, val in replaceDict.iteritems():
         CMS_CFG = re.sub(key, val, CMS_CFG, count=1, flags=re.MULTILINE)
@@ -28,6 +29,10 @@ WriteCMSRUNConfig(CONFIG)
 
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
+    DATASETKEY = 'PAT' if CONFIG.PLUGIN != 'GenOnlyNTupler' else 'GS-v2'
+    # crab submission script
+    # note the output directory: T2_CH_CERN, and /store/user/USER/
+    # change this if desired
     CRAB_CFG = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
@@ -54,12 +59,12 @@ config.Site.whitelist        = ['T2_CH_CERN']
     CRAB_CFG = CRAB_CFG.format(
         NAME            = CONFIG.DATA.name,
         PSET_NAME       = F_CMS_CFG,
-        INPUT_DATASET   = CONFIG.DATA.PATDataset,
-        INPUT_DBS       = CONFIG.DATA.PATInstance.replace('prod/', ''),
+        INPUT_DATASET   = CONFIG.DATA.datasets[DATASETKEY],
+        INPUT_DBS       = CONFIG.DATA.instances[DATASETKEY].replace('prod/', ''),
         PUBLISH         = False,
         PUBLISH_DBS     = 'phys03',
         IGNORE_LOCALITY = True,
-        SPLITTING       = 'Automatic',
+        SPLITTING       = 'FileBased',
         TOTAL_UNITS     = -1,
         UNITS_PER_JOB   = 20,
         RUN_RANGE       = '',
@@ -81,6 +86,13 @@ config.Site.whitelist        = ['T2_CH_CERN']
 
 # submit to LXBATCH
 elif CONFIG.BATCH and not CONFIG.TEST:
+    # assumes the proxy in /tmp/x509up_u***** created after voms-proxy-init
+    # was copied to ~/ i.e. /afs/cern.ch/user/U/USER/x509up_uUID
+    USER  = os.environ['USER']
+    ID    = bash.check_output('id -u', shell=True).strip('\n')
+    PROXY = '/afs/cern.ch/user/{}/{}/x509up_u{}'.format(USER[0], USER, ID)
+
+    # batch submission script
     LXBATCH = '''
 #!/bin/bash
 export X509_USER_PROXY={PROXY}
@@ -91,7 +103,7 @@ cmsRun {F_CMS_CFG}
 rm -f core.*
 '''.format(
         CMSSW_BASE = CMSSW_BASE,
-        PROXY      = '/afs/cern.ch/user/a/adasgupt/x509up_u79337',
+        PROXY      = PROXY,
         F_CMS_CFG  = F_CMS_CFG
     )
     if CONFIG.VERBOSE: verbose('LXBATCH SUBMIT SCRIPT', LXBATCH)

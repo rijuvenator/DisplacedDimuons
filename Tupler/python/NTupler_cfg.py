@@ -6,12 +6,13 @@ import FWCore.ParameterSet.Config as cms
 
 # Note: runNTupler.py will look for the first instance of
 # ^PARAMETER\s+= and set values accordingly, so
-# please don't add any similar lines above these 5
+# please don't add any similar lines above these 6
 MAXEVENTS  = -1
 INPUTFILES = []
 PLUGIN     = 'SimpleNTupler'
 OUTPUTFILE = 'test.root'
 ISMC       = False
+ISSIGNAL   = False
 
 ###############################
 ##### BASIC CONFIGURATION #####
@@ -47,7 +48,8 @@ process.load(MODULES+PLUGIN+'_cfi')
 process.TFileService.fileName = cms.string(OUTPUTFILE)
 
 if PLUGIN == 'SimpleNTupler':
-	process.SimpleNTupler.isMC = cms.bool(ISMC)
+	process.SimpleNTupler.isMC     = cms.bool(ISMC)
+	process.SimpleNTupler.isSignal = cms.bool(ISSIGNAL)
 
 	if process.SimpleNTupler.isMC:
 		# RunIISummer16DR80Premix (aka "Moriond17") campaign, CMSSW_8_0_X

@@ -11,6 +11,7 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 ####################
 
 		isMC           = cms.bool(True),
+		isSignal       = cms.bool(True),
 
 #######################
 #### TRIGGER BLOCK ####

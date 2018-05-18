@@ -9,7 +9,7 @@ MuonCutListPlusNone = Selections.CutLists['MuonCutListPlusNone']
 data = []
 headers = ('mH', 'mX', 'cTau') + MuonCutListPlusNone
 
-f = open('../dumpers/newCutTable.txt')
+f = open('../dumpers/cutTable.txt')
 for line in f:
 	if not re.match(r'MUO CUM: \d', line): continue
 	cols = line.strip('\n').split()
@@ -23,7 +23,7 @@ f.close()
 HISTS = {}
 for fields in data:
 	sp = (int(fields['mH']), int(fields['mX']), int(fields['cTau']))
-	HISTS[sp] = R.TH1F('CutTable_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
+	HISTS[sp] = R.TH1F('CutTable_HTo2XTo4Mu_{}'.format(SPStr(sp)), ';Cuts;Efficiency', len(MuonCutListPlusNone), 0, len(MuonCutListPlusNone))
 
 	for i,header in enumerate(MuonCutListPlusNone):
 		HISTS[sp].SetBinContent(i+1, float(fields[header]))
@@ -71,7 +71,7 @@ def makeCombinedPlot():
 	canvas.legend.moveLegend(X=.18)
 
 	canvas.finishCanvas()
-	canvas.save('CutTable.pdf')
+	canvas.save('pdfs/CutTable.pdf')
 	canvas.deleteCanvas()
 
 def makeIndividualPlots():
@@ -83,7 +83,7 @@ def makeIndividualPlots():
 		canvas.firstPlot.SetMarkerColor(R.kBlue)
 		canvas.firstPlot.SetLineColor(R.kBlue)
 		canvas.finishCanvas()
-		canvas.save('pdfs/Reco_CutTable_{}.pdf'.format(SPStr(sp)))
+		canvas.save('pdfs/CutTable_HTo2XTo4Mu_{}.pdf'.format(SPStr(sp)))
 		canvas.deleteCanvas()
 
 makeIndividualPlots()

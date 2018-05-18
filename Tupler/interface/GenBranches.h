@@ -29,23 +29,30 @@ class GenBranches : public BranchCollection
 		static bool alreadyPrinted_;
 		static bool alreadyPrinted_GEIP;
 
-		float              gen_weight    ;
+		float               gen_weight    ;
 
-		std::vector<int  > gen_pdgID     ;
-		std::vector<float> gen_pt        ;
-		std::vector<float> gen_eta       ;
-		std::vector<float> gen_phi       ;
-		std::vector<float> gen_mass      ;
-		std::vector<float> gen_energy    ;
-		std::vector<float> gen_charge    ;
-		std::vector<float> gen_x         ;
-		std::vector<float> gen_y         ;
-		std::vector<float> gen_z         ;
+		std::vector<int   > gen_pdgID     ;
+		std::vector<int   > gen_status    ;
+		std::vector<float > gen_p         ;
+		std::vector<float > gen_pt        ;
+		std::vector<float > gen_px        ;
+		std::vector<float > gen_py        ;
+		std::vector<float > gen_pz        ;
+		std::vector<float > gen_eta       ;
+		std::vector<float > gen_phi       ;
+		std::vector<float > gen_mass      ;
+		std::vector<float > gen_energy    ;
+		std::vector<float > gen_charge    ;
+		std::vector<float > gen_x         ;
+		std::vector<float > gen_y         ;
+		std::vector<float > gen_z         ;
 
-		std::vector<float> gen_d0        ;
-		std::vector<float> gen_d00       ;
+    std::vector<size_t> gen_mother    ;
 
-		std::vector<float> gen_pairDeltaR;
+		std::vector<float > gen_d0        ;
+		std::vector<float > gen_d00       ;
+
+		std::vector<float > gen_pairDeltaR;
 
 		// methods
 		void Declarations()
@@ -53,7 +60,12 @@ class GenBranches : public BranchCollection
 			Declare("gen_weight"    , gen_weight, "F");
 
 			Declare("gen_pdgID"     , gen_pdgID      );
+			Declare("gen_status"    , gen_status     );
+			Declare("gen_p"         , gen_p          );
 			Declare("gen_pt"        , gen_pt         );
+			Declare("gen_px"        , gen_px         );
+			Declare("gen_py"        , gen_py         );
+			Declare("gen_pz"        , gen_pz         );
 			Declare("gen_eta"       , gen_eta        );
 			Declare("gen_phi"       , gen_phi        );
 			Declare("gen_mass"      , gen_mass       );
@@ -62,6 +74,8 @@ class GenBranches : public BranchCollection
 			Declare("gen_x"         , gen_x          );
 			Declare("gen_y"         , gen_y          );
 			Declare("gen_z"         , gen_z          );
+
+      Declare("gen_mother"    , gen_mother     );
 
 			Declare("gen_d0"        , gen_d0         );
 			Declare("gen_d00"       , gen_d00        );
@@ -74,7 +88,12 @@ class GenBranches : public BranchCollection
 			gen_weight = 0;
 
 			gen_pdgID     .clear();
+			gen_status    .clear();
+			gen_p         .clear();
 			gen_pt        .clear();
+			gen_px        .clear();
+			gen_py        .clear();
+			gen_pz        .clear();
 			gen_eta       .clear();
 			gen_phi       .clear();
 			gen_mass      .clear();
@@ -84,6 +103,8 @@ class GenBranches : public BranchCollection
 			gen_y         .clear();
 			gen_z         .clear();
 
+      gen_mother    .clear();
+
 			gen_d0        .clear();
 			gen_d00       .clear();
 
@@ -91,7 +112,8 @@ class GenBranches : public BranchCollection
 		}
 
 		void Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
-				const edm::Handle<GenEventInfoProduct> &GEIPHandle);
+				const edm::Handle<GenEventInfoProduct> &GEIPHandle,
+        const bool isSignal);
 
 		bool FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
 				const edm::Handle<GenEventInfoProduct> &GEIPHandle);

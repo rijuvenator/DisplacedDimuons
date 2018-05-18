@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: 25 April 2018
+Last updated: 10 May 2018
 
 This subpackage contains code to analyze nTuples produced by the Tupler subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -9,8 +9,11 @@ This subpackage contains code to analyze nTuples produced by the Tupler subpacka
 The `python/` directory contains the following libraries:
 
   * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT or to simplify working with Python
-  * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `analyzeReco.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis.
-  * **Constants.py** contains common literals: file paths and lists of signal points. It's better to import these from a central location so that they don't have to changed in multiple places.
+  * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOne.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
+    * `--name`: by default the Analyzer will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
+    * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
+    * `--splitting`: two numbers controlling splitting: the first is how many events per file, the second is what _job_ number this is (so that the Analyzer knows which subset of the tree to run over)
+    * `--test`: as in the _Tupler_, runs over 1000 events (or a provided `MAX_EVENTS`) and creates `test.root` instead
   * **Plotter.py** is my general-purpose plot making and styling library, with plots based on standard TDR style and with a large number of useful functions and classes that I've found useful when creating and managing plots. See the _Plotter_ documentation for full documentation.
   * **Primitives.py** is my starting point for creating Python objects from flat nTuples. The basic idea is that it's much easier to write code like
 
@@ -50,7 +53,6 @@ for event in t:
     * The _TVector_ section improves the Python implementation of _TVector2_, _TVector3_, and _TLorentzVector_ by adding a few functions and fixing the interface so as to be a bit more uniform.
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
   * **Selections.py** is the central library for dealing with object and event selections. It defines _Cut_ objects, which are context-aware selections that take in objects and apply cuts; and _Selection_ objects, which are collections of _Cuts_ along with useful auxiliary functions. To apply the muon selection to a muon, one only needs to declare a _MuonSelection_ object, and all the booleans are automatically computed, along with functions to access any or all or none of them, and functions to increment counters in a systematic way. Any selections and cuts should be added here and imported to other functions.
-  * **Utilities.py** at the moment contains a single function: `SPStr()`, "signal point string", which takes in a tuple or 3 arguments and returns `'mH_mX_cTau'`. For example, `SPStr(125, 20, 13)` returns `'125_20_13'`. I have found use of this underscore-separated string to be so common that it needed its own function.
 
 ## Dumpers
 
@@ -60,18 +62,31 @@ for event in t:
 
 `analyzers/` is where I keep my analyzers: scripts that run over trees and create ROOT files containing histograms.
 
-  * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. It writes histograms to ROOT files and runs quickly enough that a `runAll` is not necessary.
-  * **analyzeReco.py** produces resolution and efficiency plots, and a few dimuon plots at the moment. Basically, any plots at reco level. It uses the full _Primitives_ machinery, uses _Selections_, and writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
-  * **cutParameterDistributions.py** makes N-1 plots, distributions of the cut parameters. It uses the full _Primitives_ machinery, uses _Selections_, and writes histograms to ROOT files. As always, `runAll` submits jobs to the batch system.
+  * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. It writes histograms to ROOT files and runs quickly enough that submitting to `runAll` is not necessary.
+  * **signalResEffPlots.py** produces resolution and efficiency plots. Basically, any plots at reco level. It uses the full _Primitives_ and _Analyzer_ machinery, uses _Selections_, and writes histograms to ROOT files. As an _Analyzer_, it works with `runAll.py`.
+  * **dimuonPlots.py** produces dimuon plots. It uses the full _Primitives_ and _Analyzer_ machinery, uses _Selections_, and writes histograms to ROOT files. As an _Analyzer_, it works with `runAll.py`.
+  * **nMinusOne.py** makes N-1 plots, distributions of the cut parameters. It uses the full _Primitives_ and _Analyzer_ machinery, uses _Selections_, and writes histograms to ROOT files. As an _Analyzer_, it works with `runAll.py`.
+
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU parallel, given the optional parameter `--local`. The `--samples` parameter is a string subset of "SBD", controlling whether this particular instance should run on **S**ignal, **B**ackground, or **D**ata. For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
+
+```python
+python runAll.py signalResEffPlots.py --samples S
+```
+
+while `nMinusOne.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
+
+```python
+python runAll.py nMinusOne.py --samples SBD
+```
 
 ## Plotters
 
 `plotters/` is where I keep my plotting scripts. Mostly, they take root files from `../analyzers/roots/` and create PDFs.
 
   * **makeGenPlots.py** opens the `hadd`-ed ROOT files produced by **genPlots.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
-  * **makeRecoPlots.py** opens the `hadd`-ed ROOT files produced by **analyzeReco.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
-  * **TO DO**: make a **makeCutParameterDistributions.py** script which among other things draws a dashed line for the cut value
-
+  * **makeSignalResEffPlots.py** opens the `hadd`-ed ROOT files produced by **signalResEffPlots.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
+  * **makeDimuonPlots.py** opens the `hadd`-ed ROOT files produced by **dimuonPlots.py** and produces actual styled `.pdf` plot files. It uses the _Plotter_ library.
+  * **makeNMinusOnePlots.py** opens the `hadd`-ed ROOT filed produced by **nMinusOne.py** and produced actual styled `.pdf` plot files. It uses the _Plotter_ library.
   
 For the purposes of the Javascript-based **Viewer**, I have a script, **convertone.sh**, that converts the `.pdf` files into `.png` files. I recommend the following for multiple conversions:
 

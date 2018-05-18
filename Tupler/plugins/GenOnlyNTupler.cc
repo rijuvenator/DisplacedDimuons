@@ -64,7 +64,7 @@ void GenOnlyNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	edm::Handle<GenEventInfoProduct> GEIP;
 	iEvent.getByToken(genToken, gens);
 	iEvent.getByToken(GEIPToken, GEIP);
-	genData.Fill(gens, GEIP);
+	genData.Fill(gens, GEIP, true);
 
 	tree.Fill();
 
