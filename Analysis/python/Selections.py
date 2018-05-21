@@ -28,11 +28,11 @@ class Cut(object):
 MuonCuts = {
 	'pt'        : Cut('pt'       , lambda muon: muon.pt                             , operator.gt,  26.      ),
 	'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
-	'Lxy'       : Cut('Lxy'      , lambda muon: muon.Lxy()                          , operator.lt, 500.      ),
+	'Lxy'       : Cut('Lxy'      , lambda muon: muon.LXY()                          , operator.lt, 500.      ),
 	'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
 	'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17       ),
 	'nStations' : Cut('nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   3       ),
-	'd0Sig'     : Cut('d0Sig'    , lambda muon: muon.d0MVSig                        , operator.gt,   4.      ),
+	'd0Sig'     : Cut('d0Sig'    , lambda muon: muon.d0Sig()                        , operator.gt,   4.      ),
 }
 DimuonCuts = {
 	'vtxChi2'   : Cut('vtxChi2'  , lambda dimuon: dimuon.normChi2                   , operator.lt,  4.       ),

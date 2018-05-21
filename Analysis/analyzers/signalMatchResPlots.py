@@ -16,7 +16,7 @@ VALUES  = (
     ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.LXY()    , 'L_{xy}' ),
     ('dR' , '#DeltaR'    , (1000,       0.,      5.), lambda gm  : gm.pairDeltaR , '#DeltaR'),
 )
 CONFIG = {}
@@ -55,7 +55,7 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
-    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
+    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -70,7 +70,7 @@ def analyze(self, E):
         if not genMuonSelection: continue
 
         # find closest matched reco muon for DSA and RSA
-        genMuonLxy = genMuon.Lxy()
+        genMuonLxy = genMuon.LXY()
         foundDSA = False
         for MUON, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
@@ -91,7 +91,6 @@ def analyze(self, E):
                         if MUON == 'RSA': continue
                         if len(Dimuons) == 0:
                             recoLxy = F(closestRecoMuon)
-                            print self.INDEX, len(recoMuons)
                         else:
                             recoLxy = LXY(matches[0]['idx'], Dimuons)
                         for x in (0,):
@@ -111,6 +110,7 @@ if __name__ == '__main__':
         SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING
+        SPLITTING   = ARGS.SPLITTING,
+        FILE        = Analyzer.F_AOD_NTUPLE
     )
     analyzer.writeHistograms('roots/SignalMatchResPlots_{}.root')

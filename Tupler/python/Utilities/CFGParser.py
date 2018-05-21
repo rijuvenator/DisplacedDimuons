@@ -21,6 +21,7 @@ DEFAULT_DATASETS = {
     'HTo2XTo2Mu2J'              : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v0'     },
     'DY100to200'                : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
     'DoubleMuonRun2016D-07Aug17': {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
+    'DEFAULT'                   : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
 }
 
 # cmsRun configuration and submission parser
@@ -78,7 +79,10 @@ def getConfiguration(returnArgs=False):
     DKEY = 'PAT'
     if args.GENONLY: DKEY = 'GEN'
     if args.AODONLY: DKEY = 'AOD'
-    DATASET  = DEFAULT_DATASETS[args.NAME][DKEY]
+    SKEY = 'DEFAULT'
+    if args.NAME in DEFAULT_DATASETS:
+        SKEY = args.NAME
+    DATASET  = DEFAULT_DATASETS[SKEY][DKEY]
     INSTANCE = DATASET
 
     # add a prefix if GENONLY or AODONLY

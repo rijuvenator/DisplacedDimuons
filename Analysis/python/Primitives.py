@@ -53,21 +53,28 @@ class ETree(object):
         else:
             setattr(self, branch, getattr(t, branch))
  
-    def getPrimitives(self, KEY):
+    def getPrimitives(self, KEY, MCTYPE=None):
         if KEY == 'GEN':
-            muons   = [Muon    (self, i, 'GEN' ) for i in range(4)                 ]
-            mothers = [Particle(self, i, 'gen_') for i in range(4, 8)              ]
-            return muons + mothers
-        if KEY == 'VERTEX':
-            return    [Vertex  (self, i        ) for i in range(len(self.vtx_x   ))]
-        if KEY == 'MUON':
-            return    [Muon    (self, i, 'AOD' ) for i in range(len(self.mu_pt   ))]
-        if KEY == 'DSAMUON':
-            return    [Muon    (self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
-        if KEY == 'RSAMUON':
-            return    [Muon    (self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
-        if KEY == 'DIMUON':
-            return    [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
+            if MCTYPE == 'HTo2XTo4Mu':
+                muons   =             [GenMuon (self, i        ) for i in range(4)                 ]
+                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)              ]
+                return muons + mothers
+            elif MCTYPE == 'HTo2XTo2Mu2J':
+                muons   =             [GenMuon (self, i        ) for i in range(2)                 ]
+                jets    =             [GenMuon (self, i        ) for i in range(2, 4)              ]
+                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)              ]
+                return muons + jets + mothers
+            else:
+                return                [Particle(self, i, 'gen_') for i in range(len(self.gen_pt  ))]
+        if KEY == 'MUON'     : return [AODMuon (self, i        ) for i in range(len(self.mu_pt   ))]
+        if KEY == 'DSAMUON'  : return [RecoMuon(self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
+        if KEY == 'RSAMUON'  : return [RecoMuon(self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
+        if KEY == 'DIMUON'   : return [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
+        if KEY == 'VERTEX'   : return Vertex(self)
+        if KEY == 'BEAMSPOT' : return Beamspot(self)
+        if KEY == 'MET'      : return (self.met_pt, self.met_phi, self.met_gen_pt)
+        if KEY == 'EVENT'    : return (self.evt_run, self.evt_lumi, self.evt_event, self.evt_bx)
+        raise Exception('Unknown Primitives key '+KEY)
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -94,41 +101,26 @@ class Particle(Primitive):
         # this is an XYZ 3-vector!
         self.p3 = R.TVector3(*self.p4.Vect())
 
-# Muon class
+# Muon classes
 # sets all the particle variables
-# distinguishes several "kinds" of muons:
-# reco AOD muon, GEN muon, and the GEN particle attached to the reco AOD muon
-# the last one is called "SUB"
-# and also DSA reco muon and RSA reco muon
+# base class for several "kinds" of muons, each with different additional branches
+# AODMuon     : reco AOD muons from the reco::Muon collection (mu_)
+#   .gen      : gen muon matched/attached to the AOD muon     (mu_gen_)
+# GenMuon     : gen muons from the GenParticle collection     (gen_)
+# RecoMuon    : reco muons from a reco::Track collection
+#   ("DSA")   : reco DSA muons from displacedStandAloneMuons  (dsamu_)
+#   ("RSA")   : reco RSA muons from refittedStandAloneMuons   (rsamu_)
 class Muon(Particle):
-    def __init__(self, E, i, source=None):
-        self.source = source
-        if   self.source == 'AOD': prefix = 'mu_'
-        elif self.source == 'GEN': prefix = 'gen_'
-        elif self.source == 'SUB': prefix = 'mu_gen_'
-        elif self.source == 'DSA': prefix = 'dsamu_'
-        elif self.source == 'RSA': prefix = 'rsamu_'
+    def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
-
-        if self.source == 'AOD':
-            self.gen = Muon(E, i, source='SUB')
-            self.set('isSlim', E, 'mu_isSlim', i)
-
-        if self.source in ('GEN', 'DSA', 'RSA'):
-            self.set('d0', E, prefix+'d0', i)
-
-        if self.source == 'GEN':
-            for attr in ('d00', 'cosAlpha', 'Lxy', 'pairDeltaR'):
-                self.set(attr, E, prefix+attr, i)
-
-        if self.source == 'DSA' or self.source == 'RSA':
-            for attr in ('normChi2', 'nMuonHits', 'nDTStations', 'nCSCStations', 'd0Sig', 'd0MVSig', 'd0MV'):
-                self.set(attr, E, prefix+attr, i)
 
     # more intelligent function for computing Lxy
     def LXY(self, mother=None):
         if mother is None:
-            return self.Lxy
+            try:
+                return self.Lxy
+            except:
+                mother = R.TVector2(0., 0.)
         else:
             try:
                 mother = mother.pos.XYvector()
@@ -136,15 +128,83 @@ class Muon(Particle):
                 pass
         return (self.pos.XYvector() - mother).Mag()
 
-# Vertex class
-# nothing too unusual here
-class Vertex(Primitive):
+# AODMuon: see above
+# note that the gen muon attached to it is of type Muon
+class AODMuon(Muon):
     def __init__(self, E, i):
-        Primitive.__init__(self)
-        for attr in ('x', 'y', 'z', 'chi2', 'ndof'):
-            self.set(attr, E, 'vtx_'+attr, i)
+        Muon.__init__(self, E, i, 'mu_')
+        self.gen = Muon(E, i, 'mu_gen_')
+        for attr in ('isSlim',):
+            self.set(attr, E, 'mu_'+attr, i)
 
-        self.pos = R.TVector3(self.x, self.y, self.z)
+# GenMuon: see above
+class GenMuon(Muon):
+    def __init__(self, E, i):
+        Muon.__init__(self, E, i, 'gen_')
+        for attr in ('d0', 'd00', 'cosAlpha', 'Lxy', 'pairDeltaR'):
+            self.set(attr, E, 'gen_'+attr, i)
+
+# RecoMuon: see above
+# the ImpactParameter is a member variable allowing easy access to d0, dz
+# and the associated quantities. allow accessing its methods directly on the muon.
+class RecoMuon(Muon):
+    def __init__(self, E, i, tag):
+        if tag == 'DSA':
+            prefix = 'dsamu_'
+        elif tag == 'RSA':
+            prefix = 'rsamu_'
+        Muon.__init__(self, E, i, prefix)
+        for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'p'):
+            self.set(attr, E, prefix+attr, i)
+        self.IP = ImpactParameter(E, i, prefix)
+        self.normChi2 = self.chi2/self.ndof if self.ndof != 0 else float('inf')
+
+    def __getattr__(self, name):
+        if name in ('d0', 'dz', 'd0Sig', 'dzSig'):
+            return getattr(self.IP, name)
+        raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
+
+# impact parameter wrapper class for
+# d0 and dz, their significances,
+# and wrt PV or BS, with LIN extrapolation or default
+class ImpactParameter(Primitive):
+    def __init__(self, E, i, prefix):
+        Primitive.__init__(self)
+        for axis in ('d0', 'dz'):
+            for val in ('_', 'sig_'):
+                for vertex in ('pv', 'bs'):
+                    for extrap in ('', '_lin'):
+                        attr = axis+val+vertex+extrap
+                        self.set(attr, E, prefix+attr, i)
+
+    # axis should be either d0 or dz
+    # val should be either None or SIG
+    # vertex should be either PV/pv or BS/bs
+    # extrap should be either LIN/lin or None
+    def getValue(self, axis, val, vertex, extrap):
+        if axis not in ('d0', 'dz'):
+            raise Exception('"axis" argument should be either d0 or dz')
+        if val is None:
+            val = '_'
+        else:
+            val = val.lower() + '_'
+        if val not in ('_', 'sig_'):
+            raise Exception('"val" argument should be either None or LIN')
+        vertex = vertex.lower()
+        if vertex not in ('pv', 'bs'):
+            raise Exception('"vertex" argument should be either PV or BS')
+        if extrap is None:
+            extrap = ''
+        else:
+            extrap = '_' + extrap.lower()
+        if extrap not in ('', '_lin'):
+            raise Exception('"extrap" argument should be either None or LIN')
+        return getattr(self, axis+val+vertex+extrap)
+
+    def d0   (self, vertex='PV', extrap=None): return self.getValue('d0', None , vertex, extrap)
+    def dz   (self, vertex='PV', extrap=None): return self.getValue('dz', None , vertex, extrap)
+    def d0Sig(self, vertex='PV', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
+    def dzSig(self, vertex='PV', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
 
 # Dimuon class
 class Dimuon(Particle):
@@ -152,3 +212,28 @@ class Dimuon(Particle):
         Particle.__init__(self, E, i, 'dim_')
         for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy', 'deltaPhi', 'cosAlpha'):
             self.set(attr, E, 'dim_'+attr, i)
+
+    def LXY(self):
+        return self.Lxy
+
+# Vertex class
+# tree only saves primary vertex and nVtx
+class Vertex(Primitive):
+    def __init__(self, E):
+        Primitive.__init__(self)
+        for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz', 'chi2', 'ndof', 'ntrk'):
+            setattr(self, attr, getattr(E, 'vtx_pv_'+attr))
+        setattr(self, 'nvtx', getattr(E, 'vtx_nvtx'))
+
+        self.pos = R.TVector3(self.x , self.y , self.z )
+        self.err = R.TVector3(self.dx, self.dy, self.dz)
+
+# Beamspot class
+class Beamspot(Primitive):
+    def __init__(self, E):
+        Primitive.__init__(self)
+        for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz'):
+            setattr(self, attr, getattr(E, 'bs_'+attr))
+
+        self.pos = R.TVector3(self.x , self.y , self.z )
+        self.err = R.TVector3(self.dx, self.dy, self.dz)

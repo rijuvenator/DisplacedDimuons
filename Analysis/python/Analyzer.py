@@ -12,7 +12,9 @@ PARSER.add_argument('--test'       , dest='TEST'       , action='store_true',   
 PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
 PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
 
-F_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/ntuple_{}.root')
+F_NTUPLE     = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/ntuple_{}.root')
+F_GEN_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/genOnly_ntuple_{}.root')
+F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.root')
 T_NTUPLE = 'SimpleNTupler/DDTree'
 
 F_DEFAULT = F_NTUPLE

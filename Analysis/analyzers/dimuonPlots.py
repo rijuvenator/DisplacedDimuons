@@ -48,6 +48,7 @@ if __name__ == '__main__':
         SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
         BRANCHKEYS  = ('DSAMUON', 'RSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING
+        SPLITTING   = ARGS.SPLITTING,
+        FILE        = Analyzer.F_AOD_NTUPLE
     )
     analyzer.writeHistograms('roots/DimuonPlots_{}.root')

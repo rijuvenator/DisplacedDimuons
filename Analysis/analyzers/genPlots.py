@@ -42,7 +42,7 @@ class HistogramConfigurations(object):
         self.data['pTX'     ] = self.makeAttrDict((self.HName('pTX'      ), 'X p_{T} [GeV]'    , 'Counts', 100, 0.         , XPtUpper   ))
         self.data['pTmu'    ] = self.makeAttrDict((self.HName('pTmu'     ), '#mu p_{T} [GeV]'  , 'Counts', 100, 0.         , MuPtUpper  ))
         self.data['beta'    ] = self.makeAttrDict((self.HName('beta'     ), '#beta = v/c'      , 'Counts', 100, 0.         , 1.         ))
-        self.data['etaMu'   ] = self.makeAttrDict((self.HName('etaMu'    ), '#mu #eta'         , 'Counts', 100, 0.         , 5          ))
+        self.data['etaMu'   ] = self.makeAttrDict((self.HName('etaMu'    ), '#mu #eta'         , 'Counts', 100, -5.        , 5          ))
         self.data['dPhi'    ] = self.makeAttrDict((self.HName('dPhi'     ), '#mu #Delta#phi'   , 'Counts', 100, -math.pi   , math.pi    ))
         self.data['cosAlpha'] = self.makeAttrDict((self.HName('cosAlpha' ), 'cos(#alpha)'      , 'Counts', 100, -1.        , 1.         ))
         self.data['Lxy'     ] = self.makeAttrDict((self.HName('Lxy'      ), 'L_{xy} [mm]'      , 'Counts', 100, 0.         , LxyUpper   ))

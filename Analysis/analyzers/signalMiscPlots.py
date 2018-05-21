@@ -20,7 +20,7 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
-    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN')
+    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
@@ -43,7 +43,7 @@ def analyze(self, E):
         genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
         if not genMuonSelection: continue
 
-        genMuonLxy = genMuon.Lxy()
+        genMuonLxy = genMuon.LXY()
         PREFIX = 'DSA'
         foundDSA = False
         for recoMuons in (DSAmuons, RSAmuons):
@@ -55,7 +55,7 @@ def analyze(self, E):
                     #print 'GEN: {:9.4f} {:7.4f} {:7.4f}'.format(genMuon.pt, genMuon.eta, genMuon.phi)
                     #print '{}: {:9.4f} {:7.4f} {:7.4f}'.format(PREFIX, closestRecoMuon.pt, closestRecoMuon.eta, closestRecoMuon.phi)
                     #print ''
-                self.HISTS[PREFIX+'_d0Dif'     ].Fill((closestRecoMuon.d0 - genMuon.d0))
+                self.HISTS[PREFIX+'_d0Dif'     ].Fill((closestRecoMuon.d0() - genMuon.d0))
             PREFIX = 'RSA'
 
 #### RUN ANALYSIS ####
@@ -68,6 +68,7 @@ if __name__ == '__main__':
         SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
         TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING
+        SPLITTING   = ARGS.SPLITTING,
+        FILE        = Analyzer.F_AOD_NTUPLE
     )
     analyzer.writeHistograms('roots/SignalMiscPlots_{}.root')

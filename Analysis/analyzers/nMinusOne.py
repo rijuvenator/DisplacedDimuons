@@ -9,6 +9,7 @@ CUTKEYS = {
     'nMuonHits': {'AXES':(50 ,  0., 50.)},
     'nStations': {'AXES':(10 ,  0., 10.)},
     'normChi2' : {'AXES':(100,  0.,  5.)},
+    'd0Sig'    : {'AXES':(100,  0.,  5.)},
     'vtxChi2'  : {'AXES':(100,  0.,  5.)},
     'deltaR'   : {'AXES':(100,  0.,  5.)},
     'cosAlpha' : {'AXES':(100, -1.,  1.)},
@@ -49,8 +50,8 @@ def analyze(self, E):
             # d0Sig omitted temporarily; Lxy not part of selection
             if all((
                     dimSel.allExcept('deltaPhi', KEY),
-                    mu1Sel.allExcept('d0Sig', 'Lxy'),
-                    mu2Sel.allExcept('d0Sig', 'Lxy')
+                    mu1Sel.allExcept('Lxy'),
+                    mu2Sel.allExcept('Lxy')
                 )):
                 # reminder: expr is the lambda performed on object to get the value on which the cut is applied
                 # e.g. Selections.MuonCuts['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
@@ -65,8 +66,8 @@ def analyze(self, E):
             # d0Sig omitted temporarily; Lxy not part of selection
             if all((
                     dimSel.allExcept('deltaPhi'),
-                    mu1Sel.allExcept('d0Sig', 'Lxy', KEY),
-                    mu2Sel.allExcept('d0Sig', 'Lxy', KEY)
+                    mu1Sel.allExcept('Lxy', KEY),
+                    mu2Sel.allExcept('Lxy', KEY)
                 )):
                 # reminder: expr is the lambda performed on object to get the value on which the cut is applied
                 # e.g. Selections.MuonCuts['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
@@ -85,6 +86,7 @@ if __name__ == '__main__':
         SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
         BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING
+        SPLITTING   = ARGS.SPLITTING,
+        FILE        = Analyzer.F_AOD_NTUPLE
     )
     analyzer.writeHistograms('roots/nMinusOne_{}.root')
