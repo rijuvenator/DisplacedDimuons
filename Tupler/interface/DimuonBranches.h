@@ -50,6 +50,7 @@ class DimuonBranches : public BranchCollection
 		std::vector<float       > dim_y       ;
 		std::vector<float       > dim_z       ;
 		std::vector<float       > dim_Lxy     ;
+		std::vector<float       > dim_LxySig  ;
 		std::vector<float       > dim_deltaR  ;
 		std::vector<float       > dim_normChi2;
 		std::vector<float       > dim_cosAlpha;
@@ -71,6 +72,7 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_y"       , dim_y       );
 			Declare("dim_z"       , dim_z       );
 			Declare("dim_Lxy"     , dim_Lxy     );
+			Declare("dim_LxySig"  , dim_LxySig  );
 			Declare("dim_deltaR"  , dim_deltaR  );
 			Declare("dim_normChi2", dim_normChi2);
 			Declare("dim_cosAlpha", dim_cosAlpha);
@@ -92,6 +94,7 @@ class DimuonBranches : public BranchCollection
 			dim_y       .clear();
 			dim_z       .clear();
 			dim_Lxy     .clear();
+			dim_LxySig  .clear();
 			dim_deltaR  .clear();
 			dim_normChi2.clear();
 			dim_cosAlpha.clear();

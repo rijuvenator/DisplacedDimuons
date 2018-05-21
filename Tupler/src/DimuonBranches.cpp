@@ -40,9 +40,11 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			// SV-PV vector
 			auto diffP = rv.position() - vertices.begin()->position();
 			TVector3 diffV(diffP.X(), diffP.Y(), diffP.Z());
+      GlobalPoint diffGP(diffV.X(), diffV.Y(), diffV.Z());
 
 			// Lxy is just the magnitude in the XY plane
 			float Lxy = diffV.Perp();
+      float LxySig = Lxy/sqrt(tv.positionError().rerr(diffGP));
 
 			// dimuon LorentzVector
 			TLorentzVector p4 = p4V[i] + p4V[j];
@@ -64,6 +66,7 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			dim_y       .push_back(rv.y               ());
 			dim_z       .push_back(rv.z               ());
 			dim_Lxy     .push_back(Lxy                  );
+			dim_LxySig  .push_back(LxySig               );
 			dim_deltaR  .push_back(p4V[i].DeltaR(p4V[j]));
 			dim_normChi2.push_back(rv.normalizedChi2  ());
 			dim_cosAlpha.push_back(cosAlpha             );
