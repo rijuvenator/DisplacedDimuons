@@ -66,7 +66,7 @@ def analyze(self, E):
     # loop over genMuons and fill histograms based on matches
     for genMuon in (mu11, mu12, mu21, mu22):
         # cut genMuons outside the detector acceptance
-        genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
+        genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
         # find closest matched reco muon for DSA and RSA

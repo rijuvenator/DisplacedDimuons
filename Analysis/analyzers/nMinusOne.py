@@ -47,15 +47,14 @@ def analyze(self, E):
             # require muons   to pass their full selection
             # require dimuons to pass their full selection except KEY
             # (and deltaPhi of course)
-            # d0Sig omitted temporarily; Lxy not part of selection
             if all((
                     dimSel.allExcept('deltaPhi', KEY),
-                    mu1Sel.allExcept('Lxy'),
-                    mu2Sel.allExcept('Lxy')
+                    mu1Sel,
+                    mu2Sel
                 )):
                 # reminder: expr is the lambda performed on object to get the value on which the cut is applied
-                # e.g. Selections.MuonCuts['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
-                thisCut = Selections.DimuonCuts[KEY]
+                # e.g. Selections.CUTS['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
+                thisCut = Selections.CUTS[KEY]
                 fillValue = thisCut.expr(dimuon)
                 self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue)
 
@@ -63,16 +62,15 @@ def analyze(self, E):
             # require dimuons to pass their full selection
             # require muons   to pass their full selection except KEY
             # (and deltaPhi of course)
-            # d0Sig omitted temporarily; Lxy not part of selection
             if all((
                     dimSel.allExcept('deltaPhi'),
-                    mu1Sel.allExcept('Lxy', KEY),
-                    mu2Sel.allExcept('Lxy', KEY)
+                    mu1Sel.allExcept(KEY),
+                    mu2Sel.allExcept(KEY)
                 )):
                 # reminder: expr is the lambda performed on object to get the value on which the cut is applied
-                # e.g. Selections.MuonCuts['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
+                # e.g. Selections.CUTS['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
                 # mfunc is max if cut is < or <=; mfunc is min if cut is > or >=
-                thisCut = Selections.MuonCuts[KEY]
+                thisCut = Selections.CUTS[KEY]
                 fillValue = thisCut.mfunc(thisCut.expr(mu1), thisCut.expr(mu2))
                 self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue)
 
