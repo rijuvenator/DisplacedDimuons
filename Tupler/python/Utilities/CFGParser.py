@@ -17,11 +17,9 @@ DEFAULT_OUTFILE     = 'ntuple_{}.root'
 # but as long as we don't have PAT Tuples for everything,
 # this should work to make nTuples in the meantime
 DEFAULT_DATASETS = {
-    'HTo2XTo4Mu'                : {'PAT':'PAT', 'GEN':'GS-v2', 'AOD':'May2018-AOD-v1'},
-    'HTo2XTo2Mu2J'              : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v1'},
-    'DY100to200'                : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
-    'DoubleMuonRun2016D-07Aug17': {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
-    'DEFAULT'                   : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
+    'HTo2XTo4Mu'   : {'PAT':'PAT', 'GEN':'GS-v2', 'AOD':'May2018-AOD-v1'},
+    'HTo2XTo2Mu2J' : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v1'},
+    'DEFAULT'      : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
 }
 
 # cmsRun configuration and submission parser
@@ -66,11 +64,13 @@ def getConfiguration(returnArgs=False):
 
     # make sure only one of --crab, --batch, and --test are set
     if (args.CRAB, args.BATCH, args.TEST).count(True) > 1:
-        raise Exception('Only one of --crab, --batch, or --test may be set')
+        print '[CFGPARSER ERROR]: Only one of --crab, --batch, or --test may be set'
+        exit()
 
     # make sure only one of --genonly, --aodonly are set
     if (args.GENONLY, args.AODONLY).count(True) > 1:
-        raise Exception('Only one of --genonly, --aodonly may be set')
+        print '[CFGPARSER ERROR]: Only one of --genonly, --aodonly may be set'
+        exit()
 
     # now we can get the particular Dataset object
     data = findSample(args)
@@ -149,7 +149,8 @@ def findSample(args):
             if data.signalPoint() == SIGNALPOINT and DATASET in data.datasets:
                 return data
         else:
-            raise Exception('No {} dataset found with signal point {} and process {}'.format(args.NAME, SIGNALPOINT, DP))
+            print '[DATAHANDLER ERROR]: No {} dataset found with signal point {} and process {}'.format(args.NAME, SIGNALPOINT, DP)
+            exit()
 
     # data
     elif args.NAME.startswith('DoubleMuon'):
@@ -166,4 +167,5 @@ def findSample(args):
                 return data
 
     # if nothing found yet, raise error
-    raise Exception('"' + args.NAME + '" is not a known dataset name; see .dat files in dat/')
+    print '[DATAHANDLER ERROR]: "' + args.NAME + '" is not a known dataset name; see .dat files in dat/'
+    exit()

@@ -58,7 +58,7 @@ class Dataset(object):
 
         # make sure dataset is not _
         if dataset == '_':
-            print '[DATAHANDLER ERROR]: Invalid dataset _, likely a PATTuple set not created yet. Try --aodonly?'
+            print '[DATAHANDLER ERROR]: Invalid dataset _, likely a PATTuple set not created yet. Please try --aodonly for sample', self.name
             exit()
 
         # set instance: instance can be None, "PAT", "EDM", some other key, or some other dataset
