@@ -135,7 +135,7 @@ class SignalSample(MCSample):
             self.datasets[proc] = ds
             self.instances[proc] = 'prod/phys03'
         assert len(PROC)+2 == len(self.datasets)
-    
+
     def signalPoint(self):
         return (self.mH, self.mX, self.cTau)
 
@@ -179,7 +179,7 @@ def getSamples(TYPE):
             continue
         Entry.append(line.strip('\n'))
     f.close()
-    
+
     samples = [CLASS(*Entry) for Entry in Parameters]
     return samples
 
@@ -224,7 +224,7 @@ if __name__ == '__main__':
             if 'AOD' in process:
                 print process, ds.signalPoint()
                 print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
-    
+
     print '\n\033[32m-----BACKGROUND MC SAMPLES-----\n\033[m'
     BackgroundSamples = getBackgroundSamples()
     for ds in BackgroundSamples:

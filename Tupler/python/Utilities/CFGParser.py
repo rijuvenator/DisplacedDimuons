@@ -17,11 +17,11 @@ DEFAULT_OUTFILE     = 'ntuple_{}.root'
 # but as long as we don't have PAT Tuples for everything,
 # this should work to make nTuples in the meantime
 DEFAULT_DATASETS = {
-    'HTo2XTo4Mu'                : {'PAT':'PAT', 'GEN':'GS-v2', 'AOD':'AODSIM-ReHLT_V37-v1'},
-    'HTo2XTo2Mu2J'              : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v0'     },
-    'DY100to200'                : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
-    'DoubleMuonRun2016D-07Aug17': {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
-    'DEFAULT'                   : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'                },
+    'HTo2XTo4Mu'                : {'PAT':'PAT', 'GEN':'GS-v2', 'AOD':'May2018-AOD-v1'},
+    'HTo2XTo2Mu2J'              : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v1'},
+    'DY100to200'                : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
+    'DoubleMuonRun2016D-07Aug17': {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
+    'DEFAULT'                   : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
 }
 
 # cmsRun configuration and submission parser
