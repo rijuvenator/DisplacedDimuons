@@ -1,7 +1,5 @@
 #include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
 
-#include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
-
 bool DimuonBranches::alreadyPrinted_ = false;
 
 void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
@@ -25,7 +23,7 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 
   unsigned int i, j;
   reco::TrackCollection::const_iterator pmu, qmu;
-  for (i = 0, pmu = muons.begin(); pmu != muons.end() - 1; pmu++, i++) {
+  for (i = 0, pmu = muons.begin(); pmu != muons.end(); pmu++, i++) {
     reco::TransientTrack ott1 = ttB->build(*pmu);
     if (!ott1.isValid()) continue;
     // Not sure we need to set the beam spot, but do it to be on the safe side
