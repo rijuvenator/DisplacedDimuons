@@ -14,7 +14,7 @@ The GEN-SIM samples were tested in CMSSW_9_2_8 and the final AOD with reHLT in C
 
 ## Samples used in 2016 Analysis search
 
-The folder `2016Search/Fragments/` contains the Pythia8 fragments used to develop the signal, monitor and backup triggers. 
+The folder `2016Search/Fragments/` contains the Pythia8 fragments used for the search with 2016 data. 
 
 The GEN-SIM samples were tested in CMSSW_7_1_32 and the final AOD are produced with CMSSW_8_0_21.
 
