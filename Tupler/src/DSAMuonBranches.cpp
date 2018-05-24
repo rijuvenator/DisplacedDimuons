@@ -8,7 +8,6 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 			   const edm::Handle<reco::BeamSpot> &beamspotHandle)
 {
 	static bool debug = false;
-  static float mass = .105658375;
 	Reset();
 
 	// Check if failed to get
@@ -22,21 +21,16 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	GlobalPoint pv_pos(pv.x(), pv.y(), pv.z());
 
 	for (const auto &mu : muons)
-	{
-    int pdgID = -13 * mu.charge()/fabs(mu.charge());
-    float energy = pow(pow(mu.p(),2.) + pow(mass,2.), 0.5);
-
-		dsamu_pdgID .push_back(   pdgID    );
-		dsamu_pt    .push_back(mu.pt    () );
+	  {
+		dsamu_px    .push_back(mu.px    () );
+		dsamu_py    .push_back(mu.py    () );
+		dsamu_pz    .push_back(mu.pz    () );
 		dsamu_eta   .push_back(mu.eta   () );
 		dsamu_phi   .push_back(mu.phi   () );
-		dsamu_mass  .push_back(   mass     );
-		dsamu_energy.push_back(   energy   );
 		dsamu_charge.push_back(mu.charge() );
 		dsamu_x     .push_back(mu.vx    () );
 		dsamu_y     .push_back(mu.vy    () );
 		dsamu_z     .push_back(mu.vz    () );
-		dsamu_p     .push_back(mu.p     () );
 		dsamu_chi2  .push_back(mu.chi2  () );
 		dsamu_ndof  .push_back(mu.ndof  () );
 

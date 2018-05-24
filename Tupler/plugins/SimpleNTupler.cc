@@ -270,7 +270,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (source != "GEN")
   {
     if (dsaMuonData.isValid() && vertexData.isValid())
-      dimData.Fill(dsaMuons, ttB, vertices);
+      dimData.Fill(dsaMuons, ttB, vertices, beamspot);
   }
 
   // Final tree fill
