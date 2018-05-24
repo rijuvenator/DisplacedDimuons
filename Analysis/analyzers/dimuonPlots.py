@@ -30,7 +30,7 @@ def analyze(self, E):
     RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
 
     for dimuon in Dimuons:
-        if DSASelections[dimuon.idx1].passesAcceptance() and DSASelections[dimuon.idx2].passesAcceptance():
+        if DSASelections[dimuon.idx1] and DSASelections[dimuon.idx2] and Selections.DimuonSelection(dimuon):
             self.HISTS['Dim_vtxChi2' ].Fill(dimuon.normChi2)
             self.HISTS['Dim_deltaR'  ].Fill(dimuon.deltaR  )
             self.HISTS['Dim_mass'    ].Fill(dimuon.mass    )

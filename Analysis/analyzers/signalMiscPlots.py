@@ -29,10 +29,10 @@ def analyze(self, E):
 
     nDSA, nRSA = 0, 0
     for sel in DSASelections:
-        if sel.passesAcceptance():
+        if sel['pt'] and sel['eta']:
             nDSA += 1
     for sel in RSASelections:
-        if sel.passesAcceptance():
+        if sel['pt'] and sel['eta']:
             nRSA += 1
     self.HISTS['DSA_nMuon'].Fill(nDSA)
     self.HISTS['RSA_nMuon'].Fill(nRSA)
@@ -40,7 +40,7 @@ def analyze(self, E):
     # loop over genMuons and fill histograms based on matches
     for genMuon in (mu11, mu12, mu21, mu22):
         # cut genMuons outside the detector acceptance
-        genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
+        genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
         genMuonLxy = genMuon.LXY()

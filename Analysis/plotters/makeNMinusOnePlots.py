@@ -62,10 +62,7 @@ def makePerSignalPlots():
             p.SetLineColor(R.kBlue)
 
             cutKey = key.replace('_Less','').replace('_More','')
-            try:
-                cutVal = Selections.MuonCuts[cutKey].val
-            except:
-                cutVal = Selections.DimuonCuts[cutKey].val
+            cutVal = Selections.CUTS[cutKey].val
 
             l = R.TLine(cutVal, p.GetMinimum(), cutVal, p.GetMaximum()*1.05)
             l.SetLineStyle(2)

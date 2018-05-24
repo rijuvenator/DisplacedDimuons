@@ -1,5 +1,7 @@
 # How to run the nTupler
 
+Last updated: 17 May 2018
+
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
 voms-proxy-init -voms cms

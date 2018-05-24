@@ -38,9 +38,21 @@ WriteCMSRUNConfig(CONFIG)
 
 # submit to CRAB
 if CONFIG.CRAB and not CONFIG.TEST:
-    DATASETKEY = CFGParser.DEFAULT_DATASETS[CONFIG.NAME][CONFIG.SOURCE]
+    # get the dataset key for the dataset to run over
+    if CONFIG.NAME in CFGParser.DEFAULT_DATASETS:
+        SAMPLE = CONFIG.NAME
+    else:
+        SAMPLE = 'DEFAULT'
+    DATASETKEY = CFGParser.DEFAULT_DATASETS[SAMPLE][CONFIG.SOURCE]
+
+    # since crab mode doesn't do a DAS query, one final check to make sure
+    # we don't try to submit a CRAB job with _ as a dataset
+    if CONFIG.DATA.datasets[DATASETKEY] == '_':
+        print '[DATAHANDLER ERROR]: Invalid dataset _, likely a PATTuple set not created yet. Please try --aodonly for sample', CONFIG.DATA.name
+        exit()
+
     # crab submission script
-    # note the output directory: T2_CH_CERN, and /store/user/USER/
+    # note the output directory: T2_CH_CERN, and /store/user/USER/DisplacedDimuons/CRAB/
     # change this if desired
     CRAB_CFG = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
@@ -90,8 +102,11 @@ config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
     open(F_CRAB_CFG, 'w').write(CRAB_CFG)
     if CONFIG.SUBMIT:
         bash.call('crab submit -c {}'.format(F_CRAB_CFG), shell=True)
-    bash.call('rm {F} {F}c'.format(F=F_CRAB_CFG), shell=True)
-    bash.call('rm {F} {F}c'.format(F=F_CMS_CFG ), shell=True)
+        bash.call('rm {F} {F}c'.format(F=F_CRAB_CFG), shell=True)
+        bash.call('rm {F} {F}c'.format(F=F_CMS_CFG ), shell=True)
+    else:
+        bash.call('rm {F}'.format(F=F_CRAB_CFG), shell=True)
+        bash.call('rm {F}'.format(F=F_CMS_CFG ), shell=True)
 
 
 # submit to LXBATCH
