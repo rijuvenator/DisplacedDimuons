@@ -1,14 +1,14 @@
 import os
 import subprocess as bash
 import argparse
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 CMSSW_BASE = os.environ['CMSSW_BASE']
 
 parser = argparse.ArgumentParser()
-parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                 )
-parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                              )
-parser.add_argument('--samples', dest='SAMPLES', default='SBD'      , help='which samples to run: S(ignal), B(ackground), D(ata)')
+parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                            )
+parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                                         )
+parser.add_argument('--samples', dest='SAMPLES', default='S2BD'     , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
 args = parser.parse_args()
 
 SCRIPT = args.SCRIPT
@@ -20,7 +20,9 @@ DataSampleList = ('DoubleMuonRun2016D-07Aug17',)
 # prepare input arguments
 ArgsList = []
 if 'S' in args.SAMPLES:
-    ArgsList.extend(['--name HTo2XTo4Mu --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in RECOSIGNALPOINTS])
+    ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
+if 'S' in args.SAMPLES:
+    ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
 if 'B' in args.SAMPLES:
     ArgsList.extend(['--name {}'.format(NAME) for NAME in BGSampleList])
 if 'D' in args.SAMPLES:

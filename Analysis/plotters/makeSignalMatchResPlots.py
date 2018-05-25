@@ -1,7 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
@@ -28,7 +28,7 @@ def Cleanup(canvas, filename):
 
 # DSA RSA overlaid, per signal
 def makeResPlots(quantity):
-    for sp in RECOSIGNALPOINTS:
+    for sp in SIGNALPOINTS:
         DOFIT = quantity == 'pT'
         h = {
             'DSA' : HISTS[sp]['DSA_'+quantity+'Res'],
@@ -91,7 +91,7 @@ def makeColorPlot(MUON, quantity, q2=None):
     else:
         fstring = '{M}_{Q}ResVS{Q2}_HTo2XTo4Mu_'.format(M=MUON, Q=quantity, Q2=q2)
 
-    for i, sp in enumerate(RECOSIGNALPOINTS):
+    for i, sp in enumerate(SIGNALPOINTS):
         if i == 0:
             h = f.Get(fstring+'{SP}'.format(SP=SPStr(sp)))
             h.SetDirectory(0)
