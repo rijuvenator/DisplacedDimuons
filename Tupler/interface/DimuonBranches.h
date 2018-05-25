@@ -13,6 +13,7 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+#include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"

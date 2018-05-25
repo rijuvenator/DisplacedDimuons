@@ -1,5 +1,4 @@
 import re
-import collections
 import math
 import ROOT as R
 import DisplacedDimuons.Analysis.RootTools
@@ -56,25 +55,31 @@ class ETree(object):
     def getPrimitives(self, KEY, MCTYPE=None):
         if KEY == 'GEN':
             if MCTYPE == 'HTo2XTo4Mu':
-                muons   =             [GenMuon (self, i        ) for i in range(4)                 ]
-                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)              ]
+                muons   =             [GenMuon (self, i        ) for i in range(4)                  ]
+                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)               ]
                 return muons + mothers
             elif MCTYPE == 'HTo2XTo2Mu2J':
-                muons   =             [GenMuon (self, i        ) for i in range(2)                 ]
-                jets    =             [GenMuon (self, i        ) for i in range(2, 4)              ]
-                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)              ]
+                muons   =             [GenMuon (self, i        ) for i in range(2)                  ]
+                jets    =             [GenMuon (self, i        ) for i in range(2, 4)               ]
+                mothers =             [Particle(self, i, 'gen_') for i in range(4, 8)               ]
                 return muons + jets + mothers
             else:
-                return                [Particle(self, i, 'gen_') for i in range(len(self.gen_pt  ))]
-        if KEY == 'MUON'     : return [AODMuon (self, i        ) for i in range(len(self.mu_pt   ))]
-        if KEY == 'DSAMUON'  : return [RecoMuon(self, i, 'DSA' ) for i in range(len(self.dsamu_pt))]
-        if KEY == 'RSAMUON'  : return [RecoMuon(self, i, 'RSA' ) for i in range(len(self.rsamu_pt))]
-        if KEY == 'DIMUON'   : return [Dimuon  (self, i        ) for i in range(len(self.dim_pt  ))]
+                return                [Particle(self, i, 'gen_') for i in range(len(self.gen_eta  ))]
+        if KEY == 'MUON'     : return [AODMuon (self, i        ) for i in range(len(self.mu_eta   ))]
+        if KEY == 'DSAMUON'  : return [RecoMuon(self, i, 'DSA' ) for i in range(len(self.dsamu_eta))]
+        if KEY == 'RSAMUON'  : return [RecoMuon(self, i, 'RSA' ) for i in range(len(self.rsamu_eta))]
+        if KEY == 'DIMUON'   : return [Dimuon  (self, i        ) for i in range(len(self.dim_eta  ))]
         if KEY == 'VERTEX'   : return Vertex(self)
         if KEY == 'BEAMSPOT' : return Beamspot(self)
         if KEY == 'MET'      : return (self.met_pt, self.met_phi, self.met_gen_pt)
         if KEY == 'EVENT'    : return (self.evt_run, self.evt_lumi, self.evt_event, self.evt_bx)
         raise Exception('Unknown Primitives key '+KEY)
+
+    def get(self, attr, index=None):
+        if index is None:
+            return getattr(self, attr)
+        else:
+            return getattr(self, attr)[index]
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -84,22 +89,71 @@ class Primitive(object):
         pass
 
     def set(self, attr, E, E_attr, i):
-        setattr(self, attr, getattr(E, E_attr)[i])
+        setattr(self, attr, E.get(E_attr, i))
 
 # Particle class
 # sets all the variables, also sets pos, p4, and p3 vectors
 class Particle(Primitive):
     def __init__(self, E, i, prefix):
         Primitive.__init__(self)
-        for attr in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
-            self.set(attr, E, prefix+attr, i)
+
+        # set basic particle variables; see getMissingValues below
+        missing = self.getMissingValues(E, i, prefix)
+        for attr in ('pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
+            if attr in missing:
+                setattr(self, attr, missing[attr])
+            else:
+                self.set(attr, E, prefix+attr, i)
+
+        # set pdgID for gen particles
+        if prefix == 'gen_':
+            self.set(attr, E, prefix+'pdgID', i)
+
+        # set position TVector3
         self.pos = R.TVector3(self.x, self.y, self.z)
 
+        # set TLorentzVector
         self.p4 = R.TLorentzVector()
         self.p4.SetPtEtaPhiE(self.pt, self.eta, self.phi, self.energy)
 
         # this is an XYZ 3-vector!
         self.p3 = R.TVector3(*self.p4.Vect())
+
+    # Since the nTuples are no longer guaranteed to have all of the
+    # 9 basic particle variables above, so
+    # I have to compute them myself from what exists in the tree
+    # currently:
+    #  - dsamu and rsamu do not have pt, mass, energy, but have px, py, pz
+    #  - dim does not have energy, charge, but has mass and p
+    def getMissingValues(self, E, i, prefix):
+        missing = {}
+        if not hasattr(E, prefix+'pt'):
+            missing['pt'] = math.sqrt(sum((E.get(prefix+'p'+ii, i)**2. for ii in ('x', 'y'))))
+        if not hasattr(E, prefix+'mass'):
+            if 'mu' in prefix:
+                missing['mass'] = .105658375
+            else:
+                raise Exception('Mass for prefix '+prefix+' unavailable.')
+        if not hasattr(E, prefix+'energy'):
+            if hasattr(E, prefix+'p'):
+                momentum = E.get(prefix+'p', i)
+            else:
+                momentum = math.sqrt(sum((E.get(prefix+'p'+ii, i)**2. for ii in ('x', 'y', 'z'))))
+            if hasattr(E, prefix+'mass'):
+                mass = E.get(prefix+'mass', i)
+            else:
+                if 'mu' in prefix:
+                    mass = missing['mass']
+                else:
+                    raise Exception('Mass for prefix '+prefix+' unavailable.')
+            missing['energy'] = math.sqrt(mass**2. + momentum**2.)
+        if not hasattr(E, prefix+'charge'):
+            if 'dim' in prefix:
+                missing['charge'] = 0.
+            else:
+                raise Exception('Charge for prefix '+prefix+' unavailable.')
+        return missing
+
 
 # Muon classes
 # sets all the particle variables
@@ -114,20 +168,6 @@ class Muon(Particle):
     def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
 
-    # more intelligent function for computing Lxy
-    def LXY(self, mother=None):
-        if mother is None:
-            try:
-                return self.Lxy
-            except:
-                mother = R.TVector2(0., 0.)
-        else:
-            try:
-                mother = mother.pos.XYvector()
-            except:
-                pass
-        return (self.pos.XYvector() - mother).Mag()
-
 # AODMuon: see above
 # note that the gen muon attached to it is of type Muon
 class AODMuon(Muon):
@@ -141,8 +181,15 @@ class AODMuon(Muon):
 class GenMuon(Muon):
     def __init__(self, E, i):
         Muon.__init__(self, E, i, 'gen_')
-        for attr in ('d0', 'd00', 'cosAlpha', 'Lxy', 'pairDeltaR'):
+        for attr in ('d0', 'd00', 'cosAlpha', 'pairDeltaR'):
             self.set(attr, E, 'gen_'+attr, i)
+
+        # genMuons and dimuons get Lxy with Lxy()
+        # so make sure that the name doesn't collide
+        self.set('Lxy_', E, 'gen_Lxy', i)
+
+    def Lxy(self):
+        return self.Lxy_
 
 # RecoMuon: see above
 # the ImpactParameter is a member variable allowing easy access to d0, dz
@@ -154,7 +201,7 @@ class RecoMuon(Muon):
         elif tag == 'RSA':
             prefix = 'rsamu_'
         Muon.__init__(self, E, i, prefix)
-        for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'p'):
+        for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof'):
             self.set(attr, E, prefix+attr, i)
         self.IP = ImpactParameter(E, i, prefix)
         self.normChi2 = self.chi2/self.ndof if self.ndof != 0 else float('inf')
@@ -210,11 +257,41 @@ class ImpactParameter(Primitive):
 class Dimuon(Particle):
     def __init__(self, E, i):
         Particle.__init__(self, E, i, 'dim_')
-        for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'Lxy', 'deltaPhi', 'cosAlpha'):
+        for attr in ('idx1', 'idx2', 'normChi2', 'deltaR', 'deltaPhi', 'cosAlpha'):
             self.set(attr, E, 'dim_'+attr, i)
+        self.Lxy_ = TransverseDecayLength(E, i, 'dim_')
 
-    def LXY(self):
-        return self.Lxy
+    def __getattr__(self, name):
+        if name in ('Lxy', 'LxySig'):
+            return getattr(self.Lxy_, name)
+        raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
+
+# Lxy wrapper class for Lxy and its significance
+# and wrt PV or BS
+class TransverseDecayLength(Primitive):
+    def __init__(self, E, i, prefix):
+        Primitive.__init__(self)
+        for val in ('_', 'Sig_'):
+            for vertex in ('pv', 'bs'):
+                attr = 'Lxy'+val+vertex
+                self.set(attr, E, prefix+attr, i)
+
+    # val should be either None or SIG
+    # vertex should be either PV/pv or BS/bs
+    def getValue(self, val, vertex):
+        if val is None:
+            val = '_'
+        else:
+            val = val.title() + '_'
+        if val not in ('_', 'Sig_'):
+            raise Exception('"val" argument should be either None or SIG')
+        vertex = vertex.lower()
+        if vertex not in ('pv', 'bs'):
+            raise Exception('"vertex" argument should be either PV or BS')
+        return getattr(self, 'Lxy'+val+vertex)
+
+    def Lxy   (self, vertex='PV'): return self.getValue(None , vertex)
+    def LxySig(self, vertex='PV'): return self.getValue('SIG', vertex)
 
 # Vertex class
 # tree only saves primary vertex and nVtx
@@ -222,8 +299,8 @@ class Vertex(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz', 'chi2', 'ndof', 'ntrk'):
-            setattr(self, attr, getattr(E, 'vtx_pv_'+attr))
-        setattr(self, 'nvtx', getattr(E, 'vtx_nvtx'))
+            setattr(self, attr, E.get('vtx_pv_'+attr))
+        setattr(self, 'nvtx', E.get('vtx_nvtx'))
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)
@@ -233,7 +310,7 @@ class Beamspot(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz'):
-            setattr(self, attr, getattr(E, 'bs_'+attr))
+            setattr(self, attr, E.get('bs_'+attr))
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)

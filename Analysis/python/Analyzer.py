@@ -43,14 +43,14 @@ class Analyzer(object):
         ):
 
         # if this is a signal sample, make sure there's a signal point
-        # then set NAME unambiguously to HTo2XTo4Mu_mH_mX_cTau
-        if NAME.startswith('HTo2XTo4Mu'):
+        # then set NAME unambiguously to HTo2XTo**_mH_mX_cTau
+        if NAME.startswith('HTo2X'):
             if SIGNALPOINT is None:
-                raise Exception('Need a signal point for HTo2XTo4Mu MC signal.')
-            NAME = 'HTo2XTo4Mu_' + SIGNALPOINT.SPStr()
+                raise Exception('Need a signal point for HTo2X MC signal.')
+            NAME = NAME + '_' + SIGNALPOINT.SPStr()
 
         # if this is NOT a signal sample, make sure SIGNALPOINT is None
-        if not NAME.startswith('HTo2XTo4Mu'):
+        if not NAME.startswith('HTo2XTo'):
             SIGNALPOINT = None
 
         self.NAME       = NAME
@@ -80,7 +80,7 @@ class Analyzer(object):
             raise Exception('Invalid signature: expecting 5 or 8 arguments')
 
         # set HNAME to NAME_SampleName
-        # remember NAME is HTo2XTo4Mu_SPStr for signal
+        # remember NAME is HTo2XTo**_SPStr for signal
         HNAME = NAME+'_{}'.format(self.NAME)
 
         # declare the histogram

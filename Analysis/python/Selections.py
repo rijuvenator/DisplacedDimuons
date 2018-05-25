@@ -1,5 +1,6 @@
 import operator
 import math
+import DisplacedDimuons.Analysis.Primitives as Primitives
 
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264'}
@@ -46,7 +47,7 @@ CUTS = {
 ### ACCEPTANCE CUTS ###
     'a_pt'      : Cut('a_pt'      , lambda muon: muon.pt                            , operator.gt,  28.      ),
     'a_eta'     : Cut('a_eta'     , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
-    'a_Lxy'     : Cut('a_Lxy'     , lambda muon: muon.LXY()                         , operator.lt, 500.      ),
+    'a_Lxy'     : Cut('a_Lxy'     , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
 }
 
 # CutLists for access convenience (and ordering)
@@ -133,6 +134,7 @@ class Selection(object):
 class MuonSelection(Selection):
     def __init__(self, muon, cutList='MuonCutList'):
         Selection.__init__(self, cutList=cutList)
+        EnsureInstances(muon, Primitives.RecoMuon)
         self.results.update({key:CUTS[key].apply(muon) for key in self.cutList})
         self.results['all'] = all([self.results[key] for key in self.cutList])
 
@@ -141,6 +143,7 @@ class MuonSelection(Selection):
 class DimuonSelection(Selection):
     def __init__(self, dimuon, cutList='DimuonCutList'):
         Selection.__init__(self, cutList=cutList)
+        EnsureInstances(dimuon, Primitives.Dimuon)
         self.results.update({key:CUTS[key].apply(dimuon) for key in self.cutList})
         self.results['all'] = all([self.results[key] for key in self.cutList])
 
@@ -149,12 +152,23 @@ class DimuonSelection(Selection):
 class AcceptanceSelection(Selection):
     def __init__(self, genMuon, cutList='AcceptanceCutList'):
         Selection.__init__(self, cutList=cutList)
+        EnsureInstances(genMuon, Primitives.GenMuon)
         try:
             self.results.update({key:CUTS[key].apply(genMuon[0]) and
                                      CUTS[key].apply(genMuon[1]) for key in self.cutList})
         except:
             self.results.update({key:CUTS[key].apply(genMuon) for key in self.cutList})
         self.results['all'] = all([self.results[key] for key in self.cutList])
+
+# EnsureInstances: make sure that the object passed to Selection is the one expected
+def EnsureInstances(OBJ, CLASS):
+    try:
+        for obj in OBJ:
+            if not obj.__class__.__name__ == CLASS.__name__:
+                raise Exception('Object is not an instance of class "'+CLASS.__name__+'"')
+    except:
+        if not OBJ.__class__.__name__ == CLASS.__name__:
+            raise Exception('Object is not an instance of class "'+CLASS.__name__+'"')
 
 # Print full cut list as strings
 if __name__ == '__main__':
