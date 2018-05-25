@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pstring='\033[32m[ANALYZER TEST]: Testing \033[34m%s\033[32m%s\033[m'
+pstring='\033[32mANALYZER TEST: Testing \033[34m%s\033[32m%s\033[m'
 sstring='\033[32mSuccess.\033[m\n'
 fstring='\033[31mFail.\033[m\n'
 
@@ -8,7 +8,7 @@ fstring='\033[31mFail.\033[m\n'
 pushd ../analyzers/ >/dev/null
 
 # these scripts run on S B D
-for s in dimuonPlots nMinusOne
+for s in dimuonPlots nMinusOne tailCumulativePlots
 do
     printf "$pstring" $s " on SIGNAL... "
     python ${s}.py --name HTo2XTo4Mu --test >/dev/null 2>&1

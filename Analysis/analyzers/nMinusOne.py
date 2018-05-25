@@ -13,6 +13,7 @@ CUTKEYS = {
     'vtxChi2'  : {'AXES':(100,  0.,  5.)},
     'deltaR'   : {'AXES':(100,  0.,  5.)},
     'cosAlpha' : {'AXES':(100, -1.,  1.)},
+    'LxySig'   : {'AXES':(100,  0., 12.)},
 }
 for KEY in CUTKEYS:
     # the title is ;XTITLE;Counts
