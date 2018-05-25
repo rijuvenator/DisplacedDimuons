@@ -1,4 +1,5 @@
 #include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/DisplacedMuonFiller.h"
 
 #include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
 
@@ -22,6 +23,8 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 
   // Setup Kalman vertex fitter and activate the refit of the tracks
   KalmanVertexFitter kvf(true);
+
+  DisplacedMuonFiller muf;
 
   unsigned int i, j;
   reco::TrackCollection::const_iterator pmu, qmu;
@@ -86,6 +89,11 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 	// delta R between the tracks
 	float deltaR = rt1_p4.DeltaR(rt2_p4);
 
+	DisplacedMuon muon_cand1 = muf.Fill(rtt1.track(), ttB, verticesHandle, beamspotHandle);
+	muon_cand1.idx = i;
+	DisplacedMuon muon_cand2 = muf.Fill(rtt2.track(), ttB, verticesHandle, beamspotHandle);
+	muon_cand2.idx = j;
+
 	// fill tree
 	dim_idx1     .push_back(i            );
 	dim_idx2     .push_back(j            );
@@ -120,6 +128,8 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 		    << " Lxy(BS) significance = " << Lxysig_bs << std::endl;
 	  std::cout << "  dR = "  << deltaR << " dphi = " << deltaPhi
 		    << " cos(alpha) = "  << cosAlpha << std::endl;
+	  std::cout << "Refitted DSA muon info:" << muon_cand1;
+	  std::cout << "Refitted DSA muon info:" << muon_cand2;
 	}
       }
       else {
