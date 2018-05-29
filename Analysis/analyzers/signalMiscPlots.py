@@ -20,6 +20,10 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
+    if self.SP is None:
+        raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if '4Mu' not in self.NAME:
+        raise Exception('[ANALYZER ERROR]: This script runs on HTo2XTo4Mu only, for now')
     mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')

@@ -5,20 +5,28 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})')
+    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
 
 # get all histograms
 HISTS = {}
 f = R.TFile.Open('../analyzers/roots/SignalMiscPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-    matches = Patterns['HTo2XTo4Mu'].match(hkey)
-    key = matches.group(1)
-    sp = tuple(map(int, matches.group(2, 3, 4)))
-    if sp not in HISTS:
-        HISTS[sp] = {}
-    HISTS[sp][key] = f.Get(hkey)
+    if 'HTo2X' in hkey:
+        if '4Mu' in hkey:
+            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
+            matches = Patterns['HTo2XTo4Mu'].match(hkey)
+            fs = '4Mu'
+        elif '2Mu2J' in hkey:
+            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
+            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
+            fs = '2Mu2J'
+        key = matches.group(1)
+        sp = tuple(map(int, matches.group(2, 3, 4)))
+        if (fs, sp) not in HISTS:
+            HISTS[(fs, sp)] = {}
+        HISTS[(fs, sp)][key] = f.Get(hkey)
 
 # end of plot function boilerplate
 def Cleanup(canvas, filename):
@@ -27,7 +35,7 @@ def Cleanup(canvas, filename):
     canvas.deleteCanvas()
 
 # make DSA RSA overlaid per signal plots
-def makeOverlayPerSignalPlots():
+def makeOverlayPerSignalPlots(fs):
     KEYS = (
         'd0Dif',
         'nMuon',
@@ -35,12 +43,12 @@ def makeOverlayPerSignalPlots():
     for sp in SIGNALPOINTS:
         for key in KEYS:
             h = {}
-            h['DSA'] = HISTS[sp]['DSA_'+key]
-            h['RSA'] = HISTS[sp]['RSA_'+key]
+            h['DSA'] = HISTS[(fs, sp)]['DSA_'+key]
+            h['RSA'] = HISTS[(fs, sp)]['RSA_'+key]
             p = {}
             for rtype in h:
                 p[rtype] = Plotter.Plot(h[rtype], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(rtype), 'l', 'hist')
-            fname = 'pdfs/SMP_{}_HTo2XTo4Mu_{}.pdf'.format(key, SPStr(sp))
+            fname = 'pdfs/SMP_{}_HTo2XTo{}_{}.pdf'.format(key, fs, SPStr(sp))
 
             canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
             canvas.addMainPlot(p['DSA'])
@@ -65,4 +73,5 @@ def makeOverlayPerSignalPlots():
 
             Cleanup(canvas, fname)
 
-makeOverlayPerSignalPlots()
+for fs in ('4Mu',):
+    makeOverlayPerSignalPlots(fs)

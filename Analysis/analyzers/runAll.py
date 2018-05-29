@@ -21,7 +21,7 @@ DataSampleList = ('DoubleMuonRun2016D-07Aug17',)
 ArgsList = []
 if 'S' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-if 'S' in args.SAMPLES:
+if '2' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
 if 'B' in args.SAMPLES:
     ArgsList.extend(['--name {}'.format(NAME) for NAME in BGSampleList])

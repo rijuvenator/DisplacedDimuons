@@ -5,20 +5,28 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})')
+    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
 
 # get all histograms
 HISTS = {}
 f = R.TFile.Open('../analyzers/roots/SignalMatchResPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-    matches = Patterns['HTo2XTo4Mu'].match(hkey)
-    key = matches.group(1)
-    sp = tuple(map(int, matches.group(2, 3, 4)))
-    if sp not in HISTS:
-        HISTS[sp] = {}
-    HISTS[sp][key] = f.Get(hkey)
+    if 'HTo2X' in hkey:
+        if '4Mu' in hkey:
+            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
+            matches = Patterns['HTo2XTo4Mu'].match(hkey)
+            fs = '4Mu'
+        elif '2Mu2J' in hkey:
+            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
+            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
+            fs = '2Mu2J'
+        key = matches.group(1)
+        sp = tuple(map(int, matches.group(2, 3, 4)))
+        if (fs, sp) not in HISTS:
+            HISTS[(fs, sp)] = {}
+        HISTS[(fs, sp)][key] = f.Get(hkey)
 
 # end of plot function boilerplate
 def Cleanup(canvas, filename):
@@ -27,17 +35,17 @@ def Cleanup(canvas, filename):
     canvas.deleteCanvas()
 
 # DSA RSA overlaid, per signal
-def makeResPlots(quantity):
+def makeResPlots(quantity, fs):
     for sp in SIGNALPOINTS:
         DOFIT = quantity == 'pT'
         h = {
-            'DSA' : HISTS[sp]['DSA_'+quantity+'Res'],
-            'RSA' : HISTS[sp]['RSA_'+quantity+'Res']
+            'DSA' : HISTS[(fs, sp)]['DSA_'+quantity+'Res'],
+            'RSA' : HISTS[(fs, sp)]['RSA_'+quantity+'Res']
         }
         p = {}
         for MUON in h:
             p[MUON] = Plotter.Plot(h[MUON], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
-        fname = 'pdfs/SMR_{}_HTo2XTo4Mu_{}.pdf'.format(quantity+'Res', SPStr(sp))
+        fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
 
         if DOFIT:
             funcs = {}
@@ -85,11 +93,11 @@ def makeResPlots(quantity):
         Cleanup(canvas, fname)
 
 # make 3D color plots
-def makeColorPlot(MUON, quantity, q2=None):
+def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     if q2 is None:
-        fstring = '{M}_{Q}VS{Q}_HTo2XTo4Mu_'.format(M=MUON, Q=quantity)
+        fstring = '{M}_{Q}VS{Q}_HTo2XTo{FS}_'.format(M=MUON, Q=quantity, FS=fs)
     else:
-        fstring = '{M}_{Q}ResVS{Q2}_HTo2XTo4Mu_'.format(M=MUON, Q=quantity, Q2=q2)
+        fstring = '{M}_{Q}ResVS{Q2}_HTo2XTo{FS}_'.format(M=MUON, Q=quantity, FS=fs, Q2=q2)
 
     for i, sp in enumerate(SIGNALPOINTS):
         if i == 0:
@@ -108,10 +116,11 @@ def makeColorPlot(MUON, quantity, q2=None):
     Cleanup(canvas, 'pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
 
 # make plots
-for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-    makeResPlots(quantity)
-    makeColorPlot('DSA', quantity)
-    makeColorPlot('RSA', quantity)
-    for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
-        makeColorPlot('DSA', quantity, q2)
-        makeColorPlot('RSA', quantity, q2)
+for fs in ('4Mu',):
+    for quantity in ('pT', 'eta', 'phi', 'Lxy'):
+        makeResPlots(quantity, fs)
+        makeColorPlot('DSA', quantity, fs)
+        makeColorPlot('RSA', quantity, fs)
+        for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
+            makeColorPlot('DSA', quantity, fs, q2)
+        makeColorPlot('RSA', quantity, fs, q2)

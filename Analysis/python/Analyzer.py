@@ -38,6 +38,7 @@ class Analyzer(object):
     #  TEST: the result of the parser's test; whether or not run in test mode
     #  MAX_EVENTS: if something other than 1000; only does anything if TEST is true
     #  SPLITTING: a tuple: (number of events per job, job number 0-indexed)
+    #  TREELOOP: whether to actually loop over the tree (usually True)
     def __init__(self,
             NAME        = None,
             SIGNALPOINT = None,
@@ -46,7 +47,8 @@ class Analyzer(object):
             TREENAME    = T_DEFAULT,
             TEST        = False,
             MAX_EVENTS  = 1000,
-            SPLITTING   = None
+            SPLITTING   = None,
+            TREELOOP    = True
         ):
 
         # if this is a signal sample, make sure there's a signal point
@@ -68,6 +70,7 @@ class Analyzer(object):
         self.TEST       = TEST
         self.MAX        = MAX_EVENTS
         self.SPLITTING  = SPLITTING
+        self.TREELOOP   = TREELOOP
 
         self.HISTS      = {}
 
@@ -151,25 +154,26 @@ class Analyzer(object):
         # split the output into several files,
         # and tree gets addressed with GetEntry
         # either way, end at MAX if TEST, declare ETree, and analyze()
-        if self.SPLITTING is not None:
-            CHUNK, JOB = self.SPLITTING
-            ELOW, EHIGH = JOB*CHUNK, min((JOB+1)*CHUNK, t.GetEntries())
-            for INDEX in xrange(ELOW, EHIGH):
-                self.INDEX = INDEX
-                if self.TEST:
-                    if INDEX == self.MAX:
-                        break
-                t.GetEntry(INDEX)
-                E = Primitives.ETree(t, self.BRANCHKEYS)
-                self.analyze(E)
-        else:
-            for INDEX, EVENT in enumerate(t):
-                self.INDEX = INDEX
-                if self.TEST:
-                    if INDEX == self.MAX:
-                        break
-                E = Primitives.ETree(t, self.BRANCHKEYS)
-                self.analyze(E)
+        if self.TREELOOP:
+            if self.SPLITTING is not None:
+                CHUNK, JOB = self.SPLITTING
+                ELOW, EHIGH = JOB*CHUNK, min((JOB+1)*CHUNK, t.GetEntries())
+                for INDEX in xrange(ELOW, EHIGH):
+                    self.INDEX = INDEX
+                    if self.TEST:
+                        if INDEX == self.MAX:
+                            break
+                    t.GetEntry(INDEX)
+                    E = Primitives.ETree(t, self.BRANCHKEYS)
+                    self.analyze(E)
+            else:
+                for INDEX, EVENT in enumerate(t):
+                    self.INDEX = INDEX
+                    if self.TEST:
+                        if INDEX == self.MAX:
+                            break
+                    E = Primitives.ETree(t, self.BRANCHKEYS)
+                    self.analyze(E)
 
         self.end()
         f.Close()

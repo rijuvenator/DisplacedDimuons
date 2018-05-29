@@ -31,7 +31,7 @@ def getNM1Hists(ARGS):
 # set up a configuration dictionary with the same cut keys as in Selections
 CUTKEYS = {
     'd0Sig'    : {},
-#   'LxySig'   : {},
+    'LxySig'   : {},
 }
 for KEY in CUTKEYS:
     # the title is ;XTITLE;Counts
@@ -65,6 +65,8 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
+        FILE        = ARGS.FNAME,
+        TREELOOP    = False
     )
     analyzer.writeHistograms('roots/TailCumulativePlots_{}.root')
+    print "Done", ARGS.NAME

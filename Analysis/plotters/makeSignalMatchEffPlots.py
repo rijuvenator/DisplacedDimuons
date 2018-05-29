@@ -5,20 +5,28 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})')
+    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
 
 # get all histograms
 HISTS = {}
 f = R.TFile.Open('../analyzers/roots/SignalMatchEffPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-    matches = Patterns['HTo2XTo4Mu'].match(hkey)
-    key = matches.group(1)
-    sp = tuple(map(int, matches.group(2, 3, 4)))
-    if sp not in HISTS:
-        HISTS[sp] = {}
-    HISTS[sp][key] = f.Get(hkey)
+    if 'HTo2X' in hkey:
+        if '4Mu' in hkey:
+            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
+            matches = Patterns['HTo2XTo4Mu'].match(hkey)
+            fs = '4Mu'
+        elif '2Mu2J' in hkey:
+            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
+            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
+            fs = '2Mu2J'
+        key = matches.group(1)
+        sp = tuple(map(int, matches.group(2, 3, 4)))
+        if (fs, sp) not in HISTS:
+            HISTS[(fs, sp)] = {}
+        HISTS[(fs, sp)][key] = f.Get(hkey)
 
 # end of plot function boilerplate
 def Cleanup(canvas, filename):
@@ -27,7 +35,7 @@ def Cleanup(canvas, filename):
     canvas.deleteCanvas()
 
 # make overlaid plots that combine all signal points
-def makeEffPlots(quantity):
+def makeEffPlots(quantity, fs):
     HKeys = {
         'DSA_Eff'       : 'DSA_{}Eff'      ,
         'RSA_Eff'       : 'RSA_{}Eff'      ,
@@ -39,7 +47,7 @@ def makeEffPlots(quantity):
         'RSA_ChargeDen' : 'RSA_{}ChargeDen',
     }
     for key in HKeys:
-        HKeys[key] = (HKeys[key]+'_HTo2XTo4Mu').format(quantity) + '_{}'
+        HKeys[key] = (HKeys[key]+'_HTo2XTo'+fs).format(quantity) + '_{}'
 
     h = {}
     p = {}
@@ -90,4 +98,5 @@ def makeEffPlots(quantity):
         CHARGE = 'Charge'
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-    makeEffPlots(quantity)
+    for fs in ('4Mu',):
+        makeEffPlots(quantity, fs)

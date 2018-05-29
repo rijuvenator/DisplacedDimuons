@@ -55,6 +55,10 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
+    if self.SP is None:
+        raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if '4Mu' not in self.NAME:
+        raise Exception('[ANALYZER ERROR]: This script runs on HTo2XTo4Mu only, for now')
     mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
@@ -87,18 +91,21 @@ def analyze(self, E):
                             F2 = CONFIG[KEY2]['LAMBDA']
                             self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (F(closestRecoMuon)-F(genMuon))/F(genMuon))
                     # reco Lxy needs to be handled specially
-                    elif KEY == 'Lxy':
-                        if MUON == 'RSA': continue
-                        if len(Dimuons) == 0:
-                            recoLxy = closestRecoMuon.pos.Perp()
-                        else:
-                            recoLxy = LXY(matches[0]['idx'], Dimuons)
-                        for x in (0,):
-                            self.HISTS[MUON+'_'+KEY+'Res'          ].Fill((recoLxy-F(genMuon))/F(genMuon))
-                            self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(F(genMuon), recoLxy)
-                        for KEY2 in CONFIG:
-                            F2 = CONFIG[KEY2]['LAMBDA']
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (recoLxy-F(genMuon))/F(genMuon))
+                    #elif KEY == 'Lxy':
+                    #    if MUON == 'RSA': continue
+                    #    if len(Dimuons) == 0:
+                    #        recoLxy = closestRecoMuon.pos.Perp()
+                    #    else:
+                    #        try:
+                    #            recoLxy = LXY(matches[0]['idx'], Dimuons)
+                    #        except:
+                    #            recoLxy = 0.
+                    #    for x in (0,):
+                    #        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill((recoLxy-F(genMuon))/F(genMuon))
+                    #        self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(F(genMuon), recoLxy)
+                    #    for KEY2 in CONFIG:
+                    #        F2 = CONFIG[KEY2]['LAMBDA']
+                    #        self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (recoLxy-F(genMuon))/F(genMuon))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
