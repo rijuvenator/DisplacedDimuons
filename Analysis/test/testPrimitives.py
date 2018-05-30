@@ -30,12 +30,14 @@ KEYS = {
         'DIMUON'  : [-1, False],
 }
 
-LXYTest = []
+ErrorMessages = []
+
+LxyTest = []
 d0Test  = []
 
 # test collections
 for i, event in enumerate(t):
-    if i == 10: break
+    if i == 100: break
     E = Primitives.ETree(t)
     for KEY in KEYS:
         try:
@@ -43,34 +45,41 @@ for i, event in enumerate(t):
             try:
                 if len(Collection) > 0:
                     obj = Collection[0]
-                    if issubclass(obj.__class__, Primitives.Muon):
+                    if obj.__class__.__name__ == 'Dimuon':
                         try:
-                            x = obj.LXY()
-                        except:
-                            if KEY not in LXYTest:
-                                LXYTest.append(KEY)
-                    if isinstance(obj.__class__, Primitives.RecoMuon):
+                            x = obj.Lxy()
+                        except Exception as e:
+                            if e.message not in ErrorMessages:
+                                ErrorMessages.append(e.message)
+                            if KEY not in LxyTest:
+                                LxyTest.append(KEY)
+                    if obj.__class__.__name__ == 'RecoMuon':
                         try:
                             x = obj.d0(extrap='LIN')
                             s = obj.d0Sig(vertex='BS')
-                        except:
+                        except Exception as e:
+                            if e.message not in ErrorMessages:
+                                ErrorMessages.append(e.message)
                             if KEY not in d0Test:
                                 d0Test.append(KEY)
             except:
                 pass
-        except:
+        except Exception as e:
+            if e.message not in ErrorMessages:
+                ErrorMessages.append(e.message)
             KEYS[KEY][0] = i
             KEYS[KEY][1] = True
 
+if len(ErrorMessages) > 0:
+    eprint('Encountered the following error messages:')
+    for msg in ErrorMessages:
+        eprint('  '+msg)
 for KEY in KEYS:
     if not KEYS[KEY][1]:
         tprint('Successfully got all '+KEY+' ...')
     else:
         eprint('Problem getting '+KEY+', see e.g. event '+str(KEYS[KEY][0]))
-if len(LXYTest) > 0:
-    eprint('Lxy() failed for: '+' '.join(LXYTest))
-else:
-    tprint('Lxy() succeeded for all collections...')
+
 if len(d0Test) > 0:
     eprint('d0() or d0Sig() failed for: '+' '.join(d0Test))
 else:
@@ -86,10 +95,27 @@ Erred = False
 for i, event in enumerate(t):
     if i == 10: break
     E = Primitives.ETree(t, DecList=('GEN',))
+    mu11 = None
     try:
         mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     except:
         Erred = True
+
+    if mu11 is not None:
+        obj = mu11
+        if obj.__class__.__name__ == 'GenMuon':
+            try:
+                x = obj.Lxy()
+            except Exception as e:
+                if e.message not in ErrorMessages:
+                    ErrorMessages.append(e.message)
+                if KEY not in LxyTest:
+                    LxyTest.append(KEY)
+
+if len(LxyTest) > 0:
+    eprint('Lxy() failed for: '+' '.join(LxyTest))
+else:
+    tprint('Lxy() succeeded for all collections...')
 
 if not Erred:
     tprint('Successfully got all 4Mu gen particles...')

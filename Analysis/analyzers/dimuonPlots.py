@@ -30,7 +30,7 @@ def analyze(self, E):
     RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
 
     for dimuon in Dimuons:
-        if DSASelections[dimuon.idx1].passesAcceptance() and DSASelections[dimuon.idx2].passesAcceptance():
+        if DSASelections[dimuon.idx1] and DSASelections[dimuon.idx2] and Selections.DimuonSelection(dimuon):
             self.HISTS['Dim_vtxChi2' ].Fill(dimuon.normChi2)
             self.HISTS['Dim_deltaR'  ].Fill(dimuon.deltaR  )
             self.HISTS['Dim_mass'    ].Fill(dimuon.mass    )
@@ -41,6 +41,7 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
@@ -49,6 +50,6 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('DSAMUON', 'RSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = Analyzer.F_AOD_NTUPLE
+        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/DimuonPlots_{}.root')

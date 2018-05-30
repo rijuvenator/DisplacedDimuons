@@ -29,18 +29,16 @@ class RSAMuonBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
-    std::vector<int  > rsamu_pdgID        ;
-		std::vector<float> rsamu_pt           ;
+		std::vector<float> rsamu_px           ;
+		std::vector<float> rsamu_py           ;
+		std::vector<float> rsamu_pz           ;
 		std::vector<float> rsamu_eta          ;
 		std::vector<float> rsamu_phi          ;
-		std::vector<float> rsamu_mass         ;
-		std::vector<float> rsamu_energy       ;
 		std::vector<int  > rsamu_charge       ;
 		std::vector<float> rsamu_x            ;
 		std::vector<float> rsamu_y            ;
 		std::vector<float> rsamu_z            ;
 
-		std::vector<float> rsamu_p            ;
 		std::vector<float> rsamu_chi2         ;
 		std::vector<int>   rsamu_ndof         ;
 
@@ -71,18 +69,16 @@ class RSAMuonBranches : public BranchCollection
 		// methods
 		void Declarations()
 		{
-			Declare("rsamu_pdgID"        , rsamu_pdgID        );
-			Declare("rsamu_pt"           , rsamu_pt           );
+			Declare("rsamu_px"           , rsamu_px           );
+			Declare("rsamu_py"           , rsamu_py           );
+			Declare("rsamu_pz"           , rsamu_pz           );
 			Declare("rsamu_eta"          , rsamu_eta          );
 			Declare("rsamu_phi"          , rsamu_phi          );
-			Declare("rsamu_mass"         , rsamu_mass         );
-			Declare("rsamu_energy"       , rsamu_energy       );
 			Declare("rsamu_charge"       , rsamu_charge       );
 			Declare("rsamu_x"            , rsamu_x            );
 			Declare("rsamu_y"            , rsamu_y            );
 			Declare("rsamu_z"            , rsamu_z            );
 
-			Declare("rsamu_p"            , rsamu_p            );
 			Declare("rsamu_chi2"         , rsamu_chi2         );
 			Declare("rsamu_ndof"         , rsamu_ndof         );
 
@@ -113,18 +109,16 @@ class RSAMuonBranches : public BranchCollection
 
 		void Reset()
 		{
-      rsamu_pdgID        .clear();
-			rsamu_pt           .clear();
+			rsamu_px           .clear();
+			rsamu_py           .clear();
+			rsamu_pz           .clear();
 			rsamu_eta          .clear();
 			rsamu_phi          .clear();
-      rsamu_mass         .clear();
-      rsamu_energy       .clear();
 			rsamu_charge       .clear();
 			rsamu_x            .clear();
 			rsamu_y            .clear();
 			rsamu_z            .clear();
 
-			rsamu_p            .clear();
 			rsamu_chi2         .clear();
 			rsamu_ndof         .clear();
 

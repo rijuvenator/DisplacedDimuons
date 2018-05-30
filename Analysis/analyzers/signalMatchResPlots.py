@@ -8,7 +8,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
 def LXY(idx, dimuons):
     dmList = [dm for dm in dimuons if dm.idx1 == idx or dm.idx2 == idx]
     dmList.sort(key=lambda dm: dm.normChi2)
-    return dmList[0].Lxy
+    return dmList[0].Lxy()
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
@@ -16,7 +16,7 @@ VALUES  = (
     ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.LXY()    , 'L_{xy}' ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' ),
     ('dR' , '#DeltaR'    , (1000,       0.,      5.), lambda gm  : gm.pairDeltaR , '#DeltaR'),
 )
 CONFIG = {}
@@ -66,11 +66,11 @@ def analyze(self, E):
     # loop over genMuons and fill histograms based on matches
     for genMuon in (mu11, mu12, mu21, mu22):
         # cut genMuons outside the detector acceptance
-        genMuonSelection = Selections.MuonSelection(genMuon, cutList='MuonAcceptanceCutList')
+        genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
         # find closest matched reco muon for DSA and RSA
-        genMuonLxy = genMuon.LXY()
+        genMuonLxy = genMuon.Lxy()
         foundDSA = False
         for MUON, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
@@ -90,7 +90,7 @@ def analyze(self, E):
                     elif KEY == 'Lxy':
                         if MUON == 'RSA': continue
                         if len(Dimuons) == 0:
-                            recoLxy = F(closestRecoMuon)
+                            recoLxy = closestRecoMuon.pos.Perp()
                         else:
                             recoLxy = LXY(matches[0]['idx'], Dimuons)
                         for x in (0,):
@@ -103,6 +103,7 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
@@ -111,6 +112,6 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = Analyzer.F_AOD_NTUPLE
+        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/SignalMatchResPlots_{}.root')

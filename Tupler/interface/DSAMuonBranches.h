@@ -29,18 +29,16 @@ class DSAMuonBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
-    std::vector<int  > dsamu_pdgID        ;
-		std::vector<float> dsamu_pt           ;
+		std::vector<float> dsamu_px           ;
+		std::vector<float> dsamu_py           ;
+		std::vector<float> dsamu_pz           ;
 		std::vector<float> dsamu_eta          ;
 		std::vector<float> dsamu_phi          ;
-		std::vector<float> dsamu_mass         ;
-		std::vector<float> dsamu_energy       ;
 		std::vector<int  > dsamu_charge       ;
 		std::vector<float> dsamu_x            ;
 		std::vector<float> dsamu_y            ;
 		std::vector<float> dsamu_z            ;
 
-		std::vector<float> dsamu_p            ;
 		std::vector<float> dsamu_chi2         ;
 		std::vector<int>   dsamu_ndof         ;
 
@@ -71,18 +69,16 @@ class DSAMuonBranches : public BranchCollection
 		// methods
 		void Declarations()
 		{
-			Declare("dsamu_pdgID"        , dsamu_pdgID        );
-			Declare("dsamu_pt"           , dsamu_pt           );
+			Declare("dsamu_px"           , dsamu_px           );
+			Declare("dsamu_py"           , dsamu_py           );
+			Declare("dsamu_pz"           , dsamu_pz           );
 			Declare("dsamu_eta"          , dsamu_eta          );
 			Declare("dsamu_phi"          , dsamu_phi          );
-			Declare("dsamu_mass"         , dsamu_mass         );
-			Declare("dsamu_energy"       , dsamu_energy       );
 			Declare("dsamu_charge"       , dsamu_charge       );
 			Declare("dsamu_x"            , dsamu_x            );
 			Declare("dsamu_y"            , dsamu_y            );
 			Declare("dsamu_z"            , dsamu_z            );
 
-			Declare("dsamu_p"            , dsamu_p            );
 			Declare("dsamu_chi2"         , dsamu_chi2         );
 			Declare("dsamu_ndof"         , dsamu_ndof         );
 
@@ -113,18 +109,16 @@ class DSAMuonBranches : public BranchCollection
 
 		void Reset()
 		{
-      dsamu_pdgID        .clear();
-			dsamu_pt           .clear();
+			dsamu_px           .clear();
+			dsamu_py           .clear();
+			dsamu_pz           .clear();
 			dsamu_eta          .clear();
 			dsamu_phi          .clear();
-      dsamu_mass         .clear();
-      dsamu_energy       .clear();
 			dsamu_charge       .clear();
 			dsamu_x            .clear();
 			dsamu_y            .clear();
 			dsamu_z            .clear();
 
-			dsamu_p            .clear();
 			dsamu_chi2         .clear();
 			dsamu_ndof         .clear();
 

@@ -1,7 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
@@ -45,7 +45,7 @@ def makeEffPlots(quantity):
     p = {}
     g = {}
 
-    for i, sp in enumerate(RECOSIGNALPOINTS):
+    for i, sp in enumerate(SIGNALPOINTS):
         if i == 0:
             for key in HKeys:
                 h[key] = f.Get(HKeys[key].format(SPStr(sp)))
