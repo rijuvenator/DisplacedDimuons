@@ -53,7 +53,6 @@ CUTS = {
 # CutLists for access convenience (and ordering)
 CutLists = {
     'MuonCutList'      : ('pt', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
-#   'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha'),
     'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList': ('a_pt', 'a_eta', 'a_Lxy'),
 }
@@ -78,6 +77,8 @@ PrettyTitles = {
     'a_pt'      : 'p_{T}',
     'a_eta'     : '#eta',
     'a_Lxy'     : 'L_{xy}',
+    'Lxy'       : 'L_{xy}',
+    'd0'        : 'd_{0}',
     'all'       : 'all',
     'none'      : 'none',
 }

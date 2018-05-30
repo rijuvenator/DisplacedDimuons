@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: 22 May 2018
+Last updated: 30 May 2018
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -8,7 +8,7 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
 
 The `python/` directory contains the following libraries:
 
-  * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT or to simplify working with Python
+  * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT nor to simplify working with Python
   * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOne.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
     * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
     * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
@@ -56,7 +56,11 @@ for event in t:
 
 ## Dumpers
 
-`dumpers/` is my name for Python analysis scripts that print text to the screen, as opposed to making plots. Currently, the only relevant dumper is `cutEfficiencies.py`, which is a sort of test script for computing selection efficiences. As always, `runAll` submits jobs to the batch system.
+`dumpers/` is my name for Python analysis scripts that print text to the screen, as opposed to making plots.
+
+The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`, which here is symbolically linked to the file in `../analyzers/`.
+
+  * **cutEfficiencies.py** produces lines of cut efficiencies for muon and dimuon cuts, both individually and sequentially.
 
 ## Analyzers
 
@@ -68,8 +72,10 @@ The following analyzers do not use the full _Primitives_ and _Analyzer_ machiner
 
 The following analyzers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`.
 
+  * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
   * **nMinusOne.py** produces N-1 plots, distributions of the cut parameters.
+  * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOne.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalMiscPlots.py** produces a few other reco level plots that have not been moved into more dedicated analyzers.
@@ -94,9 +100,10 @@ python runAll.py nMinusOne.py --samples SBD
 The following plotters open the `hadd`-ed ROOT files produced by their respective analyzer and produce actual styled `.pdf` plot files, using the _Plotter_ library.
 
   * **makeGenPlots.py** makes plots from ROOT files produced by **genPlots.py**
+  * **makeRecoMuonPlots.py** makes plots from ROOT files produced by **recoMuonPlots.py**
   * **makeDimuonPlots.py** makes plots from ROOT files produced by **dimuonPlots.py**
   * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOne.py**
-  * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOne.py**
+  * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
   * **makeSignalMiscPlots.py** makes plots from ROOT files produced by **signalMiscPlots.py**

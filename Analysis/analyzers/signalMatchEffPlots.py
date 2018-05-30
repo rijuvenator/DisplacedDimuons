@@ -38,17 +38,23 @@ def declareHistograms(self):
 def analyze(self, E):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
-    if '4Mu' not in self.NAME:
-        raise Exception('[ANALYZER ERROR]: This script runs on HTo2XTo4Mu only, for now')
-    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+    if '4Mu' in self.NAME:
+        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        genMuons = (mu11, mu12, mu21, mu22)
+    elif '2Mu2J' in self.NAME:
+        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        genMuons = (mu1, mu2)
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
 
+    selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+    selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+
     # loop over genMuons and fill histograms based on matches
-    for genMuon in (mu11, mu12, mu21, mu22):
+    for genMuon in genMuons:
         # cut genMuons outside the detector acceptance
         genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
@@ -60,7 +66,7 @@ def analyze(self, E):
 
         # find closest matched reco muon for DSA and RSA
         foundDSA = False
-        for MUON, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
+        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
             if len(matches) != 0:
                 # take the closest match
