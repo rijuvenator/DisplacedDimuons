@@ -3,36 +3,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
+import HistogramGetter
 
-Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
-}
-
-# get all histograms
-HISTS = {}
+# get histograms
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMiscPlots.root')
 f = R.TFile.Open('../analyzers/roots/SignalMiscPlots.root')
-for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    if 'HTo2X' in hkey:
-        if '4Mu' in hkey:
-            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-            matches = Patterns['HTo2XTo4Mu'].match(hkey)
-            fs = '4Mu'
-        elif '2Mu2J' in hkey:
-            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
-            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
-            fs = '2Mu2J'
-        key = matches.group(1)
-        sp = tuple(map(int, matches.group(2, 3, 4)))
-        if (fs, sp) not in HISTS:
-            HISTS[(fs, sp)] = {}
-        HISTS[(fs, sp)][key] = f.Get(hkey)
-
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-    canvas.finishCanvas()
-    canvas.save(filename)
-    canvas.deleteCanvas()
 
 # make DSA RSA overlaid per signal plots
 def makeOverlayPerSignalPlots(fs):
@@ -71,7 +46,7 @@ def makeOverlayPerSignalPlots(fs):
             if key == 'nMuon':
                 canvas.firstPlot.SetMaximum(1.05 * max(p['DSA'].GetMaximum(), p['RSA'].GetMaximum()))
 
-            Cleanup(canvas, fname)
+            canvas.cleanup(fname)
 
 for fs in ('4Mu',):
     makeOverlayPerSignalPlots(fs)

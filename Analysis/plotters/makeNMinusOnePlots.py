@@ -3,47 +3,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr
+import HistogramGetter
 
-Patterns = {
-    'HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
-}
-for sample in ('DY100to200', 'DoubleMuonRun2016D-07Aug17'):
-    Patterns[sample] = re.compile(r'(.*)_'+sample)
-
-# get all histograms
-HISTS = {}
+# get histograms
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/nMinusOne.root')
 f = R.TFile.Open('../analyzers/roots/nMinusOne.root')
-for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    if 'HTo2X' in hkey:
-        if '4Mu' in hkey:
-            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-            matches = Patterns['HTo2XTo4Mu'].match(hkey)
-            fs = '4Mu'
-        elif '2Mu2J' in hkey:
-            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
-            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
-            fs = '2Mu2J'
-        key = matches.group(1)
-        sp = tuple(map(int, matches.group(2, 3, 4)))
-        if (fs, sp) not in HISTS:
-            HISTS[(fs, sp)] = {}
-        HISTS[(fs, sp)][key] = f.Get(hkey)
-    else:
-        # hkey has the form KEY_SAMPLE
-        for sample, pattern in Patterns.iteritems():
-            matches = pattern.match(hkey)
-            if matches:
-                key = matches.group(1)
-                if sample not in HISTS:
-                    HISTS[sample] = {}
-                HISTS[sample][key] = f.Get(hkey)
-
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-    canvas.finishCanvas()
-    canvas.save(filename)
-    canvas.deleteCanvas()
 
 # make per signal plots
 def makePerSignalPlots():
@@ -77,7 +41,7 @@ def makePerSignalPlots():
             l.SetLineWidth(2)
             l.Draw()
 
-            Cleanup(canvas, fname)
+            canvas.cleanup(fname)
 
 # make stack plots
 def makeStackPlots(DataMC=False):
@@ -86,7 +50,7 @@ def makeStackPlots(DataMC=False):
         h = {
             'DY100to200' : HISTS['DY100to200'                ][hkey],
             'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey],
-            'Signal'     : HISTS[(125, 20, 13)               ][hkey],
+            'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey],
             'BG'         : R.THStack('hBG', '')
         }
 
@@ -125,7 +89,7 @@ def makeStackPlots(DataMC=False):
         p['Signal'    ].SetLineStyle(2)
         p['Signal'    ].SetLineColor(R.kRed)
 
-        Cleanup(canvas, fname)
+        canvas.cleanup(fname)
 
 makePerSignalPlots()
-#makeStackPlots(True)
+makeStackPlots(True)

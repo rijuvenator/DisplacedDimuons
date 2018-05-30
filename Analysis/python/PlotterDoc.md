@@ -123,6 +123,7 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas.finishCanvas    ()
   * Canvas.save            (name, extList='')
   * Canvas.deleteCanvas    ()
+  * Canvas.cleanup         (filename)
 ```
 
 ## HOW TO USE THE PLOTTER MODULE

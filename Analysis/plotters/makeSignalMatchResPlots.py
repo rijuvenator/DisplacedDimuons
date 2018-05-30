@@ -3,36 +3,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
+import HistogramGetter
 
-Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
-}
-
-# get all histograms
-HISTS = {}
+# get histograms
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchResPlots.root')
 f = R.TFile.Open('../analyzers/roots/SignalMatchResPlots.root')
-for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    if 'HTo2X' in hkey:
-        if '4Mu' in hkey:
-            # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-            matches = Patterns['HTo2XTo4Mu'].match(hkey)
-            fs = '4Mu'
-        elif '2Mu2J' in hkey:
-            # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
-            matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
-            fs = '2Mu2J'
-        key = matches.group(1)
-        sp = tuple(map(int, matches.group(2, 3, 4)))
-        if (fs, sp) not in HISTS:
-            HISTS[(fs, sp)] = {}
-        HISTS[(fs, sp)][key] = f.Get(hkey)
-
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-    canvas.finishCanvas()
-    canvas.save(filename)
-    canvas.deleteCanvas()
 
 # DSA RSA overlaid, per signal
 def makeResPlots(quantity, fs):
@@ -90,7 +65,7 @@ def makeResPlots(quantity, fs):
             p['RSA'].FindObject('stats').SetTextColor(R.kGreen+1)
             Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.5, NDC=True)
 
-        Cleanup(canvas, fname)
+        canvas.cleanup(fname)
 
 # make 3D color plots
 def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
@@ -113,7 +88,7 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     canvas.addMainPlot(p)
     canvas.scaleMargins(1.75, edges='R')
     canvas.scaleMargins(0.8, edges='L')
-    Cleanup(canvas, 'pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
+    canvas.cleanup('pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
 
 # make plots
 for fs in ('4Mu',):

@@ -14,12 +14,6 @@ for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
 		HISTS[sp] = {}
 	HISTS[sp][key] = f.Get(hkey)
 
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-	canvas.finishCanvas()
-	canvas.save(filename)
-	canvas.deleteCanvas()
-
 # make plots using Plotter class per signal point
 def makePerSignalPlots():
 	for sp in SIGNALPOINTS:
@@ -31,6 +25,6 @@ def makePerSignalPlots():
 			p.SetLineColor(R.kBlue)
 			canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
 			canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
-			Cleanup(canvas, 'pdfs/Gen_{}_HTo2XTo4Mu_{}.pdf'.format(key, SPStr(sp)))
+			canvas.cleanup('pdfs/Gen_{}_HTo2XTo4Mu_{}.pdf'.format(key, SPStr(sp)))
 
 makePerSignalPlots()
