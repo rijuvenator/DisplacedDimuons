@@ -1,5 +1,4 @@
 #include "DisplacedDimuons/Tupler/interface/RSAMuonBranches.h"
-#include "DisplacedDimuons/Tupler/interface/DisplacedMuonFiller.h"
 
 bool RSAMuonBranches::alreadyPrinted_ = false;
 

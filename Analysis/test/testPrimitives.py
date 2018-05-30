@@ -1,12 +1,16 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
+# test files; you may need to replace ~/eos with root://eoscms.cern.ch//eos/cms/store/user/adasgupt/
+F_NTUPLE = '~/eos/DisplacedDimuons/NTuples/ntuple_DY100to200.root'
+F_SIGNAL = '~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
+
 def tprint(msg):
     print '\033[32mPRIMITIVES TEST: ' + msg + '\033[m'
 def eprint(msg):
     print '\033[31mPRIMITIVES TEST: ' + msg + '\033[m'
 
-f = R.TFile.Open('~/eos/DisplacedDimuons/NTuples/ntuple_DY100to200.root')
+f = R.TFile.Open(F_NTUPLE)
 t = f.Get('SimpleNTupler/DDTree')
 
 # test tree
@@ -86,7 +90,7 @@ else:
     tprint('d0() or d0Sig() succeeded for all collections...')
 
 # test signal gen particles
-f = R.TFile.Open('~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root')
+f = R.TFile.Open(F_SIGNAL)
 t = f.Get('SimpleNTupler/DDTree')
 Primitives.SelectBranches(t, DecList=('GEN',))
 

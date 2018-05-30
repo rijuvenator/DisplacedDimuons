@@ -2,12 +2,15 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
 
+# test files; you may need to replace ~/eos with root://eoscms.cern.ch//eos/cms/store/user/adasgupt/
+F_SIGNAL = '~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
+
 def tprint(msg):
     print '\033[32mSELECTIONS TEST: ' + msg + '\033[m'
 def eprint(msg):
     print '\033[31mSELECTIONS TEST: ' + msg + '\033[m'
 
-f = R.TFile.Open('~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root')
+f = R.TFile.Open(F_SIGNAL)
 t = f.Get('SimpleNTupler/DDTree')
 
 # test tree

@@ -13,6 +13,7 @@
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
+#include "DisplacedDimuons/Tupler/interface/DisplacedMuonFiller.h"
 
 // muon branch collection
 class RSAMuonBranches : public BranchCollection

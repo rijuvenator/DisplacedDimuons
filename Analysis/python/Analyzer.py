@@ -23,6 +23,8 @@ def setFNAME(ARGS):
         ARGS.FNAME = F_AOD_NTUPLE
     else:
         ARGS.FNAME = F_NTUPLE
+    if not 'lxplus' in os.environ['HOSTNAME']:
+        ARGS.FNAME = Constants.PREFIX_CERN + ARGS.FNAME
 
 F_DEFAULT = F_NTUPLE
 T_DEFAULT = T_NTUPLE
