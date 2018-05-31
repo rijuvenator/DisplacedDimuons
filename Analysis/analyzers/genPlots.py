@@ -1,3 +1,4 @@
+import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
@@ -35,19 +36,24 @@ class HistogramConfigurations(object):
         self.attr2d = ('name', 'xTitle', 'yTitle', 'nBinsX', 'binLowX', 'binHighX', 'nBinsY', 'binLowY', 'binHighY')
 
         self.data = {}
+        
         self.data['massH'     ] = self.makeAttrDict((self.HName('massH'     ), 'Higgs Mass [GeV]' , 'Counts'        , 100, mH*(1-HErr), mH*(1+HErr)))
         self.data['massX'     ] = self.makeAttrDict((self.HName('massX'     ), 'X Mass [GeV]'     , 'Counts'        , 100, mX*(1-XErr), mX*(1+XErr)))
         self.data['cTau'      ] = self.makeAttrDict((self.HName('cTau'      ), 'c#tau [mm]'       , 'Counts'        , 100, 0.         , cTau*6.    ))
         self.data['pTH'       ] = self.makeAttrDict((self.HName('pTH'       ), 'Higgs p_{T} [GeV]', 'Counts'        , 100, 0.         , HPtUpper   ))
         self.data['pTX'       ] = self.makeAttrDict((self.HName('pTX'       ), 'X p_{T} [GeV]'    , 'Counts'        , 100, 0.         , XPtUpper   ))
+        self.data['pTmu'      ] = self.makeAttrDict((self.HName('pTmu'      ), '#mu p_{T} [GeV]'  , 'Counts'        , 100, 0.         , MuPtUpper  ))
         self.data['beta'      ] = self.makeAttrDict((self.HName('beta'      ), '#beta = v/c'      , 'Counts'        , 100, 0.         , 1.         ))
+        self.data['etaMu'     ] = self.makeAttrDict((self.HName('etaMu'     ), '#mu #eta'         , 'Counts'        , 100, -5.        , 5          ))
+        self.data['dPhi'      ] = self.makeAttrDict((self.HName('dPhi'      ), '#mu #Delta#phi'   , 'Counts'        , 100, -math.pi   , math.pi    ))
+        self.data['cosAlpha'  ] = self.makeAttrDict((self.HName('cosAlpha'  ), 'cos(#alpha)'      , 'Counts'        , 100, -1.        , 1.         ))
         self.data['Lxy'       ] = self.makeAttrDict((self.HName('Lxy'       ), 'L_{xy} [mm]'      , 'Counts'        , 100, 0.         , LxyUpper   ))
         self.data['d0'        ] = self.makeAttrDict((self.HName('d0'        ), 'd_{0} [mm]'       , 'Counts'        , 100, 0.         , cTau*2.    ))
-        self.data['pTmu'      ] = self.makeAttrDict((self.HName('pTmu'      ), '#mu p_{T} [GeV]'  , 'Counts'        , 100, 0.         , MuPtUpper  ))
         self.data['d00'       ] = self.makeAttrDict((self.HName('d00'       ), '#Deltad_{0} [cm]' , 'Counts'        , 100, -.1        , .1         ))
         self.data['dR'        ] = self.makeAttrDict((self.HName('dR'        ), '#DeltaR'          , 'Counts'        , 100, 0.         , 4.5        ))
         self.data['LxyVsLz'   ] = self.makeAttrDict((self.HName('LxyVsLz'   ), 'L_z [mm]'         , 'L_{xy} [mm]'   , 350, 0.         , 1000       , 200, 0., 50.))
-        self.data['d00VspTrel'] = self.makeAttrDict((self.HName('d00VspTrel'), '#Deltad_{0} [cm]' , 'p_{T}rel [GeV]', 100, 0.         , 50.        , 100, 0., 50.))
+        self.data['d00VspTrel'] = self.makeAttrDict((self.HName('d00VspTrel'), '#Deltad_{0} [cm]' , 'p_{T}rel [GeV]', 100, -.1         , .1        , 100, 0., 50.))
+
 
     def HName(self, key):
         return key + '_' + SPStr(self.mH, self.mX, self.cTau)
@@ -78,7 +84,6 @@ def Draw(t, HConfig, key, expressions):
 def fillPlots(sp, HList):
     # get file and tree
     f = R.TFile.Open(DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo4Mu', SPStr(sp)))
-
     t = f.Get('SimpleNTupler/DDTree')
 
     # set basic particle aliases
@@ -119,16 +124,19 @@ FILES = {}
 #   'cTau',
 #   'pTH',
 #   'pTX',
+#   'pTmu',
 #   'beta',
+#   'etaMu',
+#   'dPhi',
+#   'cosAlpha',
 #   'Lxy',
 #   'd0',
-#   'pTmu',
 #   'd00',
 #   'LxyVsLz',
 #   'd00VspTrel'
 #)
-# with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX beta Lxy d0 pTmu d00 dR
-# for convenience convert with            : parallel ./convertone.sh ::: $(ls pdfs/{massH,massX,cTau,pTH,pTX,beta,Lxy,d0,pTmu,d00,dR}_*.pdf)
+# with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX pTmu beta etaMu dPhi cosAlpha Lxy d0 d00 dR
+# for convenience convert with            : parallel ./convertone.sh ::: $(ls pdfs/{massH,massX,cTau,pTH,pTX,pTmu,beta,etaMu,dPhi,cosAlpha,Lxy,d0,d00,dR}_*.pdf)
 import sys
 HList = (sys.argv[-1],)
 
@@ -138,9 +146,10 @@ HAliases = {
     'cTau2'    : 'X2.mass/sqrt(pow(X2.energy,2)-pow(X2.mass,2))*sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2) + pow(mu21.z-X2.z,2))*10.',
     'beta1'    : 'sqrt(pow(X1.energy,2)-pow(X1.mass,2))/X1.energy',
     'beta2'    : 'sqrt(pow(X2.energy,2)-pow(X2.mass,2))/X2.energy',
+    'dPhi1'    : 'TVector2::Phi_mpi_pi(mu11.phi-mu12.phi)',
+    'dPhi2'    : 'TVector2::Phi_mpi_pi(mu21.phi-mu22.phi)',
     'Lxy1'     : 'sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2))*10.',
     'Lxy2'     : 'sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2))*10.',
-    'Lz1'      : 'abs(mu11.z-X1.z)',
     'Lz2'      : 'abs(mu21.z-X2.z)',
     'd011'     : '(mu11.d0)*10.',
     'd012'     : '(mu12.d0)*10.',
@@ -152,10 +161,10 @@ HAliases = {
     'd0022'    : 'TMath::Abs(mu22.x*mu22.pt*TMath::Sin(mu22.phi)-mu22.y*mu22.pt*TMath::Cos(mu22.phi))/mu22.pt-mu22.d0',
     'dR1'      : 'sqrt(pow(mu11.eta-mu12.eta,2) + pow(TVector2::Phi_mpi_pi(mu11.phi-mu12.phi),2))',
     'dR2'      : 'sqrt(pow(mu21.eta-mu22.eta,2) + pow(TVector2::Phi_mpi_pi(mu21.phi-mu22.phi),2))',
-    'pTrel11'  : 'sqrt(pow(mu11.px - X1.px,2) + pow(mu11.py - X1.py,2))',
-    'pTrel12'  : 'sqrt(pow(mu12.px - X1.px,2) + pow(mu12.py - X1.py,2))',
-    'pTrel21'  : 'sqrt(pow(mu21.px - X2.px,2) + pow(mu21.py - X2.py,2))',
-    'pTrel22'  : 'sqrt(pow(mu22.px - X2.px,2) + pow(mu22.py - X2.py,2))',
+    'pTrel11'  : 'sqrt(pow(mu11.pt*TMath::Sin(mu11.phi) - X1.pt*TMath::Sin(X1.phi),2) + pow(mu11.pt*TMath::Cos(mu11.phi) - X1.pt*TMath::Cos(X1.phi),2))',
+    'pTrel12'  : 'sqrt(pow(mu12.pt*TMath::Sin(mu12.phi) - X1.pt*TMath::Sin(X1.phi),2) + pow(mu12.pt*TMath::Cos(mu12.phi) - X1.pt*TMath::Cos(X1.phi),2))',
+    'pTrel21'  : 'sqrt(pow(mu21.pt*TMath::Sin(mu21.phi) - X2.pt*TMath::Sin(X2.phi),2) + pow(mu21.pt*TMath::Cos(mu21.phi) - X2.pt*TMath::Cos(X2.phi),2))',
+    'pTrel22'  : 'sqrt(pow(mu22.pt*TMath::Sin(mu22.phi) - X2.pt*TMath::Sin(X2.phi),2) + pow(mu22.pt*TMath::Cos(mu22.phi) - X2.pt*TMath::Cos(X2.phi),2))',
 }
 
 # TTree draw configuration: histogram name : (list of Draw expressions)
@@ -165,14 +174,17 @@ HExpressions = {
     'cTau'       : ('cTau1', 'cTau2'),
     'pTH'        : ('H.pt',),
     'pTX'        : ('X1.pt', 'X2.pt'),
+    'pTmu'       : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
     'beta'       : ('beta1', 'beta2'),
+    'etaMu'      : ('mu11.eta', 'mu12.eta', 'mu21.eta', 'mu22.eta'),
+    'dPhi'       : ('dPhi1', 'dPhi2'),
+    'cosAlpha'   : ('mu11.cosAlpha', 'mu21.cosAlpha'),
     'Lxy'        : ('Lxy1', 'Lxy2'),
     'd0'         : ('d011', 'd012', 'd021', 'd022'),
-    'pTmu'       : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
     'd00'        : ('d0011', 'd0012', 'd0021', 'd0022'),
     'dR'         : ('dR1', 'dR2'),
     'LxyVsLz'    : ('Lz1:Lxy1','Lz2:Lxy2'),
-    'd00VspTrel' : ('d0011:pTrel11', 'd0012:pTrel12','d0021:pTrel21','d0022:pTrel22')
+    'd00VspTrel' : ('pTrel11:d0011', 'pTrel12:d0012','pTrel21:d0021','pTrel22:d0022')
 }
 
 #### MAIN CODE ####
