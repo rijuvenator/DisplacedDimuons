@@ -29,6 +29,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	    if (debug)
 	      std::cout << "DSA muon info:" << muon_cand;
 
+	    dsamu_idx   .push_back(muon_cand.idx    );
 	    dsamu_px    .push_back(muon_cand.px     );
 	    dsamu_py    .push_back(muon_cand.py     );
 	    dsamu_pz    .push_back(muon_cand.pz     );
