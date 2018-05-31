@@ -7,8 +7,7 @@ def tprint(msg):
 def eprint(msg):
     print '\033[31mSELECTIONS TEST: ' + msg + '\033[m'
 
-#f = R.TFile.Open('~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root')
-f = R.TFile.Open('~/DDTupler/python/test.root')
+f = R.TFile.Open('~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root')
 t = f.Get('SimpleNTupler/DDTree')
 
 # test tree

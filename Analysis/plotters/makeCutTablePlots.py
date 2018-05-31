@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import re
 
 MuonCutListPlusNone = Selections.CutLists['MuonCutListPlusNone']
@@ -57,7 +57,7 @@ for sp in HISTS:
 
 def makeCombinedPlot():
 	canvas = Plotter.Canvas(lumi='CutTable Plot', cWidth=1000)
-	for sp in RECOSIGNALPOINTS:
+	for sp in SIGNALPOINTS:
 		canvas.addMainPlot(PLOTS[sp])
 		PLOTS[sp].SetMarkerColor(COLORS[sp])
 		PLOTS[sp].SetLineColor(COLORS[sp])
@@ -75,7 +75,7 @@ def makeCombinedPlot():
 	canvas.deleteCanvas()
 
 def makeIndividualPlots():
-	for sp in RECOSIGNALPOINTS:
+	for sp in SIGNALPOINTS:
 		canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
 		canvas.addMainPlot(PLOTS[sp])
 		canvas.firstPlot.SetMaximum(1.)

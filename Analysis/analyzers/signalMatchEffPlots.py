@@ -11,7 +11,7 @@ VALUES  = (
     ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.LXY()    , 'L_{xy}' ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -83,6 +83,7 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
@@ -91,6 +92,6 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = Analyzer.F_AOD_NTUPLE
+        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/SignalMatchEffPlots_{}.root')

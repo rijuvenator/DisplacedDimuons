@@ -17,6 +17,13 @@ F_GEN_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/genOnly_ntuple_{}.r
 F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.root')
 T_NTUPLE = 'SimpleNTupler/DDTree'
 
+# signal samples are aodOnly for now
+def setFNAME(ARGS):
+    if ARGS.NAME.startswith('HTo2X'):
+        ARGS.FNAME = F_AOD_NTUPLE
+    else:
+        ARGS.FNAME = F_NTUPLE
+
 F_DEFAULT = F_NTUPLE
 T_DEFAULT = T_NTUPLE
 

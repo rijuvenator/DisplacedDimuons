@@ -43,7 +43,7 @@ def analyze(self, E):
         genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
-        genMuonLxy = genMuon.LXY()
+        genMuonLxy = genMuon.Lxy()
         PREFIX = 'DSA'
         foundDSA = False
         for recoMuons in (DSAmuons, RSAmuons):
@@ -61,6 +61,7 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
@@ -69,6 +70,6 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = Analyzer.F_AOD_NTUPLE
+        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/SignalMiscPlots_{}.root')

@@ -2,7 +2,6 @@ import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {

@@ -1,7 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Common.Constants import RECOSIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 Patterns = {
@@ -32,7 +32,7 @@ def makeOverlayPerSignalPlots():
         'd0Dif',
         'nMuon',
     )
-    for sp in RECOSIGNALPOINTS:
+    for sp in SIGNALPOINTS:
         for key in KEYS:
             h = {}
             h['DSA'] = HISTS[sp]['DSA_'+key]

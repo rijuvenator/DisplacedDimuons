@@ -13,6 +13,7 @@ CUTKEYS = {
     'vtxChi2'  : {'AXES':(100,  0.,  5.)},
     'deltaR'   : {'AXES':(100,  0.,  5.)},
     'cosAlpha' : {'AXES':(100, -1.,  1.)},
+    'LxySig'   : {'AXES':(100,  0., 12.)},
 }
 for KEY in CUTKEYS:
     # the title is ;XTITLE;Counts
@@ -77,6 +78,7 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
@@ -85,6 +87,6 @@ if __name__ == '__main__':
         BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
         TEST        = ARGS.TEST,
         SPLITTING   = ARGS.SPLITTING,
-        FILE        = Analyzer.F_AOD_NTUPLE
+        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/nMinusOne_{}.root')

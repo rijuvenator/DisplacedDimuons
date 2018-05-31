@@ -42,7 +42,7 @@ CUTS = {
     'mass'      : Cut('mass'     , lambda dimuon: dimuon.mass                       , operator.gt, 15.       ),
     'deltaPhi'  : Cut('deltaPhi' , lambda dimuon: dimuon.deltaPhi                   , operator.lt, math.pi/2.),
     'cosAlpha'  : Cut('cosAlpha' , lambda dimuon: dimuon.cosAlpha                   , operator.gt, -0.75     ),
-#   'LxySig'    : Cut('LxySig'   , lambda dimuon: dimuon.LxySig                     , operator.gt, 12.       ),
+    'LxySig'    : Cut('LxySig'   , lambda dimuon: dimuon.LxySig()                   , operator.gt, 12.       ),
 
 ### ACCEPTANCE CUTS ###
     'a_pt'      : Cut('a_pt'      , lambda muon: muon.pt                            , operator.gt,  28.      ),
@@ -53,8 +53,8 @@ CUTS = {
 # CutLists for access convenience (and ordering)
 CutLists = {
     'MuonCutList'      : ('pt', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
-    'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha'),
-#   'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
+#   'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha'),
+    'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList': ('a_pt', 'a_eta', 'a_Lxy'),
 }
 for prefix in ('Muon', 'Dimuon'):
@@ -74,6 +74,7 @@ PrettyTitles = {
     'mass'      : 'M(#mu#mu)',
     'deltaPhi'  : '|#Delta#Phi|',
     'cosAlpha'  : 'cos(#alpha)',
+    'LxySig'    : 'L_{xy}/#sigma_{L_{xy}}',
     'a_pt'      : 'p_{T}',
     'a_eta'     : '#eta',
     'a_Lxy'     : 'L_{xy}',
