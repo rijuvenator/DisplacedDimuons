@@ -10,9 +10,10 @@ from DisplacedDimuons.Common.Utilities import SPStr
 # declared once per signal point and calculates all the histogram properties
 # add new histograms here
 class HistogramConfigurations(object):
-    def __init__(self, sp):
+    def __init__(self, fs, sp):
         mH, mX, cTau = sp
         self.mH, self.mX, self.cTau = mH, mX, cTau
+        self.fs = fs
 
         # these values help calculate useful bin limits
         HErr = (0.05 if mH != 1000 else 0.30) * 3/2.
@@ -32,48 +33,60 @@ class HistogramConfigurations(object):
         MuPtUpper = mH/2.
 
         # actual init code. saves constructor argument for each histogram type
-        self.attr1d = ('name', 'xTitle', 'yTitle', 'nBins', 'binLow', 'binHigh')
-        self.attr2d = ('name', 'xTitle', 'yTitle', 'nBinsX', 'binLowX', 'binHighX', 'nBinsY', 'binLowY', 'binHighY')
+
+        # this is just a temporary dictionary storing the configuration parameters
+        # the dictionary is of format key : ((axisTuple1), (axisTuple2))
+        # and axisTuples are of format (title, nBins, binLow, binHigh)
+        # makeAttrDict knows what to do with this exact format
+        attributes = {
+            'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
+            'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
+            'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
+            'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
+            'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
+            'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
+            'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
+            'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
+            'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
+            'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
+            'Lxy'        : [['L_{xy} [mm]'      , 100, 0.         , LxyUpper   ]                                  ],
+            'd0'         : [['d_{0} [mm]'       , 100, 0.         , cTau*2.    ]                                  ],
+            'd00'        : [['#Deltad_{0} [cm]' , 100, -.1        , .1         ]                                  ],
+            'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
+            'LxyVSLz'    : [['L_{z} [mm]'       , 350, 0.         , 1000.      ], ['L_{xy} [mm]'   , 200, 0., 50.]],
+            'd00VSpTrel' : [['#Deltad_{0} [cm]' , 100, -.1        , .1         ], ['p_{T}rel [GeV]', 100, 0., 50.]],
+        }
 
         self.data = {}
-        
-        self.data['massH'     ] = self.makeAttrDict((self.HName('massH'     ), 'Higgs Mass [GeV]' , 'Counts'        , 100, mH*(1-HErr), mH*(1+HErr)))
-        self.data['massX'     ] = self.makeAttrDict((self.HName('massX'     ), 'X Mass [GeV]'     , 'Counts'        , 100, mX*(1-XErr), mX*(1+XErr)))
-        self.data['cTau'      ] = self.makeAttrDict((self.HName('cTau'      ), 'c#tau [mm]'       , 'Counts'        , 100, 0.         , cTau*6.    ))
-        self.data['pTH'       ] = self.makeAttrDict((self.HName('pTH'       ), 'Higgs p_{T} [GeV]', 'Counts'        , 100, 0.         , HPtUpper   ))
-        self.data['pTX'       ] = self.makeAttrDict((self.HName('pTX'       ), 'X p_{T} [GeV]'    , 'Counts'        , 100, 0.         , XPtUpper   ))
-        self.data['pTmu'      ] = self.makeAttrDict((self.HName('pTmu'      ), '#mu p_{T} [GeV]'  , 'Counts'        , 100, 0.         , MuPtUpper  ))
-        self.data['beta'      ] = self.makeAttrDict((self.HName('beta'      ), '#beta = v/c'      , 'Counts'        , 100, 0.         , 1.         ))
-        self.data['etaMu'     ] = self.makeAttrDict((self.HName('etaMu'     ), '#mu #eta'         , 'Counts'        , 100, -5.        , 5          ))
-        self.data['dPhi'      ] = self.makeAttrDict((self.HName('dPhi'      ), '#mu #Delta#phi'   , 'Counts'        , 100, -math.pi   , math.pi    ))
-        self.data['cosAlpha'  ] = self.makeAttrDict((self.HName('cosAlpha'  ), 'cos(#alpha)'      , 'Counts'        , 100, -1.        , 1.         ))
-        self.data['Lxy'       ] = self.makeAttrDict((self.HName('Lxy'       ), 'L_{xy} [mm]'      , 'Counts'        , 100, 0.         , LxyUpper   ))
-        self.data['d0'        ] = self.makeAttrDict((self.HName('d0'        ), 'd_{0} [mm]'       , 'Counts'        , 100, 0.         , cTau*2.    ))
-        self.data['d00'       ] = self.makeAttrDict((self.HName('d00'       ), '#Deltad_{0} [cm]' , 'Counts'        , 100, -.1        , .1         ))
-        self.data['dR'        ] = self.makeAttrDict((self.HName('dR'        ), '#DeltaR'          , 'Counts'        , 100, 0.         , 4.5        ))
-        self.data['LxyVsLz'   ] = self.makeAttrDict((self.HName('LxyVsLz'   ), 'L_z [mm]'         , 'L_{xy} [mm]'   , 350, 0.         , 1000       , 200, 0., 50.))
-        self.data['d00VspTrel'] = self.makeAttrDict((self.HName('d00VspTrel'), '#Deltad_{0} [cm]' , 'p_{T}rel [GeV]', 100, -.1         , .1        , 100, 0., 50.))
+        for key,config in attributes.iteritems():
+            self.data[key] = self.makeAttrDict(key, config)
 
-
+    # returns KEY_HTo2XTo(FS)_(mH)_(mX)_(cTau)
     def HName(self, key):
-        return key + '_' + SPStr(self.mH, self.mX, self.cTau)
+        return key + '_HTo2XTo' + self.fs + '_' + SPStr(self.mH, self.mX, self.cTau)
 
-    def makeAttrDict(self, tup):
-        if(len(tup)) == len(self.attr1d):
-            return dict(zip(self.attr1d, tup))
-        assert len(tup) == len(self.attr2d)
-        return dict(zip(self.attr2d, tup))
+    # returns a dictionary of histogram attributes: name, title, nAxes, and axis dictionaries
+    # each of which have a title, nBins, binLow, and binHigh key
+    def makeAttrDict(self, key, config):
+        attrDict = {'name':self.HName(key), 'nAxes':len(config)}
+        axisHeaders = ('title', 'nBins', 'binLow', 'binHigh')
+        titleString = ''
+        for axisNumber, axisTuple in enumerate(config):
+            attrDict['axis'+str(axisNumber+1)] = dict(zip(axisHeaders, axisTuple))
+            titleString += ';{}'
+        titleString += ';Counts'
+        attrDict['title'] = titleString.format(*(attrDict['axis'+str(axisNumber+1)]['title'] for axisNumber in range(len(config))))
+        return attrDict
     
-    def is1D(self, key):
-        return True if (len(self.data[key]) == len(self.attr1d)) else False
-    
-    def is2D(self, key):
-        return True if (len(self.data[key]) == len(self.attr2d)) else False
-
+    # this allows for example R.TH1F(*HConfig[key])
     def __getitem__(self, key):
         AD = self.data[key]
-        if(len(AD) ==  len(self.attr1d)): return AD['name'], ';{};{}'.format(AD['xTitle'], AD['yTitle']), AD['nBins'], AD['binLow'], AD['binHigh']
-        return AD['name'], ';{};{}'.format(AD['xTitle'], AD['yTitle']), AD['nBinsX'], AD['binLowX'], AD['binHighX'], AD['nBinsY'], AD['binLowY'], AD['binHighY']
+        histArgs = [AD['name'], AD['title']]
+        for axisNumber in range(AD['nAxes']):
+            histArgs.append(AD['axis'+str(axisNumber+1)]['nBins'  ])
+            histArgs.append(AD['axis'+str(axisNumber+1)]['binLow' ])
+            histArgs.append(AD['axis'+str(axisNumber+1)]['binHigh'])
+        return histArgs
 
 # wrapper for TTree::Draw
 def Draw(t, HConfig, key, expressions):
@@ -81,9 +94,9 @@ def Draw(t, HConfig, key, expressions):
         t.Draw('{expr}>>{isFirst}{hName}'.format(expr=expr, isFirst='' if i==0 else '+', hName=HConfig.HName(key)))
 
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
-def fillPlots(sp, HList):
+def fillPlots(fs, sp, HList):
     # get file and tree
-    f = R.TFile.Open(DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo4Mu', SPStr(sp)))
+    f = R.TFile.Open('root://eoscms.cern.ch/'+DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo'+fs, SPStr(sp)))
     t = f.Get('SimpleNTupler/DDTree')
 
     # set basic particle aliases
@@ -94,16 +107,18 @@ def fillPlots(sp, HList):
         t.SetAlias(alias, expr)
 
     # define histogram configurations for this signal point
-    HConfig = HistogramConfigurations(sp)
+    HConfig = HistogramConfigurations(fs, sp)
 
     # declare histograms
     # make sure histograms don't get deleted when file is closed
     # fill histograms using TTree::Draw
     for key in HList:
-        if not (HConfig.is1D(key) or HConfig.is2D(key)): return
-        HISTS[sp][key] = R.TH1F(*HConfig[key]) if HConfig.is1D(key) else R.TH2F(*HConfig[key])
+        if key not in HConfig.data:
+            raise Exception('At least one histogram key: '+key+' not known')
+        nAxes = str(HConfig.data[key]['nAxes'])
+        HISTS[(fs, sp)][key] = getattr(R, 'TH'+nAxes+'F')(*HConfig[key])
         Draw(t, HConfig, key, HExpressions[key])
-        HISTS[sp][key].SetDirectory(0)
+        HISTS[(fs, sp)][key].SetDirectory(0)
 
     # cleanup
     del t
@@ -132,11 +147,11 @@ FILES = {}
 #   'Lxy',
 #   'd0',
 #   'd00',
-#   'LxyVsLz',
-#   'd00VspTrel'
+#   'dR',
+#   'LxyVSLz',
+#   'd00VSpTrel'
 #)
-# with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX pTmu beta etaMu dPhi cosAlpha Lxy d0 d00 dR
-# for convenience convert with            : parallel ./convertone.sh ::: $(ls pdfs/{massH,massX,cTau,pTH,pTX,pTmu,beta,etaMu,dPhi,cosAlpha,Lxy,d0,d00,dR}_*.pdf)
+# with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX pTmu beta etaMu dPhi cosAlpha Lxy d0 d00 dR LxyVSLz d00VSpTrel
 import sys
 HList = (sys.argv[-1],)
 
@@ -150,6 +165,7 @@ HAliases = {
     'dPhi2'    : 'TVector2::Phi_mpi_pi(mu21.phi-mu22.phi)',
     'Lxy1'     : 'sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2))*10.',
     'Lxy2'     : 'sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2))*10.',
+    'Lz1'      : 'abs(mu11.z-X1.z)',
     'Lz2'      : 'abs(mu21.z-X2.z)',
     'd011'     : '(mu11.d0)*10.',
     'd012'     : '(mu12.d0)*10.',
@@ -183,20 +199,22 @@ HExpressions = {
     'd0'         : ('d011', 'd012', 'd021', 'd022'),
     'd00'        : ('d0011', 'd0012', 'd0021', 'd0022'),
     'dR'         : ('dR1', 'dR2'),
-    'LxyVsLz'    : ('Lz1:Lxy1','Lz2:Lxy2'),
-    'd00VspTrel' : ('pTrel11:d0011', 'pTrel12:d0012','pTrel21:d0021','pTrel22:d0022')
+    'LxyVSLz'    : ('Lz1:Lxy1','Lz2:Lxy2'),
+    'd00VSpTrel' : ('pTrel11:d0011', 'pTrel12:d0012','pTrel21:d0021','pTrel22:d0022')
 }
 
 #### MAIN CODE ####
 # loop over signal points
-for sp in SIGNALPOINTS:
-    HISTS[sp] = {}
-    fillPlots(sp, HList)
-    print 'Created plots for', sp
-# now that plots are filled, loop over signal points and write to files
-for key in HList:
-    FILES[key] = R.TFile.Open('roots/GenPlots_{}.root'.format(key), 'RECREATE')
-    FILES[key].cd()
+for fs in ('4Mu',):
     for sp in SIGNALPOINTS:
-        HISTS[sp][key].Write()
-    print 'Written ROOT file for all signal points for', key
+        HISTS[(fs, sp)] = {}
+        fillPlots(fs, sp, HList)
+        print 'Created plots for', fs, sp
+# now that plots are filled, loop over signal points and write to files
+for fs in ('4Mu',):
+    for key in HList:
+        FILES[key] = R.TFile.Open('roots/GenPlots_{}.root'.format(key), 'RECREATE')
+        FILES[key].cd()
+        for sp in SIGNALPOINTS:
+            HISTS[(fs, sp)][key].Write()
+        print 'Written ROOT file for all signal points for', fs, key
