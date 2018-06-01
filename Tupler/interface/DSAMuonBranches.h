@@ -30,6 +30,7 @@ class DSAMuonBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
+		std::vector<int  > dsamu_idx          ;
 		std::vector<float> dsamu_px           ;
 		std::vector<float> dsamu_py           ;
 		std::vector<float> dsamu_pz           ;
@@ -70,6 +71,7 @@ class DSAMuonBranches : public BranchCollection
 		// methods
 		void Declarations()
 		{
+			Declare("dsamu_idx"          , dsamu_idx          );
 			Declare("dsamu_px"           , dsamu_px           );
 			Declare("dsamu_py"           , dsamu_py           );
 			Declare("dsamu_pz"           , dsamu_pz           );
@@ -110,6 +112,7 @@ class DSAMuonBranches : public BranchCollection
 
 		void Reset()
 		{
+			dsamu_idx          .clear();
 			dsamu_px           .clear();
 			dsamu_py           .clear();
 			dsamu_pz           .clear();

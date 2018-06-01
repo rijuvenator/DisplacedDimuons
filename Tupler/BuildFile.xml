@@ -11,6 +11,7 @@
 <use name="FWCore/ParameterSet"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="RecoVertex/KalmanVertexFit"/>
+<use name="RecoVertex/AdaptiveVertexFit"/>
 <use name="RecoVertex/VertexPrimitives"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="TrackingTools/Records"/>

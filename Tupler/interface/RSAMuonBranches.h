@@ -30,6 +30,7 @@ class RSAMuonBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
+		std::vector<int  > rsamu_idx          ;
 		std::vector<float> rsamu_px           ;
 		std::vector<float> rsamu_py           ;
 		std::vector<float> rsamu_pz           ;
@@ -70,6 +71,7 @@ class RSAMuonBranches : public BranchCollection
 		// methods
 		void Declarations()
 		{
+			Declare("rsamu_idx"          , rsamu_idx          );
 			Declare("rsamu_px"           , rsamu_px           );
 			Declare("rsamu_py"           , rsamu_py           );
 			Declare("rsamu_pz"           , rsamu_pz           );
@@ -110,6 +112,7 @@ class RSAMuonBranches : public BranchCollection
 
 		void Reset()
 		{
+			rsamu_idx          .clear();
 			rsamu_px           .clear();
 			rsamu_py           .clear();
 			rsamu_pz           .clear();

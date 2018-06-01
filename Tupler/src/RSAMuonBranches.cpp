@@ -28,6 +28,7 @@ void RSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	    if (debug)
 	      std::cout << "RSA muon info:" << muon_cand;
 
+	    rsamu_idx   .push_back(muon_cand.idx    );
 	    rsamu_px    .push_back(muon_cand.px     );
 	    rsamu_py    .push_back(muon_cand.py     );
 	    rsamu_pz    .push_back(muon_cand.pz     );
