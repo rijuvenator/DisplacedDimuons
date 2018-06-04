@@ -1,5 +1,5 @@
-# defines a match between a genMuon (Primitives.Muon with source=GEN) and a recoMuon (Primitives.Muon with source=DSA or RSA)
-# retuns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
+# defines a match between a genMuon (Primitives.GenMuon) and a recoMuon (Primitives.RecoMuon)
+# returns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
 def matchedMuons(genMuon, recoMuons):
 	matches = []
 	for i,muon in enumerate(recoMuons):
@@ -8,6 +8,17 @@ def matchedMuons(genMuon, recoMuons):
 		if deltaR < min(0.3,genMuon.pairDeltaR):
 			matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt})
 	return sorted(matches, key=lambda dic:dic['deltaR'])
+
+# defines a match between a genMuonPair (Primitives.GenMuon) and a dimuon (Primitives.Dimuon)
+# returns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
+def matchedDimuons(genMuonPair, dimuons):
+    matches = []
+    genP4 = genMuonPair[0].p4 + genMuonPair[1].p4
+    for i,dimuon in enumerate(dimuons):
+        deltaR = dimuon.p4.DeltaR(genP4)
+        if deltaR < min(0.3, genMuonPair[0].pairDeltaR):
+            matches.append({'idx':i, 'deltaR':deltaR, 'pt':dimuon.pt})
+    return sorted(matches, key=lambda dic:dic['deltaR'])
 
 # calculates pT resolution
 def pTRes(recoMuon, genMuon):

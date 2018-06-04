@@ -3,12 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
-
-def LXY(idx, dimuons):
-    dmList = [dm for dm in dimuons if dm.idx1 == idx or dm.idx2 == idx]
-    dmList.sort(key=lambda dm: dm.normChi2)
-    return dmList[0].Lxy()
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
@@ -16,7 +11,7 @@ VALUES  = (
     ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda obj : obj.Lxy()     , 'L_{xy}' ),
     ('dR' , '#DeltaR'    , (1000,       0.,      5.), lambda gm  : gm.pairDeltaR , '#DeltaR'),
 )
 CONFIG = {}
@@ -46,7 +41,7 @@ def declareHistograms(self):
     for KEY in CONFIG:
         for MUON in ('DSA', 'RSA'):
             if KEY != 'dR':
-                #if KEY == 'Lxy' and MUON == 'RSA': continue # can't compute Lxy for RSA muons
+                if KEY == 'Lxy' and MUON == 'RSA': continue # can't compute Lxy for RSA muons
                 for x in (0,):
                     self.HistInit(MUON+'_'+KEY+'Res'          , HTitle(KEY, MUON, 'Res'        ), *(1000, -1., 3.)                          )
                     self.HistInit(MUON+'_'+KEY+'VS'+KEY       , HTitle(KEY, MUON, 'VS'         ), *(CONFIG[KEY]['AXES']+CONFIG[KEY]['AXES']))
@@ -55,24 +50,37 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
-    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+    if self.SP is None:
+        raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if '4Mu' in self.NAME:
+        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        genMuons = (mu11, mu12, mu21, mu22)
+        genMuonPairs = ((mu11, mu12), (mu21, mu22))
+    elif '2Mu2J' in self.NAME:
+        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        genMuons = (mu1, mu2)
+        genMuonPairs = ((mu1, mu2),)
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+    DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
+    RSASelections    = [Selections.MuonSelection  (muon)   for muon   in RSAmuons]
+    DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
+
+    selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+    selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+    selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # loop over genMuons and fill histograms based on matches
-    for genMuon in (mu11, mu12, mu21, mu22):
+    for genMuon in genMuons:
         # cut genMuons outside the detector acceptance
         genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
         # find closest matched reco muon for DSA and RSA
-        genMuonLxy = genMuon.Lxy()
         foundDSA = False
-        for MUON, recoMuons in (('DSA', DSAmuons), ('RSA', RSAmuons)):
+        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
             if len(matches) != 0:
                 # take the closest match
@@ -86,19 +94,26 @@ def analyze(self, E):
                         for KEY2 in CONFIG:
                             F2 = CONFIG[KEY2]['LAMBDA']
                             self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (F(closestRecoMuon)-F(genMuon))/F(genMuon))
-                    # reco Lxy needs to be handled specially
-                    elif KEY == 'Lxy':
-                        if MUON == 'RSA': continue
-                        if len(Dimuons) == 0:
-                            recoLxy = closestRecoMuon.pos.Perp()
-                        else:
-                            recoLxy = LXY(matches[0]['idx'], Dimuons)
-                        for x in (0,):
-                            self.HISTS[MUON+'_'+KEY+'Res'          ].Fill((recoLxy-F(genMuon))/F(genMuon))
-                            self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(F(genMuon), recoLxy)
-                        for KEY2 in CONFIG:
-                            F2 = CONFIG[KEY2]['LAMBDA']
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (recoLxy-F(genMuon))/F(genMuon))
+
+    # loop over genMuonPairs and fill histograms based on matches
+    for genMuonPair in genMuonPairs:
+        # cut genMuons outside the detector acceptance
+        genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
+        if not genMuonSelection: continue
+
+        # find closest matched dimuon
+        matches = matchedDimuons(genMuonPair, selectedDimuons)
+        if len(matches) != 0:
+            closestDimuon = selectedDimuons[matches[0]['idx']]
+            for KEY in CONFIG:
+                F = CONFIG[KEY]['LAMBDA']
+                if KEY in ('Lxy',):
+                    for x in (0,):
+                        self.HISTS['DSA_'+KEY+'Res'          ].Fill((F(closestDimuon)-F(genMuonPair[0]))/F(genMuonPair[0]))
+                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(F(genMuonPair[0]), F(closestDimuon))
+                    for KEY2 in CONFIG:
+                        F2 = CONFIG[KEY2]['LAMBDA']
+                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), (F(closestDimuon)-F(genMuonPair[0]))/F(genMuonPair[0]))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

@@ -80,7 +80,7 @@ def end(self):
                 mH=self.SP.mH,
                 mX=self.SP.mX,
                 cTau=self.SP.cTau,
-                **{KEY:VAL/TOTAL for KEY, VAL in self.COUNTERS[OBJECT][DTYPE].iteritems()}
+                **{KEY:(VAL/TOTAL if TOTAL != 0 else 0.) for KEY, VAL in self.COUNTERS[OBJECT][DTYPE].iteritems()}
             )
 
 

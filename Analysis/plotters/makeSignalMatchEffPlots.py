@@ -3,31 +3,14 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
+import HistogramGetter
 
-Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})')
-}
-
-# get all histograms
-HISTS = {}
+# get histograms
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchEffPlots.root')
 f = R.TFile.Open('../analyzers/roots/SignalMatchEffPlots.root')
-for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-    matches = Patterns['HTo2XTo4Mu'].match(hkey)
-    key = matches.group(1)
-    sp = tuple(map(int, matches.group(2, 3, 4)))
-    if sp not in HISTS:
-        HISTS[sp] = {}
-    HISTS[sp][key] = f.Get(hkey)
-
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-    canvas.finishCanvas()
-    canvas.save(filename)
-    canvas.deleteCanvas()
 
 # make overlaid plots that combine all signal points
-def makeEffPlots(quantity):
+def makeEffPlots(quantity, fs):
     HKeys = {
         'DSA_Eff'       : 'DSA_{}Eff'      ,
         'RSA_Eff'       : 'RSA_{}Eff'      ,
@@ -39,7 +22,7 @@ def makeEffPlots(quantity):
         'RSA_ChargeDen' : 'RSA_{}ChargeDen',
     }
     for key in HKeys:
-        HKeys[key] = (HKeys[key]+'_HTo2XTo4Mu').format(quantity) + '_{}'
+        HKeys[key] = (HKeys[key]+'_HTo2XTo'+fs).format(quantity) + '_{}'
 
     h = {}
     p = {}
@@ -86,8 +69,9 @@ def makeEffPlots(quantity):
         canvas.legend.resizeHeight()
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
-        Cleanup(canvas, 'pdfs/SME_{}{}Eff.pdf'.format(quantity, CHARGE))
+        canvas.cleanup('pdfs/SME_{}{}Eff.pdf'.format(quantity, CHARGE))
         CHARGE = 'Charge'
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-    makeEffPlots(quantity)
+    for fs in ('4Mu',):
+        makeEffPlots(quantity, fs)

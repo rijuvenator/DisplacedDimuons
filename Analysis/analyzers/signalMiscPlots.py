@@ -20,43 +20,44 @@ def declareHistograms(self):
 
 # internal loop function for Analyzer class
 def analyze(self, E):
-    mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+    if self.SP is None:
+        raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if '4Mu' in self.NAME:
+        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        genMuons = (mu11, mu12, mu21, mu22)
+    elif '2Mu2J' in self.NAME:
+        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        genMuons = (mu1, mu2)
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
 
-    nDSA, nRSA = 0, 0
-    for sel in DSASelections:
-        if sel['pt'] and sel['eta']:
-            nDSA += 1
-    for sel in RSASelections:
-        if sel['pt'] and sel['eta']:
-            nRSA += 1
-    self.HISTS['DSA_nMuon'].Fill(nDSA)
-    self.HISTS['RSA_nMuon'].Fill(nRSA)
+    selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+    selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+
+    self.HISTS['DSA_nMuon'].Fill(len(selectedDSAmuons))
+    self.HISTS['RSA_nMuon'].Fill(len(selectedRSAmuons))
 
     # loop over genMuons and fill histograms based on matches
-    for genMuon in (mu11, mu12, mu21, mu22):
+    for genMuon in genMuons:
         # cut genMuons outside the detector acceptance
         genMuonSelection = Selections.AcceptanceSelection(genMuon)
         if not genMuonSelection: continue
 
         genMuonLxy = genMuon.Lxy()
-        PREFIX = 'DSA'
         foundDSA = False
-        for recoMuons in (DSAmuons, RSAmuons):
+        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
             matches = matchedMuons(genMuon, recoMuons)
             if len(matches) != 0:
                 closestRecoMuon = recoMuons[matches[0]['idx']]
                 if pTRes(closestRecoMuon, genMuon) < -0.5:
                     pass
                     #print 'GEN: {:9.4f} {:7.4f} {:7.4f}'.format(genMuon.pt, genMuon.eta, genMuon.phi)
-                    #print '{}: {:9.4f} {:7.4f} {:7.4f}'.format(PREFIX, closestRecoMuon.pt, closestRecoMuon.eta, closestRecoMuon.phi)
+                    #print '{}: {:9.4f} {:7.4f} {:7.4f}'.format(MUON, closestRecoMuon.pt, closestRecoMuon.eta, closestRecoMuon.phi)
                     #print ''
-                self.HISTS[PREFIX+'_d0Dif'     ].Fill((closestRecoMuon.d0() - genMuon.d0))
-            PREFIX = 'RSA'
+                self.HISTS[MUON+'_d0Dif'     ].Fill((closestRecoMuon.d0() - genMuon.d0))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

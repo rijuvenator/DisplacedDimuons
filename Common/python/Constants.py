@@ -4,7 +4,9 @@ CMSSW_BASE   = os.environ['CMSSW_BASE']
 DIR_WS_RIJU  = '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
 DIR_EOS_RIJU = '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
 DIR_DD       = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
-DIR_PAT      = DIR_EOS_RIJU
+
+PREFIX_CERN = 'root://eoscms.cern.ch/'
+PREFIX_FNAL = 'root://cmseos.fnal.gov/'
 
 # signal points as list of tuples
 SIGNALPOINTS = [

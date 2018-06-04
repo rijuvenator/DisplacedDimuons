@@ -5,8 +5,8 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/DimuonPlots.root')
-f = R.TFile.Open('../analyzers/roots/DimuonPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/RecoMuonPlots.root')
+f = R.TFile.Open('../analyzers/roots/RecoMuonPlots.root')
 
 # make plots that are per signal point
 def makePerSignalPlots():

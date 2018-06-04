@@ -3,41 +3,24 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
+import HistogramGetter
 
-Patterns = {
-    'HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})')
-}
-
-# get all histograms
-HISTS = {}
+# get histograms
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchResPlots.root')
 f = R.TFile.Open('../analyzers/roots/SignalMatchResPlots.root')
-for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-    # hkey has the form KEY_HTo2XTo4Mu_mH_mX_cTau
-    matches = Patterns['HTo2XTo4Mu'].match(hkey)
-    key = matches.group(1)
-    sp = tuple(map(int, matches.group(2, 3, 4)))
-    if sp not in HISTS:
-        HISTS[sp] = {}
-    HISTS[sp][key] = f.Get(hkey)
-
-# end of plot function boilerplate
-def Cleanup(canvas, filename):
-    canvas.finishCanvas()
-    canvas.save(filename)
-    canvas.deleteCanvas()
 
 # DSA RSA overlaid, per signal
-def makeResPlots(quantity):
+def makeResPlots(quantity, fs):
     for sp in SIGNALPOINTS:
         DOFIT = quantity == 'pT'
         h = {
-            'DSA' : HISTS[sp]['DSA_'+quantity+'Res'],
-            'RSA' : HISTS[sp]['RSA_'+quantity+'Res']
+            'DSA' : HISTS[(fs, sp)]['DSA_'+quantity+'Res'],
+            'RSA' : HISTS[(fs, sp)]['RSA_'+quantity+'Res']
         }
         p = {}
         for MUON in h:
             p[MUON] = Plotter.Plot(h[MUON], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
-        fname = 'pdfs/SMR_{}_HTo2XTo4Mu_{}.pdf'.format(quantity+'Res', SPStr(sp))
+        fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
 
         if DOFIT:
             funcs = {}
@@ -82,14 +65,35 @@ def makeResPlots(quantity):
             p['RSA'].FindObject('stats').SetTextColor(R.kGreen+1)
             Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.5, NDC=True)
 
-        Cleanup(canvas, fname)
+        canvas.cleanup(fname)
+
+# DSA plot or RSA plot only (used here for DSA Lxy)
+def makeResPlotsSingle(quantity, fs, MUON):
+    for sp in SIGNALPOINTS:
+        h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res']
+        p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+        fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
+
+        canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
+        canvas.addMainPlot(p)
+
+        canvas.makeLegend(lWidth=.25, pos='tr' if quantity == 'pT' else 'tl')
+        canvas.legend.moveLegend(X=-.3 if quantity == 'pT' else 0.)
+        canvas.legend.resizeHeight()
+
+        p.SetLineColor(R.kBlue)
+
+        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.75, .8    ))
+        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.75, .8-.04))
+
+        canvas.cleanup(fname)
 
 # make 3D color plots
-def makeColorPlot(MUON, quantity, q2=None):
+def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     if q2 is None:
-        fstring = '{M}_{Q}VS{Q}_HTo2XTo4Mu_'.format(M=MUON, Q=quantity)
+        fstring = '{M}_{Q}VS{Q}_HTo2XTo{FS}_'.format(M=MUON, Q=quantity, FS=fs)
     else:
-        fstring = '{M}_{Q}ResVS{Q2}_HTo2XTo4Mu_'.format(M=MUON, Q=quantity, Q2=q2)
+        fstring = '{M}_{Q}ResVS{Q2}_HTo2XTo{FS}_'.format(M=MUON, Q=quantity, FS=fs, Q2=q2)
 
     for i, sp in enumerate(SIGNALPOINTS):
         if i == 0:
@@ -105,13 +109,23 @@ def makeColorPlot(MUON, quantity, q2=None):
     canvas.addMainPlot(p)
     canvas.scaleMargins(1.75, edges='R')
     canvas.scaleMargins(0.8, edges='L')
-    Cleanup(canvas, 'pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
+    canvas.cleanup('pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
 
 # make plots
-for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-    makeResPlots(quantity)
-    makeColorPlot('DSA', quantity)
-    makeColorPlot('RSA', quantity)
-    for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
-        makeColorPlot('DSA', quantity, q2)
-        makeColorPlot('RSA', quantity, q2)
+for fs in ('4Mu',):
+    for quantity in ('pT', 'eta', 'phi', 'Lxy'):
+        # 1D resolution plots
+        if quantity == 'Lxy':
+            makeResPlotsSingle(quantity, fs, 'DSA')
+        else:
+            makeResPlots(quantity, fs)
+
+        for MUON in ('DSA', 'RSA'):
+            if quantity == 'Lxy' and MUON == 'RSA': continue
+
+            # 2D reco quantity vs. gen quantity plots
+            makeColorPlot(MUON, quantity, fs)
+
+            # 2D reco quantity vs. resolution plots
+            for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
+                makeColorPlot(MUON, quantity, fs, q2)
