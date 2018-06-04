@@ -67,6 +67,27 @@ def makeResPlots(quantity, fs):
 
         canvas.cleanup(fname)
 
+# DSA plot or RSA plot only (used here for DSA Lxy)
+def makeResPlotsSingle(quantity, fs, MUON):
+    for sp in SIGNALPOINTS:
+        h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res']
+        p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+        fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
+
+        canvas = Plotter.Canvas(lumi='({}, {}, {})'.format(*sp))
+        canvas.addMainPlot(p)
+
+        canvas.makeLegend(lWidth=.25, pos='tr' if quantity == 'pT' else 'tl')
+        canvas.legend.moveLegend(X=-.3 if quantity == 'pT' else 0.)
+        canvas.legend.resizeHeight()
+
+        p.SetLineColor(R.kBlue)
+
+        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.75, .8    ))
+        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.75, .8-.04))
+
+        canvas.cleanup(fname)
+
 # make 3D color plots
 def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     if q2 is None:
@@ -93,9 +114,18 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
 # make plots
 for fs in ('4Mu',):
     for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-        makeResPlots(quantity, fs)
-        makeColorPlot('DSA', quantity, fs)
-        makeColorPlot('RSA', quantity, fs)
-        for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
-            makeColorPlot('DSA', quantity, fs, q2)
-        makeColorPlot('RSA', quantity, fs, q2)
+        # 1D resolution plots
+        if quantity == 'Lxy':
+            makeResPlotsSingle(quantity, fs, 'DSA')
+        else:
+            makeResPlots(quantity, fs)
+
+        for MUON in ('DSA', 'RSA'):
+            if quantity == 'Lxy' and MUON == 'RSA': continue
+
+            # 2D reco quantity vs. gen quantity plots
+            makeColorPlot(MUON, quantity, fs)
+
+            # 2D reco quantity vs. resolution plots
+            for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
+                makeColorPlot(MUON, quantity, fs, q2)

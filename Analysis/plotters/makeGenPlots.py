@@ -9,7 +9,7 @@ f = R.TFile.Open('../analyzers/roots/GenPlots.root')
 for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
 	parts = hkey.split('_')
 	sp = tuple(map(int, parts[-3:]))
-	key = '_'.join(parts[:-3])
+	key = parts[0]
 	if sp not in HISTS:
 		HISTS[sp] = {}
 	HISTS[sp][key] = f.Get(hkey)
