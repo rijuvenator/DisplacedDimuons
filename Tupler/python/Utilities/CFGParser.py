@@ -17,9 +17,9 @@ DEFAULT_OUTFILE     = 'ntuple_{}.root'
 # but as long as we don't have PAT Tuples for everything,
 # this should work to make nTuples in the meantime
 DEFAULT_DATASETS = {
-    'HTo2XTo4Mu'   : {'PAT':'PAT', 'GEN':'GS-v2', 'AOD':'May2018-AOD-v1'},
-    'HTo2XTo2Mu2J' : {'PAT':'PAT', 'GEN':'GS-v1', 'AOD':'May2018-AOD-v1'},
-    'DEFAULT'      : {'PAT':'PAT', 'GEN':'PAT'  , 'AOD':'EDM'           },
+    'HTo2XTo4Mu'   : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
+    'HTo2XTo2Mu2J' : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
+    'DEFAULT'      : {'PAT':'PAT', 'GEN':'PAT'           , 'AOD':'EDM'           },
 }
 
 # cmsRun configuration and submission parser
