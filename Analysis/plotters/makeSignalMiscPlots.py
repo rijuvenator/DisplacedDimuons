@@ -48,5 +48,5 @@ def makeOverlayPerSignalPlots(fs):
 
             canvas.cleanup(fname)
 
-for fs in ('4Mu',):
+for fs in ('4Mu','2Mu2J'):
     makeOverlayPerSignalPlots(fs)
