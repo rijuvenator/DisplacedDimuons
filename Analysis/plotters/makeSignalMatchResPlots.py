@@ -4,6 +4,7 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
+import sys
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchResPlots.root')
@@ -112,7 +113,9 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     canvas.cleanup('pdfs/SMR_'+fstring+'Global.pdf'.format(M=MUON, Q=quantity))
 
 # make plots
-for fs in ('4Mu',):
+if len(sys.argv) == 1: FS = '4Mu'
+else: FS = sys.argv[1]
+for fs in (FS,):
     for quantity in ('pT', 'eta', 'phi', 'Lxy'):
         # 1D resolution plots
         if quantity == 'Lxy':

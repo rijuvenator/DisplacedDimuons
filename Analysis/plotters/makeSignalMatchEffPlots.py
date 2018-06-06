@@ -69,9 +69,9 @@ def makeEffPlots(quantity, fs):
         canvas.legend.resizeHeight()
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
-        canvas.cleanup('pdfs/SME_{}{}Eff.pdf'.format(quantity, CHARGE))
+        canvas.cleanup('pdfs/SME_{}{}Eff_HTo2XTo{}_Global.pdf'.format(quantity, CHARGE, fs))
         CHARGE = 'Charge'
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
-    for fs in ('4Mu',):
+    for fs in ('4Mu', '2Mu2J'):
         makeEffPlots(quantity, fs)

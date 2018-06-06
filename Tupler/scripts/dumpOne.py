@@ -2,7 +2,7 @@ import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
 
 FINALSTATE  = '4Mu'
 SIGNALPOINT = (125, 20, 13)
-PROCESS     = 'AODSIM-ReHLT_V37-v1'
+PROCESS     = 'May2018-AOD-v1'
 ALLFILES    = False
 
 datasets = getattr(DH, 'getHTo2XTo'+FINALSTATE+'Samples')()

@@ -1,199 +1,303 @@
-//**** SIGNAL OPTIONS ****
-// this creates "SBoxes", basically writing the HTML structure of the signal form divs
-// setting up all the relevant ids, labels, options, etc.
-function makeSBox(sboxname, values, realHeadingHTML)
+// **** USEFUL GETTERS AND SETTERS ****
+// give a column as string, get a selected index number
+function getFormIndexByColumn(COL)
 {
-	// make sbox div
-	let sbox = document.createElement("div");
-	sbox.id = sboxname+"_div";
-	sbox.className = "sbox";
-
-	// make sbox title, an h3
-	let heading = document.createElement("h3");
-	heading.className = "sbox";
-	heading.innerHTML = realHeadingHTML;
-	sbox.appendChild(heading);
-
-	// make form
-	let form = document.createElement("form");
-	form.id = sboxname+"_form";
-	for (i = 0; i < values.length; i++)
-	{
-		// make options with id, radio type, values as given
-		// check the first box
-		let opt = document.createElement("input");
-		opt.id = sboxname+"_opt_"+i.toString();
-		opt.type = "radio";
-		opt.name = sboxname;
-		opt.value = values[i];
-		opt.addEventListener("click", update);
-		if (i == 0) { opt.checked = true; }
-		form.appendChild(opt);
-
-		// make labels with id, labeltext, and for = option id
-		let label = document.createElement("label");
-		label.id = sboxname+"_lab_"+i.toString();
-		label.className = "sbox";
-		label.for = sboxname+"_opt_"+i.toString();
-		label.textContent = values[i].toString();
-		form.appendChild(label);
-	}
-	sbox.appendChild(form);
-	return sbox;
+    let opts = document.getElementById("form_"+COL).elements;
+    for (j=0; j<opts.length; j++) { if (opts[j].checked) { return j; } }
+    return -1;
 }
 
-//**** PLOT TYPE OPTIONS ****
-// make all the plot type options in one go
-// it uses the TYPES constant below
-function makePlotTypeOptions()
+// give the option name as string, get a selected index number
+function getFormIndexByTitle(OPTNAME)
 {
-	let form = document.getElementById("plottype_form");
-	let divs = [
-		document.getElementById("plottype_0"),
-		document.getElementById("plottype_1"),
-		document.getElementById("plottype_2"),
-		document.getElementById("plottype_3"),
-		document.getElementById("plottype_4"),
-		document.getElementById("plottype_5"),
-		document.getElementById("plottype_6"),
-	];
-	//let disabled = [false, false, false, false, false, false];
-
-	for (i=0; i<TYPES.length; i++)
-	{
-		let opt = document.createElement("input");
-		opt.id = "plottype_opt_"+i.toString();
-		opt.name = "plottype";
-		opt.type = "radio";
-		opt.value = TYPES[i][0];
-		opt.addEventListener("click", update);
-
-		let lab = document.createElement("label");
-		lab.id = "plottype_lab_"+i.toString();
-		lab.for = "plottype_opt_"+i.toString();
-		lab.className = "sbox";
-		lab.innerHTML = TYPES[i][1];
-
-		divs[TYPES[i][2]].appendChild(opt);
-		divs[TYPES[i][2]].appendChild(lab);
-		divs[TYPES[i][2]].appendChild(document.createElement("br"));
-
-	}
-	form.elements[0].checked = true;
+    let forms = document.forms;
+    for (i=0; i<forms.length; i++)
+    {
+        if (forms[i].length == 0) { continue; }
+        if (forms[i].elements[0].name == 'opt_'+OPTNAME) { return getFormIndexByColumn(i); }
+    }
+    return -1;
 }
 
-// **** UPDATE AND SET PLOT FUNCTIONS ****
-// update is the function that gets called on any option button click
-// it sets all the labels with logic and calls setPlotBySignal, which changes the plot image src
-// it uses the SIGNALS and TYPES constants below
+// give a column as string, get a selected value
+function getFormValueByColumn(COL)
+{
+    let opts = document.getElementById("form_"+COL).elements;
+    for (j=0; j<opts.length; j++) { if (opts[j].checked) { return opts[j].value; } }
+    return "";
+}
+
+// give the option name as string, get a selected value
+function getFormValueByTitle(OPTNAME)
+{
+    let forms = document.forms;
+    for (i=0; i<forms.length; i++)
+    {
+        if (forms[i].length == 0) { continue; }
+        if (forms[i].elements[0].name == 'opt_'+OPTNAME) { return getFormValueByColumn(i); }
+    }
+    return "";
+}
+
+// get rid of headings and forms so we can rewrite them
+function clearEverythingAfter(COL)
+{
+    for (i=COL+1; i<NCOLS; i++)
+    {
+        document.getElementById("title_"+i.toString()).innerHTML = "";
+        document.getElementById("form_"+i.toString()).innerHTML = "";
+    }
+}
+
+// **** COLUMN SETTERS ****
+// initialize the columns
+function setupColumns()
+{
+    let div_info = document.getElementById("info");
+
+    // create a div, a heading, and a form for each column
+    let width = 100./NCOLS;
+    for (i=0; i<NCOLS; i++)
+    {
+        let div = document.createElement("div");
+        div.id          = "info_"+i.toString();
+        div.className   = "float";
+        div.style.width = width.toString()+"%";
+
+        let h4 = document.createElement("h4");
+        h4.id          = "title_"+i.toString();
+        h4.className   = "option";
+        h4.style.width = "100%";
+        h4.innerHTML   = "";
+        div.appendChild(h4);
+
+        let form = document.createElement("form");
+        form.id = "form_"+i.toString();
+        div.appendChild(form);
+
+        div_info.appendChild(div);
+    }
+
+    setupSamples();
+}
+
+// create a form column
+// basic general setter from which the others are derived
+function setupColumn(COL, HEADING, OPTNAME, VALUES, LABELS, CHECKOPT)
+{
+    // set the width
+    let div = document.getElementById("info_"+COL);
+    if      (OPTNAME == 'sample'       ) { div.style.width = '20%'  ; }
+    else if (OPTNAME == 'mH'           ) { div.style.width = '8%'   ; }
+    else if (OPTNAME == 'mX'           ) { div.style.width = '8%'   ; }
+    else if (OPTNAME == 'cTau'         ) { div.style.width = '8%'   ; }
+    else if (OPTNAME == 'plotcat'      ) { div.style.width = '12.5%'; }
+    else if (OPTNAME == 'deltaPhiRange') { div.style.width = '12.5%'; }
+    else if (OPTNAME == 'plottype'     ) { div.style.width = '20%'  ; }
+
+    // set the heading
+    document.getElementById("title_"+COL).innerHTML = HEADING;
+
+    // clear and set defaults
+    let form = document.getElementById("form_"+COL);
+    form.innerHTML = "";
+    if (LABELS == undefined) { LABELS = VALUES; }
+
+    if (CHECKOPT == undefined      ) { CHECKOPT = 0;               }
+    if (CHECKOPT == -1             ) { CHECKOPT = 0;               }
+    if (CHECKOPT >  VALUES.length-1) { CHECKOPT = VALUES.length-1; }
+
+    // set the options and labels
+    for (i=0; i<VALUES.length; i++)
+    {
+        let opt = document.createElement("input");
+        opt.id    = "opt_"+COL+"_"+i.toString();
+        opt.type  = "radio";
+        opt.name  = "opt_"+OPTNAME;
+        opt.value = VALUES[i];
+        opt.addEventListener("click", update);
+        if (i==CHECKOPT) { opt.checked = true; }
+        form.append(opt);
+
+        let lab = document.createElement("label");
+        lab.id         = "lab_"+COL+"_"+i.toString();
+        lab.className  = "option";
+        lab.for        = opt.id;
+        lab.innerHTML  = LABELS[i];
+        form.append(lab);
+
+        form.appendChild(document.createElement("br"));
+    }
+}
+
+// initialize samples, probably into column 0, and this function only gets called once
+function setupSamples()
+{
+    setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS);
+    setupMH(0, 0, 0, 0, 0, 0);
+}
+
+// initialize mH, probably into column 1
+function setupMH(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+{
+    // "copy" mH values
+    let values = [125, 200, 400, 1000];
+    let labels = values.map(String);
+    // make column
+    setupColumn("1", "m<sub>H</sub>", "mH", values, labels, CHECKOPT_MH);
+    setupMX(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+}
+
+// initialize mX, probably into column 2
+function setupMX(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+{
+    // make sure i_mH is a valid option
+    if (i_mH < 0) {i_mH = 0;}
+    // copy mX values
+    let values = [];
+    for (i=0; i<SIGNALS[i_mH].children.length; i++) { values.push(SIGNALS[i_mH].children[i].value); }
+    let labels = values.map(String);
+    // make column
+    setupColumn("2", "m<sub>X</sub>", "mX", values, labels, CHECKOPT_MX);
+    // make sure i_mX is correct if the number of options has decreased
+    if (CHECKOPT_MX > values.length-1) {CHECKOPT_MX = values.length-1;}
+    setupCTAU(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+}
+
+// initialize cTau, probably into column 3
+function setupCTAU(i_mH, i_mX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+{
+    // make sure i_mX is a valid option
+    if (i_mX < 0) {i_mX = 0;}
+    // copy cTau values
+    let values = [];
+    for (i=0; i<SIGNALS[i_mH].children[i_mX].children.length; i++) { values.push(SIGNALS[i_mH].children[i_mX].children[i].value); }
+    let labels = values.map(String);
+    // make column
+    setupColumn("3", "c&tau;", "cTau", values, labels, CHECKOPT_CTAU);
+    setupPlotCat("4", SIGNALVALS, SIGNALLABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+}
+
+// initialize plot categories
+function setupPlotCat(COL, VALUES, LABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+{
+    setupColumn(COL, "plot category", "plotcat", VALUES, LABELS, CHECKOPT_PLOTCAT);
+    // make dPhi column only for certain categories, otherwise continue to plottype
+    let optValue = getFormValueByColumn(COL);
+    if (optValue == 'NM1' || optValue == 'TCUM')
+    {
+        setupDPHI((Number(COL)+1).toString(), DPHIVALS, DPHILABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    }
+    else
+    {
+        setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPEVALS[optValue], CHECKOPT_PLOTTYPE);
+    }
+}
+
+// initialize Delta Phi range
+function setupDPHI(COL, VALUES, LABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+{
+    setupColumn(COL, "&Delta;&Phi; Range", "deltaPhiRange", VALUES, LABELS, CHECKOPT_DPHI);
+    let optValue = getFormValueByColumn((Number(COL)-1).toString());
+    setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPEVALS[optValue], CHECKOPT_PLOTTYPE);
+}
+
+// initialize plot types
+function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE)
+{
+    setupColumn(COL, "plot type", "plottype", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+}
+
+// **** UPDATE: gets called on every option button click ****
+// universal update function
+// depending on which option button was just clicked, set the other columns
+// then call setPlot()
 function update()
 {
-	// gets the current form indices for mH, mX, cTau, and plottype
-	let i_mH   = getFormValueIndex(0);
-	let i_mX   = getFormValueIndex(1);
-	let i_cTau = getFormValueIndex(2);
-	let i_type = getFormValueIndex(3);
+    let i_sample   = getFormIndexByTitle("sample");
+    let i_mH       = getFormIndexByTitle("mH");
+    let i_mX       = getFormIndexByTitle("mX");
+    let i_cTau     = getFormIndexByTitle("cTau");
+    let i_plotcat  = getFormIndexByTitle("plotcat");
+    let i_dphi     = getFormIndexByTitle("deltaPhiRange");
+    let i_plottype = getFormIndexByTitle("plottype");
 
-	// sets the mX labels based on value of mH
-	for (j=0; j<4;                           j++)   { setDisplay("mX", j, "none");  }
-	for (j=0; j<SIGNALS[i_mH].children.length; j++) { setDisplay("mX", j, "inline");
-		setOption("mX", j, SIGNALS[i_mH].children[j].value);
-	}
+    if (this.name == "opt_sample")
+    {
+        clearEverythingAfter(0);
+        if (this.value == "HTo2XTo4Mu" || this.value == "HTo2XTo2Mu2J")
+        {
+            setupMH(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+        }
+        else if (this.value == "DY100to200")
+        {
+            setupPlotCat("1", BGVALS, BGLABELS, i_plotcat, i_dphi, i_plottype);
+        }
+        else if (this.value == "DoubleMuonRun2016D-07Aug17")
+        {
+            setupPlotCat("1", DATAVALS, DATALABELS, i_plotcat, i_dphi, i_plottype);
+        }
+    }
+    else if (this.name == "opt_mH")
+    {
+        clearEverythingAfter(1);
+        setupMX(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+    }
+    else if (this.name == "opt_mX")
+    {
+        clearEverythingAfter(2);
+        setupCTAU(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+    }
+    else if (this.name == "opt_plotcat")
+    {
+        let optArray = this.id.split("_");
+        COL = Number(optArray[1]);
+        clearEverythingAfter(COL);
+        if (this.value == "NM1" || this.value == "TCUM")
+        {
+            setupDPHI((COL+1).toString(), DPHIVALS, DPHILABELS, i_dphi, i_plottype);
+        }
+        else
+        {
+            setupPlotType((COL+1).toString(), PLOTTYPEVALS[this.value], PLOTTYPEVALS[this.value], i_plottype);
+        }
+    }
 
-	// sets the currently checked mX to the highest possible if the previously checked mX
-	// is "higher up" than what is now possible
-	while (true)
-	{
-		let opt = getOpt("mX", i_mX);
-		if (opt.style.display == 'none') { i_mX--; } else { opt.checked = true; break; }
-	}
-
-	// sets the cTau labels based on value of mH and mX
-	for (j=0; j<SIGNALS[i_mH].children[i_mX].children.length; j++)
-	{
-		setOption("cTau", j, SIGNALS[i_mH].children[i_mX].children[j].value);
-	}
-
-	setPlot(SIGNALS[i_mH].value, SIGNALS[i_mH].children[i_mX].value, SIGNALS[i_mH].children[i_mX].children[i_cTau].value, TYPES[i_type][0], TYPES[i_type][3]);
+    setPlot();
 }
 
-// sets the plot src
-function setPlot(mH, mX, cTau, type, stype)
+// set plot function
+// having correctly set everything up, just string all the values together
+// and add .png
+function setPlot()
 {
-	let sstring = mH.toString() + "_" + mX.toString() + "_" + cTau.toString();
-	let filename = '';
-	if (stype == 'per')
-	{
-		filename = "img/png/"+type+"_"+sstring+".png";
-	}
-	else if (stype == 'glo')
-	{
-		filename = "img/png/"+type+".png";
-	}
-	document.getElementById("plot").src=filename;
-	window.location.hash = 'plottype='+type+'&mH='+mH+'&mX='+mX+'&cTau='+cTau;
-}
+    let plotcat  = getFormValueByTitle("plotcat");
+    let plottype = getFormValueByTitle("plottype");
+    let dphi     = getFormValueByTitle("deltaPhiRange");
+    let sample   = getFormValueByTitle("sample");
+    let mH       = getFormValueByTitle("mH").toString();
+    let mX       = getFormValueByTitle("mX").toString();
+    let cTau     = getFormValueByTitle("cTau").toString();
 
-// **** USEFUL GETTERS AND SETTERS ****
-// these are useful getters and setters to make above code prettier
-// should be pretty obvious what they do
-function getFormValueIndex(i)
-{
-	let opts = document.forms[i].elements;
-	for (j=0; j<opts.length; j++) { if (opts[j].checked) { return j; } }
-}
+    filename = "img/png/";
+                            filename += plotcat;
+    if (plottype != "")   { filename += "_"+plottype; }
+    if (dphi     != "")   { filename += "_"+dphi;     }
+                            filename += "_"+sample;
+    if ((plotcat == 'SME') || 
+        (plotcat == 'SMR' && /VS/.test(plottype))
+       )                  { filename += '_Global'; }
+    else
+    {
+    if (mH       != "")   { filename += "_"+mH;       }
+    if (mX       != "")   { filename += "_"+mX;       }
+    if (cTau     != "")   { filename += "_"+cTau;     }
+    }
+                            filename += '.png';
 
-function getOpt(sboxname, index) { return document.getElementById(sboxname+"_opt_"+index.toString()); }
-function getLab(sboxname, index) { return document.getElementById(sboxname+"_lab_"+index.toString()); }
-
-function setDisplay(sboxname, index, val)
-{
-	getOpt(sboxname, index).style.display = val;
-	getLab(sboxname, index).style.display = val;
-}
-
-function setOption(sboxname, index, val)
-{
-	getOpt(sboxname, index).value     = val;
-	getLab(sboxname, index).innerHTML = val;
-}
-
-// pair object constructor for making a tree of signal points
-function pair(value, children)
-{
-	this.value = value;
-	this.children = children;
-}
-
-// on page load, pre-populate the form using the # anchor string
-function prePopulate()
-{
-	url = window.location;
-	if (!url.href.includes('#'))
-	{
-		update();
-		return;
-	}
-	qs = url.hash.substring(1);
-	pairs = qs.split('&');
-	for (i=0;i<pairs.length;i++)
-	{
-		keyval = pairs[i].split('=');
-		if (['plottype', 'mH', 'mX', 'cTau'].includes(keyval[0]))
-		{
-			els = document.getElementById(keyval[0]+"_form").elements;
-			for (j=0;j<els.length;j++)
-			{
-				if (els[j].value == keyval[1])
-				{
-					els[j].checked = true;
-					update();
-					break;
-				}
-			}
-		}
-	}
-	update();
+    let plot = document.getElementById("plot");
+    console.log("Attempting to view "+filename);
+    plot.src = filename;
 }
 
 //**** CONSTANTS ****
@@ -206,6 +310,15 @@ function prePopulate()
 // is a list of value:children pairs.
 // so SIGNALS[2] is a pair (400, children) where children
 // is a list of possible mX:cTau pairs
+
+// pair object constructor for making a tree of signal points
+
+function pair(value, children)
+{
+	this.value = value;
+	this.children = children;
+}
+
 var SIGNALS = [
 	new pair(125, [
 		new pair(20, [
@@ -272,67 +385,42 @@ var SIGNALS = [
 	])
 ];
 
-// plot types.
-// the first is the file prefix and used in option/label id
-// the second is the actual label HTML
-// the third is which div it should go in, 0-3
-// make sure all the div 0 come first, then the div 1, then div 2
-// or else the indexing isn't going to work
-// the fourth is if this is a per signal plot or a global plot
-var TYPES = [
-	['massH'      , 'm' + 'H'.sub()               , 0, 'per'],
-	['massX'      , 'm' + 'X'.sub()               , 0, 'per'],
-	['cTau'       , 'c&tau;'                      , 0, 'per'],
-	['Lxy'        , 'L' + 'xy'.sub()              , 0, 'per'],
-	['d00'        , '&Delta;d' + '0'.sub()        , 0, 'per'],
-	['dR'         , '&Delta;R'                    , 0, 'per'],
+// sample names and labels
+var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          , 'DY100to200'          , 'DoubleMuonRun2016D-07Aug17'];
+var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j', 'Drell-Yan M(100,200)', 'DoubleMuon2016D'           ];
 
-	['pTH'        , 'p' + 'T'.sub() +' H'         , 1, 'per'],
-	['pTX'        , 'p' + 'T'.sub() +' X'         , 1, 'per'],
-	['beta'       , '&beta; X'                    , 1, 'per'],
-	['d0'         , 'd' + '0'.sub()               , 1, 'per'],
-	['pTmu'       , 'p' + 'T'.sub() + ' &mu;'     , 1, 'per'],
+// plot category names and labels
+var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'Gen', 'SME', 'SMR', 'SMP', 'CutTable'];
+var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM'];
+var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM'];
 
-	['Reco_pTRes'    , 'Reco p' + 'T'.sub() + ' Res'  , 2, 'per'],
-	['Reco_d0Dif'    , 'Reco d' + '0'.sub() + ' Diff' , 2, 'per'],
-	['Reco_nMuon'    , 'Reco N' + '&mu;'.sub()        , 2, 'per'],
-	['Reco_CutTable' , 'Reco Cut Table'               , 2, 'per'],
-	['Reco_pTEff'    , 'Reco p' + 'T'.sub() + ' Eff'  , 2, 'glo'],
-	['Reco_LxyEff'   , 'Reco L' + 'xy'.sub() + ' Eff' , 2, 'glo'],
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.', 'cut table'];
+var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.'];
+var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.'];
 
-	['Dim_vtxChi2'   , '&mu;&mu; vtx &chi;' + '2'.sup() + '/dof', 3, 'per'],
-	['Dim_deltaR'    , '&mu;&mu; &Delta;R'                      , 3, 'per'],
-	['Dim_mass'      , 'M(&mu;&mu;)'                            , 3, 'per'],
-	['Dim_deltaPhi'  , '&mu;&mu; &Delta;&Phi;'                  , 3, 'per'],
-	['Dim_cosAlpha'  , '&mu;&mu; cos(&alpha;)'                  , 3, 'per'],
+// delta phi range names and labels
+var DPHIVALS   = ['Less', 'More'];
+var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
 
-	['DSA_pTResVSLxy', 'DSA p' + 'T'.sub() + ' Res vs. gen L' + 'xy'.sub(), 4, 'glo'],
-	['DSA_pTResVSpT' , 'DSA p' + 'T'.sub() + ' Res vs. gen p' + 'T'.sub() , 4, 'glo'],
-	['DSA_pTResVSdR' , 'DSA p' + 'T'.sub() + ' Res vs. gen &Delta;R'      , 4, 'glo'],
-	['DSA_pTVSpT'    , 'DSA p' + 'T'.sub() + ' vs. gen p' + 'T'.sub()     , 4, 'glo'],
+// plottype names and labels
+var PLOTTYPEVALS = {
+    Dim      : ['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
+    DSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    RSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    NM1      : ['nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
+    TCUM     : ['LxySig', 'd0Sig'],
+    Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'd00', 'dR', 'LxyVSLz', 'd00VSpTrel'],
+    SME      : ['pTEff', 'pTChargeEff', 'etaEff', 'etaChargeEff', 'phiEff', 'phiChargeEff', 'LxyEff', 'LxyChargeEff'],
+    SMR      : ['pTRes', 'phiRes', 'etaRes', 'DSA_LxyRes', "DSA_LxyResVSLxy", "DSA_LxyResVSdR", "DSA_LxyResVSeta", "DSA_LxyResVSpT", "DSA_LxyResVSphi", "DSA_LxyVSLxy", "DSA_etaResVSLxy", "DSA_etaResVSdR", "DSA_etaResVSeta", "DSA_etaResVSpT", "DSA_etaResVSphi", "DSA_etaVSeta", "DSA_pTResVSLxy", "DSA_pTResVSdR", "DSA_pTResVSeta", "DSA_pTResVSpT", "DSA_pTResVSphi", "DSA_pTVSpT", "DSA_phiResVSLxy", "DSA_phiResVSdR", "DSA_phiResVSeta", "DSA_phiResVSpT", "DSA_phiResVSphi", "DSA_phiVSphi", "RSA_etaResVSLxy", "RSA_etaResVSdR", "RSA_etaResVSeta", "RSA_etaResVSpT", "RSA_etaResVSphi", "RSA_etaVSeta", "RSA_pTResVSLxy", "RSA_pTResVSdR", "RSA_pTResVSeta", "RSA_pTResVSpT", "RSA_pTResVSphi", "RSA_pTVSpT", "RSA_phiResVSLxy", "RSA_phiResVSdR", "RSA_phiResVSeta", "RSA_phiResVSpT", "RSA_phiResVSphi", "RSA_phiVSphi"],
+    SMP      : ['d0Dif', 'nMuon'],
+    CutTable : []
+}
+var PLOTTYPELABELS = {}
 
-	['NM1_nMuonHits_Less', 'N(Hits)'                           , 5, 'per'],
-	['NM1_nStations_Less', 'N(Stations)'                       , 5, 'per'],
-	['NM1_normChi2_Less' , '&chi;' + '2'.sup() + '/dof'        , 5, 'per'],
-	['NM1_vtxChi2_Less'  , 'vertex &chi;' + '2'.sup() + '/dof' , 5, 'per'],
-	['NM1_deltaR_Less'   , '&Delta;R'                          , 5, 'per'],
-	['NM1_cosAlpha_Less' , 'cos(&alpha;)'                      , 5, 'per'],
-
-	['NM1_nMuonHits_More', 'N(Hits)'                           , 6, 'per'],
-	['NM1_nStations_More', 'N(Stations)'                       , 6, 'per'],
-	['NM1_normChi2_More' , '&chi;' + '2'.sup() + '/dof'        , 6, 'per'],
-	['NM1_vtxChi2_More'  , 'vertex &chi;' + '2'.sup() + '/dof' , 6, 'per'],
-	['NM1_deltaR_More'   , '&Delta;R'                          , 6, 'per'],
-	['NM1_cosAlpha_More' , 'cos(&alpha;)'                      , 6, 'per'],
-];
+var NCOLS  = 8;
 
 //**** MAIN CODE ****
-// "main" code. it runs once when the page is loaded.
-// so it actually calls the makeSBox functions
-// then update() is run once so that everything gets set up correctly
-var signaldiv = document.getElementById("signals");
-signaldiv.appendChild(makeSBox("mH",   [125, 200, 400, 1000], "m" + "H".sub()));
-signaldiv.appendChild(makeSBox("mX",   [20, 50, 150, 350]   , "m" + "X".sub()));
-signaldiv.appendChild(makeSBox("cTau", [13, 130, 1300]      , "c&tau;"       ));
-makePlotTypeOptions();
-prePopulate();
+// setupColumns calls setupSamples which calls setupMH() with all zeroes as defaults
+// thereby setting up the entire board. all that remains is to call setPlot once.
+setupColumns();
+setPlot();
