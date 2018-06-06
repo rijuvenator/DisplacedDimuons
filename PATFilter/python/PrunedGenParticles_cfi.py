@@ -14,7 +14,7 @@ prunedGenParticles = cms.EDProducer('GenParticlePruner',
                                         'keep (21 <= status <= 29)',                  # keep particles from the hardest subprocess
                                         'drop (30 <  status <  80)',                  #      and drop various intermediate particles
                                         'keep pdgId == 23 || abs(pdgId) == 24 || pdgId == 25 || abs(pdgId) == 6', # keep ZO, W+/-, h0, and t/tbar
-                                        '++keep pdgId == 35 || pdgId == 6000113',     # and BSM Higgs and LL scalar for the signal
-                                        'keep++ pdgId == 35 || pdgId == 6000113'      #      with all their ancestors and descendants
+                                        '+keep+ pdgId == 35 || pdgId == 6000111',     # signal: BSM Higgs and "qqbar" LL scalar with direct ancestors and descendants
+                                        '+keep++ pdgId == 6000113'                    # signal: "mumu" LL scalar with all ancestors and descendants
                                         )
                                     )
