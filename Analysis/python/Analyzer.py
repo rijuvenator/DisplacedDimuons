@@ -18,11 +18,13 @@ F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.r
 T_NTUPLE = 'SimpleNTupler/DDTree'
 
 # signal samples are aodOnly for now
-def setFNAME(ARGS):
+def setFNAME(ARGS, GEN=False):
     if ARGS.NAME.startswith('HTo2X'):
         ARGS.FNAME = F_AOD_NTUPLE
     else:
         ARGS.FNAME = F_NTUPLE
+    if GEN:
+        ARGS.FNAME = F_GEN_NTUPLE
     if not 'lxplus' in os.environ['HOSTNAME']:
         ARGS.FNAME = Constants.PREFIX_CERN + ARGS.FNAME
 

@@ -149,7 +149,7 @@ def findSample(args):
             if data.signalPoint() == SIGNALPOINT and DATASET in data.datasets:
                 return data
         else:
-            print '[DATAHANDLER ERROR]: No {} dataset found with signal point {} and process {}'.format(args.NAME, SIGNALPOINT, DP)
+            print '[DATAHANDLER ERROR]: No {} dataset found with signal point {} and process {}'.format(args.NAME, SIGNALPOINT, DATASET)
             exit()
 
     # data
