@@ -10,7 +10,7 @@ HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchEffPlots.ro
 f = R.TFile.Open('../analyzers/roots/SignalMatchEffPlots.root')
 
 # make overlaid plots that combine all signal points
-def makeEffPlots(quantity, fs):
+def makeEffPlots(quantity, fs, SP=None):
     HKeys = {
         'DSA_Eff'       : 'DSA_{}Eff'      ,
         'RSA_Eff'       : 'RSA_{}Eff'      ,
@@ -28,14 +28,20 @@ def makeEffPlots(quantity, fs):
     p = {}
     g = {}
 
-    for i, sp in enumerate(SIGNALPOINTS):
-        if i == 0:
-            for key in HKeys:
-                h[key] = f.Get(HKeys[key].format(SPStr(sp)))
-                h[key].SetDirectory(0)
-        else:
-            for key in HKeys:
-                h[key].Add(f.Get(HKeys[key].format(SPStr(sp))))
+    if SP is None:
+        for i, sp in enumerate(SIGNALPOINTS):
+            if i == 0:
+                for key in HKeys:
+                    h[key] = f.Get(HKeys[key].format(SPStr(sp)))
+                    h[key].SetDirectory(0)
+            else:
+                for key in HKeys:
+                    h[key].Add(f.Get(HKeys[key].format(SPStr(sp))))
+    else:
+        sp = SP
+        for key in HKeys:
+            h[key] = f.Get(HKeys[key].format(SPStr(sp)))
+            h[key].SetDirectory(0)
 
     for key in HKeys:
         h[key].Rebin(10)
@@ -57,7 +63,7 @@ def makeEffPlots(quantity, fs):
     SECOND = (3, 5)
     CHARGE = ''
     for SECTION in (FIRST, SECOND):
-        canvas = Plotter.Canvas()
+        canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({}, {}, {})'.format(fs, *SP))
         for i in range(SECTION[0], SECTION[1]):
             key = NumDens[i][0]
             col = NumDens[i][3]
@@ -69,9 +75,11 @@ def makeEffPlots(quantity, fs):
         canvas.legend.resizeHeight()
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
-        canvas.cleanup('pdfs/SME_{}{}Eff_HTo2XTo{}_Global.pdf'.format(quantity, CHARGE, fs))
+        canvas.cleanup('pdfs/SME_{}{}Eff_HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 
-for quantity in ('pT', 'eta', 'phi', 'Lxy'):
+for quantity in ('pT', 'eta', 'phi', 'Lxy', 'd0'):
     for fs in ('4Mu', '2Mu2J'):
         makeEffPlots(quantity, fs)
+        for sp in SIGNALPOINTS:
+            makeEffPlots(quantity, fs, sp)

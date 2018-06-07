@@ -17,7 +17,7 @@ class HistogramConfigurations(object):
         self.fs = fs
 
         # these values help calculate useful bin limits
-        HErr = (0.05 if mH != 1000 else 0.30) * 3/2.
+        HErr = 0.05 * 3/2.
         XErr = 0.005
 
         # the Lxy upper is best set by whether it's the min, mid, or max cTau

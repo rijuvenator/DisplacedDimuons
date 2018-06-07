@@ -141,7 +141,7 @@ function setupSamples()
 function setupMH(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
 {
     // "copy" mH values
-    let values = [125, 200, 400, 1000];
+    let values = [125, 200, 400, 1000, 'Global'];
     let labels = values.map(String);
     // make column
     setupColumn("1", "m<sub>H</sub>", "mH", values, labels, CHECKOPT_MH);
@@ -151,17 +151,26 @@ function setupMH(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHEC
 // initialize mX, probably into column 2
 function setupMX(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
 {
-    // make sure i_mH is a valid option
-    if (i_mH < 0) {i_mH = 0;}
-    // copy mX values
-    let values = [];
-    for (i=0; i<SIGNALS[i_mH].children.length; i++) { values.push(SIGNALS[i_mH].children[i].value); }
-    let labels = values.map(String);
-    // make column
-    setupColumn("2", "m<sub>X</sub>", "mX", values, labels, CHECKOPT_MX);
-    // make sure i_mX is correct if the number of options has decreased
-    if (CHECKOPT_MX > values.length-1) {CHECKOPT_MX = values.length-1;}
-    setupCTAU(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    if (i_mH != 4)
+    {
+        // make sure i_mH is a valid option
+        if (i_mH < 0) {i_mH = 0;}
+        // copy mX values
+        let values = [];
+        for (i=0; i<SIGNALS[i_mH].children.length; i++) { values.push(SIGNALS[i_mH].children[i].value); }
+        let labels = values.map(String);
+        // make column
+        setupColumn("2", "m<sub>X</sub>", "mX", values, labels, CHECKOPT_MX);
+        // make sure i_mX is correct if the number of options has decreased
+        if (CHECKOPT_MX > values.length-1) {CHECKOPT_MX = values.length-1;}
+        setupCTAU(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    }
+    else
+    {
+        setupColumn("2", "m<sub>X</sub>", "mX", [], [], -1);
+        setupColumn("3", "c&tau;", "cTau", [], [], -1);
+        setupPlotCat("4", SIGNALVALS, SIGNALLABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    }
 }
 
 // initialize cTau, probably into column 3
@@ -190,7 +199,7 @@ function setupPlotCat(COL, VALUES, LABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHEC
     }
     else
     {
-        setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPEVALS[optValue], CHECKOPT_PLOTTYPE);
+        setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], CHECKOPT_PLOTTYPE);
     }
 }
 
@@ -199,7 +208,7 @@ function setupDPHI(COL, VALUES, LABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
 {
     setupColumn(COL, "&Delta;&Phi; Range", "deltaPhiRange", VALUES, LABELS, CHECKOPT_DPHI);
     let optValue = getFormValueByColumn((Number(COL)-1).toString());
-    setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPEVALS[optValue], CHECKOPT_PLOTTYPE);
+    setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], CHECKOPT_PLOTTYPE);
 }
 
 // initialize plot types
@@ -259,7 +268,7 @@ function update()
         }
         else
         {
-            setupPlotType((COL+1).toString(), PLOTTYPEVALS[this.value], PLOTTYPEVALS[this.value], i_plottype);
+            setupPlotType((COL+1).toString(), PLOTTYPEVALS[this.value], PLOTTYPELABELS[this.value], i_plottype);
         }
     }
 
@@ -284,15 +293,9 @@ function setPlot()
     if (plottype != "")   { filename += "_"+plottype; }
     if (dphi     != "")   { filename += "_"+dphi;     }
                             filename += "_"+sample;
-    if ((plotcat == 'SME') || 
-        (plotcat == 'SMR' && /VS/.test(plottype))
-       )                  { filename += '_Global'; }
-    else
-    {
     if (mH       != "")   { filename += "_"+mH;       }
     if (mX       != "")   { filename += "_"+mX;       }
     if (cTau     != "")   { filename += "_"+cTau;     }
-    }
                             filename += '.png';
 
     let plot = document.getElementById("plot");
@@ -382,7 +385,8 @@ var SIGNALS = [
 			new pair(350,  []),
 			new pair(3500, [])
 		]),
-	])
+	]),
+    new pair('Global', [])
 ];
 
 // sample names and labels
@@ -410,12 +414,23 @@ var PLOTTYPEVALS = {
     NM1      : ['nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'd00', 'dR', 'LxyVSLz', 'd00VSpTrel'],
-    SME      : ['pTEff', 'pTChargeEff', 'etaEff', 'etaChargeEff', 'phiEff', 'phiChargeEff', 'LxyEff', 'LxyChargeEff'],
+    SME      : ['pTEff', 'etaEff', 'phiEff', 'LxyEff', 'd0Eff', 'pTChargeEff', 'etaChargeEff', 'phiChargeEff', 'LxyChargeEff', 'd0ChargeEff'],
     SMR      : ['pTRes', 'phiRes', 'etaRes', 'DSA_LxyRes', "DSA_LxyResVSLxy", "DSA_LxyResVSdR", "DSA_LxyResVSeta", "DSA_LxyResVSpT", "DSA_LxyResVSphi", "DSA_LxyVSLxy", "DSA_etaResVSLxy", "DSA_etaResVSdR", "DSA_etaResVSeta", "DSA_etaResVSpT", "DSA_etaResVSphi", "DSA_etaVSeta", "DSA_pTResVSLxy", "DSA_pTResVSdR", "DSA_pTResVSeta", "DSA_pTResVSpT", "DSA_pTResVSphi", "DSA_pTVSpT", "DSA_phiResVSLxy", "DSA_phiResVSdR", "DSA_phiResVSeta", "DSA_phiResVSpT", "DSA_phiResVSphi", "DSA_phiVSphi", "RSA_etaResVSLxy", "RSA_etaResVSdR", "RSA_etaResVSeta", "RSA_etaResVSpT", "RSA_etaResVSphi", "RSA_etaVSeta", "RSA_pTResVSLxy", "RSA_pTResVSdR", "RSA_pTResVSeta", "RSA_pTResVSpT", "RSA_pTResVSphi", "RSA_pTVSpT", "RSA_phiResVSLxy", "RSA_phiResVSdR", "RSA_phiResVSeta", "RSA_phiResVSpT", "RSA_phiResVSphi", "RSA_phiVSphi"],
     SMP      : ['d0Dif', 'nMuon'],
     CutTable : []
 }
-var PLOTTYPELABELS = {}
+var PLOTTYPELABELS = {
+    Dim      : ['p<sub>T</sub>', '&eta;', 'mass', '&Delta;R', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex &chi;<sup>2</sup>/dof', 'L<sub>xy</sub>', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>'],
+    DSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
+    RSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
+    NM1      : ['nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
+    TCUM     : ['L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>'],
+    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', 'd00', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>', 'd00 VS p<sub>T</sub> rel'],
+    SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
+    SMR      : ['pTRes', 'phiRes', 'etaRes', 'DSA_LxyRes', "DSA_LxyResVSLxy", "DSA_LxyResVSdR", "DSA_LxyResVSeta", "DSA_LxyResVSpT", "DSA_LxyResVSphi", "DSA_LxyVSLxy", "DSA_etaResVSLxy", "DSA_etaResVSdR", "DSA_etaResVSeta", "DSA_etaResVSpT", "DSA_etaResVSphi", "DSA_etaVSeta", "DSA_pTResVSLxy", "DSA_pTResVSdR", "DSA_pTResVSeta", "DSA_pTResVSpT", "DSA_pTResVSphi", "DSA_pTVSpT", "DSA_phiResVSLxy", "DSA_phiResVSdR", "DSA_phiResVSeta", "DSA_phiResVSpT", "DSA_phiResVSphi", "DSA_phiVSphi", "RSA_etaResVSLxy", "RSA_etaResVSdR", "RSA_etaResVSeta", "RSA_etaResVSpT", "RSA_etaResVSphi", "RSA_etaVSeta", "RSA_pTResVSLxy", "RSA_pTResVSdR", "RSA_pTResVSeta", "RSA_pTResVSpT", "RSA_pTResVSphi", "RSA_pTVSpT", "RSA_phiResVSLxy", "RSA_phiResVSdR", "RSA_phiResVSeta", "RSA_phiResVSpT", "RSA_phiResVSphi", "RSA_phiVSphi"],
+    SMP      : ['d0Dif', 'nMuon'],
+    CutTable : []
+}
 
 var NCOLS  = 8;
 

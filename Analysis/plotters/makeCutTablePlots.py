@@ -88,7 +88,7 @@ def makeCombinedPlot():
     canvas.legend.resizeHeight(scale=.8)
     canvas.legend.moveLegend(X=.18)
 
-    canvas.cleanup('pdfs/CutTable.pdf')
+    canvas.cleanup('pdfs/CutTable_HTo2XTo4Mu_Global.pdf')
 
 def makeIndividualPlots():
     for sp in SIGNALPOINTS:

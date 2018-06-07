@@ -45,7 +45,7 @@ CUTS = {
     'LxySig'    : Cut('LxySig'   , lambda dimuon: dimuon.LxySig()                   , operator.gt, 12.       ),
 
 ### ACCEPTANCE CUTS ###
-    'a_pt'      : Cut('a_pt'      , lambda muon: muon.pt                            , operator.gt,  28.      ),
+    'a_pt'      : Cut('a_pt'      , lambda muon: muon.pt                            , operator.gt,  25.      ),
     'a_eta'     : Cut('a_eta'     , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
     'a_Lxy'     : Cut('a_Lxy'     , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
 }
