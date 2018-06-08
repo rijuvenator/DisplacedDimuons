@@ -2,6 +2,7 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
+import DisplacedDimuons.Analysis.Analyzer as Analyzer
 from DisplacedDimuons.Common.Constants import DIR_EOS_RIJU, SIGNALS, SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
@@ -40,19 +41,19 @@ class HistogramConfigurations(object):
         # makeAttrDict knows what to do with this exact format
         attributes = {
             'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
-            'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
-            'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
             'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
-            'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
+            'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
-            'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
-            'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
-            'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
             'Lxy'        : [['L_{xy} [mm]'      , 100, 0.         , LxyUpper   ]                                  ],
+            'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
+            'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
+            'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
+            'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
+            'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
             'd0'         : [['d_{0} [mm]'       , 100, 0.         , cTau*2.    ]                                  ],
             'd00'        : [['#Deltad_{0} [cm]' , 100, -.1        , .1         ]                                  ],
-            'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
+            'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
+            'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
             'LxyVSLz'    : [['L_{z} [mm]'       , 350, 0.         , 1000.      ], ['L_{xy} [mm]'   , 200, 0., 50.]],
             'd00VSpTrel' : [['#Deltad_{0} [cm]' , 100, -.1        , .1         ], ['p_{T}rel [GeV]', 100, 0., 50.]],
         }
@@ -94,13 +95,14 @@ def Draw(t, HConfig, key, expressions):
         t.Draw('{expr}>>{isFirst}{hName}'.format(expr=expr, isFirst='' if i==0 else '+', hName=HConfig.HName(key)))
 
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
-def fillPlots(fs, sp, HList):
+def fillPlots(fs, sp, HList, FNAME):
     # get file and tree
-    f = R.TFile.Open('root://eoscms.cern.ch/'+DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo'+fs, SPStr(sp)))
+    #f = R.TFile.Open('root://eoscms.cern.ch/'+DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo'+fs, SPStr(sp)))
+    f = R.TFile.Open(FNAME.format('HTo2XTo'+fs+'_'+SPStr(sp)))
     t = f.Get('SimpleNTupler/DDTree')
 
     # set basic particle aliases
-    RT.setGenAliases(t)
+    RT.setGenAliases(t, fs)
 
     # set additional aliases from HAliases
     for alias, expr in HAliases.iteritems():
@@ -125,96 +127,152 @@ def fillPlots(fs, sp, HList):
     f.Close()
     del f
 
+# this generalizes the old HAliases and HExpressions dictionaries
+# to accomodate two different final state configurations, with different aliases and expressions
+# for 4Mu,   we have X1, X2, mu11, mu12, mu21, mu22
+# for 2Mu2J, we have X     , mu1 , mu2
+def makeAliasesAndExpressions(fs):
+    # used to build TTree aliases below
+    tformulae = {
+        # one per X, uses mu1 info only
+        'cTau' : '10.*{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
+        'beta' : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
+        'Lxy'  : '10.*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
+        'Lz'   : 'abs({MU1}.z-{X}.z)',
+        'dR'   : '{MU1}.pairDeltaR',
+
+        # one per X, uses mu1 and mu2 info
+        'dPhi' : 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
+
+        # one per muon
+        'd0'   : '10.*({MU}.d0)',
+        'd00'  : '{MU}.d00-{MU}.d0',
+        'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+    }
+
+    # basic particle aliases are set in RootTools
+    # extra TTree aliases are set here, as key : alias
+    # the actual alias is gotten from the formulae above
+    aliases = {}
+    def setAliases(X):
+        # per X quantities
+        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhi'):
+            aliases[key+X] = tformulae[key].format(X='X'+X, MU1='mu'+X+'1', MU2='mu'+X+'2')
+
+        # per muon quantities
+        for key in ('d0', 'd00', 'pTrel'):
+            for mu in ('1', '2'):
+                aliases[key+X+mu] = tformulae[key].format(MU='mu'+X+mu, X='X'+X)
+
+    # TTree draw expressions as histogram name : [list of Draw expressions]
+    # the Draw wrapper above will draw them in order, adding a + for multiple
+    expressions = {
+        # fixed
+        'massH'      : ['H.mass'], # H0 mass      : H.mass
+        'pTH'        : ['H.pt'],   # H0 pT        : H.pT
+
+        # per X, alias above
+        'cTau'       : [],         # X cTau       : cTau
+        'beta'       : [],         # X beta       : beta
+        'Lxy'        : [],         # X Lxy        : Lxy
+        'dR'         : [],         # X deltaR     : dR
+        'dPhi'       : [],         # X deltaPhi   : dPhi
+
+        # per X, alias in RT
+        'massX'      : [],         # X mass       : X.mass
+        'pTX'        : [],         # X pT         : X.pT
+        'cosAlpha'   : [],         # X cosAlpha   : mu.cosAlpha
+
+        # per muon, alias above
+        'd0'         : [],         # mu d0        : d0
+        'd00'        : [],         # mu d00       : d00
+
+        # per muon, alias in RT
+        'pTmu'       : [],         # mu pT        : mu.pt
+        'etaMu'      : [],         # mu eta       : mu.eta
+
+        # 2D plots, handle specially
+        'LxyVSLz'    : [],         # Lxy vs Lz    : Lz:Lxy
+        'd00VSpTrel' : []          # d00 vs pTrel : pTrel:d00
+    }
+    def setExpressions(X):
+        # per X quantities with aliases
+        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhi'):
+            expressions[key].append(key+X)
+
+        # per muon quantities with aliases
+        for key in ('d0', 'd00'):
+            for mu in ('1', '2'):
+                expressions[key].append(key+X+mu)
+
+        # per X quantities without aliases
+        for key, string in (('massX', '{X}.mass'), ('pTX', '{X}.pt'), ('cosAlpha', '{MU1}.cosAlpha')):
+            expressions[key].append(string.format(X='X'+X, MU1='mu'+X+'1'))
+
+        # per muon quantities without aliases
+        for key, string in (('pTmu', '{MU}.pt'), ('etaMu', '{MU}.eta')):
+            for mu in ('1', '2'):
+                expressions[key].append(string.format(MU='mu'+X+mu))
+
+        # 2D plots
+        for key, string in (('LxyVSLz', 'Lz{X}:Lxy{X}'),):
+            expressions[key].append(string.format(X=X))
+
+        for key, string in (('d00VSpTrel', 'pTrel{MU}:d00{MU}'),):
+            for mu in ('1', '2'):
+                expressions[key].append(string.format(MU=X+mu))
+
+    # fill the aliases and expressions dictionaries
+    XLists = {'4Mu' : ('1', '2'), '2Mu2J' : ('',)}
+    for X in XLists[fs]:
+        setAliases(X)
+        setExpressions(X)
+
+    return aliases, expressions
+
 #### ALL GLOBAL VARIABLES DECLARED HERE ####
 # empty histogram dictionary
 HISTS = {}
+
 # empty files dictionary
 FILES = {}
 
-
-# list of histogram keys to actually fill this time
-#HList = (
-#   'massH',
-#   'massX',
-#   'cTau',
-#   'pTH',
-#   'pTX',
-#   'pTmu',
-#   'beta',
-#   'etaMu',
-#   'dPhi',
-#   'cosAlpha',
-#   'Lxy',
-#   'd0',
-#   'd00',
-#   'dR',
-#   'LxyVSLz',
-#   'd00VSpTrel'
-#)
-# with a single argument parallelize with : parallel python genPlots.py ::: massH massX cTau pTH pTX pTmu beta etaMu dPhi cosAlpha Lxy d0 d00 dR LxyVSLz d00VSpTrel
-import sys
-HList = (sys.argv[-1],)
-
-# TTree aliases: alias : expr
-HAliases = {
-    'cTau1'    : 'X1.mass/sqrt(pow(X1.energy,2)-pow(X1.mass,2))*sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2) + pow(mu11.z-X1.z,2))*10.',
-    'cTau2'    : 'X2.mass/sqrt(pow(X2.energy,2)-pow(X2.mass,2))*sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2) + pow(mu21.z-X2.z,2))*10.',
-    'beta1'    : 'sqrt(pow(X1.energy,2)-pow(X1.mass,2))/X1.energy',
-    'beta2'    : 'sqrt(pow(X2.energy,2)-pow(X2.mass,2))/X2.energy',
-    'dPhi1'    : 'TVector2::Phi_mpi_pi(mu11.phi-mu12.phi)',
-    'dPhi2'    : 'TVector2::Phi_mpi_pi(mu21.phi-mu22.phi)',
-    'Lxy1'     : 'sqrt(pow(mu11.x-X1.x,2) + pow(mu11.y-X1.y,2))*10.',
-    'Lxy2'     : 'sqrt(pow(mu21.x-X2.x,2) + pow(mu21.y-X2.y,2))*10.',
-    'Lz1'      : 'abs(mu11.z-X1.z)',
-    'Lz2'      : 'abs(mu21.z-X2.z)',
-    'd011'     : '(mu11.d0)*10.',
-    'd012'     : '(mu12.d0)*10.',
-    'd021'     : '(mu21.d0)*10.',
-    'd022'     : '(mu22.d0)*10.',
-    'd0011'    : 'TMath::Abs(mu11.x*mu11.pt*TMath::Sin(mu11.phi)-mu11.y*mu11.pt*TMath::Cos(mu11.phi))/mu11.pt-mu11.d0',
-    'd0012'    : 'TMath::Abs(mu12.x*mu12.pt*TMath::Sin(mu12.phi)-mu12.y*mu12.pt*TMath::Cos(mu12.phi))/mu12.pt-mu12.d0',
-    'd0021'    : 'TMath::Abs(mu21.x*mu21.pt*TMath::Sin(mu21.phi)-mu21.y*mu21.pt*TMath::Cos(mu21.phi))/mu21.pt-mu21.d0',
-    'd0022'    : 'TMath::Abs(mu22.x*mu22.pt*TMath::Sin(mu22.phi)-mu22.y*mu22.pt*TMath::Cos(mu22.phi))/mu22.pt-mu22.d0',
-    'dR1'      : 'sqrt(pow(mu11.eta-mu12.eta,2) + pow(TVector2::Phi_mpi_pi(mu11.phi-mu12.phi),2))',
-    'dR2'      : 'sqrt(pow(mu21.eta-mu22.eta,2) + pow(TVector2::Phi_mpi_pi(mu21.phi-mu22.phi),2))',
-    'pTrel11'  : 'sqrt(pow(mu11.pt*TMath::Sin(mu11.phi) - X1.pt*TMath::Sin(X1.phi),2) + pow(mu11.pt*TMath::Cos(mu11.phi) - X1.pt*TMath::Cos(X1.phi),2))',
-    'pTrel12'  : 'sqrt(pow(mu12.pt*TMath::Sin(mu12.phi) - X1.pt*TMath::Sin(X1.phi),2) + pow(mu12.pt*TMath::Cos(mu12.phi) - X1.pt*TMath::Cos(X1.phi),2))',
-    'pTrel21'  : 'sqrt(pow(mu21.pt*TMath::Sin(mu21.phi) - X2.pt*TMath::Sin(X2.phi),2) + pow(mu21.pt*TMath::Cos(mu21.phi) - X2.pt*TMath::Cos(X2.phi),2))',
-    'pTrel22'  : 'sqrt(pow(mu22.pt*TMath::Sin(mu22.phi) - X2.pt*TMath::Sin(X2.phi),2) + pow(mu22.pt*TMath::Cos(mu22.phi) - X2.pt*TMath::Cos(X2.phi),2))',
-}
-
-# TTree draw configuration: histogram name : (list of Draw expressions)
-HExpressions = {
-    'massH'      : ('H.mass',),
-    'massX'      : ('X1.mass', 'X2.mass'),
-    'cTau'       : ('cTau1', 'cTau2'),
-    'pTH'        : ('H.pt',),
-    'pTX'        : ('X1.pt', 'X2.pt'),
-    'pTmu'       : ('mu11.pt', 'mu12.pt', 'mu21.pt', 'mu22.pt'),
-    'beta'       : ('beta1', 'beta2'),
-    'etaMu'      : ('mu11.eta', 'mu12.eta', 'mu21.eta', 'mu22.eta'),
-    'dPhi'       : ('dPhi1', 'dPhi2'),
-    'cosAlpha'   : ('mu11.cosAlpha', 'mu21.cosAlpha'),
-    'Lxy'        : ('Lxy1', 'Lxy2'),
-    'd0'         : ('d011', 'd012', 'd021', 'd022'),
-    'd00'        : ('d0011', 'd0012', 'd0021', 'd0022'),
-    'dR'         : ('dR1', 'dR2'),
-    'LxyVSLz'    : ('Lz1:Lxy1','Lz2:Lxy2'),
-    'd00VSpTrel' : ('pTrel11:d0011', 'pTrel12:d0012','pTrel21:d0021','pTrel22:d0022')
-}
+# list of histogram keys, copied from the inside of HistogramConfigurations
+HList = (
+   'massH'     ,
+   'pTH'       ,
+   'cTau'      ,
+   'beta'      ,
+   'Lxy'       ,
+   'dR'        ,
+   'dPhi'      ,
+   'massX'     ,
+   'pTX'       ,
+   'cosAlpha'  ,
+   'd0'        ,
+   'd00'       ,
+   'pTmu'      ,
+   'etaMu'     ,
+   'LxyVSLz'   ,
+   'd00VSpTrel',
+)
 
 #### MAIN CODE ####
-# loop over signal points
-for fs in ('4Mu',):
-    for sp in SIGNALPOINTS:
-        HISTS[(fs, sp)] = {}
-        fillPlots(fs, sp, HList)
-        print 'Created plots for', fs, sp
-# now that plots are filled, loop over signal points and write to files
-for fs in ('4Mu',):
+if __name__ == '__main__':
+    ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setFNAME(ARGS, GEN=True)
+    if not ARGS.NAME.startswith('HTo2X'):
+        raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    fs = ARGS.NAME.replace('HTo2XTo', '')
+    sp = tuple(ARGS.SIGNALPOINT)
+    HAliases, HExpressions = makeAliasesAndExpressions(fs)
+
+    HISTS[(fs, sp)] = {}
+    fillPlots(fs, sp, HList, ARGS.FNAME)
+    print 'Created all plots for', fs, sp
+
+    FILES[(fs, sp)] = R.TFile.Open('roots/GenPlots_HTo2XTo{FS}_{SP}.root'.format(FS=fs, SP=SPStr(sp)), 'RECREATE')
+    FILES[(fs, sp)].cd()
     for key in HList:
-        FILES[key] = R.TFile.Open('roots/GenPlots_{}.root'.format(key), 'RECREATE')
-        FILES[key].cd()
-        for sp in SIGNALPOINTS:
-            HISTS[(fs, sp)][key].Write()
-        print 'Written ROOT file for all signal points for', fs, key
+        HISTS[(fs, sp)][key].Write()
+    print 'Written ROOT file for all plots for', fs, sp
