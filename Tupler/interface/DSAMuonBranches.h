@@ -37,12 +37,15 @@ class DSAMuonBranches : public BranchCollection
 		std::vector<float> dsamu_eta          ;
 		std::vector<float> dsamu_phi          ;
 		std::vector<int  > dsamu_charge       ;
+		std::vector<float> dsamu_chi2         ;
+		std::vector<int>   dsamu_ndof         ;
+
 		std::vector<float> dsamu_x            ;
 		std::vector<float> dsamu_y            ;
 		std::vector<float> dsamu_z            ;
-
-		std::vector<float> dsamu_chi2         ;
-		std::vector<int>   dsamu_ndof         ;
+		std::vector<float> dsamu_x_fhit       ;
+		std::vector<float> dsamu_y_fhit       ;
+		std::vector<float> dsamu_z_fhit       ;
 
 		std::vector<int  > dsamu_nMuonHits    ;
 		std::vector<int  > dsamu_nDTHits      ;
@@ -78,12 +81,15 @@ class DSAMuonBranches : public BranchCollection
 			Declare("dsamu_eta"          , dsamu_eta          );
 			Declare("dsamu_phi"          , dsamu_phi          );
 			Declare("dsamu_charge"       , dsamu_charge       );
+			Declare("dsamu_chi2"         , dsamu_chi2         );
+			Declare("dsamu_ndof"         , dsamu_ndof         );
+
 			Declare("dsamu_x"            , dsamu_x            );
 			Declare("dsamu_y"            , dsamu_y            );
 			Declare("dsamu_z"            , dsamu_z            );
-
-			Declare("dsamu_chi2"         , dsamu_chi2         );
-			Declare("dsamu_ndof"         , dsamu_ndof         );
+			Declare("dsamu_x_fhit"       , dsamu_x_fhit       );
+			Declare("dsamu_y_fhit"       , dsamu_y_fhit       );
+			Declare("dsamu_z_fhit"       , dsamu_z_fhit       );
 
 			Declare("dsamu_nMuonHits"    , dsamu_nMuonHits    );
 			Declare("dsamu_nDTHits"      , dsamu_nDTHits      );
@@ -119,12 +125,15 @@ class DSAMuonBranches : public BranchCollection
 			dsamu_eta          .clear();
 			dsamu_phi          .clear();
 			dsamu_charge       .clear();
+			dsamu_chi2         .clear();
+			dsamu_ndof         .clear();
+
 			dsamu_x            .clear();
 			dsamu_y            .clear();
 			dsamu_z            .clear();
-
-			dsamu_chi2         .clear();
-			dsamu_ndof         .clear();
+			dsamu_x_fhit       .clear();
+			dsamu_y_fhit       .clear();
+			dsamu_z_fhit       .clear();
 
 			dsamu_nMuonHits    .clear();
 			dsamu_nDTHits      .clear();
