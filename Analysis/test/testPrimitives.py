@@ -24,6 +24,7 @@ except:
 # containers for storing error information
 KEYS = {
         'EVENT'   : [-1, False],
+        'TRIGGER' : [-1, False],
         'MET'     : [-1, False],
         'VERTEX'  : [-1, False],
         'BEAMSPOT': [-1, False],
