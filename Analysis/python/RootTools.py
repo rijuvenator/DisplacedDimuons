@@ -41,6 +41,6 @@ def setGenAliases(t, signal='4Mu'):
     elif signal == '2Mu2J':
         plist = ('mu1', 'mu2', 'j1', 'j2', 'X', 'XP', 'H', 'P')
     for i, particle in enumerate(plist):
-        for attribute in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z', 'd0', 'd00', 'cosAlpha', 'Lxy', 'pairDeltaR'):
-            if attribute in ('d0', 'd00', 'cosAlpha', 'Lxy', 'pairDeltaR') and particle[0:2] != 'mu' and particle[0] != 'j': continue
+        for attribute in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z', 'd0', 'dz', 'cosAlpha', 'Lxy', 'deltaR'):
+            if attribute in ('d0', 'dz', 'cosAlpha', 'Lxy', 'deltaR') and particle[0:2] != 'mu' and particle[0] != 'j': continue
             t.SetAlias(particle+'.'+attribute, 'gen_'+attribute+'['+str(i)+']')

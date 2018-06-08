@@ -33,9 +33,9 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 	  fired = true;
 	  idx++;
 	  unsigned path_prescale = triggerEvent.path(HLTPath)->prescale();
-	  hlt_idx     .push_back(idx);
-	  hlt_path    .push_back(HLTPath);
-	  hlt_prescale.push_back(path_prescale);
+	  trig_hlt_idx     .push_back(idx);
+	  trig_hlt_path    .push_back(HLTPath);
+	  trig_hlt_prescale.push_back(path_prescale);
 	  if (debug)
 	    std::cout << "DDM trigger path " << HLTPath << " fired;"
 		      << " path index = " << idx
@@ -98,12 +98,12 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 				  << " pT =  " << l1t_objects[i]->pt()
 				  << std::endl;
 		      // Fill Level-1 muon info
-		      l1tmu_idx.push_back(idx);
-		      l1tmu_px .push_back(l1t_objects[i]->px());
-		      l1tmu_py .push_back(l1t_objects[i]->py());
-		      l1tmu_pz .push_back(l1t_objects[i]->pz());
-		      l1tmu_eta.push_back(l1t_objects[i]->eta());
-		      l1tmu_phi.push_back(l1t_objects[i]->phi());
+		      trig_l1tmu_idx.push_back(idx);
+		      trig_l1tmu_px .push_back(l1t_objects[i]->px());
+		      trig_l1tmu_py .push_back(l1t_objects[i]->py());
+		      trig_l1tmu_pz .push_back(l1t_objects[i]->pz());
+		      trig_l1tmu_eta.push_back(l1t_objects[i]->eta());
+		      trig_l1tmu_phi.push_back(l1t_objects[i]->phi());
 		    }
 		}
 
@@ -133,12 +133,12 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 				  << " pT = "  << hlt_objects[i]->pt()
 				  << std::endl;
 		      // Fill HLT info
-		      hltmu_idx.push_back(idx);
-		      hltmu_px .push_back(hlt_objects[i]->px());
-		      hltmu_py .push_back(hlt_objects[i]->py());
-		      hltmu_pz .push_back(hlt_objects[i]->pz());
-		      hltmu_eta.push_back(hlt_objects[i]->eta());
-		      hltmu_phi.push_back(hlt_objects[i]->phi());
+		      trig_hltmu_idx.push_back(idx);
+		      trig_hltmu_px .push_back(hlt_objects[i]->px());
+		      trig_hltmu_py .push_back(hlt_objects[i]->py());
+		      trig_hltmu_pz .push_back(hlt_objects[i]->pz());
+		      trig_hltmu_eta.push_back(hlt_objects[i]->eta());
+		      trig_hltmu_phi.push_back(hlt_objects[i]->phi());
 		    }
 		}
 	    }
@@ -163,7 +163,7 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 	      // }
 	      packed_prescales.setTriggerNames(triggerNames);
 	      int l1max_prescale = packed_prescales.getPrescaleForName(HLTPath);
-	      l1t_prescale.push_back(l1max_prescale);
+	      trig_l1t_prescale.push_back(l1max_prescale);
 	      if (l1max_prescale != 1)
 		{
 		  edm::LogWarning("TriggerBranches")

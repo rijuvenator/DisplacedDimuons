@@ -8,11 +8,11 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  ),
-    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   ),
-    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda obj : obj.Lxy()     , 'L_{xy}' ),
-    ('dR' , '#DeltaR'    , (1000,       0.,      5.), lambda gm  : gm.pairDeltaR , '#DeltaR'),
+    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt   , 'p_{T}'  ),
+    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta  , '#eta'   ),
+    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi  , '#phi'   ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda obj : obj.Lxy() , 'L_{xy}' ),
+    ('dR' , '#DeltaR'    , (1000,       0.,      5.), lambda gm  : gm.deltaR , '#DeltaR'),
 )
 CONFIG = {}
 for VAL in VALUES:
