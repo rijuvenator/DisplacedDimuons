@@ -47,6 +47,7 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
     const bool isSignal,
     const std::string finalState)
 {
+  static bool debug = false;
   Reset();
 
   // Check if failed to get
@@ -61,7 +62,38 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   if      (isSignal && finalState == "4Mu"  ) Fill4Mu  (gens);
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
-
+ 
+  if (debug) {
+    std::cout << "Gen info: weight = " << gen_weight << "; gen particles: \n";
+    std::cout << " idx |   id  | stat| moth|    pt   |    eta   |   phi   |    M    |    E   | q |        (x;y;z)        | \n";
+    unsigned int nparts = gen_status.size();
+    for (unsigned int i = 0; i < nparts; i++) {
+      std::cout << std::setw(5) << i << "|" << std::setw(7) << gen_pdgID[i]
+		<< "|" << std::setw(5)  << gen_status[i]
+		<< "|" << std::setw(5)  << gen_mother[i] << std::setprecision(4)
+		<< "|" << std::setw(9)  << gen_pt[i] 
+		<< "|" << std::setw(10) << gen_eta[i]
+		<< "|" << std::setw(9)  << gen_phi[i]
+		<< "|" << std::setw(9)  << gen_mass[i]
+		<< "|" << std::setw(8)  << gen_energy[i]
+		<< "|" << std::setw(3)  << gen_charge[i]
+		<< "|" << std::setw(7)  << gen_x[i]
+		<< " " << std::setw(7)  << gen_y[i]
+		<< " " << std::setw(7)  << gen_z[i] << "|" << std::endl;
+    }
+    unsigned int npairs = gen_Lxy.size();
+    if (npairs > 0) {
+      std::cout << " idi |   Lxy   |   cosA  |    d0   |    dz   |    dR   | \n";
+      for (unsigned int i = 0; i < npairs; i++) {
+	std::cout << std::setw(5) << i << std::setprecision(4)
+		  << "|" << std::setw(9) << gen_Lxy[i] 
+		  << "|" << std::setw(9) << gen_cosAlpha[i]
+		  << "|" << std::setw(9) << gen_d0[i]
+		  << "|" << std::setw(9) << gen_dz[i]
+		  << "|" << std::setw(9) << gen_deltaR[i] << "|" << std::endl;
+      }
+    }
+  }
 }
 
 // fill gen branches for P -> H -> XX -> 4Mu
@@ -152,15 +184,13 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
+    gen_mother.push_back(-1         ); // not yet implemented
   }
 
-  // fill d0, Lxy, cosAlpha, and deltaR
+  // fill d0, dz, Lxy, cosAlpha, and deltaR
   std::vector<std::vector<const reco::GenParticle*>> muonPairs = {{mu11, mu12}, {mu21, mu22}};
-  std::vector<            const reco::Candidate*   > XParts    = {X1, X2};
-
   for (size_t i=0; i<2; ++i)
   {
-    const auto &XPart    = XParts   [i];
     const auto &muonPair = muonPairs[i];
     const auto &mu1      = muonPair [0];
     const auto &mu2      = muonPair [1];
@@ -174,18 +204,16 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 
     for (const auto &mu : muonPair)
     {
-      TVector3 disp(mu->vx() - XPart->vx(), mu->vy() - XPart->vy(), 0.);
-      TVector3 zero(mu->vx()              , mu->vy()              , 0.);
-      TVector3 p3zz(mu->px()              , mu->py()              , 0.);
+      TVector3 zero(mu->vx(), mu->vy(), 0.);
+      TVector3 p3zz(mu->px(), mu->py(), 0.);
+      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
+      float dz = mu->vz() - zero.Dot(p3zz)/mu->pt()*mu->pz()/mu->pt();
 
-      float d0  = disp.Cross(p3zz).Mag()/p3zz.Mag();
-      float d00 = zero.Cross(p3zz).Mag()/p3zz.Mag();
-
-      gen_d0        .push_back(d0      );
-      gen_d00       .push_back(d00     );
-      gen_Lxy       .push_back(Lxy     );
-      gen_cosAlpha  .push_back(cosAlpha);
-      gen_pairDeltaR.push_back(dR      );
+      gen_d0      .push_back(d0      );
+      gen_dz      .push_back(dz      );
+      gen_Lxy     .push_back(Lxy     );
+      gen_cosAlpha.push_back(cosAlpha);
+      gen_deltaR  .push_back(dR      );
     }
   }
 }
@@ -193,10 +221,10 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 // fill gen branches for P -> H -> XX -> 2Mu 2Jet
 void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 {
-  const reco::GenParticle *mu1  = nullptr;
-  const reco::GenParticle *mu2  = nullptr;
-  const reco::Candidate   *j1   = nullptr;
-  const reco::Candidate   *j2   = nullptr;
+  const reco::GenParticle *mup  = nullptr;
+  const reco::GenParticle *mum  = nullptr;
+  const reco::Candidate   *q1   = nullptr;
+  const reco::Candidate   *q2   = nullptr;
   const reco::Candidate   *X    = nullptr;
   const reco::Candidate   *XP   = nullptr;
   const reco::Candidate   *H    = nullptr;
@@ -213,12 +241,12 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
       while (p->pdgId() != PDGID::LLX && p->numberOfMothers() != 0) { p = p->mother(); }
       if (p->pdgId() == PDGID::LLX)
       {
-        if      (X   == nullptr) { X = p;      }
-        if      (mu1 == nullptr) { mu1 = &gen; }
-        else if (mu2 == nullptr) { mu2 = &gen; }
+        if   (X == nullptr)     { X = p;      }
+        if   (gen.charge() > 0) { mup = &gen; }
+        else                    { mum = &gen; }
       }
     }
-    // look for X' -> j1 j2
+    // look for X' -> q1 q2
     if (gen.pdgId() == PDGID::LLXP)
     {
       XP = &gen;
@@ -227,11 +255,17 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
         edm::LogWarning("NTupler::GenBranches") << "+++ Warning: X' does not have 2 daughters. Filling nothing. +++";
         return;
       }
-      j1 = XP->daughter(0);
-      j2 = XP->daughter(1);
+      if (XP->daughter(0)->pdgId() > 0) {
+	q1 = XP->daughter(0);
+	q2 = XP->daughter(1);
+      }
+      else {
+	q1 = XP->daughter(1);
+	q2 = XP->daughter(0);
+      }
     }
-    // if both mu2 and X' are set, no need to keep looping over gen particles
-    if (mu2 != nullptr && XP != nullptr) break;
+    // if both mu's and X' are set, no need to keep looping over gen particles
+    if (mup != nullptr && mum != nullptr && XP != nullptr) break;
   }
   // make sure X and X' are non-null
   if (X == nullptr || XP == nullptr)
@@ -247,8 +281,8 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   P = p;
 
   // make sure all pointers are non-null
-  if (mu1 == nullptr || j1  == nullptr ||
-      mu2 == nullptr || j2  == nullptr ||
+  if (mup == nullptr || q1  == nullptr ||
+      mum == nullptr || q2  == nullptr ||
       X   == nullptr || XP  == nullptr ||
       H   == nullptr || P   == nullptr)
   {
@@ -256,8 +290,8 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     return;
   }
 
-  // fill the branches: mu1, mu2, j1, j2, X, X', H, and P
-  std::vector<const reco::Candidate*> particles = {mu1, mu2, j1, j2, X, XP, H, P};
+  // fill the branches: mu+, mu-, q, qbar, X, X', H, and P
+  std::vector<const reco::Candidate*> particles = {mup, mum, q1, q2, X, XP, H, P};
   for (const auto &p : particles)
   {
     gen_status.push_back(p->status());
@@ -271,14 +305,13 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     gen_x     .push_back(p->vx    ());
     gen_y     .push_back(p->vy    ());
     gen_z     .push_back(p->vz    ());
+    gen_mother.push_back(-1         ); // not yet implemented
   }
 
   // fill d0, Lxy, cosAlpha, and deltaR
-  std::vector<std::vector<const reco::Candidate*>> PPairs = {{mu1, mu2}, {j1, j2}};
-  std::vector<            const reco::Candidate* > XParts = {X, XP};
+  std::vector<std::vector<const reco::Candidate*>> PPairs = {{mup, mum}, {q1, q2}};
   for (size_t i=0; i<2; ++i)
   {
-    const auto &XPart = XParts[i];
     const auto &PPair = PPairs[i];
     const auto part1  = PPair [0];
     const auto part2  = PPair [1];
@@ -292,18 +325,20 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 
     for (const auto &part : PPair)
     {
-      TVector3 disp(part->vx() - XPart->vx(), part->vy() - XPart->vy(), 0.);
-      TVector3 zero(part->vx()              , part->vy()              , 0.);
-      TVector3 p3zz(part->px()              , part->py()              , 0.);
+      TVector3 zero(part->vx(), part->vy(), 0.);
+      TVector3 p3zz(part->px(), part->py(), 0.);
+      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
+      float dz = part->vz() - zero.Dot(p3zz)/part->pt()*part->pz()/part->pt();
 
-      float d0  = disp.Cross(p3zz).Mag()/p3zz.Mag();
-      float d00 = zero.Cross(p3zz).Mag()/p3zz.Mag();
+      // explicit formula for checks
+      //float dxy = (-part->vx()*part->py() + part->vy()*part->px())/part->pt();
+      //float dz  = part->vz() - (part->vx()*part->px() + part->vy()*part->py())/part->pt()*part->pz()/part->pt();
 
-      gen_d0        .push_back(d0      );
-      gen_d00       .push_back(d00     );
-      gen_Lxy       .push_back(Lxy     );
-      gen_cosAlpha  .push_back(cosAlpha);
-      gen_pairDeltaR.push_back(dR      );
+      gen_d0      .push_back(d0      );
+      gen_dz      .push_back(dz      );
+      gen_Lxy     .push_back(Lxy     );
+      gen_cosAlpha.push_back(cosAlpha);
+      gen_deltaR  .push_back(dR      );
     }
   }
 }
@@ -325,7 +360,7 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
     gen_y     .push_back(p.vy    ());
     gen_z     .push_back(p.vz    ());
 
-    size_t mIndex = -1;
+    int mIndex = -1;
     if (p.numberOfMothers() > 0) { mIndex = p.motherRef(0).key(); }
 
     gen_mother.push_back(mIndex    );

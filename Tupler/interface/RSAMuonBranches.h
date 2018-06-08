@@ -37,12 +37,15 @@ class RSAMuonBranches : public BranchCollection
 		std::vector<float> rsamu_eta          ;
 		std::vector<float> rsamu_phi          ;
 		std::vector<int  > rsamu_charge       ;
+		std::vector<float> rsamu_chi2         ;
+		std::vector<int>   rsamu_ndof         ;
+
 		std::vector<float> rsamu_x            ;
 		std::vector<float> rsamu_y            ;
 		std::vector<float> rsamu_z            ;
-
-		std::vector<float> rsamu_chi2         ;
-		std::vector<int>   rsamu_ndof         ;
+		std::vector<float> rsamu_x_fhit       ;
+		std::vector<float> rsamu_y_fhit       ;
+		std::vector<float> rsamu_z_fhit       ;
 
 		std::vector<int  > rsamu_nMuonHits    ;
 		std::vector<int  > rsamu_nDTHits      ;
@@ -78,12 +81,15 @@ class RSAMuonBranches : public BranchCollection
 			Declare("rsamu_eta"          , rsamu_eta          );
 			Declare("rsamu_phi"          , rsamu_phi          );
 			Declare("rsamu_charge"       , rsamu_charge       );
+			Declare("rsamu_chi2"         , rsamu_chi2         );
+			Declare("rsamu_ndof"         , rsamu_ndof         );
+
 			Declare("rsamu_x"            , rsamu_x            );
 			Declare("rsamu_y"            , rsamu_y            );
 			Declare("rsamu_z"            , rsamu_z            );
-
-			Declare("rsamu_chi2"         , rsamu_chi2         );
-			Declare("rsamu_ndof"         , rsamu_ndof         );
+			Declare("rsamu_x_fhit"       , rsamu_x_fhit       );
+			Declare("rsamu_y_fhit"       , rsamu_y_fhit       );
+			Declare("rsamu_z_fhit"       , rsamu_z_fhit       );
 
 			Declare("rsamu_nMuonHits"    , rsamu_nMuonHits    );
 			Declare("rsamu_nDTHits"      , rsamu_nDTHits      );
@@ -119,12 +125,15 @@ class RSAMuonBranches : public BranchCollection
 			rsamu_eta          .clear();
 			rsamu_phi          .clear();
 			rsamu_charge       .clear();
+			rsamu_chi2         .clear();
+			rsamu_ndof         .clear();
+
 			rsamu_x            .clear();
 			rsamu_y            .clear();
 			rsamu_z            .clear();
-
-			rsamu_chi2         .clear();
-			rsamu_ndof         .clear();
+			rsamu_x_fhit       .clear();
+			rsamu_y_fhit       .clear();
+			rsamu_z_fhit       .clear();
 
 			rsamu_nMuonHits    .clear();
 			rsamu_nDTHits      .clear();

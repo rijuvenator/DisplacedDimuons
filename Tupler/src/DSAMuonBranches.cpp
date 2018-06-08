@@ -35,11 +35,15 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	    dsamu_eta   .push_back(muon_cand.eta    );
 	    dsamu_phi   .push_back(muon_cand.phi    );
 	    dsamu_charge.push_back(muon_cand.charge );
+	    dsamu_chi2  .push_back(muon_cand.chi2   );
+	    dsamu_ndof  .push_back(muon_cand.ndof   );
+
 	    dsamu_x     .push_back(muon_cand.x      );
 	    dsamu_y     .push_back(muon_cand.y      );
 	    dsamu_z     .push_back(muon_cand.z      );
-	    dsamu_chi2  .push_back(muon_cand.chi2   );
-	    dsamu_ndof  .push_back(muon_cand.ndof   );
+	    dsamu_x_fhit.push_back(muon_cand.x_fhit );
+	    dsamu_y_fhit.push_back(muon_cand.y_fhit );
+	    dsamu_z_fhit.push_back(muon_cand.z_fhit );
 
 	    dsamu_nMuonHits   .push_back(muon_cand.n_MuonHits);
 	    dsamu_nDTHits     .push_back(muon_cand.n_DTHits);

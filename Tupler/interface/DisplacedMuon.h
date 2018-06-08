@@ -22,19 +22,35 @@ struct DisplacedMuon
   float eta    ;
   float phi    ;
   int   charge ;
+
+  // Position of the "reference point" on track.  Reference point is
+  // "the point of closest approach to the centre of CMS" (see
+  // DataFormats/TrackReco/interface/TrackBase.h).
   float x      ;
   float y      ;
   float z      ;
 
+  // Position of the innermost hit on track (stored in
+  // reco::TrackExtra)
+  float x_fhit ;
+  float y_fhit ;
+  float z_fhit ;
+
   float chi2 ;
   int   ndof ;
 
+  // Information from HitPattern
   int n_MuonHits    ;
   int n_DTHits      ;
   int n_CSCHits     ;
   int n_DTStations  ;
   int n_CSCStations ;
 
+  // d0 w.r.t. the primary vertex and the beam spot, and its
+  // significance.  For now store two types of values for each, 1)
+  // obtained by propagating the trajectory in the magnetic field, and
+  // 2) (with "lin" in the variable name) calculated analytically
+  // assuming that the trajectory is a straight line.
   float d0_pv        ;
   float d0_bs        ;
   float d0_pv_lin    ;
@@ -44,6 +60,7 @@ struct DisplacedMuon
   float d0sig_pv_lin ;
   float d0sig_bs_lin ;
 
+  // Ditto for dz
   float dz_pv        ;
   float dz_bs        ;
   float dz_pv_lin    ;
@@ -63,9 +80,13 @@ struct DisplacedMuon
     eta    = -999.;
     phi    = -999.;
     charge = -999 ; 
+
     x      = -999.;
     y      = -999.;
     z      = -999.;
+    x_fhit = -999.;
+    y_fhit = -999.;
+    z_fhit = -999.;
 
     chi2   = -999.;
     ndof   = -999 ;
@@ -100,9 +121,13 @@ struct DisplacedMuon
     double p  = sqrt(pow(pt,2)     + pow(rhs.pz,2));
     output << " idx = " << rhs.idx << " charge = " << rhs.charge
 	   << " pt = "  << pt      << " p = "      << p
-	   << " eta = " << rhs.eta << " phi = "    << rhs.phi << std::endl;
-    output << "  (x; y; z): (" << rhs.x << ";" << rhs.y << ";" << rhs.z
-	   << ") chi2/ndof = " << rhs.chi2 << "/" << rhs.ndof << std::endl;
+	   << " eta = " << rhs.eta << " phi = "    << rhs.phi
+	   << " chi2/ndof = " << rhs.chi2 << "/" << rhs.ndof << std::endl;
+    output << "  (x; y; z) of the reference point: (" << rhs.x
+	   << ";" << rhs.y         << ";" << rhs.z      << ")" << std::endl;
+    output << "  (x; y; z) of the innermost hit:   (" << rhs.x_fhit
+    	      << ";" << rhs.y_fhit << ";" << rhs.z_fhit << ")" << std::endl;
+
     output << "  N(mu hits) = "  << rhs.n_MuonHits
 	   << "; N(DT hits) = "  << rhs.n_DTHits
 	   << "; N(CSC hits) = " << rhs.n_CSCHits

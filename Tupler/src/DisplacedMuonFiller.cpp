@@ -22,11 +22,21 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
   cand.eta    = track.eta   ();
   cand.phi    = track.phi   ();
   cand.charge = track.charge();
+  cand.chi2   = track.chi2  ();
+  cand.ndof   = track.ndof  ();
+
+  // Position of the reference point.
   cand.x      = track.vx    ();
   cand.y      = track.vy    ();
   cand.z      = track.vz    ();
-  cand.chi2   = track.chi2  ();
-  cand.ndof   = track.ndof  ();
+
+  // Position of the innermost hit.  As it is stored in TrackExtra, we
+  // need to make sure that TrackExtra exists.
+  if (!track.extra().isNull() && track.innerOk()) {
+    cand.x_fhit = track.innerPosition().x();
+    cand.y_fhit = track.innerPosition().y();
+    cand.z_fhit = track.innerPosition().z();
+  }
 
   cand.n_MuonHits    = track.hitPattern().numberOfValidMuonHits()   ;
   cand.n_DTHits      = track.hitPattern().numberOfValidMuonDTHits() ;
