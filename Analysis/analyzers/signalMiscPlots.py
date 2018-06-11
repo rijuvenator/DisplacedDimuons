@@ -57,7 +57,7 @@ def analyze(self, E):
                     #print 'GEN: {:9.4f} {:7.4f} {:7.4f}'.format(genMuon.pt, genMuon.eta, genMuon.phi)
                     #print '{}: {:9.4f} {:7.4f} {:7.4f}'.format(MUON, closestRecoMuon.pt, closestRecoMuon.eta, closestRecoMuon.phi)
                     #print ''
-                self.HISTS[MUON+'_d0Dif'     ].Fill((closestRecoMuon.d0() - genMuon.d0))
+                self.HISTS[MUON+'_d0Dif'     ].Fill((closestRecoMuon.d0() - genMuon.d0()))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

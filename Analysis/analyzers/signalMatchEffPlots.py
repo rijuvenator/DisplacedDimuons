@@ -12,7 +12,7 @@ VALUES  = (
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
     ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0' , 'd_{0} [cm]' , (1000,     -10.,     10.), lambda muon: muon.d0       , 'd_{0}'  , lambda sel: sel                   ),
+    ('d0' , 'd_{0} [cm]' , (1000,     -10.,     10.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -54,6 +54,7 @@ def analyze(self, E):
     #selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
     #selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
 
+    # no selection for now
     selectedDSAmuons = DSAmuons
     selectedRSAmuons = RSAmuons
 
