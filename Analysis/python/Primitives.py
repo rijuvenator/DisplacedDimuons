@@ -54,14 +54,21 @@ class ETree(object):
     def getPrimitives(self, KEY, MCTYPE=None):
         if KEY == 'EVENT'    : return Event       (self)
         if KEY == 'TRIGGER'  :
+            if not hasattr(self, 'trig_hlt_idx'):
+                raise Exception('Sample does not contain Trigger branches; tree must be made from PAT Tuple')
             HLTPaths =                [HLTPath    (self, i)                for i in range(len(self.trig_hlt_idx  ))]
             HLTMuons =                [TriggerMuon(self, i, 'trig_hltmu_') for i in range(len(self.trig_hltmu_idx))]
             L1TMuons =                [TriggerMuon(self, i, 'trig_l1tmu_') for i in range(len(self.trig_hltmu_idx))]
             return                    HLTPaths, HLTMuons, L1TMuons
-        if KEY == 'MET'      : return MET         (self)
+        if KEY == 'MET'      :
+            if not hasattr(self, 'met_pt'):
+                raise Exception('Sample does not contain MET branches; tree must be made from PAT Tuple')
+            return                    MET         (self)
         if KEY == 'BEAMSPOT' : return Beamspot    (self)
         if KEY == 'VERTEX'   : return Vertex      (self)
         if KEY == 'GEN':
+            if not hasattr(self, 'gen_eta'):
+                raise Exception('Sample does not contain GenParticle branches; cannot get GenParticle primitives for Data')
             if MCTYPE == 'HTo2XTo4Mu':
                 muons   =             [GenMuon    (self, i        )        for i in range(4)                       ]
                 mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
