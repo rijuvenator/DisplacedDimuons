@@ -19,13 +19,6 @@ def getNM1Hists(ARGS):
         for DeltaPhiRange in ('Less', 'More'):
             NM1HISTS[DeltaPhiRange][KEY] = F_NM1.Get(KEY+'_'+DeltaPhiRange+'_'+NAME)
             NM1HISTS[DeltaPhiRange][KEY].SetDirectory(0)
-#    hPattern = re.compile(r'.*_(Less|More)_(.*)')
-#    for hkey in [tkey.GetName() for tkey in f.GetListOfKeys()]:
-#        matches = hPattern.match(hkey)
-#        DeltaPhiRange = matches.group(1)
-#        KEY = matches.group(2)
-#        NM1HISTS[DeltaPhiRange][KEY] = F_NM1.Get(hkey)
-#        NM1HISTS[DeltaPhiRange][KEY].SetDirectory(0)
     return NM1HISTS
 
 # set up a configuration dictionary with the same cut keys as in Selections

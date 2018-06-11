@@ -6,12 +6,16 @@ import DisplacedDimuons.Common.Utilities as Utilities
 
 # set up a configuration dictionary with the same cut keys as in Selections
 CUTKEYS = {
+    'pt'       : {'AXES':(100,  0.,500.)},
+    'eta'      : {'AXES':(100, -4.,  4.)},
+    'normChi2' : {'AXES':(100,  0.,  5.)},
     'nMuonHits': {'AXES':(50 ,  0., 50.)},
     'nStations': {'AXES':(10 ,  0., 10.)},
-    'normChi2' : {'AXES':(100,  0.,  5.)},
     'd0Sig'    : {'AXES':(100,  0.,  5.)},
+
     'vtxChi2'  : {'AXES':(100,  0.,  5.)},
     'deltaR'   : {'AXES':(100,  0.,  5.)},
+    'mass'     : {'AXES':(100,  0., 50.)},
     'cosAlpha' : {'AXES':(100, -1.,  1.)},
     'LxySig'   : {'AXES':(100,  0., 12.)},
 }

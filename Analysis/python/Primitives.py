@@ -266,15 +266,22 @@ class AODMuon(Muon):
 class GenMuon(Muon):
     def __init__(self, E, i):
         Muon.__init__(self, E, i, 'gen_')
-        for attr in ('d0', 'dz', 'cosAlpha', 'deltaR'):
+        for attr in ('cosAlpha', 'deltaR'):
             self.set(attr, E, 'gen_'+attr, i)
 
         # genMuons and dimuons get Lxy with Lxy()
+        # genMuons and reco muons get d0 with d0()
         # so make sure that the name doesn't collide
         self.set('Lxy_', E, 'gen_Lxy', i)
+        self.set('d0_' , E, 'gen_d0' , i)
+        self.set('dz_' , E, 'gen_dz' , i)
 
     def Lxy(self):
         return self.Lxy_
+    def d0(self):
+        return self.d0_
+    def dz(self):
+        return self.dz_
 
 # RecoMuon: see above
 # the ImpactParameter is a member variable allowing easy access to d0, dz

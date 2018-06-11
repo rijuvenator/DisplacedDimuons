@@ -179,7 +179,8 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
     }
     // Do nothing else if the path(s) we are interested in have not fired
-    if (!ddm_paths_fired) return;
+    // and if this is not a signal sample
+    if (!ddm_paths_fired && !isSignal) return;
   }
 
 
