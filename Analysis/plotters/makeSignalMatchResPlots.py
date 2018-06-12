@@ -116,7 +116,7 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
 if len(sys.argv) == 1: FS = '4Mu'
 else: FS = sys.argv[1]
 for fs in (FS,):
-    for quantity in ('pT', 'eta', 'phi', 'Lxy'):
+    for quantity in ('pT', 'Lxy', 'd0'):
         # 1D resolution plots
         if quantity == 'Lxy':
             makeResPlotsSingle(quantity, fs, 'DSA')
@@ -130,5 +130,5 @@ for fs in (FS,):
             makeColorPlot(MUON, quantity, fs)
 
             # 2D reco quantity vs. resolution plots
-            for q2 in ('pT', 'eta', 'phi', 'Lxy', 'dR'):
+            for q2 in ('pT', 'Lxy', 'd0'):
                 makeColorPlot(MUON, quantity, fs, q2)
