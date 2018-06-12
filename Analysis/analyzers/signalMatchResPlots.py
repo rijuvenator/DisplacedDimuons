@@ -61,18 +61,23 @@ def analyze(self, E):
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    #DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
-    #RSASelections    = [Selections.MuonSelection  (muon)   for muon   in RSAmuons]
-    #DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
+    SelectDimuons = False
+    SelectMuons   = False
+    # require dimuons and muons to pass all selections
+    if SelectDimuons and SelectMuons:
+        DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
+        RSASelections    = [Selections.MuonSelection  (muon)   for muon   in RSAmuons]
+        DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
 
-    #selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
-    #selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
-    #selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
-    # no selection for now
-    selectedDSAmuons = DSAmuons
-    selectedRSAmuons = RSAmuons
-    selectedDimuons  = Dimuons
+    # don't require dimuons and muons to pass all selections
+    else:
+        selectedDSAmuons = DSAmuons
+        selectedRSAmuons = RSAmuons
+        selectedDimuons  = Dimuons
 
     # loop over genMuons and fill histograms based on matches
     for genMuon in genMuons:

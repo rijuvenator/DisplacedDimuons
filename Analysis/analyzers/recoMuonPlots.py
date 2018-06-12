@@ -35,15 +35,18 @@ def analyze(self, E):
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
+    SelectMuons = False
     # require reco muons to pass all selections
-    #DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    #RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
-    #selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-    #selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
+    if SelectMuons:
+        DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
 
     # don't require reco muons to pass all selections
-    selectedDSAmuons = DSAmuons
-    selectedRSAmuons = RSAmuons
+    else:
+        selectedDSAmuons = DSAmuons
+        selectedRSAmuons = RSAmuons
 
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
         for muon in recoMuons:

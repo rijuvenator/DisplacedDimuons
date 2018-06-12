@@ -36,17 +36,24 @@ def analyze(self, E):
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
+    # modify this to determine what type of selections to apply, if any
+    SelectDimuons = False
+    SelectMuons   = False
+
     # require dimuons to pass all selections and the DSA muons to pass all selections
-    #DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    #DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
-    #selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+    if SelectDimuons and SelectMuons:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, but require DSA muons to pass all selections
-    #DSASelections   = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    #selectedDimuons = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+    elif not SelectDimuons and SelectMuons:
+        DSASelections   = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        selectedDimuons = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, and don't require DSA muons to pass all selections, either
-    selectedDimuons = Dimuons
+    elif not SelectDimuons and not SelectMuons:
+        selectedDimuons = Dimuons
 
     for dimuon in selectedDimuons:
         for KEY in CONFIG:

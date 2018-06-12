@@ -31,11 +31,18 @@ def analyze(self, E):
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
-    DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+    SelectMuons = False
+    # require muons to pass all selections
+    if SelectMuons:
+        DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
 
-    selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
-    selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+    # don't require muons to pass all selections
+    else:
+        selectedDSAmuons = DSAmuons
+        selectedRSAmuons = RSAmuons
 
     self.HISTS['DSA_nMuon'].Fill(len(selectedDSAmuons))
     self.HISTS['RSA_nMuon'].Fill(len(selectedRSAmuons))
