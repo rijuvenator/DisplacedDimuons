@@ -93,4 +93,4 @@ if __name__ == '__main__':
         SPLITTING   = ARGS.SPLITTING,
         FILE        = ARGS.FNAME
     )
-    analyzer.writeHistograms('roots/nMinusOne_{}.root')
+    analyzer.writeHistograms('roots/nMinusOnePlots_{}.root')

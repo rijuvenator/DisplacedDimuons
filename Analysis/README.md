@@ -9,7 +9,7 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
 The `python/` directory contains the following libraries:
 
   * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT nor to simplify working with Python
-  * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOne.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
+  * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOnePlots.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
     * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
     * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
     * `--splitting`: two numbers controlling splitting: the first is how many events per file, the second is what _job_ number this is (so that the _Analyzer_ knows which subset of the tree to run over)
@@ -74,8 +74,8 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
 
   * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
-  * **nMinusOne.py** produces N-1 plots, distributions of the cut parameters.
-  * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOne.py**.
+  * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
+  * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalMiscPlots.py** produces a few other reco level plots that have not been moved into more dedicated analyzers.
@@ -87,10 +87,10 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
 python runAll.py signalResEffPlots.py --samples S
 ```
 
-while `nMinusOne.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
+while `nMinusOnePlots.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
 
 ```python
-python runAll.py nMinusOne.py --samples SBD
+python runAll.py nMinusOnePlots.py --samples SBD
 ```
 
 ## Plotters
@@ -102,7 +102,7 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeGenPlots.py** makes plots from ROOT files produced by **genPlots.py**
   * **makeRecoMuonPlots.py** makes plots from ROOT files produced by **recoMuonPlots.py**
   * **makeDimuonPlots.py** makes plots from ROOT files produced by **dimuonPlots.py**
-  * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOne.py**
+  * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOnePlots.py**
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
