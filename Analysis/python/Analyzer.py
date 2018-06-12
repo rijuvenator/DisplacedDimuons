@@ -17,14 +17,25 @@ F_GEN_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/genOnly_ntuple_{}.r
 F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.root')
 T_NTUPLE = 'SimpleNTupler/DDTree'
 
-# signal samples are aodOnly for now
-def setFNAME(ARGS, GEN=False):
+def setFNAME(ARGS, GEN=False, NOPAT=False):
+    # if this is a signal sample, use the aodOnly version
     if ARGS.NAME.startswith('HTo2X'):
         ARGS.FNAME = F_AOD_NTUPLE
+
+    # otherwise, use the full PAT version
     else:
         ARGS.FNAME = F_NTUPLE
+
+    # if this is a signal sample that has a full PAT version, use it unless explictly told not to
+    # this criteria will evolve slowly over the next few days to weeks as we produce more PAT Tuples
+    if not NOPAT and ARGS.NAME == 'HTo2XTo2Mu2J' and ARGS.SIGNALPOINT in Constants.PATSIGNALPOINTS:
+        ARGS.FNAME = F_NTUPLE
+
+    # use the genOnly version if explictly required
     if GEN:
         ARGS.FNAME = F_GEN_NTUPLE
+
+    # add a root protocol if we are not on lxplus
     if not 'lxplus' in os.environ['HOSTNAME']:
         ARGS.FNAME = Constants.PREFIX_CERN + ARGS.FNAME
 

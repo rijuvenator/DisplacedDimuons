@@ -59,8 +59,8 @@ def analyze(self, E):
     #selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
 
     # no selection for now
-    selectedDSAmuons = DSAmuons
-    selectedRSAmuons = RSAmuons
+    #selectedDSAmuons = DSAmuons
+    #selectedRSAmuons = RSAmuons
 
     # loop over genMuons and fill histograms based on trigger acceptance
     for genMuon in genMuons:
@@ -75,9 +75,9 @@ def analyze(self, E):
             if AF(genMuonSelection):
                 self.HISTS[KEY+'Den'].Fill(F(genMuon))
 
-            # fill the numerator histograms if this event passed a trigger
-            if len(HLTPaths) > 0:
-                self.HISTS['GEN_'+KEY+'Eff'].Fill(F(genMuon))
+                # fill the numerator histograms if this event passed a trigger
+                if len(HLTPaths) > 0:
+                    self.HISTS['GEN_'+KEY+'Eff'].Fill(F(genMuon))
 
 
         ## find closest matched reco muon for DSA and RSA

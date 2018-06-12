@@ -6,8 +6,11 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalTriggerEffPlots.root')
-f = R.TFile.Open('../analyzers/roots/SignalTriggerEffPlots.root')
+#HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalTriggerEffPlots.root')
+#f = R.TFile.Open('../analyzers/roots/SignalTriggerEffPlots.root')
+
+HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
+f = R.TFile.Open('../analyzers/test.root')
 
 # make overlaid plots that combine all signal points
 def makeEffPlots(quantity, fs, SP=None):
@@ -20,10 +23,10 @@ def makeEffPlots(quantity, fs, SP=None):
         #'Extra'         : '{}Extra'        ,
         #'DSA_ChargeEff' : 'DSA_{}ChargeEff',
         #'RSA_ChargeEff' : 'RSA_{}ChargeEff',
-        'GEN_ChargeEff' : 'GEN_{}ChargeEff',
+        #'GEN_ChargeEff' : 'GEN_{}ChargeEff',
         #'DSA_ChargeDen' : 'DSA_{}ChargeDen',
         #'RSA_ChargeDen' : 'RSA_{}ChargeDen',
-        'GEN_ChargeDen' : 'GEN_{}ChargeDen',
+        #'GEN_ChargeDen' : 'GEN_{}ChargeDen',
     }
     for key in HKeys:
         HKeys[key] = (HKeys[key]+'_HTo2XTo'+fs).format(quantity) + '_{}'
@@ -44,6 +47,7 @@ def makeEffPlots(quantity, fs, SP=None):
     else:
         sp = SP
         for key in HKeys:
+            print key
             h[key] = f.Get(HKeys[key].format(SPStr(sp)))
             h[key].SetDirectory(0)
 
@@ -74,10 +78,12 @@ def makeEffPlots(quantity, fs, SP=None):
         canvas.legend.resizeHeight()
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
-        canvas.cleanup('pdfs/STE_{}Eff_HTo2XTo{}_{}.pdf'.format(quantity, fs, 'Global' if SP is None else SPStr(SP)))
+        canvas.cleanup('STE_{}Eff_HTo2XTo{}_{}.pdf'.format(quantity, fs, 'Global' if SP is None else SPStr(SP)))
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy', 'd0'):
-    for fs in ('4Mu', '2Mu2J'):
-        makeEffPlots(quantity, fs)
-        for sp in SIGNALPOINTS:
+    #for fs in ('4Mu', '2Mu2J'):
+    for fs in ('2Mu2J',):
+        #makeEffPlots(quantity, fs)
+        #for sp in SIGNALPOINTS:
+        for sp in ((125, 20, 13),):
             makeEffPlots(quantity, fs, sp)
