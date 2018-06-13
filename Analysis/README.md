@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: 30 May 2018
+Last updated: **13 June 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -78,10 +78,11 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
-  * **signalMiscPlots.py** produces a few other reco level plots that have not been moved into more dedicated analyzers.
+  * **signalMiscPlots.py** produces a few other signal reco level plots that have not been moved into more dedicated analyzers.
+  * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU parallel, given the optional parameter `--local`. The `--samples` parameter is a string subset of "SBD", controlling whether this particular instance should run on **S**ignal, **B**ackground, or **D**ata. For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU parallel, given the optional parameter `--local`. The `--samples` parameter is a string subset of "S2BD", controlling whether this particular instance should run on **S**ignal (`4Mu`), Signal **2** (`2Mu2J`), **B**ackground, or **D**ata. For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
 python runAll.py signalResEffPlots.py --samples S
@@ -90,7 +91,7 @@ python runAll.py signalResEffPlots.py --samples S
 while `nMinusOnePlots.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
 
 ```python
-python runAll.py nMinusOnePlots.py --samples SBD
+python runAll.py nMinusOnePlots.py --samples S2BD
 ```
 
 ## Plotters
@@ -107,6 +108,7 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
   * **makeSignalMiscPlots.py** makes plots from ROOT files produced by **signalMiscPlots.py**
+  * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 
 The following plotters open a text file produced by a dumper and produce actual styled `.pdf` plot files, using the _Plotter_ library.
 

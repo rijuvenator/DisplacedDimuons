@@ -1,6 +1,6 @@
 # How to run the nTupler
 
-Last updated: 17 May 2018
+Last updated: **13 June 2018**
 
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
@@ -17,6 +17,9 @@ This directory contains three top-level files.
   * `OUTPUTFILE` is the name of the output file
   * `ISMC` is whether or not the input files are MC
   * `ISSIGNAL` is whether or not the input files are signal
+  * `FINALSTATE` is either `'4Mu'` or `'2Mu2J'`, when running on signal
+  * `GENS_TAG` is either `('prunedGenParticles', '', 'PAT')` or `('genParticles',)`; the former if the input file is a PAT Tuple, the latter if not
+  * `SOURCE` is either `'PAT'`, `'AOD'`, or `'GEN'`, depending on the type of the input source and the branches desired
 
 ## runNTupler.py
 
@@ -62,7 +65,17 @@ python runNTupler.py DoubleMuonRun2016D-07Aug17 --test --verbose
 
 Finally, **submitAll.py** submits the full suite of jobs; all that is needed is to change the `MODE` variable inside the script as desired. If desired, each of the submission blocks can be turned off with the `Do_*` booleans, and the user is free to place additional restrictions on which samples will be run (for example, by adding a conditional statement inside the loop).
 
-Note that we do not have PAT Tuples for everything yet, so this script will not work in its entirety.
+This script will be continually updated as we produce more PAT Tuples. Currently, the script will submit 136 jobs, corresponding to
+  * 132 jobs:
+    * 33 signal points
+    * for both signal models
+    * for gen only and AOD only
+  * 2 PAT jobs:
+    * 2 signal points
+    * for HTo2XTo2Mu2J only
+  * 2 PAT jobs:
+    * 1 Data dataset
+    * 1 Drell-Yan background MC dataset
 
 ## Utilities/
 

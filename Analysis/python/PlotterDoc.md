@@ -1,4 +1,7 @@
 # Documentation for `Plotter.py`
+
+Last updated: **13 June 2018**
+
 Documention for my Plotter classes. Should be self-explanatory from the comments in the code for the most part, but this is a handy reference.
 
 The first method listed is always the constructor. Any arguments with an = are optional (defaults usually given); any without are mandatory.
