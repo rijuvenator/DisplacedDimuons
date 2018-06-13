@@ -174,15 +174,5 @@ bool TriggerBranches::Fill(const pat::TriggerEvent& triggerEvent,
 	}
     }
 
-  //for (unsigned int i = 0; i < triggerResults.size(); ++i)
-  //{
-  //	std::cout << triggerNames.triggerName(i) << std::endl;
-  //}
-
-  //	if (triggerNames.triggerIndex("primaryVertexFilter") < triggerResults.size())
-  //	{
-  //		trig_goodVtx = triggerResults.accept(triggerNames.triggerIndex("primaryVertexFilter"));
-  //	}
-
   return fired;
 }
