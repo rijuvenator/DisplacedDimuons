@@ -124,13 +124,14 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 	// The refitted track does not have chi2, ndof, and hitpattern
 	// set; the reference point of the track is identical to the
 	// position of the refitted vertex.
-	dim_mu1_idx   .push_back(muon_cand1.idx    );
-	dim_mu1_px    .push_back(muon_cand1.px     );
-	dim_mu1_py    .push_back(muon_cand1.py     );
-	dim_mu1_pz    .push_back(muon_cand1.pz     );
-	dim_mu1_eta   .push_back(muon_cand1.eta    );
-	dim_mu1_phi   .push_back(muon_cand1.phi    );
-	dim_mu1_charge.push_back(muon_cand1.charge );
+	dim_mu1_idx    .push_back(muon_cand1.idx    );
+	dim_mu1_px     .push_back(muon_cand1.px     );
+	dim_mu1_py     .push_back(muon_cand1.py     );
+	dim_mu1_pz     .push_back(muon_cand1.pz     );
+	dim_mu1_ptError.push_back(muon_cand1.ptError);
+	dim_mu1_eta    .push_back(muon_cand1.eta    );
+	dim_mu1_phi    .push_back(muon_cand1.phi    );
+	dim_mu1_charge .push_back(muon_cand1.charge );
 	dim_mu1_d0_pv.push_back(fabs(muon_cand1.d0_pv));
 	dim_mu1_d0_bs.push_back(fabs(muon_cand1.d0_bs));
 	dim_mu1_d0_pv_lin.push_back(fabs(muon_cand1.d0_pv_lin));
@@ -149,13 +150,14 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 	dim_mu1_dzsig_bs_lin.push_back(muon_cand1.dzsig_bs_lin);
 
 	// second muon candidate resulting from the common-vertex fit
-	dim_mu2_idx   .push_back(muon_cand2.idx    );
-	dim_mu2_px    .push_back(muon_cand2.px     );
-	dim_mu2_py    .push_back(muon_cand2.py     );
-	dim_mu2_pz    .push_back(muon_cand2.pz     );
-	dim_mu2_eta   .push_back(muon_cand2.eta    );
-	dim_mu2_phi   .push_back(muon_cand2.phi    );
-	dim_mu2_charge.push_back(muon_cand2.charge );
+	dim_mu2_idx    .push_back(muon_cand2.idx    );
+	dim_mu2_px     .push_back(muon_cand2.px     );
+	dim_mu2_py     .push_back(muon_cand2.py     );
+	dim_mu2_pz     .push_back(muon_cand2.pz     );
+	dim_mu2_ptError.push_back(muon_cand2.ptError);
+	dim_mu2_eta    .push_back(muon_cand2.eta    );
+	dim_mu2_phi    .push_back(muon_cand2.phi    );
+	dim_mu2_charge .push_back(muon_cand2.charge );
 	dim_mu2_d0_pv.push_back(fabs(muon_cand2.d0_pv));
 	dim_mu2_d0_bs.push_back(fabs(muon_cand2.d0_bs));
 	dim_mu2_d0_pv_lin.push_back(fabs(muon_cand2.d0_pv_lin));

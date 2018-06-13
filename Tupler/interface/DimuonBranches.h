@@ -60,6 +60,7 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu1_px           ;
 		std::vector<float> dim_mu1_py           ;
 		std::vector<float> dim_mu1_pz           ;
+		std::vector<float> dim_mu1_ptError      ;
 		std::vector<float> dim_mu1_eta          ;
 		std::vector<float> dim_mu1_phi          ;
 		std::vector<int  > dim_mu1_charge       ;
@@ -84,6 +85,7 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu2_px           ;
 		std::vector<float> dim_mu2_py           ;
 		std::vector<float> dim_mu2_pz           ;
+		std::vector<float> dim_mu2_ptError      ;
 		std::vector<float> dim_mu2_eta          ;
 		std::vector<float> dim_mu2_phi          ;
 		std::vector<int  > dim_mu2_charge       ;
@@ -128,6 +130,7 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu1_px"          , dim_mu1_px          );
 			Declare("dim_mu1_py"          , dim_mu1_py          );
 			Declare("dim_mu1_pz"          , dim_mu1_pz          );
+			Declare("dim_mu1_ptError"     , dim_mu1_ptError     );
 			Declare("dim_mu1_eta"         , dim_mu1_eta         );
 			Declare("dim_mu1_phi"         , dim_mu1_phi         );
 			Declare("dim_mu1_charge"      , dim_mu1_charge      );
@@ -152,6 +155,7 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu2_px"          , dim_mu2_px          );
 			Declare("dim_mu2_py"          , dim_mu2_py          );
 			Declare("dim_mu2_pz"          , dim_mu2_pz          );
+			Declare("dim_mu2_ptError"     , dim_mu2_ptError     );
 			Declare("dim_mu2_eta"         , dim_mu2_eta         );
 			Declare("dim_mu2_phi"         , dim_mu2_phi         );
 			Declare("dim_mu2_charge"      , dim_mu2_charge      );
@@ -196,6 +200,7 @@ class DimuonBranches : public BranchCollection
 			dim_mu1_px          .clear();
 			dim_mu1_py          .clear();
 			dim_mu1_pz          .clear();
+			dim_mu1_ptError     .clear();
 			dim_mu1_eta         .clear();
 			dim_mu1_phi         .clear();
 			dim_mu1_charge      .clear();
@@ -220,6 +225,7 @@ class DimuonBranches : public BranchCollection
 			dim_mu2_px          .clear();
 			dim_mu2_py          .clear();
 			dim_mu2_pz          .clear();
+			dim_mu2_ptError     .clear();
 			dim_mu2_eta         .clear();
 			dim_mu2_phi         .clear();
 			dim_mu2_charge      .clear();

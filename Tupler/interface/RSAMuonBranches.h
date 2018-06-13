@@ -34,6 +34,7 @@ class RSAMuonBranches : public BranchCollection
 		std::vector<float> rsamu_px           ;
 		std::vector<float> rsamu_py           ;
 		std::vector<float> rsamu_pz           ;
+		std::vector<float> rsamu_ptError      ;
 		std::vector<float> rsamu_eta          ;
 		std::vector<float> rsamu_phi          ;
 		std::vector<int  > rsamu_charge       ;
@@ -78,6 +79,7 @@ class RSAMuonBranches : public BranchCollection
 			Declare("rsamu_px"           , rsamu_px           );
 			Declare("rsamu_py"           , rsamu_py           );
 			Declare("rsamu_pz"           , rsamu_pz           );
+			Declare("rsamu_ptError"      , rsamu_ptError      );
 			Declare("rsamu_eta"          , rsamu_eta          );
 			Declare("rsamu_phi"          , rsamu_phi          );
 			Declare("rsamu_charge"       , rsamu_charge       );
@@ -122,6 +124,7 @@ class RSAMuonBranches : public BranchCollection
 			rsamu_px           .clear();
 			rsamu_py           .clear();
 			rsamu_pz           .clear();
+			rsamu_ptError      .clear();
 			rsamu_eta          .clear();
 			rsamu_phi          .clear();
 			rsamu_charge       .clear();

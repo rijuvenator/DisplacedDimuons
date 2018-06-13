@@ -34,6 +34,7 @@ class DSAMuonBranches : public BranchCollection
 		std::vector<float> dsamu_px           ;
 		std::vector<float> dsamu_py           ;
 		std::vector<float> dsamu_pz           ;
+		std::vector<float> dsamu_ptError      ;
 		std::vector<float> dsamu_eta          ;
 		std::vector<float> dsamu_phi          ;
 		std::vector<int  > dsamu_charge       ;
@@ -78,6 +79,7 @@ class DSAMuonBranches : public BranchCollection
 			Declare("dsamu_px"           , dsamu_px           );
 			Declare("dsamu_py"           , dsamu_py           );
 			Declare("dsamu_pz"           , dsamu_pz           );
+			Declare("dsamu_ptError"      , dsamu_ptError      );
 			Declare("dsamu_eta"          , dsamu_eta          );
 			Declare("dsamu_phi"          , dsamu_phi          );
 			Declare("dsamu_charge"       , dsamu_charge       );
@@ -122,6 +124,7 @@ class DSAMuonBranches : public BranchCollection
 			dsamu_px           .clear();
 			dsamu_py           .clear();
 			dsamu_pz           .clear();
+			dsamu_ptError      .clear();
 			dsamu_eta          .clear();
 			dsamu_phi          .clear();
 			dsamu_charge       .clear();
