@@ -123,7 +123,7 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   prescalesToken   (consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales"     ))),
   triggerToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
   patMetToken      (consumes<pat::METCollection         >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
-  filtersToken    (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("filters"        ))),
+  filtersToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("filters"       ))),
   beamspotToken    (consumes<reco::BeamSpot             >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
   vertexToken      (consumes<reco::VertexCollection     >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
   genToken         (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"          ))),

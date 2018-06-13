@@ -12,6 +12,7 @@ BRANCHPREFIXES = {
     'EVENT'    : 'evt_'  ,
     'TRIGGER'  : 'trig_' ,
     'MET'      : 'met_'  ,
+    'FILTER'   : 'flag_' ,
     'BEAMSPOT' : 'bs_'   ,
     'VERTEX'   : 'vtx_'  ,
     'GEN'      : 'gen_'  ,
@@ -64,6 +65,10 @@ class ETree(object):
             if not hasattr(self, 'met_pt'):
                 raise Exception('Sample does not contain MET branches; tree must be made from PAT Tuple')
             return                    MET         (self)
+        if KEY == 'FILTER'   :
+            if not hasattr(self, 'flag_PhysicsDeclared'):
+                raise Exception('Sample does not contain MET Filters; tree must be made from PAT Tuple')
+            return                    Filters     (self)
         if KEY == 'BEAMSPOT' : return Beamspot    (self)
         if KEY == 'VERTEX'   : return Vertex      (self)
         if KEY == 'GEN':
@@ -115,6 +120,13 @@ class MET(Primitive):
         Primitive.__init__(self)
         for attr in ('pt', 'phi', 'gen_pt'):
             setattr(self, attr, E.get('met_'+attr))
+
+# MET filter class
+class Filters(Primitive):
+    def __init__(self, E):
+        Primitive.__init__(self)
+        for attr in ('PhysicsDeclared', 'PrimaryVertexFilter', 'AllMETFilters', 'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'CSCTightHaloFilter', 'EcalTPFilter', 'EeBadScFilter', 'BadPFMuonFilter', 'BadChargedCandidateFilter'):
+            setattr(self, attr, bool(E.get('flag_'+attr)))
 
 # Trigger classes
 # There are 3 distinct objects:
@@ -304,8 +316,9 @@ class RecoMuon(Muon):
         prefix = TAGDICT[tag]
         Muon.__init__(self, E, i, prefix)
 
-        # all reco muons have idx and impact parameter
+        # all reco muons have idx, ptError, and impact parameter
         self.set('idx', E, prefix+'idx', i)
+        self.set('ptError', E, prefix+'ptError', i)
         self.IP = ImpactParameter(E, i, prefix)
 
         # only DSA and RSA have these attributes
