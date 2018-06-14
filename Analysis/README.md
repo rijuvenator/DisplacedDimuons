@@ -8,7 +8,7 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
   * [Dumpers](#dumpers)
   * [Analyzers](#analyzers)
     * [runAll.py](#runall)
-  * [Plotter](#plotter)
+  * [Plotters](#plotters)
     * [convertone.sh](#convertone)
   * [Special](#special)
 
