@@ -1,13 +1,13 @@
 #!/bin/bash
 
-for script in genPlots recoMuonPlots dimuonPlots nMinusOnePlots
+for script in gen recoMuon dimuon nMinusOne
 do
-    python runAll.py ${script}.py --samples S2BD
+    python runAll.py ${script}Plots.py --samples S2BD
 done
 
-for script in signalMatchEffPlots signalMatchResPlots signalMiscPlots
+for script in signalMatchEff signalMatchRes signalMisc
 do
-    python runAll.py ${script}.py --samples S2
+    python runAll.py ${script}Plots.py --samples S2
 done
 
 # For when nMinusOnePlots are complete

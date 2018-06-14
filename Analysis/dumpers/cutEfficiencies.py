@@ -6,7 +6,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
-def begin(self):
+def begin(self, PARAMS=None):
     self.COUNTERS = {
         'MUON'   : {'TOTAL' : 0, 'IND' : {}, 'SEQ' : {}},
         'DIMUON' : {'TOTAL' : 0, 'IND' : {}, 'SEQ' : {}}
@@ -17,7 +17,7 @@ def begin(self):
             self.COUNTERS[OBJECT][DTYPE] = {key:0 for key in Selections.CutLists[CutListName]}
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -53,7 +53,7 @@ def analyze(self, E):
             dimuonSelection.SequentialIncrement(self.COUNTERS['DIMUON']['SEQ'])
 
 # cleanup function for Analyzer class
-def end(self):
+def end(self, PARAMS=None):
     COLMAX = max(max([len(s) for s in self.COUNTERS['MUON'  ]['IND']]),
                  max([len(s) for s in self.COUNTERS['DIMUON']['IND']]))
     for OBJECT in ('MUON', 'DIMUON'):

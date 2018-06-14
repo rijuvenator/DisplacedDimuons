@@ -17,7 +17,7 @@ CONFIG = {
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
 
         # the pretty strings are mostly in the cut dictionary
@@ -31,7 +31,7 @@ def declareHistograms(self):
             self.HistInit(MUON+'_'+KEY, ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 

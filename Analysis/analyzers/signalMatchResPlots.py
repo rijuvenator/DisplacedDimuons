@@ -19,7 +19,7 @@ for VAL in VALUES:
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
         if MODE == 'Res':
             # X = <q> Resolution
@@ -46,7 +46,7 @@ def declareHistograms(self):
                 self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+(1000, -1., 3.)   ))
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:

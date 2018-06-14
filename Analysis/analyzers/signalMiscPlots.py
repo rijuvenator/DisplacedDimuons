@@ -7,7 +7,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     # DSA and RSA specific plots
     # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
     CONFIG = {
@@ -19,7 +19,7 @@ def declareHistograms(self):
             self.HistInit(MUON+'_'+KEY, CONFIG[KEY]['TITLE'].replace('***',MUON), *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:
