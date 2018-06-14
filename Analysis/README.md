@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **13 June 2018**
+Last updated: **14 June 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -66,7 +66,7 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
 
 `analyzers/` is where I keep my analyzers: scripts that run over trees and create ROOT files containing histograms.
 
-The following analyzers do not use the full _Primitives_ and _Analyzer_ machinery.
+The following analyzers do not use the full _Primitives_ and _Analyzer_ machinery, but use parts of the interface from _Analyzer_ and take the same command line options, and hence work with `runAll.py`:
 
   * **genPlots.py** produces simple gen particle plots from the tree, calling `TTree::Draw()` directly and setting up some wrapper classes to do it neatly. It also sets _TTree_ aliases, for the same purpose. It writes histograms to ROOT files and runs quickly enough that a batch submission script is not necessary.
 
@@ -82,7 +82,14 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU parallel, given the optional parameter `--local`. The `--samples` parameter is a string subset of "S2BD", controlling whether this particular instance should run on **S**ignal (`4Mu`), Signal **2** (`2Mu2J`), **B**ackground, or **D**ata. For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU `parallel`, given the optional parameter `--local`.
+
+The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
+  * **S**ignal (`4Mu`)
+  * Signal **2** (`2Mu2J`)
+  * **B**ackground, or
+  * **D**ata.
+For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
 python runAll.py signalResEffPlots.py --samples S
@@ -121,3 +128,10 @@ For the purposes of the Javascript-based _Viewer_, I have a script, **convertone
 ```bash
 parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 ```
+
+## Special
+
+`special/` is where I keep some very special-purpose analyzers. They were written for one-time checks, using specific files.
+
+  * **comparePATtoAOD.py** takes 2 nTuples, for two signal points, one produced from a PAT Tuple and the other produced directly from AOD, and produces a few histograms, comparing the contents bin by bin, and printing to the screen if anything is different. This script served as a proof that _PATFilter_ did not change anything significant from AOD.
+  * **compareTrackerTweak.py** takes 2 nTuples, for two signal points, one produced without a constraint forcing vertex refits to be within the tracker, and one with produced with it. For the purposes of this analysis, we need to _remove_ the constraint (namely, set it to something large). This script, and its corresponding plotter script **plotTrackerTweak.py**, produce gen L<sub>xy</sub> distributions and efficiency as a function of gen L<sub>xy</sub>, and show the efficiency gain from removing the constraint, as well as the difference in distributions for large L<sub>xy</sub>.
