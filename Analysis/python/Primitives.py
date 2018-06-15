@@ -39,6 +39,7 @@ def SelectBranches(t, DecList=(), branches=()):
 # DecList is for turning on or off some declarations. No need to declare everything
 # if we're not going to use them.
 class ETree(object):
+    # initialize the ETree: copy all branches from the tree
     def __init__(self, t, DecList=BRANCHKEYS):
         BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
         for KEY in DecList:
@@ -46,12 +47,16 @@ class ETree(object):
                 if re.match(BRANCHPREFIXES[KEY], br):
                     self.copyBranch(t, br)
  
+    # this function copies the contents of t into the ETree
+    # and makes a Python list from a vector if appropriate
     def copyBranch(self, t, branch):
         if 'vector' in type(getattr(t, branch)).__name__:
             setattr(self, branch, list(getattr(t, branch)))
         else:
             setattr(self, branch, getattr(t, branch))
  
+    # this function creates a list of Primitives objects given a tag
+    # it should be called for each analysis object, once per event (after the ETree is declared)
     def getPrimitives(self, KEY, MCTYPE=None):
         if KEY == 'EVENT'    : return Event       (self)
         if KEY == 'TRIGGER'  :
@@ -91,6 +96,9 @@ class ETree(object):
         if KEY == 'DIMUON'   : return [Dimuon     (self, i        )        for i in range(len(self.dim_eta       ))]
         raise Exception('Unknown Primitives key '+KEY)
 
+    # this function is syntactic sugar:
+    # E.get('evt_event') instead of getattr(E, 'evt_event'), and
+    # E.get('gen_pt', i) instead of getattr(E, 'gen_pt')[i]
     def get(self, attr, index=None):
         if index is None:
             return getattr(self, attr)
@@ -99,34 +107,43 @@ class ETree(object):
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
-# just provides a wrapper for setting attributes
+# set() just provides a wrapper for setting attributes
+# I am choosing not to pass an extra "cast" parameter to it, wrapping cast(E.get)
+# for any chosen target function (int, bool, etc.), even though it would
+# simplify the declaration of the Filters object, because I don't want yet another
+# function call that is never used except in that one case
 class Primitive(object):
     def __init__(self):
         pass
 
-    def set(self, attr, E, E_attr, i):
-        setattr(self, attr, E.get(E_attr, i))
+    def set(self, attr, E, E_attr, index=None):
+        setattr(self, attr, E.get(E_attr, index))
 
 # Event class
 class Event(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('run', 'lumi', 'event', 'bx'):
-            setattr(self, attr, E.get('evt_'+attr))
+            self.set(attr, E, 'evt_'+attr)
+        # for simplicity reasons the gen_weight and gen_pileup (FIXME) branches
+        # are stored with prefix gen_, but they are per event so should be stored here
+        if hasattr(E, 'gen_weight'):
+            self.set(attr, E, 'gen_weight')
 
 # MET class
 class MET(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('pt', 'phi', 'gen_pt'):
-            setattr(self, attr, E.get('met_'+attr))
+            self.set(attr, E, 'met_'+attr)
 
 # MET filter class
 class Filters(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('PhysicsDeclared', 'PrimaryVertexFilter', 'AllMETFilters', 'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'CSCTightHaloFilter', 'EcalTPFilter', 'EeBadScFilter', 'BadPFMuonFilter', 'BadChargedCandidateFilter'):
-            setattr(self, attr, bool(E.get('flag_'+attr)))
+            self.set(attr, E, 'flag_'+attr)
+            setattr(self, attr, bool(getattr(self, attr)))
 
 # Trigger classes
 # There are 3 distinct objects:
@@ -163,7 +180,7 @@ class Beamspot(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz'):
-            setattr(self, attr, E.get('bs_'+attr))
+            self.set(attr, E, 'bs_'+attr)
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)
@@ -174,8 +191,8 @@ class Vertex(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
         for attr in ('x', 'y', 'z', 'dx', 'dy', 'dz', 'chi2', 'ndof', 'ntrk'):
-            setattr(self, attr, E.get('vtx_pv_'+attr))
-        setattr(self, 'nvtx', E.get('vtx_nvtx'))
+            self.set(attr, E, 'vtx_pv_'+attr)
+        self.set('nvtx', E, 'vtx_nvtx')
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)
@@ -319,6 +336,7 @@ class RecoMuon(Muon):
         # all reco muons have idx, ptError, and impact parameter
         self.set('idx', E, prefix+'idx', i)
         # temporary, just for comparing with the old trees for Lxy effs
+        # this is not in getMissingValues above because it's a one time thing for just this class
         try:
             self.set('ptError', E, prefix+'ptError', i)
         except:

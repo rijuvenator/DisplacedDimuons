@@ -1,9 +1,15 @@
+import os
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
+import DisplacedDimuons.Common.Constants as Constants
 
-# test files; you may need to replace ~/eos with root://eoscms.cern.ch//eos/cms/store/user/adasgupt/
-F_SIGNAL = '~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
+# if not on lxplus, add a root protocol
+if not 'lxplus' in os.environ['HOSTNAME']:
+    PREFIX = Constants.PREFIX_CERN
+else:
+    PREFIX = ''
+F_SIGNAL = PREFIX+'/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
 
 def tprint(msg):
     print '\033[32mSELECTIONS TEST: ' + msg + '\033[m'
