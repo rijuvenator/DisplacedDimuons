@@ -145,7 +145,7 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas.moveExponent    ()
   * Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=) [returns axis]
   * Canvas.scaleMargins    (factor, edges='')
-  * Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1.)
+  * Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True)
   * Canvas.finishCanvas    ()
   * Canvas.save            (name, extList='')
   * Canvas.deleteCanvas    ()

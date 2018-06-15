@@ -394,13 +394,13 @@ var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          , 'DY100to20
 var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j', 'Drell-Yan M(100,200)', 'DoubleMuon2016D'           ];
 
 // plot category names and labels
-var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'Gen', 'SME', 'SMR', 'SMP', 'CutTable'];
-var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM'];
-var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM'];
+var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SMP'];
+var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable'];
+var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable'];
 
-var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.', 'cut table'];
-var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.'];
-var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.'];
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
+var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table'];
+var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table'];
 
 // delta phi range names and labels
 var DPHIVALS   = ['Less', 'More'];
@@ -408,28 +408,28 @@ var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
 
 // plottype names and labels
 var PLOTTYPEVALS = {
-    Dim      : ['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
-    DSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
-    RSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
-    NM1      : ['nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
+    Dim      : ['pt', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
+    DSA      : ['pt', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    RSA      : ['pt', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    NM1      : ['pt', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
-    Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'd00', 'dR', 'LxyVSLz', 'd00VSpTrel'],
+    CutTable : ['MUO-IND', 'MUO-SEQ', 'MUO-NM1', 'DIM-IND', 'DIM-SEQ', 'DIM-NM1'],
+    Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SME      : ['pTEff', 'etaEff', 'phiEff', 'LxyEff', 'd0Eff', 'pTChargeEff', 'etaChargeEff', 'phiChargeEff', 'LxyChargeEff', 'd0ChargeEff'],
-    SMR      : ['pTRes', 'phiRes', 'etaRes', 'DSA_LxyRes', "DSA_LxyResVSLxy", "DSA_LxyResVSdR", "DSA_LxyResVSeta", "DSA_LxyResVSpT", "DSA_LxyResVSphi", "DSA_LxyVSLxy", "DSA_etaResVSLxy", "DSA_etaResVSdR", "DSA_etaResVSeta", "DSA_etaResVSpT", "DSA_etaResVSphi", "DSA_etaVSeta", "DSA_pTResVSLxy", "DSA_pTResVSdR", "DSA_pTResVSeta", "DSA_pTResVSpT", "DSA_pTResVSphi", "DSA_pTVSpT", "DSA_phiResVSLxy", "DSA_phiResVSdR", "DSA_phiResVSeta", "DSA_phiResVSpT", "DSA_phiResVSphi", "DSA_phiVSphi", "RSA_etaResVSLxy", "RSA_etaResVSdR", "RSA_etaResVSeta", "RSA_etaResVSpT", "RSA_etaResVSphi", "RSA_etaVSeta", "RSA_pTResVSLxy", "RSA_pTResVSdR", "RSA_pTResVSeta", "RSA_pTResVSpT", "RSA_pTResVSphi", "RSA_pTVSpT", "RSA_phiResVSLxy", "RSA_phiResVSdR", "RSA_phiResVSeta", "RSA_phiResVSpT", "RSA_phiResVSphi", "RSA_phiVSphi"],
+    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyResVSLxy", "DSA_LxyResVSd0", "DSA_LxyResVSpT", "DSA_LxyVSLxy", "DSA_d0ResVSLxy", "DSA_d0ResVSd0", "DSA_d0ResVSpT", "DSA_d0VSd0", "DSA_pTResVSLxy", "DSA_pTResVSd0", "DSA_pTResVSpT", "DSA_pTVSpT", "RSA_d0ResVSLxy", "RSA_d0ResVSd0", "RSA_d0ResVSpT", "RSA_d0VSd0", "RSA_pTResVSLxy", "RSA_pTResVSd0", "RSA_pTResVSpT", "RSA_pTVSpT"],
     SMP      : ['d0Dif', 'nMuon'],
-    CutTable : []
 }
 var PLOTTYPELABELS = {
     Dim      : ['p<sub>T</sub>', '&eta;', 'mass', '&Delta;R', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex &chi;<sup>2</sup>/dof', 'L<sub>xy</sub>', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>'],
     DSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
     RSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
-    NM1      : ['nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
+    NM1      : ['p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
     TCUM     : ['L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>'],
-    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', 'd00', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>', 'd00 VS p<sub>T</sub> rel'],
+    CutTable : ['Muon Ind.', 'Muon Seq.', 'Muon N&minus;1', 'Dimuon Ind.', 'Dimuon Seq.', 'Dimuon N&minus;1'],
+    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
-    SMR      : ['pTRes', 'phiRes', 'etaRes', 'DSA_LxyRes', "DSA_LxyResVSLxy", "DSA_LxyResVSdR", "DSA_LxyResVSeta", "DSA_LxyResVSpT", "DSA_LxyResVSphi", "DSA_LxyVSLxy", "DSA_etaResVSLxy", "DSA_etaResVSdR", "DSA_etaResVSeta", "DSA_etaResVSpT", "DSA_etaResVSphi", "DSA_etaVSeta", "DSA_pTResVSLxy", "DSA_pTResVSdR", "DSA_pTResVSeta", "DSA_pTResVSpT", "DSA_pTResVSphi", "DSA_pTVSpT", "DSA_phiResVSLxy", "DSA_phiResVSdR", "DSA_phiResVSeta", "DSA_phiResVSpT", "DSA_phiResVSphi", "DSA_phiVSphi", "RSA_etaResVSLxy", "RSA_etaResVSdR", "RSA_etaResVSeta", "RSA_etaResVSpT", "RSA_etaResVSphi", "RSA_etaVSeta", "RSA_pTResVSLxy", "RSA_pTResVSdR", "RSA_pTResVSeta", "RSA_pTResVSpT", "RSA_pTResVSphi", "RSA_pTVSpT", "RSA_phiResVSLxy", "RSA_phiResVSdR", "RSA_phiResVSeta", "RSA_phiResVSpT", "RSA_phiResVSphi", "RSA_phiVSphi"],
+    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyResVSLxy", "DSA_LxyResVSd0", "DSA_LxyResVSpT", "DSA_LxyVSLxy", "DSA_d0ResVSLxy", "DSA_d0ResVSd0", "DSA_d0ResVSpT", "DSA_d0VSd0", "DSA_pTResVSLxy", "DSA_pTResVSd0", "DSA_pTResVSpT", "DSA_pTVSpT", "RSA_d0ResVSLxy", "RSA_d0ResVSd0", "RSA_d0ResVSpT", "RSA_d0VSd0", "RSA_pTResVSLxy", "RSA_pTResVSd0", "RSA_pTResVSpT", "RSA_pTVSpT"],
     SMP      : ['d0Dif', 'nMuon'],
-    CutTable : []
 }
 
 var NCOLS  = 8;
