@@ -416,7 +416,7 @@ var PLOTTYPEVALS = {
     CutTable : ['MUO-IND', 'MUO-SEQ', 'MUO-NM1', 'DIM-IND', 'DIM-SEQ', 'DIM-NM1'],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SME      : ['pTEff', 'etaEff', 'phiEff', 'LxyEff', 'd0Eff', 'pTChargeEff', 'etaChargeEff', 'phiChargeEff', 'LxyChargeEff', 'd0ChargeEff'],
-    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyResVSLxy", "DSA_LxyResVSd0", "DSA_LxyResVSpT", "DSA_LxyVSLxy", "DSA_d0ResVSLxy", "DSA_d0ResVSd0", "DSA_d0ResVSpT", "DSA_d0VSd0", "DSA_pTResVSLxy", "DSA_pTResVSd0", "DSA_pTResVSpT", "DSA_pTVSpT", "RSA_d0ResVSLxy", "RSA_d0ResVSd0", "RSA_d0ResVSpT", "RSA_d0VSd0", "RSA_pTResVSLxy", "RSA_pTResVSd0", "RSA_pTResVSpT", "RSA_pTVSpT"],
+    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyRes_Lxy-Binned", "DSA_LxyRes_d0-Binned", "DSA_LxyRes_pT-Binned", "DSA_d0Res_Lxy-Binned", "DSA_d0Res_d0-Binned", "DSA_d0Res_pT-Binned", "DSA_pTRes_Lxy-Binned", "DSA_pTRes_d0-Binned", "DSA_pTRes_pT-Binned", "RSA_d0Res_Lxy-Binned", "RSA_d0Res_d0-Binned", "RSA_d0Res_pT-Binned", "RSA_pTRes_Lxy-Binned", "RSA_pTRes_d0-Binned", "RSA_pTRes_pT-Binned"],
     SMP      : ['d0Dif', 'nMuon'],
 }
 var PLOTTYPELABELS = {
@@ -428,7 +428,7 @@ var PLOTTYPELABELS = {
     CutTable : ['Muon Ind.', 'Muon Seq.', 'Muon N&minus;1', 'Dimuon Ind.', 'Dimuon Seq.', 'Dimuon N&minus;1'],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
-    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyResVSLxy", "DSA_LxyResVSd0", "DSA_LxyResVSpT", "DSA_LxyVSLxy", "DSA_d0ResVSLxy", "DSA_d0ResVSd0", "DSA_d0ResVSpT", "DSA_d0VSd0", "DSA_pTResVSLxy", "DSA_pTResVSd0", "DSA_pTResVSpT", "DSA_pTVSpT", "RSA_d0ResVSLxy", "RSA_d0ResVSd0", "RSA_d0ResVSpT", "RSA_d0VSd0", "RSA_pTResVSLxy", "RSA_pTResVSd0", "RSA_pTResVSpT", "RSA_pTVSpT"],
+    SMR      : ['p<sub>T</sub> Res', 'd<sub>0</sub> Res', "DSA L<sub>xy</sub> Res", "DSA L<sub>xy</sub> Res, L<sub>xy</sub> Binned", "DSA L<sub>xy</sub> Res, d<sub>0</sub> Binned", "DSA L<sub>xy</sub> Res, p<sub>T</sub> Binned", "DSA d<sub>0</sub> Res, L<sub>xy</sub> Binned", "DSA d<sub>0</sub> Res, d<sub>0</sub> Binned", "DSA d<sub>0</sub> Res, p<sub>T</sub> Binned", "DSA p<sub>T</sub> Res, L<sub>xy</sub> Binned", "DSA p<sub>T</sub> Res, d<sub>0</sub> Binned", "DSA p<sub>T</sub> Res, p<sub>T</sub> Binned", "RSA d<sub>0</sub> Res, L<sub>xy</sub> Binned", "RSA d<sub>0</sub> Res, d<sub>0</sub> Binned", "RSA d<sub>0</sub> Res, p<sub>T</sub> Binned", "RSA p<sub>T</sub> Res, L<sub>xy</sub> Binned", "RSA p<sub>T</sub> Res, d<sub>0</sub> Binned", "RSA p<sub>T</sub> Res, p<sub>T</sub> Binned"],
     SMP      : ['d0Dif', 'nMuon'],
 }
 

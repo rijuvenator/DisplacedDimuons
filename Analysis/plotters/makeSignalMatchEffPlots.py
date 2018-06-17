@@ -22,7 +22,7 @@ def makeEffPlots(quantity, fs, SP=None):
         'RSA_ChargeDen' : 'RSA_{}ChargeDen',
     }
     for key in HKeys:
-        HKeys[key] = (HKeys[key]+'_HTo2XTo'+fs).format(quantity) + '_{}'
+        HKeys[key] = HKeys[key].format(quantity)
 
     h = {}
     p = {}
@@ -32,15 +32,15 @@ def makeEffPlots(quantity, fs, SP=None):
         for i, sp in enumerate(SIGNALPOINTS):
             if i == 0:
                 for key in HKeys:
-                    h[key] = f.Get(HKeys[key].format(SPStr(sp)))
+                    h[key] = HISTS[(fs, sp)][HKeys[key]].Clone()
                     h[key].SetDirectory(0)
             else:
                 for key in HKeys:
-                    h[key].Add(f.Get(HKeys[key].format(SPStr(sp))))
+                    h[key].Add(HISTS[(fs, sp)][HKeys[key]])
     else:
         sp = SP
         for key in HKeys:
-            h[key] = f.Get(HKeys[key].format(SPStr(sp)))
+            h[key] = HISTS[(fs, sp)][HKeys[key]].Clone()
             h[key].SetDirectory(0)
 
     for key in HKeys:
