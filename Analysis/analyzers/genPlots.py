@@ -46,7 +46,8 @@ class HistogramConfigurations(object):
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
             'Lxy'        : [['L_{xy} [mm]'      , 100, 0.         , LxyUpper   ]                                  ],
             'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
-            'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
+            'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100, -math.pi   , math.pi    ]                                  ],
+            'dPhiMuX'    : [['#muX #Delta#phi'  , 100, -math.pi   , math.pi    ]                                  ],
             'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
@@ -133,18 +134,19 @@ def makeAliasesAndExpressions(fs):
     # used to build TTree aliases below
     tformulae = {
         # one per X, uses mu1 info only
-        'cTau' : '10.*{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
-        'beta' : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
-        'Lxy'  : '10.*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
-        'Lz'   : 'abs({MU1}.z-{X}.z)',
-        'dR'   : '{MU1}.deltaR',
+        'cTau'    : '10.*{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
+        'beta'    : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
+        'Lxy'     : '10.*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
+        'Lz'      : 'abs({MU1}.z-{X}.z)',
+        'dR'      : '{MU1}.deltaR',
 
         # one per X, uses mu1 and mu2 info
-        'dPhi' : 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
+        'dPhiMuMu': 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
+        'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
 
         # one per muon
-        'd0'   : '10.*({MU}.d0)',
-        'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'd0'      : '10.*({MU}.d0)',
+        'pTrel'   : 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
     }
 
     # basic particle aliases are set in RootTools
@@ -154,11 +156,11 @@ def makeAliasesAndExpressions(fs):
     def setAliases(X):
         # per X quantities
         # dPhi can be lumped in here because its keys are compatible
-        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhi'):
+        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhiMuMu'):
             aliases[key+X] = tformulae[key].format(X='X'+X, MU1='mu'+X+'1', MU2='mu'+X+'2')
 
         # per muon quantities
-        for key in ('d0', 'pTrel'):
+        for key in ('d0', 'pTrel', 'dPhiMuX'):
             for mu in ('1', '2'):
                 aliases[key+X+mu] = tformulae[key].format(MU='mu'+X+mu, X='X'+X)
 
@@ -166,38 +168,39 @@ def makeAliasesAndExpressions(fs):
     # the Draw wrapper above will draw them in order, adding a + for multiple
     expressions = {
         # fixed
-        'massH'      : ['H.mass'], # H0 mass      : H.mass
-        'pTH'        : ['H.pt'],   # H0 pT        : H.pT
+        'massH'      : ['H.mass'], # H0 mass        : H.mass
+        'pTH'        : ['H.pt'],   # H0 pT          : H.pT
 
         # per X, alias above
-        'cTau'       : [],         # X cTau       : cTau
-        'beta'       : [],         # X beta       : beta
-        'Lxy'        : [],         # X Lxy        : Lxy
-        'dR'         : [],         # X deltaR     : dR
-        'dPhi'       : [],         # X deltaPhi   : dPhi
+        'cTau'       : [],         # X cTau         : cTau
+        'beta'       : [],         # X beta         : beta
+        'Lxy'        : [],         # X Lxy          : Lxy
+        'dR'         : [],         # X deltaR       : dR
+        'dPhiMuMu'   : [],         # X deltaPhiMuMu : dPhiMuMu
+        'dPhiMuX'    : [],         # X deltaPhiMuX  : dPhiMuX
 
         # per X, alias in RT
-        'massX'      : [],         # X mass       : X.mass
-        'pTX'        : [],         # X pT         : X.pT
-        'cosAlpha'   : [],         # X cosAlpha   : mu.cosAlpha
+        'massX'      : [],         # X mass         : X.mass
+        'pTX'        : [],         # X pT           : X.pT
+        'cosAlpha'   : [],         # X cosAlpha     : mu.cosAlpha
 
         # per muon, alias above
-        'd0'         : [],         # mu d0        : d0
+        'd0'         : [],         # mu d0          : d0
 
         # per muon, alias in RT
-        'pTmu'       : [],         # mu pT        : mu.pt
-        'etaMu'      : [],         # mu eta       : mu.eta
+        'pTmu'       : [],         # mu pT          : mu.pt
+        'etaMu'      : [],         # mu eta         : mu.eta
 
         # 2D plots, handle specially
-        'LxyVSLz'    : [],         # Lxy vs Lz    : Lz:Lxy
+        'LxyVSLz'    : [],         # Lxy vs Lz      : Lz:Lxy
     }
     def setExpressions(X):
         # per X quantities with aliases
-        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhi'):
+        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuX'):
             expressions[key].append(key+X)
 
         # per muon quantities with aliases
-        for key in ('d0',):
+        for key in ('d0','dPhiMuMu'):
             for mu in ('1', '2'):
                 expressions[key].append(key+X+mu)
 
