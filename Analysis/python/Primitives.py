@@ -125,10 +125,12 @@ class Event(Primitive):
         Primitive.__init__(self)
         for attr in ('run', 'lumi', 'event', 'bx'):
             self.set(attr, E, 'evt_'+attr)
-        # for simplicity reasons the gen_weight and gen_pileup (FIXME) branches
+        # for simplicity reasons the gen_weight and gen_tnpv branches
         # are stored with prefix gen_, but they are per event so should be stored here
         if hasattr(E, 'gen_weight'):
-            self.set(attr, E, 'gen_weight')
+            self.set('weight', E, 'gen_weight')
+        if hasattr(E, 'gen_tnpv'):
+            self.set('nTruePV', E, 'gen_tnpv')
 
 # MET class
 class MET(Primitive):
