@@ -93,7 +93,9 @@ function setupColumn(COL, HEADING, OPTNAME, VALUES, LABELS, CHECKOPT)
     else if (OPTNAME == 'cTau'         ) { div.style.width = '8%'   ; }
     else if (OPTNAME == 'plotcat'      ) { div.style.width = '12.5%'; }
     else if (OPTNAME == 'deltaPhiRange') { div.style.width = '12.5%'; }
-    else if (OPTNAME == 'plottype'     ) { div.style.width = '20%'  ; }
+    else if (OPTNAME == 'plottype'     ) { div.style.width = '12.5%'; }
+    else if (OPTNAME == 'plottype2'    ) { div.style.width = '12.5%'; }
+    else if (OPTNAME == 'plottype3'    ) { div.style.width = '12.5%'; }
 
     // set the heading
     document.getElementById("title_"+COL).innerHTML = HEADING;
@@ -212,9 +214,52 @@ function setupDPHI(COL, VALUES, LABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
 }
 
 // initialize plot types
-function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE)
+function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE, TITLE=true)
 {
-    setupColumn(COL, "plot type", "plottype", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+    // simple strings [s, s, s...]
+    if (VALUES[0].constructor != Array)
+    {
+        if (TITLE)
+        {
+            setupColumn(COL, "plot type", "plottype", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+            plottype2exists = false;
+        }
+        else
+        {
+            if (!plottype2exists)
+            {
+                setupColumn(COL, "...", "plottype2", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+                plottype2exists = true;
+            }
+            else
+            {
+                setupColumn(COL, "...", "plottype3", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+            }
+        }
+    }
+    // two arrays [(s, s, s), (s, s, s)]: make every combination
+    else if (VALUES[0].constructor == Array && VALUES[0][1].constructor != Array)
+    {
+        setupPlotType(COL          , VALUES[0], LABELS[0], CHECKOPT_PLOTTYPE, TITLE);
+        setupPlotType(Number(COL)+1, VALUES[1], LABELS[1], 0                , false)
+    }
+    // array of string-array pairs [(s, []), (s, []), ...]: make each combination as given
+    else if (VALUES[0].constructor == Array && VALUES[0][1].constructor == Array)
+    {
+        let thisColumn = [];
+        let thisLabels = [];
+        let nextColumn = [];
+        let nextLabels = [];
+        for (i=0; i<VALUES.length; i++)
+        {
+            thisColumn.push(VALUES[i][0]);
+            thisLabels.push(LABELS[i][0]);
+            nextColumn.push(VALUES[i][1]);
+            nextLabels.push(LABELS[i][1]);
+        }
+        setupPlotType(COL          , thisColumn, thisLabels, CHECKOPT_PLOTTYPE, TITLE);
+        setupPlotType(Number(COL)+1, nextColumn, nextLabels, 0                , false);
+    }
 }
 
 // **** UPDATE: gets called on every option button click ****
@@ -281,7 +326,7 @@ function update()
 function setPlot()
 {
     let plotcat  = getFormValueByTitle("plotcat");
-    let plottype = getFormValueByTitle("plottype");
+    let plottype = getFormValueByTitle("plottype") + getFormValueByTitle("plottype2") + getFormValueByTitle("plottype3");
     let dphi     = getFormValueByTitle("deltaPhiRange");
     let sample   = getFormValueByTitle("sample");
     let mH       = getFormValueByTitle("mH").toString();
@@ -394,13 +439,13 @@ var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          , 'DY100to20
 var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j', 'Drell-Yan M(100,200)', 'DoubleMuon2016D'           ];
 
 // plot category names and labels
-var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SMP'];
-var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable'];
-var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'TCUM', 'CutTable'];
+var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SMP'];
+var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
+var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 
-var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
-var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table'];
-var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'tail cum.', 'cut table'];
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
+var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table'];
+var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table'];
 
 // delta phi range names and labels
 var DPHIVALS   = ['Less', 'More'];
@@ -413,10 +458,11 @@ var PLOTTYPEVALS = {
     RSA      : ['pt', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
     NM1      : ['pt', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
-    CutTable : ['MUO-IND', 'MUO-SEQ', 'MUO-NM1', 'DIM-IND', 'DIM-SEQ', 'DIM-NM1'],
+    NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
+    CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
-    SME      : ['pTEff', 'etaEff', 'phiEff', 'LxyEff', 'd0Eff', 'pTChargeEff', 'etaChargeEff', 'phiChargeEff', 'LxyChargeEff', 'd0ChargeEff'],
-    SMR      : ['pTRes', 'd0Res', "DSA_LxyRes", "DSA_LxyRes_Lxy-Binned", "DSA_LxyRes_d0-Binned", "DSA_LxyRes_pT-Binned", "DSA_d0Res_Lxy-Binned", "DSA_d0Res_d0-Binned", "DSA_d0Res_pT-Binned", "DSA_pTRes_Lxy-Binned", "DSA_pTRes_d0-Binned", "DSA_pTRes_pT-Binned", "RSA_d0Res_Lxy-Binned", "RSA_d0Res_d0-Binned", "RSA_d0Res_pT-Binned", "RSA_pTRes_Lxy-Binned", "RSA_pTRes_d0-Binned", "RSA_pTRes_pT-Binned"],
+    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0'], ['Eff', 'ChargeEff']],
+    SMR      : [['', 'DSA_', 'RSA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned']]],
     SMP      : ['d0Dif', 'nMuon'],
 }
 var PLOTTYPELABELS = {
@@ -424,11 +470,13 @@ var PLOTTYPELABELS = {
     DSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
     RSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
     NM1      : ['p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
+    NM1E     : [['L<sub>xy</sub> sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. &chi;<sup>2</sup>/dof', 'p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', 'track &chi;<sup>2</sup>/dof', 'd<sub>0</sub> sig.'], ['vs. p<sub>T</sub>', 'vs. &eta;', 'vs. d<sub>0</sub>', 'vs. L<sub>xy</sub>']],
     TCUM     : ['L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>'],
-    CutTable : ['Muon Ind.', 'Muon Seq.', 'Muon N&minus;1', 'Dimuon Ind.', 'Dimuon Seq.', 'Dimuon N&minus;1'],
+    CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
-    SMR      : ['p<sub>T</sub> Res', 'd<sub>0</sub> Res', "DSA L<sub>xy</sub> Res", "DSA L<sub>xy</sub> Res, L<sub>xy</sub> Binned", "DSA L<sub>xy</sub> Res, d<sub>0</sub> Binned", "DSA L<sub>xy</sub> Res, p<sub>T</sub> Binned", "DSA d<sub>0</sub> Res, L<sub>xy</sub> Binned", "DSA d<sub>0</sub> Res, d<sub>0</sub> Binned", "DSA d<sub>0</sub> Res, p<sub>T</sub> Binned", "DSA p<sub>T</sub> Res, L<sub>xy</sub> Binned", "DSA p<sub>T</sub> Res, d<sub>0</sub> Binned", "DSA p<sub>T</sub> Res, p<sub>T</sub> Binned", "RSA d<sub>0</sub> Res, L<sub>xy</sub> Binned", "RSA d<sub>0</sub> Res, d<sub>0</sub> Binned", "RSA d<sub>0</sub> Res, p<sub>T</sub> Binned", "RSA p<sub>T</sub> Res, L<sub>xy</sub> Binned", "RSA p<sub>T</sub> Res, d<sub>0</sub> Binned", "RSA p<sub>T</sub> Res, p<sub>T</sub> Binned"],
+    SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['&epsilon;', 'Charge &epsilon;']],
+    SMR      : [['Both', 'DSA', 'RSA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Res.', 'L<sub>xy</sub> Res.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned']]],
     SMP      : ['d0Dif', 'nMuon'],
 }
 
@@ -437,5 +485,6 @@ var NCOLS  = 8;
 //**** MAIN CODE ****
 // setupColumns calls setupSamples which calls setupMH() with all zeroes as defaults
 // thereby setting up the entire board. all that remains is to call setPlot once.
+var plottype2exists = false;
 setupColumns();
 setPlot();

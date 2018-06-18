@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
@@ -14,6 +15,14 @@ def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
             if 'DenVS' in key: continue
+
+            matches = re.match(r'(.*)EffVS(.*)', key)
+
+            cut = matches.group(1)
+            val = matches.group(2)
+
+            if cut in Selections.CutLists['MuonCutList'] and val == 'Lxy': continue
+            if cut in Selections.CutLists['DimuonCutList'] and val in ('pT', 'eta', 'd0'): continue
 
             if type(ref) == tuple:
                 if ref[0] == '4Mu': name = 'HTo2XTo4Mu_'
@@ -33,6 +42,8 @@ def makePerSamplePlots():
             canvas.addMainPlot(p)
             p.SetLineColor(R.kBlue)
             p.SetMarkerColor(R.kBlue)
+            canvas.firstPlot.SetMinimum(0.)
+            canvas.firstPlot.SetMaximum(1.)
 
             fname = 'pdfs/NM1E_{}_{}.pdf'.format(key, name)
             canvas.cleanup(fname)
