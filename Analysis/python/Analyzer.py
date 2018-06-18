@@ -54,6 +54,7 @@ class Analyzer(object):
     #  MAX_EVENTS: if something other than 1000; only does anything if TEST is true
     #  SPLITTING: a tuple: (number of events per job, job number 0-indexed)
     #  TREELOOP: whether to actually loop over the tree (usually True)
+    #  PARAMS: any additional parameters that can't be obtained any other way
     def __init__(self,
             NAME        = None,
             SIGNALPOINT = None,
@@ -63,7 +64,8 @@ class Analyzer(object):
             TEST        = False,
             MAX_EVENTS  = 1000,
             SPLITTING   = None,
-            TREELOOP    = True
+            TREELOOP    = True,
+            PARAMS      = None
         ):
 
         # if this is a signal sample, make sure there's a signal point
@@ -86,6 +88,7 @@ class Analyzer(object):
         self.MAX        = MAX_EVENTS
         self.SPLITTING  = SPLITTING
         self.TREELOOP   = TREELOOP
+        self.PARAMS     = PARAMS
 
         self.HISTS      = {}
 
@@ -157,9 +160,9 @@ class Analyzer(object):
         if not t:
             raise ReferenceError
 
-        self.declareHistograms()
+        self.declareHistograms(self.PARAMS)
         self.releaseHistograms()
-        self.begin()
+        self.begin(self.PARAMS)
 
         # only turn on the branches required
         Primitives.SelectBranches(t, DecList=self.BRANCHKEYS)
@@ -180,7 +183,7 @@ class Analyzer(object):
                             break
                     t.GetEntry(INDEX)
                     E = Primitives.ETree(t, self.BRANCHKEYS)
-                    self.analyze(E)
+                    self.analyze(E, self.PARAMS)
             else:
                 for INDEX, EVENT in enumerate(t):
                     self.INDEX = INDEX
@@ -188,22 +191,22 @@ class Analyzer(object):
                         if INDEX == self.MAX:
                             break
                     E = Primitives.ETree(t, self.BRANCHKEYS)
-                    self.analyze(E)
+                    self.analyze(E, self.PARAMS)
 
-        self.end()
+        self.end(self.PARAMS)
         f.Close()
     
     # functions to be written by the specific analyzer script
     # declareHistograms should define the plots to be filled and written
     # begin runs before the loop, end runs after, analyze runs during
-    def declareHistograms(self):
+    def declareHistograms(self, PARAMS=None):
         pass
 
-    def begin(self):
+    def begin(self, PARAMS=None):
         pass
 
-    def end(self):
+    def end(self, PARAMS=None):
         pass
 
-    def analyze(self, E):
+    def analyze(self, E, PARAMS=None):
         pass

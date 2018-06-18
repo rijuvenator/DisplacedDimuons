@@ -35,7 +35,7 @@ def NAME(KEY, DeltaPhiRegion):
     return KEY + '_' +  DeltaPhiRegion
 
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     for DeltaPhiRegion in ('Less', 'More'):
         for KEY in CUTKEYS:
             h = NM1HISTS[DeltaPhiRegion][KEY].GetCumulative(False)

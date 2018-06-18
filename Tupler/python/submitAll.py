@@ -19,10 +19,10 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS, PATSIGNALPOINTS
 MODE = '--crab'
 
 # block booleans
-Do_4Mu_GenOnly   = True
+Do_4Mu_GenOnly   = False
 Do_4Mu_AODOnly   = True
 Do_4Mu           = False
-Do_2Mu2J_GenOnly = True
+Do_2Mu2J_GenOnly = False
 Do_2Mu2J_AODOnly = True
 Do_2Mu2J         = True
 Do_Background    = True

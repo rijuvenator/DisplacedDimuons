@@ -1,9 +1,16 @@
+import os
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
+import DisplacedDimuons.Common.Constants as Constants
 
-# test files; you may need to replace ~/eos with root://eoscms.cern.ch//eos/cms/store/user/adasgupt/
-F_NTUPLE = '~/eos/DisplacedDimuons/NTuples/ntuple_DY100to200.root'
-F_SIGNAL = '~/eos/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
+# test files
+# if not on lxplus, add a root protocol
+if not 'lxplus' in os.environ['HOSTNAME']:
+    PREFIX = Constants.PREFIX_CERN
+else:
+    PREFIX = ''
+F_NTUPLE = PREFIX+'/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DY100to200.root'
+F_SIGNAL = PREFIX+'/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
 
 def tprint(msg):
     print '\033[32mPRIMITIVES TEST: ' + msg + '\033[m'
@@ -26,6 +33,7 @@ KEYS = {
         'EVENT'   : [-1, False],
         'TRIGGER' : [-1, False],
         'MET'     : [-1, False],
+        'FILTER'  : [-1, False],
         'VERTEX'  : [-1, False],
         'BEAMSPOT': [-1, False],
         'GEN'     : [-1, False],

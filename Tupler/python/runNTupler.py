@@ -74,7 +74,11 @@ config.Data.runRange         = '{RUN_RANGE}'
 config.Data.lumiMask         = '{LUMI_MASK}'
 config.Data.outLFNDirBase    = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
 config.Data.outputDatasetTag = 'ntuple_{NAME}'
-config.Site.storageSite      = 'T2_CH_CERN'
+if getUsernameFromSiteDB() in ('escalant', 'stempl'):
+    STORAGESITE = 'T2_AT_Vienna'
+else:
+    STORAGESITE = 'T2_CH_CERN'
+config.Site.storageSite      = STORAGESITE
 config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
 '''
     CRAB_CFG = CRAB_CFG.format(

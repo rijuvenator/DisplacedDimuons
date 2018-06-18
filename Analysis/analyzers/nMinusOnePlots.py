@@ -30,13 +30,13 @@ def NAME(KEY, DeltaPhiRegion):
     return KEY + '_' +  DeltaPhiRegion
 
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     for KEY in CUTKEYS:
         for DeltaPhiRegion in ('Less', 'More'):
             self.HistInit(NAME(KEY, DeltaPhiRegion), CUTKEYS[KEY]['TITLE'], *CUTKEYS[KEY]['AXES'])
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON')
 
