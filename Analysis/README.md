@@ -58,6 +58,24 @@ for event in t:
 	for muon in muons:
 		print muon.pt, muon.eta, muon.phi, muon.energy
 ```
+
+  The _Analyzer_ library declares the _ETree_ and makes it available to the `analyze()` function as `E`. Here documents how each of the current _Primitives_ objects are declared in analysis code:
+
+```python
+Event                                = E.getPrimitives('EVENT')
+HLTPaths, HLTMuons, L1TMuons         = E.getPrimitives('TRIGGER')
+MET                                  = E.getPrimitives('MET')
+Filters                              = E.getPrimitives('FILTER')
+Beamspot                             = E.getPrimitives('BEAMSPOT')
+Vertex                               = E.getPrimitives('VERTEX')
+mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+mu1, mu2, j1, j2, X, XP, H, P        = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+Muons                                = E.getPrimitives('MUON')
+DSAMuons                             = E.getPrimitives('DSAMUON')
+RSAMuons                             = E.getPrimitives('RSAMUON')
+Dimuons                              = E.getPrimitives('MUON')
+```
+
   * **RootTools.py** contains a few small ROOT-related additions.
     * The _TVector_ section improves the Python implementation of _TVector2_, _TVector3_, and _TLorentzVector_ by adding a few functions and fixing the interface so as to be a bit more uniform.
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P** or **mu1, mu2, j1, j2, X, XP, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.

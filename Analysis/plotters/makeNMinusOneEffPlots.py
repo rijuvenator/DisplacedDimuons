@@ -1,17 +1,20 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/DimuonPlots.root')
-f = R.TFile.Open('../analyzers/roots/DimuonPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/nMinusOneEffPlots.root')
+f = R.TFile.Open('../analyzers/roots/nMinusOneEffPlots.root')
 
-# make plots that are per sample
+# make per sample plots
 def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
+            if 'DenVS' in key: continue
+
             if type(ref) == tuple:
                 if ref[0] == '4Mu': name = 'HTo2XTo4Mu_'
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
@@ -21,18 +24,17 @@ def makePerSamplePlots():
                 name = ref
                 lumi = ref
 
-            h = HISTS[ref][key]
-            p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
-            fname = 'pdfs/{}_{}.pdf'.format(key, name)
+            h = HISTS[ref][key].Clone()
+            g = R.TGraphAsymmErrors(h, HISTS[ref][key.replace('Eff', 'Den')], 'cp')
+            g.SetNameTitle('g_'+key, ';'+h.GetXaxis().GetTitle()+';'+h.GetYaxis().GetTitle())
+            p = Plotter.Plot(g, '', 'pe', 'pe')
 
             canvas = Plotter.Canvas(lumi=lumi)
             canvas.addMainPlot(p)
-            canvas.makeLegend(lWidth=.25, pos='tr')
-            canvas.legend.moveLegend(Y=-.3)
-            canvas.legend.resizeHeight()
             p.SetLineColor(R.kBlue)
-            canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.7, .8    ))
-            canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
+            p.SetMarkerColor(R.kBlue)
+
+            fname = 'pdfs/NM1E_{}_{}.pdf'.format(key, name)
             canvas.cleanup(fname)
 
 makePerSamplePlots()

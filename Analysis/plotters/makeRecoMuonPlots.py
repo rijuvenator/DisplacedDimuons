@@ -9,7 +9,7 @@ HISTS = HistogramGetter.getHistograms('../analyzers/roots/RecoMuonPlots.root')
 f = R.TFile.Open('../analyzers/roots/RecoMuonPlots.root')
 
 # make plots that are per signal point
-def makePerSignalPlots():
+def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
             if type(ref) == tuple:
@@ -35,4 +35,4 @@ def makePerSignalPlots():
             canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.7, .8-.04))
             canvas.cleanup(fname)
 
-makePerSignalPlots()
+makePerSamplePlots()

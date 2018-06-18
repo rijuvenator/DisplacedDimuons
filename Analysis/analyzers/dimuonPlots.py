@@ -6,7 +6,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pt'      : {'AXES':( 0., 100.   ), 'LAMBDA': lambda dimuon: dimuon.pt      },
+    'pT'      : {'AXES':( 0., 100.   ), 'LAMBDA': lambda dimuon: dimuon.pt      },
     'eta'     : {'AXES':(-5., 5.     ), 'LAMBDA': lambda dimuon: dimuon.eta     },
     'Lxy'     : {'AXES':( 0., 600.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   },
     'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig()},
@@ -26,7 +26,7 @@ def declareHistograms(self, PARAMS=None):
         # but change this if new quantities are added, with a PRETTY key in CONFIG
         # so use the Pretty version and tack on units for pT and Lxy
         XTIT = Selections.PrettyTitles[KEY]
-        if KEY == 'pt' : XTIT += ' [GeV]'
+        if KEY == 'pT' : XTIT += ' [GeV]'
         if KEY == 'Lxy': XTIT += ' [cm]'
 
         self.HistInit('Dim_'+KEY, ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])

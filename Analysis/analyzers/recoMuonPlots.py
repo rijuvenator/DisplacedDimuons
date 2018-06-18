@@ -6,7 +6,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pt'       : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda muon: muon.pt                                     },
+    'pT'       : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda muon: muon.pt                                     },
     'eta'      : {'AXES':(1000,-5., 5.  ), 'LAMBDA': lambda muon: muon.eta                                    },
     'd0'       : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0()                                   },
     'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                },
@@ -24,7 +24,7 @@ def declareHistograms(self, PARAMS=None):
         # but change this if new quantities are added, with a PRETTY key in CONFIG
         # so use the Pretty version and tack on units for pT and d0
         XTIT = Selections.PrettyTitles[KEY]
-        if KEY == 'pt': XTIT += ' [GeV]'
+        if KEY == 'pT': XTIT += ' [GeV]'
         if KEY == 'd0': XTIT += ' [cm]'
 
         for MUON in ('DSA', 'RSA'):
