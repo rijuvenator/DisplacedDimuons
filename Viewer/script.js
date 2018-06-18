@@ -135,113 +135,125 @@ function setupColumn(COL, HEADING, OPTNAME, VALUES, LABELS, CHECKOPT)
 // initialize samples, probably into column 0, and this function only gets called once
 function setupSamples()
 {
+    let state = {
+        i_sample    : 0,
+        i_mH        : 0,
+        i_mX        : 0,
+        i_cTau      : 0,
+        i_plotcat   : 0,
+        i_dphi      : 0,
+        i_plottype  : 0,
+        i_plottype2 : 0,
+        i_plottype3 : 0,
+    };
+
     setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS);
-    setupMH(0, 0, 0, 0, 0, 0);
+    setupMH(state);
 }
 
 // initialize mH, probably into column 1
-function setupMH(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+function setupMH(state)
 {
     // "copy" mH values
     let values = [125, 200, 400, 1000, 'Global'];
     let labels = values.map(String);
     // make column
-    setupColumn("1", "m<sub>H</sub>", "mH", values, labels, CHECKOPT_MH);
-    setupMX(CHECKOPT_MH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    setupColumn("1", "m<sub>H</sub>", "mH", values, labels, state['i_mH']);
+    setupMX(state);
 }
 
 // initialize mX, probably into column 2
-function setupMX(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+function setupMX(state)
 {
-    if (i_mH != 4)
+    if (state['i_mH'] != 4)
     {
         // make sure i_mH is a valid option
-        if (i_mH < 0) {i_mH = 0;}
+        if (state['i_mH'] < 0) {state['i_mH'] = 0;}
         // copy mX values
         let values = [];
-        for (i=0; i<SIGNALS[i_mH].children.length; i++) { values.push(SIGNALS[i_mH].children[i].value); }
+        for (i=0; i<SIGNALS[state['i_mH']].children.length; i++) { values.push(SIGNALS[state['i_mH']].children[i].value); }
         let labels = values.map(String);
         // make column
-        setupColumn("2", "m<sub>X</sub>", "mX", values, labels, CHECKOPT_MX);
+        setupColumn("2", "m<sub>X</sub>", "mX", values, labels, state['i_mX']);
         // make sure i_mX is correct if the number of options has decreased
-        if (CHECKOPT_MX > values.length-1) {CHECKOPT_MX = values.length-1;}
-        setupCTAU(i_mH, CHECKOPT_MX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+        if (state['i_mX'] > values.length-1) {state['i_mX'] = values.length-1;}
+        setupCTAU(state);
     }
     else
     {
         setupColumn("2", "m<sub>X</sub>", "mX", [], [], -1);
         setupColumn("3", "c&tau;", "cTau", [], [], -1);
-        setupPlotCat("4", SIGNALVALS, SIGNALLABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+        setupPlotCat("4", SIGNALVALS, SIGNALLABELS, state);
     }
 }
 
 // initialize cTau, probably into column 3
-function setupCTAU(i_mH, i_mX, CHECKOPT_CTAU, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+function setupCTAU(state)
 {
     // make sure i_mX is a valid option
-    if (i_mX < 0) {i_mX = 0;}
+    if (state['i_mX'] < 0) {state['i_mX'] = 0;}
     // copy cTau values
     let values = [];
-    for (i=0; i<SIGNALS[i_mH].children[i_mX].children.length; i++) { values.push(SIGNALS[i_mH].children[i_mX].children[i].value); }
+    for (i=0; i<SIGNALS[state['i_mH']].children[state['i_mX']].children.length; i++) { values.push(SIGNALS[state['i_mH']].children[state['i_mX']].children[i].value); }
     let labels = values.map(String);
     // make column
-    setupColumn("3", "c&tau;", "cTau", values, labels, CHECKOPT_CTAU);
-    setupPlotCat("4", SIGNALVALS, SIGNALLABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+    setupColumn("3", "c&tau;", "cTau", values, labels, state['i_cTau']);
+    setupPlotCat("4", SIGNALVALS, SIGNALLABELS, state);
 }
 
 // initialize plot categories
-function setupPlotCat(COL, VALUES, LABELS, CHECKOPT_PLOTCAT, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+function setupPlotCat(COL, VALUES, LABELS, state)
 {
-    setupColumn(COL, "plot category", "plotcat", VALUES, LABELS, CHECKOPT_PLOTCAT);
+    setupColumn(COL, "plot category", "plotcat", VALUES, LABELS, state['i_plotcat']);
     // make dPhi column only for certain categories, otherwise continue to plottype
     let optValue = getFormValueByColumn(COL);
     if (optValue == 'NM1' || optValue == 'TCUM')
     {
-        setupDPHI((Number(COL)+1).toString(), DPHIVALS, DPHILABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE);
+        setupDPHI((Number(COL)+1).toString(), DPHIVALS, DPHILABELS, state);
     }
     else
     {
-        setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], CHECKOPT_PLOTTYPE);
+        setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], state);
     }
 }
 
 // initialize Delta Phi range
-function setupDPHI(COL, VALUES, LABELS, CHECKOPT_DPHI, CHECKOPT_PLOTTYPE)
+function setupDPHI(COL, VALUES, LABELS, state)
 {
-    setupColumn(COL, "&Delta;&Phi; Range", "deltaPhiRange", VALUES, LABELS, CHECKOPT_DPHI);
+    setupColumn(COL, "&Delta;&Phi; Range", "deltaPhiRange", VALUES, LABELS, state['i_dphi']);
     let optValue = getFormValueByColumn((Number(COL)-1).toString());
-    setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], CHECKOPT_PLOTTYPE);
+    setupPlotType((Number(COL)+1).toString(), PLOTTYPEVALS[optValue], PLOTTYPELABELS[optValue], state);
 }
 
 // initialize plot types
-function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE, TITLE=true)
+function setupPlotType(COL, VALUES, LABELS, state, TITLE=true)
 {
     // simple strings [s, s, s...]
     if (VALUES[0].constructor != Array)
     {
         if (TITLE)
         {
-            setupColumn(COL, "plot type", "plottype", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+            setupColumn(COL, "plot type", "plottype", VALUES, LABELS, state['i_plottype']);
             plottype2exists = false;
         }
         else
         {
             if (!plottype2exists)
             {
-                setupColumn(COL, "...", "plottype2", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+                setupColumn(COL, "...", "plottype2", VALUES, LABELS, state['i_plottype2']);
                 plottype2exists = true;
             }
             else
             {
-                setupColumn(COL, "...", "plottype3", VALUES, LABELS, CHECKOPT_PLOTTYPE);
+                setupColumn(COL, "...", "plottype3", VALUES, LABELS, state['i_plottype3']);
             }
         }
     }
     // two arrays [(s, s, s), (s, s, s)]: make every combination
     else if (VALUES[0].constructor == Array && VALUES[0][1].constructor != Array)
     {
-        setupPlotType(COL          , VALUES[0], LABELS[0], CHECKOPT_PLOTTYPE, TITLE);
-        setupPlotType(Number(COL)+1, VALUES[1], LABELS[1], 0                , false)
+        setupPlotType(COL          , VALUES[0], LABELS[0], state, TITLE);
+        setupPlotType(Number(COL)+1, VALUES[1], LABELS[1], state, false)
     }
     // array of string-array pairs [(s, []), (s, []), ...]: make each combination as given
     else if (VALUES[0].constructor == Array && VALUES[0][1].constructor == Array)
@@ -257,8 +269,8 @@ function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE, TITLE=true)
             nextColumn.push(VALUES[i][1]);
             nextLabels.push(LABELS[i][1]);
         }
-        setupPlotType(COL          , thisColumn, thisLabels, CHECKOPT_PLOTTYPE, TITLE);
-        setupPlotType(Number(COL)+1, nextColumn, nextLabels, 0                , false);
+        setupPlotType(COL          , thisColumn, thisLabels, state, TITLE);
+        setupPlotType(Number(COL)+1, nextColumn, nextLabels, state, false);
     }
 }
 
@@ -268,39 +280,53 @@ function setupPlotType(COL, VALUES, LABELS, CHECKOPT_PLOTTYPE, TITLE=true)
 // then call setPlot()
 function update()
 {
-    let i_sample   = getFormIndexByTitle("sample");
-    let i_mH       = getFormIndexByTitle("mH");
-    let i_mX       = getFormIndexByTitle("mX");
-    let i_cTau     = getFormIndexByTitle("cTau");
-    let i_plotcat  = getFormIndexByTitle("plotcat");
-    let i_dphi     = getFormIndexByTitle("deltaPhiRange");
-    let i_plottype = getFormIndexByTitle("plottype");
+    let i_sample    = getFormIndexByTitle("sample");
+    let i_mH        = getFormIndexByTitle("mH");
+    let i_mX        = getFormIndexByTitle("mX");
+    let i_cTau      = getFormIndexByTitle("cTau");
+    let i_plotcat   = getFormIndexByTitle("plotcat");
+    let i_dphi      = getFormIndexByTitle("deltaPhiRange");
+    let i_plottype  = getFormIndexByTitle("plottype");
+    let i_plottype2 = getFormIndexByTitle("plottype2");
+    let i_plottype3 = getFormIndexByTitle("plottype3");
+
+    let state = {
+        i_sample    : i_sample   ,
+        i_mH        : i_mH       ,
+        i_mX        : i_mX       ,
+        i_cTau      : i_cTau     ,
+        i_plotcat   : i_plotcat  ,
+        i_dphi      : i_dphi     ,
+        i_plottype  : i_plottype ,
+        i_plottype2 : i_plottype2,
+        i_plottype3 : i_plottype3,
+    };
 
     if (this.name == "opt_sample")
     {
         clearEverythingAfter(0);
         if (this.value == "HTo2XTo4Mu" || this.value == "HTo2XTo2Mu2J")
         {
-            setupMH(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+            setupMH(state);
         }
         else if (this.value == "DY100to200")
         {
-            setupPlotCat("1", BGVALS, BGLABELS, i_plotcat, i_dphi, i_plottype);
+            setupPlotCat("1", BGVALS, BGLABELS, state);
         }
         else if (this.value == "DoubleMuonRun2016D-07Aug17")
         {
-            setupPlotCat("1", DATAVALS, DATALABELS, i_plotcat, i_dphi, i_plottype);
+            setupPlotCat("1", DATAVALS, DATALABELS, state);
         }
     }
     else if (this.name == "opt_mH")
     {
         clearEverythingAfter(1);
-        setupMX(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+        setupMX(state);
     }
     else if (this.name == "opt_mX")
     {
         clearEverythingAfter(2);
-        setupCTAU(i_mH, i_mX, i_cTau, i_plotcat, i_dphi, i_plottype);
+        setupCTAU(state);
     }
     else if (this.name == "opt_plotcat")
     {
@@ -309,11 +335,11 @@ function update()
         clearEverythingAfter(COL);
         if (this.value == "NM1" || this.value == "TCUM")
         {
-            setupDPHI((COL+1).toString(), DPHIVALS, DPHILABELS, i_dphi, i_plottype);
+            setupDPHI((COL+1).toString(), DPHIVALS, DPHILABELS, state);
         }
         else
         {
-            setupPlotType((COL+1).toString(), PLOTTYPEVALS[this.value], PLOTTYPELABELS[this.value], i_plottype);
+            setupPlotType((COL+1).toString(), PLOTTYPEVALS[this.value], PLOTTYPELABELS[this.value], state);
         }
     }
 
@@ -443,9 +469,9 @@ var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen',
 var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 
-var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
-var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table'];
-var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff', 'tail cum.', 'cut table'];
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
+var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
+var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 
 // delta phi range names and labels
 var DPHIVALS   = ['Less', 'More'];
@@ -453,10 +479,10 @@ var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
 
 // plottype names and labels
 var PLOTTYPEVALS = {
-    Dim      : ['pt', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
-    DSA      : ['pt', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
-    RSA      : ['pt', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
-    NM1      : ['pt', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
+    Dim      : ['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
+    DSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    RSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    NM1      : ['pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
@@ -475,16 +501,16 @@ var PLOTTYPELABELS = {
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
-    SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['&epsilon;', 'Charge &epsilon;']],
+    SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['reco. &epsilon;', 'charge &epsilon;']],
     SMR      : [['Both', 'DSA', 'RSA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Res.', 'L<sub>xy</sub> Res.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned']]],
     SMP      : ['d0Dif', 'nMuon'],
 }
 
-var NCOLS  = 8;
+var NCOLS = 8;
+var plottype2exists = false;
 
 //**** MAIN CODE ****
 // setupColumns calls setupSamples which calls setupMH() with all zeroes as defaults
 // thereby setting up the entire board. all that remains is to call setPlot once.
-var plottype2exists = false;
 setupColumns();
 setPlot();

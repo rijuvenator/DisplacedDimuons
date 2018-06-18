@@ -1,7 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS, SIGNALS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 import sys
@@ -167,6 +167,13 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     canvas.cleanup(fname)
 
+# get signal points for binned quantities
+BinnedSP = []
+for mH in SIGNALS:
+    mX = max(SIGNALS[mH])
+    for cTau in SIGNALS[mH][mX]:
+        BinnedSP.append((mH, mX, cTau))
+
 # make plots
 if len(sys.argv) == 1: FS = '4Mu'
 else: FS = sys.argv[1]
@@ -189,5 +196,5 @@ for fs in (FS,):
                 #makeColorPlot(MUON, quantity, fs, q2)
 
             # 1D resolution binned by gen quantity
-                for sp in ((1000, 350, 3500),):
+                for sp in BinnedSP:
                     makeBinnedResPlot(MUON, quantity, q2, fs, sp)
