@@ -8,6 +8,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
@@ -30,6 +31,9 @@ class GenBranches : public BranchCollection
   static bool alreadyPrinted_GEIP;
 
   float               gen_weight   ;
+
+  // True number of primary vertices for pileup reweighting
+  float               gen_tnpv     ;
 
   std::vector<int   > gen_status   ;
   std::vector<int   > gen_pdgID    ;
@@ -55,6 +59,8 @@ class GenBranches : public BranchCollection
   {
     Declare("gen_weight"   , gen_weight, "F");
 
+    Declare("gen_tnpv"     , gen_tnpv,   "F");
+
     Declare("gen_status"   , gen_status     );
     Declare("gen_pdgID"    , gen_pdgID      );
     Declare("gen_pt"       , gen_pt         );
@@ -79,6 +85,8 @@ class GenBranches : public BranchCollection
   {
     gen_weight = 0;
 
+    gen_tnpv   = -999.;
+
     gen_status  .clear();
     gen_pdgID   .clear();
     gen_pt      .clear();
@@ -101,6 +109,7 @@ class GenBranches : public BranchCollection
 
   void Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
 	    const edm::Handle<GenEventInfoProduct> &GEIPHandle,
+	    const edm::Handle<std::vector<PileupSummaryInfo> > &pileupInfo,
 	    const bool isSignal,
 	    const std::string finalState);
 

@@ -92,6 +92,7 @@ class SimpleNTupler : public edm::EDAnalyzer
     edm::EDGetTokenT<reco::VertexCollection     > vertexToken;
     edm::EDGetTokenT<reco::GenParticleCollection> genToken;
     edm::EDGetTokenT<GenEventInfoProduct        > GEIPToken;
+    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupToken;
     edm::EDGetTokenT<pat::MuonCollection        > muonToken;
     edm::EDGetTokenT<reco::TrackCollection      > dsaMuonToken;
     edm::EDGetTokenT<reco::TrackCollection      > rsaMuonToken;
@@ -123,11 +124,12 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   prescalesToken   (consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales"     ))),
   triggerToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
   patMetToken      (consumes<pat::METCollection         >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
-  filtersToken    (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("filters"        ))),
+  filtersToken    (consumes<edm::TriggerResults         >(iConfig.getParameter<edm::InputTag>("filters"        ))),
   beamspotToken    (consumes<reco::BeamSpot             >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
   vertexToken      (consumes<reco::VertexCollection     >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
   genToken         (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"          ))),
   GEIPToken        (consumes<GenEventInfoProduct        >(iConfig.getParameter<edm::InputTag>("GEIP"          ))),
+  pileupToken      (consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("pileupInfo"))),
   muonToken        (consumes<pat::MuonCollection        >(iConfig.getParameter<edm::InputTag>("muons"         ))),
   dsaMuonToken     (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("dsaMuons"      ))),
   rsaMuonToken     (consumes<reco::TrackCollection      >(iConfig.getParameter<edm::InputTag>("rsaMuons"      )))
@@ -232,9 +234,11 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   {
     edm::Handle<reco::GenParticleCollection> gens;
     edm::Handle<GenEventInfoProduct> GEIP;
+    edm::Handle<std::vector<PileupSummaryInfo> > pileupInfo;
     iEvent.getByToken(genToken, gens);
     iEvent.getByToken(GEIPToken, GEIP);
-    genData.Fill(gens, GEIP, isSignal, finalState);
+    iEvent.getByToken(pileupToken, pileupInfo);
+    genData.Fill(gens, GEIP, pileupInfo, isSignal, finalState);
   }
 
 

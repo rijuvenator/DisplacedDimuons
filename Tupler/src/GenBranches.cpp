@@ -44,9 +44,11 @@ bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &ge
 
 void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
     const edm::Handle<GenEventInfoProduct> &GEIPHandle,
+    const edm::Handle<std::vector<PileupSummaryInfo> > &pileupInfo,
     const bool isSignal,
     const std::string finalState)
 {
+  static bool alreadyPrinted_pileup = false;
   static bool debug = false;
   Reset();
 
@@ -58,13 +60,37 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   // set gen weight
   gen_weight = GEIP.weight();
 
+  // Extract the true number of primary vertices in the event for
+  // pileup reweighting if PileupSummaryInfo collection exists.  See
+  // https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3592/1/2/1/1/1/1.html
+  // for more details.
+  if (pileupInfo.failedToGet()) {
+    if (!alreadyPrinted_pileup) {
+      edm::LogWarning("SimpleNTupler")
+        << "+++ Warning: PileupSummaryInfo is not found +++";
+      alreadyPrinted_pileup = true;
+    }
+  }
+  else {
+    std::vector<PileupSummaryInfo>::const_iterator pi;
+    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++) {
+      int bx = pi->getBunchCrossing();
+      if (bx == 0) { 
+	gen_tnpv = pi->getTrueNumInteractions();
+	continue;
+      }
+    }
+  }
+
   // find appropriate gen particles and fill branches
   if      (isSignal && finalState == "4Mu"  ) Fill4Mu  (gens);
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
  
   if (debug) {
-    std::cout << "Gen info: weight = " << gen_weight << "; gen particles: \n";
+    std::cout << "Gen info: weight = " << gen_weight
+	      << " true number of primary vertices = " << gen_tnpv
+	      << "; gen particles: \n";
     std::cout << " idx |   id  | stat| moth|    pt   |    eta   |   phi   |    M    |    E   | q |        (x;y;z)        | \n";
     unsigned int nparts = gen_status.size();
     for (unsigned int i = 0; i < nparts; i++) {
