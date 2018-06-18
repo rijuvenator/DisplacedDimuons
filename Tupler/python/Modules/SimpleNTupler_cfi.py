@@ -27,7 +27,6 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
             "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v4", # 2016D data
             "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v6"  # MC
         ),
-#       triggerResults = cms.InputTag('TriggerResults', '', 'PAT'), # this contains the results of "good data" filters
         triggerResults = cms.InputTag('TriggerResults', '', 'HLT'),
 
 ##############################
@@ -35,6 +34,7 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 ##############################
 
         patMet         = cms.InputTag('patMETs'),
+        filters        = cms.InputTag('TriggerResults', '', 'PAT'),
         beamspot       = cms.InputTag('offlineBeamSpot'),
         vertices       = cms.InputTag('offlinePrimaryVerticesWithBS'),
 #       vertices       = cms.InputTag('offlinePrimaryVertices'),

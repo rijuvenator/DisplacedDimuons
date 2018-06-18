@@ -88,10 +88,11 @@ PrettyTitles = {
 # This will set self.cutList to be the list, and self.cutListKey to be the CutLists key if it exists
 # Then initialize a results dictionary
 # The object acts as a bool, returning the full AND of cuts, or can be accessed with [] for a particular cut
-# The object can also update a dictionary of counts that is passed to it with IndividualIncrement or SequentialIncrement
-# The former just increments everything in the results dictionary, as well as all
-# The latter applies the cuts sequentially, including everything before it, starting with none
-# Finally, in case one would like all the cuts except some subset, an allExcept function is provided
+# In case one would like all the cuts except some subset, an allExcept function is provided
+# The object can also update a dictionary of counts that is passed to it with the *Increment functions
+#   IndividualIncrement increments everything in the results dictionary, as well as all
+#   SequentialIncrement increments the cuts sequentially, including everything before it, starting with none
+#   NMinusOneIncrement  increments each cut by its allExcept value
 class Selection(object):
     def __init__(self, cutList):
         try:
@@ -127,6 +128,13 @@ class Selection(object):
         for i, key in enumerate(cutList):
             if key in dictionary and key in self.results:
                 dictionary[key] += all([self.results[cutkey] for cutkey in cutList[:i+1]])
+
+    def NMinusOneIncrement(self, dictionary):
+        cutList = self.cutList
+
+        for key in cutList:
+            if key in dictionary and key in self.results:
+                dictionary[key] += self.allExcept(key)
 
     def allExcept(self, *omittedCutKeys):
         return all([self.results[key] for key in self.cutList if key not in omittedCutKeys])

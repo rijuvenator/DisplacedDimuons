@@ -19,6 +19,7 @@ struct DisplacedMuon
   float px     ;
   float py     ;
   float pz     ;
+  float ptError;
   float eta    ;
   float phi    ;
   int   charge ;
@@ -77,6 +78,7 @@ struct DisplacedMuon
     px     = -999.;
     py     = -999.;
     pz     = -999.;
+    ptError= -999.;
     eta    = -999.;
     phi    = -999.;
     charge = -999 ; 
@@ -120,8 +122,8 @@ struct DisplacedMuon
     double pt = sqrt(pow(rhs.px,2) + pow(rhs.py,2));
     double p  = sqrt(pow(pt,2)     + pow(rhs.pz,2));
     output << " idx = " << rhs.idx << " charge = " << rhs.charge
-	   << " pt = "  << pt      << " p = "      << p
-	   << " eta = " << rhs.eta << " phi = "    << rhs.phi
+	   << " pt = "  << pt << " +/- " << rhs.ptError << " p = " << p
+	   << " eta = " << rhs.eta << " phi = " << rhs.phi
 	   << " chi2/ndof = " << rhs.chi2 << "/" << rhs.ndof << std::endl;
     output << "  (x; y; z) of the reference point: (" << rhs.x
 	   << ";" << rhs.y         << ";" << rhs.z      << ")" << std::endl;

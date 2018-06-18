@@ -483,7 +483,8 @@ class Canvas(R.TCanvas):
     # pos is a positional tuple in NDC
     # align is a string containing two characters, one each of 'bct' and 'lcr' controlling alignment
     # fontcode is a string containing a subset (including empty) of 'bi' controlling bold, italic
-    def drawText(self, text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1.):
+    # NDC is whether or not to use NDC
+    def drawText(self, text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True):
         latex = R.TLatex()
         AlignDict = {'l' : 1, 'c' : 2, 'r' : 3, 'b' : 1, 't' : 3}
         FontDict = {'' : 4, 'i' : 5, 'b' : 6, 'bi' : 7}
@@ -492,7 +493,10 @@ class Canvas(R.TCanvas):
         latex.SetTextAlign(RAlign)
         latex.SetTextFont(RFont)
         latex.SetTextSize(self.fontsize * fontscale)
-        latex.DrawLatexNDC(pos[0], pos[1], text)
+        if NDC:
+            latex.DrawLatexNDC(pos[0], pos[1], text)
+        else:
+            latex.DrawLatex(pos[0], pos[1], text)
     
     # draws the lumi text, 'CMS', extra text, and legend 
     def finishCanvas(self, mode='', extrascale=1., drawCMS=True):

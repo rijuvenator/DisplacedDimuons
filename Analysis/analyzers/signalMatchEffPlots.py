@@ -21,7 +21,7 @@ for VAL in VALUES:
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
         # one Eff, ChargeEff, and ChargeDen plot for each of DSA and RSA
         for MUON in ('DSA', 'RSA'):
@@ -36,7 +36,7 @@ def declareHistograms(self):
         self.HistInit(KEY+'Extra'      , '', *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:

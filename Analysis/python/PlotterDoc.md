@@ -1,4 +1,7 @@
 # Documentation for `Plotter.py`
+
+Last updated: **14 June 2018**
+
 Documention for my Plotter classes. Should be self-explanatory from the comments in the code for the most part, but this is a handy reference.
 
 The first method listed is always the constructor. Any arguments with an = are optional (defaults usually given); any without are mandatory.
@@ -7,7 +10,23 @@ The Plotter module contains the Plot, Legend, and Canvas classes.
 
 It is intended to be a general purpose plot and canvas handling module, incorporating a flexible TDRStyle, convenient wrappers and automation.
 
+  * [Plot](#plot)
+    * [Class Members](#plotmembers)
+    * [Class Methods](#plotmethods)
+  * [Legend](#legend)
+    * [Class Members](#legendmembers)
+    * [Class Methods](#legendmethods)
+  * [Canvas](#canvas)
+    * [Class Members](#canvasmembers)
+    * [Class Methods](#canvasmethods)
+  * [How to Use the _Plotter_ Module](#howto)
+  * [Module Functions](#modulefunctions)
+    * [setStyle](#setstyle)
+    * [Object SHIFT, SCALE, and MOVE](#shiftmove)
+
+<a name="plot"></a>
 ## Plot
+<a name="plotmembers"></a>
 ### Class Members
 
 **plot** is the ROOT plot object to be drawn.  
@@ -20,6 +39,7 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 * _string_  **legType**
 * _string_  **option**
 
+<a name="plotmethods"></a>
 ### Class Methods
 **factor** is a multiplicative scale factor.  
 **axes** is a string containing a possibly empty subset of `XYZ`. All axes must exist.
@@ -37,7 +57,9 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 ```
 
 
+<a name="legend"></a>
 ## Legend(TLegend)
+<a name="legendmembers"></a>
 ### Class Members
 
 Inherits from **TLegend**.  
@@ -48,6 +70,7 @@ Inherits from **TLegend**.
 * _int_     **lines**
 * _string_  **corner**
 
+<a name="legendmethods"></a>
 ### Class Methods
 
 All units are in "user coordinates", i.e. fractions of the plot height and width.  
@@ -70,7 +93,9 @@ All units are in "user coordinates", i.e. fractions of the plot height and width
 * Legend.resizeHeight   (scale=1.)
 ```
 
+<a name="canvas"></a>
 ## Canvas(TCanvas)
+<a name="canvasmembers"></a>
 ### Class Members
 
 Inherits from **TCanvas**.  
@@ -99,6 +124,7 @@ Inherits from **TCanvas**.
 - _TGraph_  **gr**
 - _dict_    **margins**
 
+<a name="canvasmethods"></a>
 ### Class Methods
 I've omitted some uninteresting defaults from the constructor doc.
 
@@ -119,13 +145,14 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas.moveExponent    ()
   * Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=) [returns axis]
   * Canvas.scaleMargins    (factor, edges='')
-  * Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1.)
+  * Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True)
   * Canvas.finishCanvas    ()
   * Canvas.save            (name, extList='')
   * Canvas.deleteCanvas    ()
   * Canvas.cleanup         (filename)
 ```
 
+<a name="howto"></a>
 ## HOW TO USE THE PLOTTER MODULE
 
 ### 1. Make Plots  
@@ -192,10 +219,19 @@ Plotter.Canvas.save        (name, extList='')
 Plotter.Canvas.deleteCanvas()
 ```
 
+or
+
+```python
+Plotter.Canvas.cleanup(filename)
+```
+
+<a name="modulefunctions"></a>
 ## Module Functions
+<a name="setstyle"></a>
 ### `setStyle`
 The `setStyle` functions are based on TDRStyle and are fully compliant with it. The global version is run once, on module import. The not-global version takes some arguments that are specific to the canvas being drawn, and adjusts things like margins based on the canvas size.
 
+<a name="shiftmove"></a>
 ### Object `SHIFT`, `SCALE`, and `MOVE`
 I often find myself writing many lines of the form
 

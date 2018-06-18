@@ -87,6 +87,7 @@ class SimpleNTupler : public edm::EDAnalyzer
     edm::EDGetTokenT<pat::PackedTriggerPrescales> prescalesToken;
     edm::EDGetTokenT<edm::TriggerResults        > triggerToken;
     edm::EDGetTokenT<pat::METCollection         > patMetToken;
+    edm::EDGetTokenT<edm::TriggerResults        > filtersToken;
     edm::EDGetTokenT<reco::BeamSpot             > beamspotToken;
     edm::EDGetTokenT<reco::VertexCollection     > vertexToken;
     edm::EDGetTokenT<reco::GenParticleCollection> genToken;
@@ -122,6 +123,7 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   prescalesToken   (consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales"     ))),
   triggerToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
   patMetToken      (consumes<pat::METCollection         >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
+  filtersToken     (consumes<edm::TriggerResults        >(iConfig.getParameter<edm::InputTag>("filters"       ))),
   beamspotToken    (consumes<reco::BeamSpot             >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
   vertexToken      (consumes<reco::VertexCollection     >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
   genToken         (consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("gens"          ))),
@@ -191,7 +193,14 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   {
     edm::Handle<pat::METCollection> met;
     iEvent.getByToken(patMetToken, met);
-    metData.Fill(met);
+
+    edm::Handle<edm::TriggerResults> filterResults;
+    iEvent.getByToken(filtersToken, filterResults);
+    if (!FailedToGet(filterResults, "edm::TriggerResults collection"))
+      {
+	const edm::TriggerNames& filterNames = iEvent.triggerNames(*filterResults);
+	metData.Fill(met, *filterResults, filterNames);
+      }
   }
 
 

@@ -16,19 +16,20 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
   const reco::VertexCollection &vertices = *verticesHandle;
   reco::Vertex pv = vertices.front();
 
-  cand.px     = track.px    ();
-  cand.py     = track.py    ();
-  cand.pz     = track.pz    ();
-  cand.eta    = track.eta   ();
-  cand.phi    = track.phi   ();
-  cand.charge = track.charge();
-  cand.chi2   = track.chi2  ();
-  cand.ndof   = track.ndof  ();
+  cand.px     = track.px     ();
+  cand.py     = track.py     ();
+  cand.pz     = track.pz     ();
+  cand.ptError= track.ptError();
+  cand.eta    = track.eta    ();
+  cand.phi    = track.phi    ();
+  cand.charge = track.charge ();
+  cand.chi2   = track.chi2   ();
+  cand.ndof   = track.ndof   ();
 
   // Position of the reference point.
-  cand.x      = track.vx    ();
-  cand.y      = track.vy    ();
-  cand.z      = track.vz    ();
+  cand.x      = track.vx     ();
+  cand.y      = track.vy     ();
+  cand.z      = track.vz     ();
 
   // Position of the innermost hit.  As it is stored in TrackExtra, we
   // need to make sure that TrackExtra exists.

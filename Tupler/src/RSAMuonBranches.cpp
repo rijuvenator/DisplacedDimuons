@@ -28,22 +28,23 @@ void RSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	    if (debug)
 	      std::cout << "RSA muon info:" << muon_cand;
 
-	    rsamu_idx   .push_back(muon_cand.idx    );
-	    rsamu_px    .push_back(muon_cand.px     );
-	    rsamu_py    .push_back(muon_cand.py     );
-	    rsamu_pz    .push_back(muon_cand.pz     );
-	    rsamu_eta   .push_back(muon_cand.eta    );
-	    rsamu_phi   .push_back(muon_cand.phi    );
-	    rsamu_charge.push_back(muon_cand.charge );
-	    rsamu_chi2  .push_back(muon_cand.chi2   );
-	    rsamu_ndof  .push_back(muon_cand.ndof   );
+	    rsamu_idx    .push_back(muon_cand.idx    );
+	    rsamu_px     .push_back(muon_cand.px     );
+	    rsamu_py     .push_back(muon_cand.py     );
+	    rsamu_pz     .push_back(muon_cand.pz     );
+	    rsamu_ptError.push_back(muon_cand.ptError);
+	    rsamu_eta    .push_back(muon_cand.eta    );
+	    rsamu_phi    .push_back(muon_cand.phi    );
+	    rsamu_charge .push_back(muon_cand.charge );
+	    rsamu_chi2   .push_back(muon_cand.chi2   );
+	    rsamu_ndof   .push_back(muon_cand.ndof   );
 
-	    rsamu_x     .push_back(muon_cand.x      );
-	    rsamu_y     .push_back(muon_cand.y      );
-	    rsamu_z     .push_back(muon_cand.z      );
-	    rsamu_x_fhit.push_back(muon_cand.x_fhit );
-	    rsamu_y_fhit.push_back(muon_cand.y_fhit );
-	    rsamu_z_fhit.push_back(muon_cand.z_fhit );
+	    rsamu_x      .push_back(muon_cand.x      );
+	    rsamu_y      .push_back(muon_cand.y      );
+	    rsamu_z      .push_back(muon_cand.z      );
+	    rsamu_x_fhit .push_back(muon_cand.x_fhit );
+	    rsamu_y_fhit .push_back(muon_cand.y_fhit );
+	    rsamu_z_fhit .push_back(muon_cand.z_fhit );
 
 	    rsamu_nMuonHits   .push_back(muon_cand.n_MuonHits);
 	    rsamu_nDTHits     .push_back(muon_cand.n_DTHits);
