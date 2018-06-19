@@ -7,7 +7,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 # set up a configuration dictionary with the same cut keys as in Selections
 CUTKEYS = {
     'pT'       : {'AXES':(100,  0.,500.)},
-    'eta'      : {'AXES':(100, -4.,  4.)},
+    'eta'      : {'AXES':(100, -3.,  3.)},
     'normChi2' : {'AXES':(100,  0.,  5.)},
     'nMuonHits': {'AXES':(50 ,  0., 50.)},
     'nStations': {'AXES':(10 ,  0., 10.)},

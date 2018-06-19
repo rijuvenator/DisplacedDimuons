@@ -7,7 +7,7 @@ CONFIG = {
         'pT' : {'AXES':(20,  0., 500.), 'PRETTY':'p_{T} [GeV]', 'LAMBDA': lambda mu : mu.pt    },
         'eta': {'AXES':(20, -3.,   3.), 'PRETTY':'#eta'       , 'LAMBDA': lambda mu : mu.eta   },
         'd0' : {'AXES':(20,  0., 200.), 'PRETTY':'d_{0} [cm]' , 'LAMBDA': lambda mu : mu.d0()  },
-        'Lxy': {'AXES':(20,  0., 500.), 'PRETTY':'L_{xy} [cm]', 'LAMBDA': lambda dim: dim.Lxy()},
+        'Lxy': {'AXES':(20,  0., 800.), 'PRETTY':'L_{xy} [cm]', 'LAMBDA': lambda dim: dim.Lxy()},
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####

@@ -120,31 +120,40 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     fname = 'pdfs/SMR_{}_{}_{}-Binned_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, fs, SPStr(sp))
 
-    # there are always 1000 bins
-    binranges = ((0,199), (200,599), (600,1000))
-
-    # figure out the edges
-    values = {}
-    for key in binranges:
-        if q2 == 'pT' or q2 == 'Lxy':
-            binwidth = 500./1000.
-        elif q2 == 'd0':
-            binwidth = 100./1000.
-        values[key] = (key[0]*binwidth, (key[1]+1)*binwidth)
-
-    colors = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-    colors2 = dict(zip(binranges, (2, 4, 3)))
+    if q2 == 'pT':
+        binranges = ((0,199), (200,599), (600,1000))
+        binwidth  = 500./1000.
+        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
+        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
+        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        legName   = '{V1} #leq {Q2} #leq {V2}'
+    elif q2 == 'Lxy':
+        binranges = ((0,199), (200,599), (600,1000))
+        binwidth  = 800./1000.
+        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
+        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
+        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        legName   = '{V1} #leq {Q2} #leq {V2}'
+    elif q2 == 'd0':
+        binranges = ((0,199), (200,599), (600,1000))
+        binwidth  = 200./1000.
+        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
+        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
+        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        legName   = '{V1} #leq {Q2} #leq {V2}'
+    elif q2 == 'qm':
+        binranges = ((1, 1), (2, 2))
+        values    = {(1, 1):(False, False),(2, 2):(True, True)}
+        colors    = dict(zip(binranges), (R.kRed, R.kBlue))
+        colors2   = dict(zip(binranges), (2     , 4      ))
+        legName   = 'charge matched : {V1}'
 
     projections = {key:h.ProjectionY('_'+str(i), key[0], key[1]) for i,key in enumerate(binranges)}
-    plots       = {key:Plotter.Plot(projections[key], '{} in ({}, {})'.format(PRETTY[q2], values[key][0], values[key][1]), 'l', 'hist') for key in binranges}
+    plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=PRETTY[q2], V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
 
     canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
     for key in binranges:
         canvas.addMainPlot(plots[key])
-
-    if quantity in ('d0', 'Lxy'):
-        for key in binranges:
-            plots[key].GetXaxis().SetRangeUser(-.2, .2)
 
     canvas.makeLegend(lWidth=.25, pos='tr')
     canvas.legend.moveLegend(X=-.08)
@@ -192,7 +201,7 @@ for fs in (FS,):
             #makeColorPlot(MUON, quantity, fs)
 
             # 2D resolution vs. gen quantity plots
-            for q2 in ('pT', 'Lxy', 'd0'):
+            for q2 in ('pT', 'Lxy', 'd0', 'qm'):
                 #makeColorPlot(MUON, quantity, fs, q2)
 
             # 1D resolution binned by gen quantity

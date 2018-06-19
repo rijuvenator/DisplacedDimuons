@@ -5,7 +5,7 @@ def matchedMuons(genMuon, recoMuons):
 	for i,muon in enumerate(recoMuons):
 		deltaR = muon.p4.DeltaR(genMuon.p4)
 		#if deltaR < min(0.3,genMuon.deltaR) and Selections.CUTS['pT'].apply(muon) and muon.charge == genMuon.charge:
-		if deltaR < min(0.3,genMuon.deltaR):
+		if deltaR < 0.3:
 			matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt})
 	return sorted(matches, key=lambda dic:dic['deltaR'])
 

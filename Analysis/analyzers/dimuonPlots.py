@@ -6,9 +6,9 @@ import DisplacedDimuons.Common.Utilities as Utilities
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'      : {'AXES':( 0., 100.   ), 'LAMBDA': lambda dimuon: dimuon.pt      },
-    'eta'     : {'AXES':(-5., 5.     ), 'LAMBDA': lambda dimuon: dimuon.eta     },
-    'Lxy'     : {'AXES':( 0., 600.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   },
+    'pT'      : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      },
+    'eta'     : {'AXES':(-3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     },
+    'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   },
     'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig()},
     'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2},
     'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  },

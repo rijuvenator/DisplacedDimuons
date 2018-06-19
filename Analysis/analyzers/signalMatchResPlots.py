@@ -6,11 +6,12 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
-HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
+HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt   , 'p_{T}'  ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda obj : obj.Lxy() , 'L_{xy}' ),
-    ('d0' , 'd_{0} [cm]' , (1000,       0.,    100.), lambda muon: muon.d0() , 'd_{0}'  ),
+    ('pT' , 'p_{T} [GeV]' , (1000, 0., 500.), (1000, -1. , 3. ), lambda muon: muon.pt              , 'p_{T}' , lambda rq, gq: (rq-gq)/gq, False),
+    ('Lxy', 'L_{xy} [cm]' , (1000, 0., 800.), (1000, -50., 50.), lambda dim : dim.Lxy()            , 'L_{xy}', lambda rq, gq: (rq-gq)   , True ),
+    ('d0' , 'd_{0} [cm]'  , (1000, 0., 200.), (1000, -50., 50.), lambda muon: muon.d0()            , 'd_{0}' , lambda rq, gq: (rq-gq)   , True ),
+    ('qm' , 'charge match', (2   , 0.,   2.), None             , lambda r, g: r.charge == g.charge , None    , None                     , None ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -21,15 +22,16 @@ for VAL in VALUES:
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
+        DenString = '' if CONFIG[KEY]['DIF'] else ' / gen {P}'
         if MODE == 'Res':
-            # X = <q> Resolution
-            fstring = ';{M} {P} #minus gen {P} / gen {P};Counts'
+            # X = <q> Resolution/Dif
+            fstring = ';{M} {P} #minus gen {P}'+DenString+';Counts'
         elif MODE == 'VS':
             # X = gen <q> ; Y = reco <q>
             fstring = ';gen {X};{M} {X};Counts'
         elif MODE== 'VSRes':
-            # X = gen <q2> ; Y = <q> Resolution
-            fstring = ';gen {X2};{M} {P} #minus gen {P} / gen {P};Counts'
+            # X = gen <q2> ; Y = <q> Resolution/Dif
+            fstring = ';gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
         return fstring.format(
             X =CONFIG[KEY]['XTITLE'],
             M =MUON,
@@ -37,13 +39,15 @@ def declareHistograms(self, PARAMS=None):
             X2=None if KEY2 is None else CONFIG[KEY2]['XTITLE']
         )
     for KEY in CONFIG:
+        if KEY == 'qm': continue
         for MUON in ('DSA', 'RSA'):
             if KEY == 'Lxy' and MUON == 'RSA': continue # can't compute Lxy for RSA muons
             for x in (0,):
-                self.HistInit(MUON+'_'+KEY+'Res'          , HTitle(KEY, MUON, 'Res'        ), *(1000, -1., 3.)                          )
-                self.HistInit(MUON+'_'+KEY+'VS'+KEY       , HTitle(KEY, MUON, 'VS'         ), *(CONFIG[KEY]['AXES']+CONFIG[KEY]['AXES']))
+                self.HistInit(MUON+'_'+KEY+'Res'          , HTitle(KEY, MUON, 'Res'        ), *CONFIG[KEY]['RESAXES']                       )
+                self.HistInit(MUON+'_'+KEY+'VS'+KEY       , HTitle(KEY, MUON, 'VS'         ), *(CONFIG[KEY]['AXES']+CONFIG[KEY]['AXES']    ))
             for KEY2 in CONFIG:
-                self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+(1000, -1., 3.)   ))
+                if KEY == 'Lxy' and KEY2 == 'qm': continue
+                self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+CONFIG[KEY]['RESAXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -95,12 +99,16 @@ def analyze(self, E, PARAMS=None):
                 closestRecoMuon = recoMuons[matches[0]['idx']]
                 for KEY in ('pT', 'd0'):
                     F = CONFIG[KEY]['LAMBDA']
+                    RF = CONFIG[KEY]['RESFUNC']
                     for x in (0,):
-                        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill((F(closestRecoMuon)-F(genMuon))/F(genMuon))
+                        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill(RF(F(closestRecoMuon), F(genMuon)))
                         self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(F(genMuon), F(closestRecoMuon))
                     for KEY2 in CONFIG:
                         F2 = CONFIG[KEY2]['LAMBDA']
-                        self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), (F(closestRecoMuon)-F(genMuon))/F(genMuon))
+                        if KEY2 != 'qm':
+                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), RF(F(closestRecoMuon), F(genMuon)))
+                        else:
+                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(closestRecoMuon, genMuon), RF(F(closestRecoMuon), F(genMuon)))
 
     # loop over genMuonPairs and fill histograms based on matches
     for genMuonPair in genMuonPairs:
@@ -115,13 +123,15 @@ def analyze(self, E, PARAMS=None):
             closestDimuon = selectedDimuons[matches[0]['idx']]
             for KEY in ('Lxy',):
                 F = CONFIG[KEY]['LAMBDA']
+                RF = CONFIG[KEY]['RESFUNC']
                 if KEY in ('Lxy',):
                     for x in (0,):
-                        self.HISTS['DSA_'+KEY+'Res'          ].Fill((F(closestDimuon)-F(genMuonPair[0]))/F(genMuonPair[0]))
+                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RF(F(closestDimuon),F(genMuonPair[0])))
                         self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(F(genMuonPair[0]), F(closestDimuon))
                     for KEY2 in CONFIG:
+                        if KEY2 == 'qm': continue
                         F2 = CONFIG[KEY2]['LAMBDA']
-                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), (F(closestDimuon)-F(genMuonPair[0]))/F(genMuonPair[0]))
+                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

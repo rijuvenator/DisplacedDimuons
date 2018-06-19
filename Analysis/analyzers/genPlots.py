@@ -21,7 +21,7 @@ class HistogramConfigurations(object):
         XErr = 0.005
 
         # the Lxy upper is best set by whether it's the min, mid, or max cTau
-        LxyUppers = [150., 1500., 15000.]
+        LxyUppers = [15., 150., 1500.]
         LxyUpper = LxyUppers[SIGNALS[mH][mX].index(cTau)]
 
         # all the H PT seem to fit in 0-250
@@ -42,18 +42,18 @@ class HistogramConfigurations(object):
         attributes = {
             'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
             'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
+            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*6.    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
-            'Lxy'        : [['L_{xy} [mm]'      , 100, 0.         , LxyUpper   ]                                  ],
+            'Lxy'        : [['L_{xy} [cm]'      , 100, 0.         , LxyUpper   ]                                  ],
             'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
             'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
             'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [mm]'       , 100, 0.         , cTau*2.    ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 100, 0.         , cTau*2.    ]                                  ],
             'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
             'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
-            'LxyVSLz'    : [['L_{z} [mm]'       , 350, 0.         , 1000.      ], ['L_{xy} [mm]'   , 200, 0., 50.]],
+            'LxyVSLz'    : [['L_{z} [cm]'       , 350, 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
         }
 
         self.data = {}
@@ -133,9 +133,9 @@ def makeAliasesAndExpressions(fs):
     # used to build TTree aliases below
     tformulae = {
         # one per X, uses mu1 info only
-        'cTau' : '10.*{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
+        'cTau' : '{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
         'beta' : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
-        'Lxy'  : '10.*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
+        'Lxy'  : 'sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
         'Lz'   : 'abs({MU1}.z-{X}.z)',
         'dR'   : '{MU1}.deltaR',
 
