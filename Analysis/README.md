@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **14 June 2018**
+Last updated: **20 June 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -88,7 +88,10 @@ Dimuons                              = E.getPrimitives('MUON')
 
 The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`, which here is symbolically linked to the file in `../analyzers/`.
 
-  * **cutEfficiencies.py** produces lines of cut efficiencies for muon and dimuon cuts, both individually and sequentially.
+  * **cutEfficiencies.py** produces text output lines of _integrated_ selection efficiencies for muons and dimuons, in three "modes":
+    * _Individual_ applies each cut individually, with no other selections
+    * _Sequential_ applies each cut sequentially, in order (i.e. N&minus;1, N&minus;2, etc.)
+    * _N&minus;1_ applies all cuts except for a given cut
 
 <a name="analyzers"></a>
 ## Analyzers
@@ -104,10 +107,10 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
   * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
+  * **nMinusOneEffPlots.py** produces N-1 efficiency plots as a function of various variables.
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
-  * **signalMiscPlots.py** produces a few other signal reco level plots that have not been moved into more dedicated analyzers.
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
 <a name="runall"></a>
@@ -123,7 +126,7 @@ The `--samples` parameter is a string subset of `S2BD`, controlling whether this
 For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
-python runAll.py signalResEffPlots.py --samples S
+python runAll.py signalResEffPlots.py --samples S2
 ```
 
 while `nMinusOnePlots.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
@@ -143,10 +146,10 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeRecoMuonPlots.py** makes plots from ROOT files produced by **recoMuonPlots.py**
   * **makeDimuonPlots.py** makes plots from ROOT files produced by **dimuonPlots.py**
   * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOnePlots.py**
+  * **makeNMinusOneEffPlots.py** makes plots from ROOT files produced by **nMinusOneEffPlots.py**
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
-  * **makeSignalMiscPlots.py** makes plots from ROOT files produced by **signalMiscPlots.py**
   * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 
 The following plotters open a text file produced by a dumper and produce actual styled `.pdf` plot files, using the _Plotter_ library.
