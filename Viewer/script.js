@@ -465,11 +465,11 @@ var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          , 'DY100to20
 var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j', 'Drell-Yan M(100,200)', 'DoubleMuon2016D'           ];
 
 // plot category names and labels
-var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SMP'];
+var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR'];
 var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 
-var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. misc.'];
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.'];
 var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 
@@ -480,21 +480,20 @@ var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
 // plottype names and labels
 var PLOTTYPEVALS = {
     Dim      : ['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig'],
-    DSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
-    RSA      : ['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations'],
+    DSA      : [['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon'], ['', '_Matched']],
+    RSA      : [['pT', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon'], ['', '_Matched']],
     NM1      : ['pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhi', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0'], ['Eff', 'ChargeEff']],
-    SMR      : [['', 'DSA_', 'RSA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned']]],
-    SMP      : ['d0Dif', 'nMuon'],
+    SMR      : [['', 'DSA_', 'RSA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned']]],
 }
 var PLOTTYPELABELS = {
     Dim      : ['p<sub>T</sub>', '&eta;', 'mass', '&Delta;R', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex &chi;<sup>2</sup>/dof', 'L<sub>xy</sub>', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>'],
-    DSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
-    RSA      : ['p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations'],
+    DSA      : [['p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
+    RSA      : [['p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
     NM1      : ['p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
     NM1E     : [['L<sub>xy</sub> sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. &chi;<sup>2</sup>/dof', 'p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', 'track &chi;<sup>2</sup>/dof', 'd<sub>0</sub> sig.'], ['vs. p<sub>T</sub>', 'vs. &eta;', 'vs. d<sub>0</sub>', 'vs. L<sub>xy</sub>']],
     TCUM     : ['L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>'],
@@ -502,8 +501,7 @@ var PLOTTYPELABELS = {
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
     SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SMR      : [['Both', 'DSA', 'RSA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Res.', 'L<sub>xy</sub> Res.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned']]],
-    SMP      : ['d0Dif', 'nMuon'],
+    SMR      : [['Both', 'DSA', 'RSA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
 }
 
 var NCOLS = 8;

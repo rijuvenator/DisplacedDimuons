@@ -1,7 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
-from DisplacedDimuons.Common.Constants import SIGNALPOINTS, SIGNALS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 import sys
@@ -116,7 +116,7 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
 def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     h = HISTS[(fs, sp)]['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=quantity, Q2=q2)].Clone()
 
-    PRETTY = {'pT' : 'p_{T}', 'Lxy': 'L_{xy}', 'd0' : 'd_{0}'}
+    PRETTY = {'pT' : 'p_{T}', 'Lxy': 'L_{xy}', 'd0' : 'd_{0}', 'qm' : 'charge matched'}
 
     fname = 'pdfs/SMR_{}_{}_{}-Binned_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, fs, SPStr(sp))
 
@@ -124,29 +124,29 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
         binranges = ((0,199), (200,599), (600,1000))
         binwidth  = 500./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
-        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'Lxy':
         binranges = ((0,199), (200,599), (600,1000))
         binwidth  = 800./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
-        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'd0':
         binranges = ((0,199), (200,599), (600,1000))
         binwidth  = 200./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges), (R.kRed, R.kBlue, R.kGreen))
-        colors2   = dict(zip(binranges), (2     , 4      , 3       ))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'qm':
         binranges = ((1, 1), (2, 2))
         values    = {(1, 1):(False, False),(2, 2):(True, True)}
-        colors    = dict(zip(binranges), (R.kRed, R.kBlue))
-        colors2   = dict(zip(binranges), (2     , 4      ))
-        legName   = 'charge matched : {V1}'
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue)))
+        colors2   = dict(zip(binranges, (2     , 4      )))
+        legName   = '{Q2} : {V1}'
 
     projections = {key:h.ProjectionY('_'+str(i), key[0], key[1]) for i,key in enumerate(binranges)}
     plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=PRETTY[q2], V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
@@ -162,7 +162,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     realMax = 0.
     for key in plots:
         p = plots[key]
-        for ibin in xrange(p.GetNbinsX()):
+        for ibin in xrange(1, p.GetNbinsX()+1):
             if p.GetBinContent(ibin) > realMax:
                 realMax = p.GetBinContent(ibin)
     canvas.firstPlot.SetMaximum(realMax * 1.05)
@@ -175,13 +175,6 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
         )
 
     canvas.cleanup(fname)
-
-# get signal points for binned quantities
-BinnedSP = []
-for mH in SIGNALS:
-    mX = max(SIGNALS[mH])
-    for cTau in SIGNALS[mH][mX]:
-        BinnedSP.append((mH, mX, cTau))
 
 # make plots
 if len(sys.argv) == 1: FS = '4Mu'
@@ -202,8 +195,9 @@ for fs in (FS,):
 
             # 2D resolution vs. gen quantity plots
             for q2 in ('pT', 'Lxy', 'd0', 'qm'):
+                if quantity == 'Lxy' and q2 == 'qm': continue
                 #makeColorPlot(MUON, quantity, fs, q2)
 
             # 1D resolution binned by gen quantity
-                for sp in BinnedSP:
+                for sp in SIGNALPOINTS:
                     makeBinnedResPlot(MUON, quantity, q2, fs, sp)

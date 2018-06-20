@@ -31,9 +31,6 @@ def analyze(self, E, PARAMS=None):
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        # fill the denominator histogram
-        self.HISTS['LxyDen'+PARAMS].Fill(genMuonPair[0].Lxy())
-
         # check if any DSA muons match a genMuon
         muonMatches = [None, None]
         for i, genMuon in enumerate(genMuonPair):
@@ -43,6 +40,9 @@ def analyze(self, E, PARAMS=None):
 
         # if both genMuons matched, check if there is a dimuon with exactly those recoMuons
         if muonMatches[0] is not None and muonMatches[1] is not None:
+            # fill the denominator histogram
+            self.HISTS['LxyDen'+PARAMS].Fill(genMuonPair[0].Lxy())
+
             for dimuon in Dimuons:
                 if dimuon.idx1 in muonMatches and dimuon.idx2 in muonMatches:
                     self.HISTS['LxyEff'+PARAMS].Fill(genMuonPair[0].Lxy())
