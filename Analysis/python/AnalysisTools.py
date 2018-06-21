@@ -16,12 +16,6 @@ def matchedDimuons(genMuonPair, dimuons):
     genP4 = genMuonPair[0].p4 + genMuonPair[1].p4
     for i,dimuon in enumerate(dimuons):
         deltaR = dimuon.p4.DeltaR(genP4)
-        if deltaR < min(0.3, genMuonPair[0].deltaR):
+        if deltaR < 0.3:
             matches.append({'idx':i, 'deltaR':deltaR, 'pt':dimuon.pt})
     return sorted(matches, key=lambda dic:dic['deltaR'])
-
-# calculates pT resolution
-def pTRes(recoMuon, genMuon):
-	return (recoMuon.pt - genMuon.pt)/genMuon.pt
-
-

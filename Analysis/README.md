@@ -135,6 +135,12 @@ while `nMinusOnePlots.py` runs on all types of samples, so one would accept the 
 python runAll.py nMinusOnePlots.py --samples S2BD
 ```
 
+The `--folder` parameter defaults to `analyzers`, the folder where most of the analyzers are stored. If the analyzer is stored somewhere else (e.g. `dumpers`), pass the folder name:
+
+```python
+python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
+```
+
 <a name="plotters"></a>
 ## Plotters
 
