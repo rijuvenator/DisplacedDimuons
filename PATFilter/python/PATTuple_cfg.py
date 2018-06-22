@@ -22,8 +22,8 @@ process.GlobalTag.globaltag = cms.string('auto:run2_mc')
 process.load('FWCore.MessageLogger.MessageLogger_cfi')
 # Make MessageLogger print a message every Nth event with (run, lumi,
 # event) numbers.
-#process.MessageLogger.cerr.FwkReport.reportEvery = 5000
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 5000
+#process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.MessageLogger.cerr.threshold = 'INFO'
 process.MessageLogger.categories.append('PATSummaryTables')
 process.MessageLogger.cerr.PATSummaryTables = cms.untracked.PSet(limit = cms.untracked.int32(-1))
@@ -50,6 +50,14 @@ process.out = cms.OutputModule(
         'keep *_displacedTracks_*_*',
         'keep *_refittedStandAloneMuons_*_*',
         'drop *_refittedStandAloneMuons_UpdatedAtVtx_*',
+#- needed for PV refit
+#        'keep recoTracks_generalTracks*_*_*',
+#- if decide to drop TrackExtras and TrackingRecHits collections
+#        'keep recoTracks_displacedStandAloneMuons_*_*',
+#        'keep recoTracks_displacedGlobalMuons_*_*',
+#        'keep recoTracks_displacedTracks_*_*',
+#        'keep recoTracks_refittedStandAloneMuons_*_*',
+#        'drop recoTracks_refittedStandAloneMuons_UpdatedAtVtx_*',
         'keep patMuons_cleanPatMuons__*',
         'keep patMETs_patMETs__PAT',
 #        'keep recoGenParticles_*_*_SIM',               # full genParticles collection

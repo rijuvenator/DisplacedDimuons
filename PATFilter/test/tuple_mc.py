@@ -30,6 +30,14 @@ pruneGenPartsAndRedefineMCMatching(process)
 # To switch off parts using RECO tier; not needed at the moment
 #AODOnly(process)
 
+# Count events with positive and negative weights and store the
+# result in a histogram
+process.TFileService = cms.Service('TFileService',
+                                   fileName = cms.string('mcweights.root')
+                                   )
+process.load("DisplacedDimuons.PATFilter.EventCounter_cfi")
+process.p += process.EventCounter
+
 # Filter on HLT paths
 process.hltFilter = cms.EDFilter("HLTHighLevel",
                                  TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
@@ -72,12 +80,13 @@ config.General.workArea = 'crab'
 #config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'crab/psets/tuple_mc_crab_%(name)s.py'
-config.Data.inputDataset =  '%(dataset)s'
-config.Data.inputDBS = 'global'                       
-#config.Data.publication = True
-config.Data.publication = False
+config.Data.inputDataset = '%(dataset)s'
+config.Data.inputDBS = 'global'
+#config.Data.inputDBS = 'phys03' # for private (signal) samples
+config.Data.publication = True
 config.Data.outputDatasetTag = 'MC2016_%(name)s'
-config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
+config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB() + '/DisplacedDimuons/PATFilter'
+#config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
 #config.Data.ignoreLocality = True
 config.Data.splitting = 'EventAwareLumiBased'
 config.Data.totalUnits = -1
@@ -92,7 +101,8 @@ config.Site.storageSite = 'T2_CH_CERN'
     from DisplacedDimuons.PATFilter.MCSamples import samples
     for sample in samples:
        
-        if 'Hto2Xto2mu2j_1000_150_1000' in sample.name:
+#        if 'Hto2Xto2mu2j_125_20_130' in sample.name:
+        if sample.name == 'Hto2Xto2mu2j_125_20_130':
             print sample.name
             print sample.dataset
             #print sample.__dict__
@@ -116,4 +126,4 @@ config.Site.storageSite = 'T2_CH_CERN'
                     os.system('crab submit -c ' + sample.job)
                 else:
                     os.system('crab submit -c crabConfig.py')
-                    os.system('rm crabConfig.py')
+                    os.system('rm crabConfig.py crabConfig.pyc')
