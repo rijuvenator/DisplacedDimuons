@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, pTRes
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class

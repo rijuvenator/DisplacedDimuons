@@ -9,9 +9,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                            )
 parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                                         )
 parser.add_argument('--samples', dest='SAMPLES', default='S2BD'     , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--folder' , dest='FOLDER' , default='analyzers', help='which folder the script is located in'                          )
 args = parser.parse_args()
 
 SCRIPT = args.SCRIPT
+FOLDER = args.FOLDER
 
 # to be handled more generally later
 BGSampleList   = ('DY100to200',)
@@ -33,7 +35,7 @@ submitScript = '''
 #export X509_USER_PROXY=/afs/cern.ch/user/a/adasgupt/x509up_u79337
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
-cd DisplacedDimuons/Analysis/analyzers
+cd DisplacedDimuons/Analysis/{FOLDER}
 python {SCRIPT} {ARGS}
 rm -f core.*
 '''
