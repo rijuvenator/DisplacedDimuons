@@ -30,6 +30,14 @@ pruneGenPartsAndRedefineMCMatching(process)
 # To switch off parts using RECO tier; not needed at the moment
 #AODOnly(process)
 
+# Count events with positive and negative weights and store the
+# result in a histogram
+process.TFileService = cms.Service('TFileService',
+                                   fileName = cms.string('mcweights.root')
+                                   )
+process.load("DisplacedDimuons.PATFilter.EventCounter_cfi")
+process.p += process.EventCounter
+
 # Filter on HLT paths
 process.hltFilter = cms.EDFilter("HLTHighLevel",
                                  TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
@@ -172,3 +180,4 @@ config.Site.storageSite = storageSite
             else:
                 os.system('crab submit -c crabConfig.py')
                 os.system('rm crabConfig.py')
+

@@ -137,7 +137,7 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas                 (lumi=, extra=, logy=False, ratioFactor=0, cWidth=800, cHeight=600, fontcode=, fontscale=)
   * Canvas.addMainPlot     (Plot, addToPlotList=True, addS=False)
   * Canvas.makeLegend      (lWidth=0.125, pos='tr', fontscale=1., autoOrder=True)
-  * Canvas.setMaximum      ()
+  * Canvas.setMaximum      (recompute=False)
   * Canvas.addLegendEntry  (Plot)
   * Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75)
   * Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='')
@@ -146,6 +146,7 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=) [returns axis]
   * Canvas.scaleMargins    (factor, edges='')
   * Canvas.drawText        (text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True)
+  * Canvas.makeStatsBox    (plot, color=1)
   * Canvas.finishCanvas    ()
   * Canvas.save            (name, extList='')
   * Canvas.deleteCanvas    ()

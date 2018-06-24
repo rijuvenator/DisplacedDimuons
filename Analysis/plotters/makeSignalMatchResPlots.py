@@ -158,14 +158,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     canvas.makeLegend(lWidth=.25, pos='tr')
     canvas.legend.moveLegend(X=-.08)
     canvas.legend.resizeHeight()
-
-    realMax = 0.
-    for key in plots:
-        p = plots[key]
-        for ibin in xrange(1, p.GetNbinsX()+1):
-            if p.GetBinContent(ibin) > realMax:
-                realMax = p.GetBinContent(ibin)
-    canvas.firstPlot.SetMaximum(realMax * 1.05)
+    canvas.setMaximum(recompute=True)
 
     for i, key in enumerate(binranges):
         plots[key].SetLineColor(colors[key])
