@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
-from DisplacedDimuons.Common.Constants import DIR_EOS_RIJU, SIGNALS, SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import DIR_EOS, SIGNALS, SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
