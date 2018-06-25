@@ -11,7 +11,7 @@ process.source.fileNames = [
 #- official Z+jets sample
 #    '/store/mc/RunIISummer16DR80Premix/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/AODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/110000/001AC973-60E2-E611-B768-001E67586A2F.root'
 #- 2mu2jets signal
-    'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123637/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
+    # 'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123637/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
 #- 4mu signal
 #    'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123603/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
     ]
@@ -71,34 +71,51 @@ process.MessageLogger.categories.append("ParticleListDrawer")
 
 #print process.dumpPython()
 
-def optimize_units_per_job(nevents, min_nevents=50000000):
-    if not isinstance(nevents, int):
-        raise TypeError('Non-integer type of \'nevents\': {}'.format(
-            type(nevents)))
-
-    if nevents < min_nevents:
-        return int(6200)
-
+def optimize_units_per_job(sample):
     # empirical scale factor: 122.5M events with 15k units per job
     # result in about 8000 crab jobs
-    scale_factor = 375.0 / 3063676.0
+    # (we want this large dataset to have ~2000 jobs)
+    scale_factor_1kjobs = 8 * 15000.0 / 122547040.0
 
-    return int(round(scale_factor * nevents))
+    thresholds = {
+            100000000: 1.0, # aim: 1k jobs
+            50000000: 2.0,  # aim: 500 jobs
+            40000000: 2.5,  # aim: 400 jobs
+            30000000: 3.33, # aim: 300 jobs
+            10000000: 10.0, # aim: 100 jobs
+            1000000: 100.0, # aim: 10 jobs
+            100000: 1000.0, # aim: 1 job 
+            }
+
+    # initialize scale_factor (which is ultimately used to scale the number of
+    # events such that a given number of crab jobs is created)
+    scale_factor = None
+
+    for k in thresholds.keys():
+        if sample.nevents > k:
+            scale_factor = thresholds[k] * scale_factor_1kjobs
+            break
+
+    if scale_factor is None:
+        scale_factor = 1.0 # make one crab job with all events
+
+    return int(round(scale_factor * sample.nevents))
 
 
 if __name__ == '__main__' and 'submit' in sys.argv:
     crab_cfg = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
-config.General.requestName = 'MC2016_%(name)s_Jun2018-test-v3'
+custom_tag = '_Jun2018-v1'
+config.General.requestName = 'MC2016_%(name)s'+custom_tag
 config.General.workArea = 'crab'
 #config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'crab/psets/tuple_mc_crab_%(name)s.py'
 config.Data.inputDataset =  '%(dataset)s'
-# config.Data.publication = True
-config.Data.publication = False
-config.Data.outputDatasetTag = 'MC2016_%(name)s'
+config.Data.publication = True
+# config.Data.publication = False
+config.Data.outputDatasetTag = 'MC2016_%(name)s'+custom_tag
 config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
 # config.Data.splitting = 'Automatic'
 config.Data.splitting = 'EventAwareLumiBased'
@@ -128,10 +145,10 @@ config.Site.storageSite = storageSite
     from DisplacedDimuons.PATFilter.MCSamples import samples
     for sample in samples:
        
-        if not 'dy50ToInf' in sample.name and \
-                not 'tbarW' in sample.name and \
-                not 'ttbar' in sample.name:
-            continue
+        # if not 'dy50ToInf' in sample.name and \
+        #         not 'tbarW' in sample.name and \
+        #         not 'ttbar' in sample.name:
+        #     continue
 
         print sample.name
         print sample.dataset
@@ -166,7 +183,7 @@ config.Site.storageSite = storageSite
         with open('crabConfig.py', 'a') as f:
             cfg_key = 'config.Data.unitsPerJob' 
             if not user_unitsPerJob:
-                cfg_val = optimize_units_per_job(sample.nevents)
+                cfg_val = optimize_units_per_job(sample)
             else:
                 # define user-specific value here
                 cfg_val = 15000
