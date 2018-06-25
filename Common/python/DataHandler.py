@@ -29,8 +29,8 @@ def DASQueryList(query):
 
 # regex patterns, compiled for ... speed?
 PATTERNS = {
-    # matches Drell-Yan MC "name" with two groups: mLow (digits 2-4) and mHigh (digits 3-4 OR "Inf")
-    'DY_MBIN'    : re.compile(r'DY(\d{2,4})to(Inf|\d{3,4})'),
+    # matches Drell-Yan MC "name" with two groups: mLow (digits 2-4) and mHigh (digits 2-4 OR "Inf")
+    'DY_MBIN'    : re.compile(r'DY(\d{2,4})to(Inf|\d{2,4})'),
 }
 
 # class for storing information about data
@@ -79,6 +79,75 @@ class Dataset(object):
         else:
             return [prefix + fn for fn in self.files]
 
+    # set nTuple info
+    def setNTupleInfo(self, key):
+        try:
+            self.nTupleInfo = NTUPLEDICT[key]
+        except:
+            self.nTupleInfo = '_'
+            return
+
+        # validate nTupleInfo now
+        # see getNTuples for handling this info
+        NTUPLEERRORSTRING = '''[DATAHANDLER ERROR]: NTuples.dat must be a list of strings of one of the following formats:
+                     - <FILE>.root
+                     - <FILE1>.root <FILE2>.root ...
+                     - <FILE>.root NFILES
+                     - <FILE>.root N1 N2
+'''
+        if type(self.nTupleInfo) == str:
+            return
+        else:
+            if '.root' in self.nTupleInfo[1]:
+                return
+            elif len(self.nTupleInfo) == 2:
+                try:
+                    int(self.nTupleInfo[1])
+                except:
+                    raise Exception(NTUPLEERRORSTRING)
+                return
+            elif len(self.nTupleInfo) == 3:
+                try:
+                    int(self.nTupleInfo[1])
+                    int(self.nTupleInfo[2])
+                except:
+                    raise Exception(NTUPLEERRORSTRING)
+                return
+            raise Exception(NTUPLEERRORSTRING)
+
+
+    # get list of nTuple files
+    def getNTuples(self):
+        # if nTupleInfo (from NTuples.dat) is just a string,
+        # assume there is just 1 file and return the string
+        # add a root protocol if we are not on lxplus (TODO: generalize)
+        if type(self.nTupleInfo) == str:
+            if not 'lxplus' in os.environ['HOSTNAME']:
+                return Constants.PREFIX_CERN + self.nTupleInfo
+            else:
+                return self.nTupleInfo
+
+        # if nTupleInfo is a list, we have a few options
+        # - if it's a list of .root files, i.e. [1] is something.root,
+        #   return the entire list as a list of strings
+        # - if it's a string (file.root) and 1 integer N
+        #   assume you want a list [file_1.root, ... file_N.root]
+        # - if it's a string (file.root) and 2 integers N1 N2
+        #   assume you want a list [file_N1.root, ... file_N2.root]
+        # otherwise, raise an error
+        else:
+            if '.root' in self.nTupleInfo[1]:
+                return self.nTupleInfo
+            else if len(self.nTupleInfo) == 2:
+                template = self.nTupleInfo[0].replace('.root', '_{}.root')
+                N = int(self.nTupleInfo[1])
+                return [template.format(i) for i in xrange(1, N+1)]
+            else if len(self.nTupleInfo) == 3:
+                template = self.nTupleInfo[0].replace('.root', '_{}.root')
+                N1 = int(self.nTupleInfo[1])
+                N2 = int(self.nTupleInfo[2])
+                return [template.format(i) for i in xrange(N1, N2+1)]
+
 # derived class for any MC dataset
 class MCSample(Dataset):
     def __init__(self, name, EDMDataset, PATDataset):
@@ -90,12 +159,12 @@ class MCSample(Dataset):
 # in this implementation, takes its input from a data file
 # so all of the inputs are in that file, and the code for running over the file is below
 class BackgroundSample(MCSample):
-    def __init__(self, name, EDMDataset, PATDataset, nEvents, color, systFrac, crossSection, kFactor=1.):
+    def __init__(self, name, EDMDataset, PATDataset, nEvents, negFrac, systFrac, crossSection, kFactor=1.):
         MCSample.__init__(self, name, EDMDataset, PATDataset)
 
         self.isSignal     = False
         self.nEvents      = int(nEvents)
-        self.color        = int(color)
+        self.negFrac      = float(negFrac)
         self.systFrac     = float(systFrac)
         self.crossSection = float(crossSection)
         self.kFactor      = float(kFactor)
@@ -105,15 +174,19 @@ class BackgroundSample(MCSample):
             match = PATTERNS['DY_MBIN'].match(self.name)
             self.massRange = (int(match.group(1)), float('inf') if match.group(2) == 'Inf' else int(match.group(2)))
 
+        # set nTuple info
+        self.setNTupleInfo(self.name)
+
 # derived class for a signal sample
 # in this implementation, takes its input from a data file
 # so all of the inputs are in that file, and the code for running over the file is below
 class SignalSample(MCSample):
-    def __init__(self, name, SP, PATDataset, *PROC):
+    def __init__(self, name, SP, nEvents, PATDataset, *PROC):
         MCSample.__init__(self, name, '_', PATDataset)
 
         mH, mX, cTau = map(int, SP.split())
 
+        self.nEvents     = int(nEvents)
         self.isSignal    = True
         self.mH          = mH
         self.mX          = mX
@@ -136,6 +209,10 @@ class SignalSample(MCSample):
             self.instances[proc] = 'prod/phys03'
         assert len(PROC)+2 == len(self.datasets)
 
+        # set nTuple info
+        # note, at this point, self.name is HTo2XTo(FS)_(SP)
+        self.setNTupleInfo(self.name)
+
     def signalPoint(self):
         return (self.mH, self.mX, self.cTau)
 
@@ -148,6 +225,9 @@ class DataSample(Dataset):
 
         self.isSignal = False
         self.isMC = False
+
+        # set nTuple info
+        self.setNTupleInfo(self.name)
 
 ###############
 # GET SAMPLES #
@@ -169,7 +249,7 @@ def getSamples(TYPE):
     FILE  = VARS[TYPE]['FILE' ]
     CLASS = VARS[TYPE]['CLASS']
 
-    f = open(os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons/Tupler/dat/'+FILE))
+    f = open(os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons/Common/dat/'+FILE))
     Parameters = []
     Entry = []
     for line in f:
@@ -189,6 +269,7 @@ def getSamples(TYPE):
 def getHTo2XTo4MuSamples():
     return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo4Mu')]
 
+# aliased wrapper for convenience
 # get HTo2LongLivedTo2mu2jets MC samples
 def getHTo2XTo2Mu2JSamples():
     return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J')]
@@ -203,6 +284,26 @@ def getBackgroundSamples():
 def getDataSamples():
     return getSamples('Data')
 
+# aliased wrapper for convenience
+# get all samples, return as dictionary
+def getAllSamples():
+    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getBackgroundSamples() + getDataSamples()}
+
+# get NTuple info
+# this loads the information in NTuples.dat into a dictionary at module level
+# then all the samples reference it
+def getNTuples():
+    f = open(os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons/Common/dat/NTuples.dat'))
+    nTupleDict = {}
+    for line in f:
+        cols = line.strip('\n').split()
+        name = cols[0]
+        rest = cols[1:] if len(cols) > 2 else cols[1]
+        nTupleDict[name] = rest
+    f.close()
+    return nTupleDict
+NTUPLEDICT = getNTuples()
+
 ######################
 # RUN AS MAIN MODULE #
 ######################
@@ -216,6 +317,7 @@ if __name__ == '__main__':
             if 'AOD' in process:
                 print process, ds.signalPoint()
                 print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
+        print '   ', ds.nTupleInfo
 
     print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES-----\n\033[m'
     HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples()
@@ -224,15 +326,18 @@ if __name__ == '__main__':
             if 'AOD' in process:
                 print process, ds.signalPoint()
                 print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
+        print '   ', ds.nTupleInfo
 
     print '\n\033[32m-----BACKGROUND MC SAMPLES-----\n\033[m'
     BackgroundSamples = getBackgroundSamples()
     for ds in BackgroundSamples:
         print ds.name, ds.crossSection
         print '   ', ds.getFiles(dataset='EDM', instance='global')[0]
+        print '   ', ds.nTupleInfo
 
     print '\n\033[32m-----DATA SAMPLES-----\n\033[m'
     DataSamples = getDataSamples()
     for ds in DataSamples:
         print ds.name
         print '   ', ds.getFiles(dataset='PAT', instance='phys03')[0]
+        print '   ', ds.nTupleInfo

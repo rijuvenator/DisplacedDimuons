@@ -1,9 +1,9 @@
 import re, itertools
-import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+import DisplacedDimuons.Common.DataHandler as DH
 
 ##### Place the output of this script, "SignalMCSamples.dat", in ../dat
-##### It is required by the dataHandler library for signal samples
-##### and therefore everything else in the ../python directory
+##### It is required by the DataHandler library for signal samples
+##### and therefore by Tupler and by Analysis
 
 # gets HTo2LongLivedTo4mu and HTo2LongLivedTo2mu2jets dataset strings
 AODDatasetStrings = DH.DASQueryList('dataset=/HTo2LongLivedTo*_MH-*_MFF-*_CTau-*/escalant*/* instance=prod/phys03')
@@ -56,6 +56,21 @@ for sp, group in itertools.groupby(datasets, lambda x: x[0]):
     # write basic info
     f        .write('HTo2XTo'+FS                        + '\n') # name
     f        .write('{} {} {}'.format(mH, mX, cTau)     + '\n') # signal point
+
+    # write nEvents
+    for data in groupList:
+        process, ID, ds = data[1]
+        if process == 'May2018-AOD-v1':
+            fleList = DH.DASQueryList('file,lumi,events dataset={} instance=prod/phys03'.format(ds))
+            nEvents = 0
+            for rstring in fleList:
+                cols = rstring.split()
+                files = cols[0]
+                l = map(int, cols[1].strip('[').strip(']').split(','))
+                e = map(int, cols[2].strip('[').strip(']').split(','))
+                nEvents += sum(e)
+            f.write(str(nEvents)                        + '\n') # nEvents
+            break
 
     # write PAT dataset, if any
     for data in groupList:
