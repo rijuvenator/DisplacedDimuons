@@ -138,11 +138,11 @@ class Dataset(object):
         else:
             if '.root' in self.nTupleInfo[1]:
                 return self.nTupleInfo
-            else if len(self.nTupleInfo) == 2:
+            elif len(self.nTupleInfo) == 2:
                 template = self.nTupleInfo[0].replace('.root', '_{}.root')
                 N = int(self.nTupleInfo[1])
                 return [template.format(i) for i in xrange(1, N+1)]
-            else if len(self.nTupleInfo) == 3:
+            elif len(self.nTupleInfo) == 3:
                 template = self.nTupleInfo[0].replace('.root', '_{}.root')
                 N1 = int(self.nTupleInfo[1])
                 N2 = int(self.nTupleInfo[2])

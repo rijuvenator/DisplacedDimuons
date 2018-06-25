@@ -2,96 +2,94 @@ import ROOT as R
 import argparse, os
 import DisplacedDimuons.Common.Constants as Constants
 import DisplacedDimuons.Common.Utilities as Utilities
+import DisplacedDimuons.Common.DataHandler as DH
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
 R.gROOT.SetBatch(True)
 
+# common interface to all Analyzers
+# name is the sample name
+# signalpoint is the signal point if sample is a signal sample
+# test is a flag for testing the analyzer
+# splitting is 2 numbers CHUNK JOB defining splitting parameters:
+#    - CHUNK is how many events to process for this instance
+#    - JOB is which job number this is (so that the Analyzer knows which part of the tree to access)
+# In any given Analyzer, one may add a few extra parameters to PARSER
+# in case any additional command-line parameters are desired
 PARSER = argparse.ArgumentParser()
+PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
 PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
 PARSER.add_argument('--test'       , dest='TEST'       , action='store_true',                        help='run test mode for 1000 events')
 PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
-PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
 
-F_NTUPLE     = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/ntuple_{}.root')
-F_GEN_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/genOnly_ntuple_{}.root')
-F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.root')
-T_NTUPLE = 'SimpleNTupler/DDTree'
-
-def setFNAME(ARGS, GEN=False, NOPAT=False):
-    # if this is a signal sample, use the aodOnly version
+# important setSample function
+# this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler
+# this Dataset object contains many important parameters: nEvents, negFrac, systFrac, etc
+# and they are available to the Analyzer object through the member variable SAMPLE
+# so if e.g. a weight in the analyze() function is desired, it is as simple as
+# using self.SAMPLE.nEvents or self.SAMPLE.negFrac
+SAMPLES = DH.getAllSamples()
+def setSample(ARGS):
     if ARGS.NAME.startswith('HTo2X'):
-        ARGS.FNAME = F_AOD_NTUPLE
-
-    # otherwise, use the full PAT version
+        if ARGS.SIGNALPOINT is None:
+            raise Exception('Need a signal point for HTo2X MC signal.')
+        ARGS.SAMPLE = SAMPLES[ARGS.NAME + '_' + Utilities.SPStr(ARGS.SIGNALPOINT)]
     else:
-        ARGS.FNAME = F_NTUPLE
+        ARGS.SAMPLE = SAMPLES[ARGS.NAME]
 
-    # if this is a signal sample that has a full PAT version, use it unless explictly told not to
-    # this criteria will evolve slowly over the next few days to weeks as we produce more PAT Tuples
-    if not NOPAT and ARGS.NAME == 'HTo2XTo2Mu2J' and ARGS.SIGNALPOINT in Constants.PATSIGNALPOINTS:
-        ARGS.FNAME = F_NTUPLE
-
-    # use the genOnly version if explictly required
-    if GEN:
-        ARGS.FNAME = F_GEN_NTUPLE
-
-    # add a root protocol if we are not on lxplus
-    if not 'lxplus' in os.environ['HOSTNAME']:
-        ARGS.FNAME = Constants.PREFIX_CERN + ARGS.FNAME
-
-F_DEFAULT = F_NTUPLE
-T_DEFAULT = T_NTUPLE
-
-# Analyzer class, one instance per signal point, runs over a tree, calls analysis functions
+# Analyzer class, one instance per sample, runs over a tree, calls analysis functions
 class Analyzer(object):
     # constructor:
-    #  NAME: sample name
-    #  SIGNALPOINT: SignalPoint object
+    #  ARGS: the output of PARSER
+    #    Contains NAME, SIGNALPOINT, TEST, SPLITTING, and SAMPLE. Required.
+    #  FILES: ONLY for overriding the default nTuples. Use with caution.
     #  BRANCHKEYS: from Primitives (for ETree)
-    #  FILE: either a file or a string with {} in it where the SPString should go
-    #  TREENAME: name of tree
-    #  TEST: the result of the parser's test; whether or not run in test mode
-    #  MAX_EVENTS: if something other than 1000; only does anything if TEST is true
-    #  SPLITTING: a tuple: (number of events per job, job number 0-indexed)
+    #  MAX_EVENTS: if something other than 1000; only does anything if ARGS.TEST is true
     #  TREELOOP: whether to actually loop over the tree (usually True)
     #  PARAMS: any additional parameters that can't be obtained any other way
     def __init__(self,
-            NAME        = None,
-            SIGNALPOINT = None,
+            ARGS,
             BRANCHKEYS  = Primitives.BRANCHKEYS,
-            FILE        = F_DEFAULT,
-            TREENAME    = T_DEFAULT,
-            TEST        = False,
+            FILES       = None,
             MAX_EVENTS  = 1000,
-            SPLITTING   = None,
             TREELOOP    = True,
             PARAMS      = None
         ):
 
-        # if this is a signal sample, make sure there's a signal point
-        # then set NAME unambiguously to HTo2XTo**_mH_mX_cTau
-        if NAME.startswith('HTo2X'):
-            if SIGNALPOINT is None:
-                raise Exception('Need a signal point for HTo2X MC signal.')
-            NAME = NAME + '_' + SIGNALPOINT.SPStr()
-
         # if this is NOT a signal sample, make sure SIGNALPOINT is None
-        if not NAME.startswith('HTo2XTo'):
-            SIGNALPOINT = None
+        # SP will be None if it's not signal, can serve as a test of signal
+        if not ARGS.NAME.startswith('HTo2XTo'):
+            ARGS.SIGNALPOINT = None
 
-        self.NAME       = NAME
-        self.SP         = SIGNALPOINT
+        # ARGS.NAME is always either:
+        #  - the name of the sample (BG, Data)
+        #  - HTo2XTo(FS)_(mH)_(mX)_(cTau) (Signal)
+
+        # several important parameters are contained within the ARGS namespace
+        self.NAME       = ARGS.SAMPLE.name
+        self.SP         = None if ARGS.SIGNALPOINT is None else Utilities.SignalPoint(ARGS.SIGNALPOINT)
+        self.TEST       = ARGS.TEST
+        self.SPLITTING  = ARGS.SPLITTING
+        self.SAMPLE     = ARGS.SAMPLE
+
+        # set the input tree or list of input trees; see the getNTuples function in DataHandler
+        # set it to FILES if FILES is specified, as a special override
+        if FILES is None:
+            self.FILES  = ARGS.SAMPLE.getNTuples()
+        else:
+            self.FILES  = FILES
+
+        # these are constants and the rest of the parameters from the constructor
+        self.TREE       = 'SimpleNTupler/DDTree'
         self.BRANCHKEYS = BRANCHKEYS
-        self.FILE       = FILE
-        self.TREE       = TREENAME
-        self.TEST       = TEST
         self.MAX        = MAX_EVENTS
-        self.SPLITTING  = SPLITTING
         self.TREELOOP   = TREELOOP
         self.PARAMS     = PARAMS
 
+        # initialize a histograms dictionary automatically
         self.HISTS      = {}
 
+        # run the analysis
         self.run()
 
     # initialize a TH1F or TH2F given NAME as NAME_self.NAME
@@ -144,21 +142,25 @@ class Analyzer(object):
             self.HISTS[key].Write()
         f.Close()
     
-    # opens the file, gets the tree, checks if they're valid
+    # opens files, gets the tree, checks if they're valid
     # declares histograms, sets directory 0
     # runs begin, loops over tree, declares ETree, runs analyze, runs end
     def run(self):
-        try:
-            f = R.TFile.Open(self.FILE.format(self.NAME))
+        # if FILES is a string, treat it as a single file and get the tree
+        if type(self.FILES) == str:
+            f = R.TFile.Open(self.FILES)
             if not f:
                 raise IOError
-        except:
-            f = R.TFile.Open(self.FILE)
-            if not f:
-                raise IOError
-        t = f.Get(self.TREE)
-        if not t:
-            raise ReferenceError
+            t = f.Get(self.TREE)
+            if not t:
+                raise ReferenceError
+        # if FILES is a list, create a TChain and add all the files
+        elif type(self.FILES) == list:
+            t = R.TChain(self.TREE)
+            for f in self.FILES:
+                t.Add(f)
+            if not t:
+                raise ReferenceError
 
         self.declareHistograms(self.PARAMS)
         self.releaseHistograms()

@@ -67,14 +67,10 @@ def dumpInfo(genMuon, DSAmuons, nMatches):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     for METHOD in ('analyze',):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
     )

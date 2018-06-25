@@ -31,8 +31,8 @@ if __name__ == '__main__':
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
-    # set input filename based on arguments
-    Analyzer.setFNAME(ARGS)
+    # set sample object based on arguments
+    Analyzer.setSample(ARGS)
 
     # define Analyzer methods
     for METHOD in ('begin', 'declareHistograms', 'analyze', 'end'):
@@ -40,12 +40,8 @@ if __name__ == '__main__':
 
     # declare analyzer
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS        = ARGS,
         BRANCHKEYS  = ('DIMUON',),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
     )
 
     # write plots

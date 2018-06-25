@@ -51,6 +51,7 @@ def analyze(self, E, PARAMS=None):
 if __name__ == '__main__':
     Analyzer.PARSER.add_argument('--type', dest='TYPE')
     ARGS = Analyzer.PARSER.parse_args()
+    Analyzer.setSample(ARGS)
     FileTemplate = '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/{}ntuple_HTo2XTo2Mu2J_{}{}.root'
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
@@ -61,12 +62,9 @@ if __name__ == '__main__':
         PREFIX = ''
         SUFFIX = ''
     analyzer = Analyzer.Analyzer(
-        NAME        = 'HTo2XTo2Mu2J',
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = FileTemplate.format(PREFIX, Utilities.SPStr(ARGS.SIGNALPOINT), SUFFIX),
+        FILES       = FileTemplate.format(PREFIX, Utilities.SPStr(ARGS.SIGNALPOINT), SUFFIX),
         PARAMS      = ARGS.TYPE
     )
     analyzer.writeHistograms('roots/LxyEffTest_'+ARGS.TYPE+'_{}.root')
