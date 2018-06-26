@@ -21,7 +21,7 @@ def analyze(self, E, PARAMS=None):
     if not '2Mu2J' in self.NAME or self.SP.SP not in PATSIGNALPOINTS:
         raise Exception('[ANALYZER ERROR]: This script runs on two specific HTo2XTo2Mu2J signal points only.')
 
-    mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+    mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
     genMuonPairs = ((mu1, mu2),)
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )

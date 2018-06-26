@@ -82,12 +82,14 @@ class ETree(object):
             if MCTYPE == 'HTo2XTo4Mu':
                 muons   =             [GenMuon    (self, i        )        for i in range(4)                       ]
                 mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                return muons + mothers
+                extramu =             [GenMuon    (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                return muons + mothers + (extramu if len(extramu) > 0 else [None])
             elif MCTYPE == 'HTo2XTo2Mu2J':
                 muons   =             [GenMuon    (self, i        )        for i in range(2)                       ]
                 jets    =             [GenMuon    (self, i        )        for i in range(2, 4)                    ]
                 mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                return muons + jets + mothers
+                extramu =             [GenMuon    (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                return muons + jets + mothers + (extramu if len(extramu) > 0 else [None])
             else:
                 return                [Particle   (self, i, 'gen_')        for i in range(len(self.gen_eta       ))]
         if KEY == 'MUON'     : return [AODMuon    (self, i        )        for i in range(len(self.mu_eta        ))]

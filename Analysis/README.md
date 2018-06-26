@@ -62,18 +62,18 @@ for event in t:
   The _Analyzer_ library declares the _ETree_ and makes it available to the `analyze()` function as `E`. Here documents how each of the current _Primitives_ objects are declared in analysis code:
 
 ```python
-Event                                = E.getPrimitives('EVENT')
-HLTPaths, HLTMuons, L1TMuons         = E.getPrimitives('TRIGGER')
-MET                                  = E.getPrimitives('MET')
-Filters                              = E.getPrimitives('FILTER')
-Beamspot                             = E.getPrimitives('BEAMSPOT')
-Vertex                               = E.getPrimitives('VERTEX')
-mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
-mu1, mu2, j1, j2, X, XP, H, P        = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
-Muons                                = E.getPrimitives('MUON')
-DSAMuons                             = E.getPrimitives('DSAMUON')
-RSAMuons                             = E.getPrimitives('RSAMUON')
-Dimuons                              = E.getPrimitives('MUON')
+Event                                         = E.getPrimitives('EVENT')
+HLTPaths, HLTMuons, L1TMuons                  = E.getPrimitives('TRIGGER')
+MET                                           = E.getPrimitives('MET')
+Filters                                       = E.getPrimitives('FILTER')
+Beamspot                                      = E.getPrimitives('BEAMSPOT')
+Vertex                                        = E.getPrimitives('VERTEX')
+mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+mu1, mu2, j1, j2, X, XP, H, P, extramu        = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+Muons                                         = E.getPrimitives('MUON')
+DSAMuons                                      = E.getPrimitives('DSAMUON')
+RSAMuons                                      = E.getPrimitives('RSAMUON')
+Dimuons                                       = E.getPrimitives('MUON')
 ```
 
   * **RootTools.py** contains a few small ROOT-related additions.

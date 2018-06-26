@@ -1,4 +1,4 @@
-f = open('multipleMatches.txt')
+f = open('text/multipleMatches.txt')
 
 output = ''
 for line in f:
