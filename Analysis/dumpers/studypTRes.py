@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
@@ -18,6 +19,7 @@ def analyze(self, E, PARAMS=None):
         mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
         genMuons = (mu1, mu2)
         genMuonPairs = ((mu1, mu2),)
+    Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
 
     SelectMuons   = False
@@ -39,38 +41,59 @@ def analyze(self, E, PARAMS=None):
             closestRecoMuon = selectedDSAmuons[matches[0]['idx']]
 
             if (closestRecoMuon.pt-genMuon.pt)/genMuon.pt < -0.8:
-                dumpInfo(genMuon, selectedDSAmuons, len(matches))
+                dumpInfo(Event, genMuon, selectedDSAmuons, len(matches), extramu)
 
 # dump info
-def dumpInfo(genMuon, DSAmuons, nMatches):
-    print 'Gen Muon:    {:10.4f} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
+def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu):
+    print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
+    print 'Gen Muon:    {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
             genMuon.pt,
+            '',
             genMuon.eta,
             genMuon.phi,
             genMuon.Lxy(),
             nMatches
     )
     for muon in DSAmuons:
-        fstring = '  Reco Muon: {:10.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f}'.format(
+        fstring = '  Reco Muon: {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
             muon.pt,
+            '±',
+            muon.ptError,
             muon.eta,
             muon.phi,
             '',
             '',
-            muon.p4.DeltaR(genMuon.p4)
+            muon.p4.DeltaR(genMuon.p4),
+            muon.nDTStations,
+            muon.nCSCStations,
+            muon.nDTHits,
+            muon.nCSCHits,
+            muon.nMuonHits
         )
         if muon.p4.DeltaR(genMuon.p4) < 0.3:
-            fstring = '\033[31m' + fstring + '\033[m'
+            if COLOR:
+                fstring = '\033[31m' + fstring + '\033[m'
+            else:
+                fstring = '*' + fstring[1:]
         print fstring
+    for extraGen in extramu:
+        print 'Extra GenMuon: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(
+                '',
+                genMuon.pt,
+                '',
+                genMuon.eta,
+                genMuon.phi,
+        )
     print ''
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
+    COLOR = False
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
     for METHOD in ('analyze',):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON'),
+        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON'),
     )

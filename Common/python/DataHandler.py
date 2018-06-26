@@ -1,5 +1,6 @@
 import subprocess as bash
 import os, re
+import DisplacedDimuons.Common.Constants as Constants
 
 #########################
 # GENERAL DATASET TOOLS #
