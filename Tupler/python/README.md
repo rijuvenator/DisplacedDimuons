@@ -1,6 +1,6 @@
 # How to run the nTupler
 
-Last updated: **13 June 2018**
+Last updated: **26 June 2018**
 
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
@@ -46,7 +46,7 @@ python runNTupler.py HTo2XTo4Mu --signalpoint 125 20 13
 ```
 
 Exactly one of the following options may be passed:
-  * `--genonly`: specifies that the input source is GEN-SIM, and that the nTupler is only to access and write GenBranches, such as genParticles and GenEventInfoProduct.
+  * `--genonly`: specifies that the input source is GEN-SIM, and that the nTupler is only to access and write GenBranches, such as genParticles and GenEventInfoProduct. **Deprecated but still works for now**.
   * `--aodonly`: specifies that the input source is AOD, and that the nTupler should write everything except the branches that involve the PAT collections, such as trigger, MET, and pat::Muons.
   * no option: specifies that the input source is a PAT Tuple created by PATFilter, and that the nTupler should write everything.
 
@@ -79,7 +79,6 @@ This script will be continually updated as we produce more PAT Tuples. Currently
 
 ## Utilities/
 
-The `Utilities/` directory contains two important libraries.
+The `Utilities/` directory contains one important library.
 
-  * **dataHandler.py**: a Python library for working with DAS and datasets. It will call the appropriate command-line DAS commands and get lists of datasets and files automatically, given the correct parameters. Other classes for other types of datasets should be added here, too, so that any file that deals with datasets has object-oriented information about the dataset, e.g. files, MC parameters, the dataset name, etc.
-  * **CFGParser.py**: a Python library for configuring and running cmsRun jobs with crab, batch systems, or locally, with several command line options for setting test modes, printing output, changing output file patterns, and more. It uses the full *dataHandler* machinery.
+  * **CFGParser.py**: a Python library for configuring and running cmsRun jobs with crab, batch systems, or locally, with several command line options for setting test modes, printing output, changing output file patterns, and more. It uses the full *DataHandler* machinery.
