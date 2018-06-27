@@ -140,7 +140,7 @@ config.Site.storageSite = storageSite
     just_testing = 'testing' in sys.argv or '--testing' in sys.argv
     create_only  = 'create_only' in sys.argv
     limit_memory = 'limit_memory' in sys.argv
-    user_unitsPerJob = 'user_unitsPerJob' in sys.argv
+    fix_units_per_job = 'fix_units_per_job' in sys.argv
 
     from DisplacedDimuons.PATFilter.MCSamples import samples
     for sample in samples:
@@ -182,7 +182,7 @@ config.Site.storageSite = storageSite
 
         with open('crabConfig.py', 'a') as f:
             cfg_key = 'config.Data.unitsPerJob' 
-            if not user_unitsPerJob:
+            if not fix_units_per_job:
                 cfg_val = optimize_units_per_job(sample)
             else:
                 # define user-specific value here
