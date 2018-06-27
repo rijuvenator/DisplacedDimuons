@@ -20,11 +20,11 @@ def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:
-        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
         genMuons = (mu11, mu12, mu21, mu22)
         genMuonPairs = ((mu11, mu12), (mu21, mu22))
     elif '2Mu2J' in self.NAME:
-        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
         genMuons = (mu1, mu2)
         genMuonPairs = ((mu1, mu2),)
     DSAmuons = E.getPrimitives('DSAMUON')
@@ -84,14 +84,10 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     for METHOD in ('begin', 'analyze', 'end'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
     )

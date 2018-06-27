@@ -250,7 +250,7 @@ HList = (
 #### MAIN CODE ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     if not ARGS.NAME.startswith('HTo2X'):
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     fs = ARGS.NAME.replace('HTo2XTo', '')
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     HAliases, HExpressions = makeAliasesAndExpressions(fs)
 
     HISTS[(fs, sp)] = {}
-    fillPlots(fs, sp, HList, ARGS.FNAME)
+    fillPlots(fs, sp, HList, ARGS.SAMPLE.getNTuples())
     print 'Created all plots for', fs, sp
 
     FileName = 'roots/GenPlots_HTo2XTo{FS}_{SP}.root'.format(FS=fs, SP=SPStr(sp)) if not ARGS.TEST else 'test.root'

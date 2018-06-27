@@ -247,6 +247,8 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 // fill gen branches for P -> H -> XX -> 2Mu 2Jet
 void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 {
+  // muAll is for all muons
+  std::vector<const reco::GenParticle*> muAll;
   const reco::GenParticle *mup  = nullptr;
   const reco::GenParticle *mum  = nullptr;
   const reco::Candidate   *q1   = nullptr;
@@ -255,11 +257,14 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   const reco::Candidate   *XP   = nullptr;
   const reco::Candidate   *H    = nullptr;
   const reco::Candidate   *P    = nullptr;
+
   for (const auto &gen : gens)
   {
     // look for X -> mu1 mu2
     if (abs(gen.pdgId()) == PDGID::MUON && gen.status() == 1)
     {
+      muAll.push_back(&gen);
+
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
       // set the appropriate X and mu pointers. then look for Higgs, then proton
@@ -281,13 +286,15 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
         edm::LogWarning("NTupler::GenBranches") << "+++ Warning: X' does not have 2 daughters. Filling nothing. +++";
         return;
       }
-      if (XP->daughter(0)->pdgId() > 0) {
-	q1 = XP->daughter(0);
-	q2 = XP->daughter(1);
+      if (XP->daughter(0)->pdgId() > 0)
+      {
+        q1 = XP->daughter(0);
+        q2 = XP->daughter(1);
       }
-      else {
-	q1 = XP->daughter(1);
-	q2 = XP->daughter(0);
+      else
+      {
+        q1 = XP->daughter(1);
+        q2 = XP->daughter(0);
       }
     }
     // if both mu's and X' are set, no need to keep looping over gen particles
@@ -318,6 +325,16 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 
   // fill the branches: mu+, mu-, q, qbar, X, X', H, and P
   std::vector<const reco::Candidate*> particles = {mup, mum, q1, q2, X, XP, H, P};
+  if (muAll.size() > 2)
+  {
+    for (const auto &mu : muAll)
+    {
+      if (std::find(particles.begin(), particles.end(), mu) == particles.end())
+      {
+        particles.push_back(mu);
+      }
+    }
+  }
   for (const auto &p : particles)
   {
     gen_status.push_back(p->status());

@@ -1,6 +1,6 @@
 # Displaced Dimuons Tupler
 
-Last updated: **14 June 2018**
+Last updated: **26 June 2018**
 
 This subpackage contains code to produce nTuples from PAT Tuples created from the PATFilter package.
 
@@ -60,17 +60,11 @@ See [README](python/README.md) in `python/`.
 <a name="scripts"></a>
 ## Scripts
 
-The `scripts/` directory contains a few useful scripts, and also serve as examples of how to use the `dataHandler` library:
+The `scripts/` directory contains a few useful scripts, and also serve as examples of how to use the `DataHandler` library:
 
   * **dumpOne.py** runs the DAS client and dumps information about one specified `HTo2LongLivedTo4mu` signal point sample.
   * **dumpEvents.py** runs the DAS client and dumps the number of events in each dataset.
   * **printBranches.py** takes the output of `edmDumpEventContent` on an AOD file and prints it in a neater format.
-
-An actually important script in this folder, however, is
-
-  * **generateSignalDATFile.py**, which runs the DAS client and creates the signal .dat file found in `dat/`.
-
-This file is vital for the correct operation of `runNTupler.py`, `dataHandler.py`, and `CFGParser.py`, because it contains the dataset information for all signal samples.
 
 <a name="test"></a>
 ## Test

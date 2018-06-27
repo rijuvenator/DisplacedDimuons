@@ -153,6 +153,8 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
     for key in binranges:
+        if plots[key].Integral() != 0:
+            plots[key].Scale(1./plots[key].Integral())
         canvas.addMainPlot(plots[key])
 
     canvas.makeLegend(lWidth=.25, pos='tr')
@@ -162,7 +164,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     for i, key in enumerate(binranges):
         plots[key].SetLineColor(colors[key])
-        plots[key].setTitles(X=plots[key].GetXaxis().GetTitle(), Y='Counts')
+        plots[key].setTitles(X=plots[key].GetXaxis().GetTitle(), Y='Normalized Counts')
         canvas.drawText('#color[{}]{{'.format(colors2[key]) + '#sigma = {:.4f}'.format(plots[key].GetStdDev()) + '}',
                         (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-(i*0.04)-.04)
         )

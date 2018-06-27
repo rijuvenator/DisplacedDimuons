@@ -1,5 +1,5 @@
 import sys, os, argparse
-import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+import DisplacedDimuons.Common.DataHandler as DH
 from DisplacedDimuons.Common.Utilities import SPStr
 
 # various default parameters; only change if necessary
@@ -27,11 +27,11 @@ DEFAULT_DATASETS = {
 # full command line access to most common parameters, more can be added as necessary
 # returns a CONFIG Namespace with all the relevant parameters, for use
 # in the cmsRun config, in batch scripts, in CRAB config files, and so on
-# uses the full dataHandler apparatus
+# uses the full DataHandler apparatus
 def getConfiguration(returnArgs=False):
     parser = argparse.ArgumentParser()
 
-    # name       : the name of the sample, as defined by the dataHandler, e.g. HTo2XTo4Mu or DY400to500 
+    # name       : the name of the sample, as defined by the DataHandler, e.g. HTo2XTo4Mu or DY400to500 
     # signalpoint: three integers defining the HTo2XTo4Mu signal point, e.g. 125 20 13
     # genonly    : whether or not to only run the Gen part of the nTuple, e.g. for GEN-SIM
     # aodonly    : whether or not to only run over AOD, instead of PAT

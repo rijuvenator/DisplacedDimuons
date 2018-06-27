@@ -110,7 +110,7 @@ for i, event in enumerate(t):
     E = Primitives.ETree(t, DecList=('GEN',))
     mu11 = None
     try:
-        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
     except:
         Erred = True
 
