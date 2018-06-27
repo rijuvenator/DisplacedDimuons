@@ -226,7 +226,7 @@ class Particle(Primitive):
 
         # set pdgID for gen particles
         if prefix == 'gen_':
-            self.set(attr, E, prefix+'pdgID', i)
+            self.set('pdgID', E, prefix+'pdgID', i)
 
         # set position TVector3
         self.pos = R.TVector3(self.x, self.y, self.z)

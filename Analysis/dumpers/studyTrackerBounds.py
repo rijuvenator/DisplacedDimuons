@@ -48,16 +48,17 @@ def analyze(self, E, PARAMS=None):
 def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
     for genMuon in genMuonPair:
-        print 'Gen Muon Pair: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f}'.format(
+        print 'Gen Muon Pair: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f} {:11.4f} {:9.4f}'.format(
                 '',
                 genMuon.pt,
                 '',
                 genMuon.eta,
                 genMuon.phi,
+                genMuon.z,
                 genMuon.Lxy(),
         )
     for i, muon in enumerate(DSAmuons):
-        fstring = '  Reco Muon:   {:7d} {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:10s} {:7.4f} {:7.4f}'.format(
+        fstring = '  Reco Muon:   {:7d} {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:11s} {:9s} {:10s} {:7.4f} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
             i,
             muon.pt,
             '±',
@@ -66,8 +67,14 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
             muon.phi,
             '',
             '',
+            '',
             muon.p4.DeltaR(genMuonPair[0].p4),
             muon.p4.DeltaR(genMuonPair[1].p4),
+            muon.nDTStations,
+            muon.nCSCStations,
+            muon.nDTHits,
+            muon.nCSCHits,
+            muon.nMuonHits
         )
         if i in muonMatches:
             if COLOR:
@@ -76,9 +83,10 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
                 fstring = '*' + fstring[1:]
         print fstring
     for dimuon in Dimuons:
-        fstring = '  Dimuon:      {:2d} * {:2d} {:10s} {:12s} {:7s} {:7s} {:9.4f} {:1s}{:9.4f}'.format(
+        fstring = '  Dimuon:      {:2d} * {:2d} {:10s} {:12s} {:7s} {:7s} {:11s} {:9.4f} {:1s}{:9.4f}'.format(
             dimuon.idx1,
             dimuon.idx2,
+            '',
             '',
             '',
             '',
