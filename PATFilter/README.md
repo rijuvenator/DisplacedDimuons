@@ -72,6 +72,7 @@ submitted job much easier later on) should be provided.
   ```
   in `tuple_mc.py` (per default, the number of CRAB jobs is determined from the
   number of events per sample according to the table below).
+  > *Example:* `python tuple_mc.py submit fix_units_per_job`
 
 | **number of events** | **intended number of CRAB jobs** |
 | -------------------- | -------------------------------- |
@@ -82,6 +83,4 @@ submitted job much easier later on) should be provided.
 | 10M - 30M            | 100                              |
 | 1M - 10M             | 10                               |
 | 0 - 1M               | 1                                |
-
-  > *Example:* `python tuple_mc.py submit fix_units_per_job`
 
