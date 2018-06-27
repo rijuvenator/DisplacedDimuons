@@ -137,11 +137,13 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
   const reco::Candidate   *P    = nullptr;
 
   // loop over the gen particles and look for muons
+  bool allSet = false;
   for (const auto &gen : gens)
   {
     if (abs(gen.pdgId()) == PDGID::MUON and gen.status() == 1)
     {
       muAll.push_back(&gen);
+      if (allSet) continue;
 
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
@@ -157,7 +159,8 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 
         // once mu22 is found, no need to keep looping over the gen particles
         // X1, X2, mu11, mu12, mu21, and mu22 should be set
-        if (mu22 != nullptr) break;
+        //if (mu22 != nullptr) break;
+        if (mu22 != nullptr) {allSet=true;}
       }
     }
   }
@@ -258,12 +261,14 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   const reco::Candidate   *H    = nullptr;
   const reco::Candidate   *P    = nullptr;
 
+  bool allSet = false;
   for (const auto &gen : gens)
   {
     // look for X -> mu1 mu2
     if (abs(gen.pdgId()) == PDGID::MUON && gen.status() == 1)
     {
       muAll.push_back(&gen);
+      if (allSet) continue;
 
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
@@ -298,7 +303,8 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
       }
     }
     // if both mu's and X' are set, no need to keep looping over gen particles
-    if (mup != nullptr && mum != nullptr && XP != nullptr) break;
+    //if (mup != nullptr && mum != nullptr && XP != nullptr) break;
+    if (mup != nullptr && mum != nullptr && XP != nullptr) {allSet=true;}
   }
   // make sure X and X' are non-null
   if (X == nullptr || XP == nullptr)
