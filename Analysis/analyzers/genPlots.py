@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
-from DisplacedDimuons.Common.Constants import DIR_EOS, SIGNALS, SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALS, SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -95,7 +95,6 @@ def Draw(t, HConfig, key, expressions):
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
 def fillPlots(fs, sp, HList, FNAME):
     # get file and tree
-    #f = R.TFile.Open('root://eoscms.cern.ch/'+DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo'+fs, SPStr(sp)))
     f = R.TFile.Open(FNAME.format('HTo2XTo'+fs+'_'+SPStr(sp)))
     t = f.Get('SimpleNTupler/DDTree')
 

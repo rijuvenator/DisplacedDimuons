@@ -6,8 +6,12 @@ import os
 ##### It is required by the DataHandler library for setting nTuple info
 ##### and therefore by Analysis
 
-F_NTUPLE     = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/ntuple_{}.root'        )
-F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS_RIJU, 'NTuples/aodOnly_ntuple_{}.root')
+# At the moment, Constants.DIR_EOS is /eos/cms/store/user/adasgupt/DisplacedDimuons/
+# except if the username is stempl, in which case it gets set to something else
+# Keep that in mind if running this script
+
+F_NTUPLE     = os.path.join(Constants.DIR_EOS, 'NTuples/ntuple_{}.root'        )
+F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS, 'NTuples/aodOnly_ntuple_{}.root')
 
 output = ''
 for SP in Constants.SIGNALPOINTS:

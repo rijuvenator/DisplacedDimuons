@@ -1,8 +1,7 @@
 import os
 
-CMSSW_BASE   = os.environ['CMSSW_BASE']
+# set directory strings
 if 'stempl' in os.environ['USER']:
-    # DIR_WS= '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
     DIR_WS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
     DIR_EOS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
 
@@ -12,11 +11,12 @@ else:
     DIR_WS= '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
     DIR_EOS= '/eos/cms/store/user/adasgupt/DisplacedDimuons/'
 
-    PREFIX_CERN = 'root://eoscms.cern.ch/'
-    PREFIX_FNAL = 'root://cmseos.fnal.gov/'
+    PREFIX_CERN  = 'root://eoscms.cern.ch/'
+    PREFIX_FNAL  = 'root://cmseos.fnal.gov/'
+    PREFIX_HEPHY = 'root://hephyse.oeaw.ac.at/'
 
-DIR_DD       = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
-
+CMSSW_BASE   = os.environ['CMSSW_BASE']
+DIR_DD = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
 
 # signal points as list of tuples
 SIGNALPOINTS = [
