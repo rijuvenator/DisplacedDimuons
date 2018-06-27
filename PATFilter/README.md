@@ -71,6 +71,7 @@ submitted job much easier later on) should be provided.
 
 - **`fix_units_per_job`** (only available in `tuple_mc.py`): invokes the use of a
   hardcoded number of units per CRAB job; this number is specified via
+
   ```
   if not fix_units_per_job:
       cfg_val = optimize_units_per_job(sample)
@@ -78,6 +79,7 @@ submitted job much easier later on) should be provided.
       # define user-specific value here
       cfg_val = 15000
   ```
+
   in `tuple_mc.py` (per default, the number of CRAB jobs is determined from the
   number of events per sample according to the table below).
 
