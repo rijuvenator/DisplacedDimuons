@@ -11,7 +11,7 @@ process.source.fileNames = [
 #- official Z+jets sample
 #    '/store/mc/RunIISummer16DR80Premix/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/AODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/110000/001AC973-60E2-E611-B768-001E67586A2F.root'
 #- 2mu2jets signal
-    'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123637/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
+    # 'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123637/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
 #- 4mu signal
 #    'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123603/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo4mu_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
     ]
@@ -71,59 +71,130 @@ process.MessageLogger.categories.append("ParticleListDrawer")
 
 #print process.dumpPython()
 
+def optimize_units_per_job(sample):
+    # empirical scale factor: 122.5M events with 15k units per job
+    # result in about 8000 crab jobs
+    # (we want this large dataset to have ~2000 jobs)
+    scale_factor_1kjobs = 8 * 15000.0 / 122547040.0
+
+    thresholds = {
+            100000000: 1.0, # aim: 1k jobs
+            50000000: 2.0,  # aim: 500 jobs
+            40000000: 2.5,  # aim: 400 jobs
+            30000000: 3.33, # aim: 300 jobs
+            10000000: 10.0, # aim: 100 jobs
+            1000000: 100.0, # aim: 10 jobs
+            100000: 1000.0, # aim: 1 job 
+            }
+
+    # initialize scale_factor (which is ultimately used to scale the number of
+    # events such that a given number of crab jobs is created)
+    scale_factor = None
+
+    for k in thresholds.keys():
+        if sample.nevents > k:
+            scale_factor = thresholds[k] * scale_factor_1kjobs
+            break
+
+    if scale_factor is None:
+        scale_factor = 1.0 # make one crab job with all events
+
+    return int(round(scale_factor * sample.nevents))
+
+
 if __name__ == '__main__' and 'submit' in sys.argv:
     crab_cfg = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
-config.General.requestName = 'MC2016_%(name)s'
+custom_tag = '_Jun2018-v1'
+config.General.requestName = 'MC2016_%(name)s'+custom_tag
 config.General.workArea = 'crab'
 #config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'crab/psets/tuple_mc_crab_%(name)s.py'
-config.Data.inputDataset = '%(dataset)s'
-config.Data.inputDBS = 'global'
-#config.Data.inputDBS = 'phys03' # for private (signal) samples
+config.Data.inputDataset =  '%(dataset)s'
 config.Data.publication = True
-config.Data.outputDatasetTag = 'MC2016_%(name)s'
-config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB() + '/DisplacedDimuons/PATFilter'
-#config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
-#config.Data.ignoreLocality = True
+# config.Data.publication = False
+config.Data.outputDatasetTag = 'MC2016_%(name)s'+custom_tag
+config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
+# config.Data.splitting = 'Automatic'
 config.Data.splitting = 'EventAwareLumiBased'
+config.Data.ignoreLocality = True
 config.Data.totalUnits = -1
-config.Data.unitsPerJob = 5000
-#config.Site.whitelist = ["T2_CH_CERN"]
-config.Site.storageSite = 'T2_CH_CERN'
+if getUsernameFromSiteDB() in ["escalant", "stempl"]:
+    storageSite = 'T2_AT_Vienna'
+else:
+    storageSite = 'T2_CH_CERN'
+
+if "USER" in config.Data.inputDataset:
+    inputDBS = 'phys03'
+else:
+    inputDBS = 'global'
+config.Data.inputDBS = inputDBS
+
+config.Site.whitelist = ["T2_*"]
+config.Site.storageSite = storageSite
+# config.Site.storageSite = 'T2_CH_CERN'
 '''
 
-    just_testing = 'testing' in sys.argv
+    just_testing = 'testing' in sys.argv or '--testing' in sys.argv
     create_only  = 'create_only' in sys.argv
+    limit_memory = 'limit_memory' in sys.argv
+    fix_units_per_job = 'fix_units_per_job' in sys.argv
 
     from DisplacedDimuons.PATFilter.MCSamples import samples
     for sample in samples:
        
-#        if 'Hto2Xto2mu2j_125_20_130' in sample.name:
-        if sample.name == 'Hto2Xto2mu2j_125_20_130':
-            print sample.name
-            print sample.dataset
-            #print sample.__dict__
- 
-            new_py = open('tuple_mc.py').read()
-            # new_py += '\nswitchHLTProcessName(process, "%(hlt_process_name)s")\n' % sample.__dict__
+        # if not 'dy50ToInf' in sample.name and \
+        #         not 'tbarW' in sample.name and \
+        #         not 'ttbar' in sample.name:
+        #     continue
 
-            # Keep all events in signal samples in order to study efficiencies, etc.
-            if sample.is_signal:
-                new_py += '\nprocess.patDefaultSequence.remove(process.hltFilter)\n'
-                # new_py += '\nprocess.patDefaultSequence.remove(process.dimuonPreselector)\n'
+        print sample.name
+        print sample.dataset
+        #print sample.__dict__
 
-            sample.pset = 'crab/psets/tuple_mc_crab_%(name)s.py' % sample.__dict__
-            os.system('mkdir -p crab/psets')
-            open(sample.pset,'wt').write(new_py)
+        new_py = open('tuple_mc.py').read()
+        # new_py += '\nswitchHLTProcessName(process, "%(hlt_process_name)s")\n' % sample.__dict__
 
-            open('crabConfig.py', 'wt').write(crab_cfg % sample.__dict__)
-            if not just_testing:
-                if create_only:
-                    sample.job = 'crab_%(name)s.py' % sample.__dict__
-                    os.system('crab submit -c ' + sample.job)
-                else:
-                    os.system('crab submit -c crabConfig.py')
-                    os.system('rm crabConfig.py crabConfig.pyc')
+        # Keep all events in signal samples in order to study efficiencies, etc.
+        if sample.is_signal:
+            new_py += '\nprocess.patDefaultSequence.remove(process.hltFilter)\n'
+            # new_py += '\nprocess.patDefaultSequence.remove(process.dimuonPreselector)\n'
+
+        sample.pset = 'crab/psets/tuple_mc_crab_%(name)s.py' % sample.__dict__
+        os.system('mkdir -p crab/psets')
+        open(sample.pset,'wt').write(new_py)
+
+        open('crabConfig.py', 'wt').write(crab_cfg % sample.__dict__)
+
+        # set max memory
+        with open('crabConfig.py', 'a') as f:
+            if limit_memory:
+                f.write('\nconfig.JobType.maxMemoryMB = 2500')
+            else:
+                f.write('\nconfig.JobType.maxMemoryMB = 8000')
+
+        # set units per job 
+        if 'config.Data.unitsPerJob' in crab_cfg:
+            raise RuntimeError('Double definition of ' \
+                    '\'config.Data.unitsPerJob\'')
+
+        with open('crabConfig.py', 'a') as f:
+            cfg_key = 'config.Data.unitsPerJob' 
+            if not fix_units_per_job:
+                cfg_val = optimize_units_per_job(sample)
+            else:
+                # define user-specific value here
+                cfg_val = 15000
+
+            f.write('\n{} = {}'.format(cfg_key, cfg_val))
+
+        if not just_testing:
+            if create_only:
+                sample.job = 'crab_%(name)s.py' % sample.__dict__
+                os.system('crab submit -c ' + sample.job)
+            else:
+                os.system('crab submit -c crabConfig.py')
+                os.system('rm crabConfig.py')
+
