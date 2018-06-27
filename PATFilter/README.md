@@ -52,15 +52,23 @@ submitted job much easier later on) should be provided.
 ### Command line arguments
 
 - **`submit`**: submits the job(s) to CRAB
+
   > *Example:* `python tuple_mc.py submit`
+
 - **`testing`**: prints the paths of the files that will be processed, but prevents
   submission to CRAB
+
   > *Example:* `python tuple_mc.py submit testing`
+
 - **`create_only`**
+
   > *Example:* `python tuple_mc.py submit create_only`
+
 - **`limit_memory`**: limit the requested memory to the minimally-guaranteed 2.5 GB
   (per default, 8 GB of memory are requested upon CRAB submission)
+
   > *Example:* `python tuple_mc.py submit limit_memory`
+
 - **`fix_units_per_job`** (only available in `tuple_mc.py`): invokes the use of a
   hardcoded number of units per CRAB job; this number is specified via
   ```
@@ -72,6 +80,7 @@ submitted job much easier later on) should be provided.
   ```
   in `tuple_mc.py` (per default, the number of CRAB jobs is determined from the
   number of events per sample according to the table below).
+
   > *Example:* `python tuple_mc.py submit fix_units_per_job`
 
 | **number of events** | **intended number of CRAB jobs** |
