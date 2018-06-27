@@ -71,17 +71,17 @@ submitted job much easier later on) should be provided.
       cfg_val = 15000
   ```
   in `tuple_mc.py` (per default, the number of CRAB jobs is determined from the
-  number of events per sample according to the following table:
+  number of events per sample according to the table below).
 
-  | number of events | intended number of CRAB jobs |
-  | ---------------- | ---------------------------- |
-  | > 100M           | 1000                         |
-  | 50M - 100M       | 500                          |
-  | 40M - 50M        | 400                          |
-  | 30M - 40M        | 300                          |
-  | 10M - 30M        | 100                          |
-  | 1M - 10M         | 10                           |
-  | 0 - 1M           | 1                            |
+| **number of events** | **intended number of CRAB jobs** |
+| -------------------- | -------------------------------- |
+| > 100M               | 1000                             |
+| 50M - 100M           | 500                              |
+| 40M - 50M            | 400                              |
+| 30M - 40M            | 300                              |
+| 10M - 30M            | 100                              |
+| 1M - 10M             | 10                               |
+| 0 - 1M               | 1                                |
 
   > *Example:* `python tuple_mc.py submit fix_units_per_job`
 
