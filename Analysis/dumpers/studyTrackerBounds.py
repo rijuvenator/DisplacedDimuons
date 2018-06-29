@@ -42,10 +42,10 @@ def analyze(self, E, PARAMS=None):
                     break
             else:
                 if genMuonPair[0].Lxy() > 340.:
-                    dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu)
+                    dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS)
 
 # dump info
-def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
+def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
     for genMuon in genMuonPair:
         print 'Gen Muon Pair: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f} {:11.4f} {:9.4f}'.format(
@@ -77,7 +77,7 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
             muon.nMuonHits
         )
         if i in muonMatches:
-            if COLOR:
+            if PARAMS.COLOR:
                 fstring = '\033[31m' + fstring + '\033[m'
             else:
                 fstring = '*' + fstring[1:]
@@ -99,16 +99,16 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu):
     for extraGen in extramu:
         print 'Extra GenMuon: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(
                 '',
-                genMuon.pt,
+                extraGen.pt,
                 '',
-                genMuon.eta,
-                genMuon.phi,
+                extraGen.eta,
+                extraGen.phi,
         )
     print ''
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
-    COLOR = False
+    Analyzer.PARSER.add_argument('--color', dest='COLOR', action='store_true', help='whether to print reco matches in color')
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
     for METHOD in ('analyze',):
@@ -116,4 +116,5 @@ if __name__ == '__main__':
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
         BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON'),
+        PARAMS      = ARGS
     )

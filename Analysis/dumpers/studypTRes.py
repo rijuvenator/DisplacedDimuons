@@ -41,12 +41,12 @@ def analyze(self, E, PARAMS=None):
             closestRecoMuon = selectedDSAmuons[matches[0]['idx']]
 
             if (closestRecoMuon.pt-genMuon.pt)/genMuon.pt < -0.8:
-                dumpInfo(Event, genMuon, selectedDSAmuons, len(matches), extramu)
+                dumpInfo(Event, genMuon, selectedDSAmuons, len(matches), extramu, PARAMS)
 
 # dump info
-def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu):
+def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
-    print 'Gen Muon:    {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
+    print 'Gen Muon:      {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
             genMuon.pt,
             '',
             genMuon.eta,
@@ -55,7 +55,7 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu):
             nMatches
     )
     for muon in DSAmuons:
-        fstring = '  Reco Muon: {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
+        fstring = '  Reco Muon:   {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
             muon.pt,
             '±',
             muon.ptError,
@@ -71,24 +71,23 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu):
             muon.nMuonHits
         )
         if muon.p4.DeltaR(genMuon.p4) < 0.3:
-            if COLOR:
+            if PARAMS.COLOR:
                 fstring = '\033[31m' + fstring + '\033[m'
             else:
                 fstring = '*' + fstring[1:]
         print fstring
     for extraGen in extramu:
-        print 'Extra GenMuon: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(
+        print 'Extra GenMuon: {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(
+                extraGen.pt,
                 '',
-                genMuon.pt,
-                '',
-                genMuon.eta,
-                genMuon.phi,
+                extraGen.eta,
+                extraGen.phi,
         )
     print ''
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
-    COLOR = False
+    Analyzer.PARSER.add_argument('--color', dest='COLOR', action='store_true', help='whether to print reco matches in color')
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
     for METHOD in ('analyze',):
@@ -96,4 +95,5 @@ if __name__ == '__main__':
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
         BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON'),
+        PARAMS      = ARGS,
     )
