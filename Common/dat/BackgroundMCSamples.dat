@@ -1,6 +1,6 @@
 DY10to50
 /DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/stempl-MC2016_dy10To50_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 30935823
 0.1367
 1.0
@@ -8,7 +8,7 @@ _
 -
 DY50toInf
 /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/AODSIM
-_
+/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/stempl-MC2016_dy50ToInf_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 122547040
 0.1661
 1.0
@@ -88,7 +88,7 @@ _
 -
 WZ
 /WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 1000000
 0.0
 1.0
@@ -96,7 +96,7 @@ _
 -
 WZ_ext
 /WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
-_
+/WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 2997571
 0.0
 1.0
@@ -104,7 +104,7 @@ _
 -
 ZZ
 /ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 990064
 0.0
 1.0
@@ -112,7 +112,7 @@ _
 -
 ZZ_ext
 /ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
-_
+/ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 998034
 0.0
 1.0
@@ -120,7 +120,7 @@ _
 -
 WW
 /WWTo2L2Nu_13TeV-powheg-herwigpp/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/WWTo2L2Nu_13TeV-powheg-herwigpp/stempl-MC2016_WW_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 1999000
 0.0
 1.0
@@ -128,7 +128,7 @@ _
 -
 ttbar
 /TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/stempl-MC2016_ttbar_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 79140880
 0.0
 1.0
@@ -136,7 +136,7 @@ _
 -
 tW
 /ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
-_
+/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/stempl-MC2016_tW_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 6952830
 0.0
 1.0
@@ -144,7 +144,7 @@ _
 -
 tbarW
 /ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
-_
+/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/stempl-MC2016_tbarW_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 6933094
 0.0
 1.0
@@ -152,7 +152,7 @@ _
 -
 WJets
 /WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
-_
+/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/stempl-MC2016_Wjets_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 29804825
 0.0
 1.0

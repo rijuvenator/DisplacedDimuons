@@ -9,7 +9,8 @@ import DisplacedDimuons.Common.DataHandler as DH
 AODDatasetStrings = DH.DASQueryList('dataset=/HTo2LongLivedTo*_MH-*_MFF-*_CTau-*/escalant*/* instance=prod/phys03')
 
 # gets PAT Tuple datasets -- there may be many of these, and the regexes may have to be tweaked to be unique
-PATDatasetStrings = DH.DASQueryList('dataset=/HTo2LongLivedTo*_MH-*_MFF-*_CTau-*/adasgupt-MC2016_*/* instance=prod/phys03')
+#PATDatasetStrings = DH.DASQueryList('dataset=/HTo2LongLivedTo*_MH-*_MFF-*_CTau-*/adasgupt-MC2016_*/* instance=prod/phys03')
+PATDatasetStrings = DH.DASQueryList('dataset=/HTo2LongLivedTo*_MH-*_MFF-*_CTau-*/stempl-MC2016_*Jun2018-v1*/* instance=prod/phys03')
 
 # matches dataset string with six groups: final state (4mu or 2mu2jets), mH, mX, cTau (digits 1-4), process string (\S*), weird hash ID (\w*)
 # apply these to AODDatasetStrings
@@ -17,7 +18,8 @@ rxAOD = re.compile(r'/HTo2LongLivedTo(4mu|2mu2jets)_MH-(\d{1,4})_MFF-(\d{1,4})_C
 
 # matches PAT Tupler dataset string with five groups: final state (4mu or 2mu2jets), mH, mX, cTau (digits 1-4), weird hash ID (\w*)
 # apply these to PATDatasetStrings
-rxPAT = re.compile(r'/HTo2LongLivedTo(4mu|2mu2jets)_MH-(\d{1,4})_MFF-(\d{1,4})_CTau-(\d{1,4})mm\S*pythia8/adasgupt-MC2016_\S*-(\w*)/USER')
+#rxPAT = re.compile(r'/HTo2LongLivedTo(4mu|2mu2jets)_MH-(\d{1,4})_MFF-(\d{1,4})_CTau-(\d{1,4})mm\S*pythia8/adasgupt-MC2016_\S*-(\w*)/USER')
+rxPAT = re.compile(r'/HTo2LongLivedTo(4mu|2mu2jets)_MH-(\d{1,4})_MFF-(\d{1,4})_CTau-(\d{1,4})mm\S*pythia8/stempl-MC2016_\S*_Jun2018-v1-(\w*)/USER')
 
 # fill a list with split up metadata that will be sorted
 datasets = []
