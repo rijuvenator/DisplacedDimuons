@@ -42,7 +42,7 @@ class HistogramConfigurations(object):
         attributes = {
             'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
             'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*6.    ]                                  ],
+            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*.6    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
             'Lxy'        : [['L_{xy} [cm]'      , 100, 0.         , LxyUpper   ]                                  ],
             'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
@@ -50,7 +50,7 @@ class HistogramConfigurations(object):
             'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [cm]'       , 100, 0.         , cTau*2.    ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 100, 0.         , cTau*.2    ]                                  ],
             'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
             'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
             'LxyVSLz'    : [['L_{z} [cm]'       , 350, 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
@@ -142,7 +142,7 @@ def makeAliasesAndExpressions(fs):
         'dPhi' : 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
 
         # one per muon
-        'd0'   : '10.*({MU}.d0)',
+        'd0'   : '{MU}.d0',
         'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
     }
 

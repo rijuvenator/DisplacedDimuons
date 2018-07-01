@@ -8,7 +8,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]' , (1000, 0., 500.), (1000, -1. , 3. ), lambda muon: muon.pt              , 'p_{T}' , lambda rq, gq: (rq-gq)/gq, False),
+    ('pT' , 'p_{T} [GeV]' , (1000, 0., 500.), (1000, -1. , 1. ), lambda muon: muon.pt              , 'p_{T}' , lambda rq, gq: (rq-gq)/gq, False),
     ('Lxy', 'L_{xy} [cm]' , (1000, 0., 800.), (1000, -50., 50.), lambda dim : dim.Lxy()            , 'L_{xy}', lambda rq, gq: (rq-gq)   , True ),
     ('d0' , 'd_{0} [cm]'  , (1000, 0., 200.), (1000, -50., 50.), lambda muon: muon.d0()            , 'd_{0}' , lambda rq, gq: (rq-gq)   , True ),
     ('qm' , 'charge match', (2   , 0.,   2.), None             , lambda r, g: r.charge == g.charge , None    , None                     , None ),

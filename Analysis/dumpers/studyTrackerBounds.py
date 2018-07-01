@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
+from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # internal loop function for Analyzer class
@@ -29,20 +29,11 @@ def analyze(self, E, PARAMS=None):
         if not genMuonSelection: continue
 
         # check if any DSA muons match a genMuon
-        muonMatches = [None, None]
-        for i, genMuon in enumerate(genMuonPair):
-            matches = matchedMuons(genMuon, DSAmuons)
-            if len(matches) > 0:
-                muonMatches[i] = matches[0]['idx']
+        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
 
-        # if both genMuons matched, check if there is a dimuon with exactly those recoMuons
-        if muonMatches[0] is not None and muonMatches[1] is not None and muonMatches[0] != muonMatches[1]:
-            for dimuon in Dimuons:
-                if dimuon.idx1 in muonMatches and dimuon.idx2 in muonMatches:
-                    break
-            else:
-                if genMuonPair[0].Lxy() > 340.:
-                    dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS)
+        # print if exitcode 2: gen muons matched, but no dimuon found, and Lxy>340
+        if dimuon is None and exitcode == 2 and genMuonPair[0].Lxy() > 340.:
+            dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS)
 
 # dump info
 def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS):

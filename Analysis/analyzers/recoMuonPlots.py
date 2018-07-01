@@ -7,13 +7,14 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda muon: muon.pt                                     },
-    'eta'      : {'AXES':(1000,-3., 3.  ), 'LAMBDA': lambda muon: muon.eta                                    },
-    'd0'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.d0()                                   },
-    'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                },
-    'normChi2' : {'AXES':(1000, 0., 5.  ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0},
-    'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              },
-    'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        },
+    'pT'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda muon: muon.pt                                     , 'PRETTY':'p_{T} [GeV]'      },
+    'eta'      : {'AXES':(1000,-3., 3.  ), 'LAMBDA': lambda muon: muon.eta                                    , 'PRETTY':None               },
+    'd0'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.d0()                                   , 'PRETTY':'d_{0} [cm]'       },
+    'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                , 'PRETTY':None               },
+    'normChi2' : {'AXES':(1000, 0., 5.  ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, 'PRETTY':None               },
+    'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              , 'PRETTY':None               },
+    'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        , 'PRETTY':None               },
+    'pTSig'    : {'AXES':(1000, 0., 10. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -22,11 +23,9 @@ def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
 
         # the pretty strings are mostly in the cut dictionary
-        # but change this if new quantities are added, with a PRETTY key in CONFIG
-        # so use the Pretty version and tack on units for pT and d0
-        XTIT = Selections.PrettyTitles[KEY]
-        if KEY == 'pT': XTIT += ' [GeV]'
-        if KEY == 'd0': XTIT += ' [cm]'
+        # so use it if it's None
+        # but use the string given if not
+        XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
 
         for MUON in ('DSA', 'RSA'):
             self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])

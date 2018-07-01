@@ -15,11 +15,12 @@ def makeResPlots(quantity, fs):
     for sp in SIGNALPOINTS:
         DOFIT = quantity == 'pT'
         h = {
-            'DSA' : HISTS[(fs, sp)]['DSA_'+quantity+'Res'],
-            'RSA' : HISTS[(fs, sp)]['RSA_'+quantity+'Res']
+            'DSA' : HISTS[(fs, sp)]['DSA_'+quantity+'Res'].Clone(),
+            'RSA' : HISTS[(fs, sp)]['RSA_'+quantity+'Res'].Clone()
         }
         p = {}
         for MUON in h:
+            h[MUON].Rebin(10)
             p[MUON] = Plotter.Plot(h[MUON], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
 
@@ -71,7 +72,8 @@ def makeResPlots(quantity, fs):
 # DSA plot or RSA plot only (used here for DSA Lxy)
 def makeResPlotsSingle(quantity, fs, MUON):
     for sp in SIGNALPOINTS:
-        h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res']
+        h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res'].Clone()
+        h.Rebin(10)
         p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
 
@@ -153,6 +155,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
     for key in binranges:
+        plots[key].Rebin(10)
         if plots[key].Integral() != 0:
             plots[key].Scale(1./plots[key].Integral())
         canvas.addMainPlot(plots[key])
