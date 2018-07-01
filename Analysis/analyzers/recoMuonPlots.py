@@ -14,7 +14,7 @@ CONFIG = {
     'normChi2' : {'AXES':(1000, 0., 5.  ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, 'PRETTY':None               },
     'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              , 'PRETTY':None               },
     'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        , 'PRETTY':None               },
-    'pTSig'    : {'AXES':(1000, 0., 10. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
+    'pTSig'    : {'AXES':(1000, 0.,  3. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####
