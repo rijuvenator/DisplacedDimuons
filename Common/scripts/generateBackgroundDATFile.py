@@ -22,9 +22,9 @@ PATDatasets = {
     'WW'         : '/WWTo2L2Nu_13TeV-powheg-herwigpp/stempl-MC2016_WW_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
     'WJets'      : '/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/stempl-MC2016_Wjets_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
     'WZ'         : '/WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
-    'WZ_ext'     : '/WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
+    'WZ-ext'     : '/WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
     'ZZ'         : '/ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
-    'ZZ_ext'     : '/ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER'
+    'ZZ-ext'     : '/ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER'
 }
 
 # build and write the output file
@@ -44,6 +44,8 @@ for sample in reversed(samples):
         name = name.replace('To', 'to')
     if name == 'Wjets':
         name = 'WJets'
+    if '_ext' in name:
+        name = name.replace('_ext', '-ext')
 
     PATDataset = PATDatasets[name] if name in PATDatasets else '_'
 

@@ -94,7 +94,7 @@ WZ
 1.0
 47.13
 -
-WZ_ext
+WZ-ext
 /WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
 /WZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_WZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 2997571
@@ -110,7 +110,7 @@ ZZ
 1.0
 16.523
 -
-ZZ_ext
+ZZ-ext
 /ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM
 /ZZ_TuneCUETP8M1_13TeV-pythia8/stempl-MC2016_ZZ_ext_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER
 998034

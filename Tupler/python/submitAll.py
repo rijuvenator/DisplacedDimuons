@@ -2,11 +2,13 @@ import subprocess as bash
 import DisplacedDimuons.Common.DataHandler as DH
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
-# Saturday June 30 2018 at 10:00 CET:
-# all 33 signal point PAT Tuples are available for HTo2XTo2Mu2J
-# all 33 signal point PAT Tuples are available for HTo2XTo4Mu EXCEPT (1000, 350, 350)
-# all BG MC PAT Tuples are available except several mass binned DY and QCD
-# all of Double Muon Run 2016 PAT Tuples are available
+# Monday July 2 2018 at 10:47 CET:
+# all HTo2XTo2Mu2J signal    PAT Tuples are available (33)
+# all HTo2XTo4Mu   signal    PAT Tuples are available (33)
+# all BG MC                  PAT Tuples are available (12) EXCEPT
+#   - most mass binned DY
+#   - QCD
+# all DoubleMuon Run2016 B-H PAT Tuples are available (7)
 
 # change MODE to one of:
 #    --crab  (submit to CRAB)
@@ -20,10 +22,10 @@ MODE = '--crab'
 
 # block booleans
 Do_4Mu_GenOnly   = False
-Do_4Mu_AODOnly   = True
+Do_4Mu_AODOnly   = False
 Do_4Mu           = True
 Do_2Mu2J_GenOnly = False
-Do_2Mu2J_AODOnly = True
+Do_2Mu2J_AODOnly = False
 Do_2Mu2J         = True
 Do_Background    = True
 Do_Data          = True
@@ -47,8 +49,6 @@ if Do_4Mu_AODOnly:
 # submit all HTo2XTo4Mu signal PAT Tuple jobs
 if Do_4Mu:
     for mH, mX, cTau in SIGNALPOINTS:
-        # remove this line when this sample gets produced
-        if mH == 1000 and mX == 350 and cTau == 350: continue
         verbose('SIGNAL {} : {} {} {}'.format('HTo2XTo4Mu', mH, mX, cTau))
         bash.call('python runNTupler.py HTo2XTo4Mu   --signalpoint {mH} {mX} {cTau}           {MODE}'.format(**locals()), shell=True)
 
@@ -82,5 +82,6 @@ if Do_Background:
 if Do_Data:
     dataSamples = DH.getDataSamples()
     for data in dataSamples:
+        if 'ALICE' in data.name: continue
         verbose('DATA : {}'.format(data.name))
         bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)

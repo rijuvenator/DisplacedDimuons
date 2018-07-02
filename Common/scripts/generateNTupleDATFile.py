@@ -10,20 +10,40 @@ import os
 # except if the username is stempl, in which case it gets set to something else
 # Keep that in mind if running this script
 
-F_NTUPLE     = os.path.join(Constants.DIR_EOS, 'NTuples/ntuple_{}.root'        )
-F_AOD_NTUPLE = os.path.join(Constants.DIR_EOS, 'NTuples/aodOnly_ntuple_{}.root')
+F_NTUPLE = os.path.join(Constants.DIR_EOS, 'NTuples/ntuple_{}.root')
 
 output = ''
+
+# Signal samples
 for SP in Constants.SIGNALPOINTS:
     for FS in ('4Mu', '2Mu2J'):
         NAME = 'HTo2XTo{FS}_{SPSTR}'.format(FS=FS, SPSTR=Utilities.SPStr(SP))
-        if SP in Constants.PATSIGNALPOINTS and FS == '2Mu2J':
-            FNAME = F_NTUPLE.format(NAME)
-        else:
-            FNAME = F_AOD_NTUPLE.format(NAME)
+        FNAME = F_NTUPLE.format(NAME)
         output += '{NAME} {FNAME}\n'.format(**locals())
 
-for NAME in ('DY100to200', 'DoubleMuonRun2016D-07Aug17'):
+for NAME in (
+    # Background MC
+    'DY100to200'                   ,
+    'DY10to50'                     ,
+    'DY50toInf'                    ,
+    'tW'                           ,
+    'tbarW'                        ,
+    'ttbar'                        ,
+    'WW'                           ,
+    'WJets'                        ,
+    'WZ'                           ,
+    'WZ-ext'                       ,
+    'ZZ'                           ,
+    'ZZ-ext'                       ,
+    # Data
+    'DoubleMuonRun2016B-07Aug17-v2',
+    'DoubleMuonRun2016C-07Aug17'   ,
+    'DoubleMuonRun2016D-07Aug17'   ,
+    'DoubleMuonRun2016E-07Aug17'   ,
+    'DoubleMuonRun2016F-07Aug17'   ,
+    'DoubleMuonRun2016G-07Aug17'   ,
+    'DoubleMuonRun2016H-07Aug17'   ,
+    ):
     FNAME = F_NTUPLE.format(NAME)
     output += '{NAME} {FNAME}\n'.format(**locals())
 

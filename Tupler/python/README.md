@@ -1,6 +1,6 @@
 # How to run the nTupler
 
-Last updated: **26 June 2018**
+Last updated: **2 July 2018**
 
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
@@ -65,17 +65,11 @@ python runNTupler.py DoubleMuonRun2016D-07Aug17 --test --verbose
 
 Finally, **submitAll.py** submits the full suite of jobs; all that is needed is to change the `MODE` variable inside the script as desired. If desired, each of the submission blocks can be turned off with the `Do_*` booleans, and the user is free to place additional restrictions on which samples will be run (for example, by adding a conditional statement inside the loop).
 
-This script will be continually updated as we produce more PAT Tuples. Currently, the script will submit 136 jobs, corresponding to
-  * 132 jobs:
-    * 33 signal points
-    * for both signal models
-    * for gen only and AOD only
-  * 2 PAT jobs:
-    * 2 signal points
-    * for HTo2XTo2Mu2J only
-  * 2 PAT jobs:
-    * 1 Data dataset
-    * 1 Drell-Yan background MC dataset
+Currently, the script will submit 85 jobs, all running on PAT Tuples, corresponding to
+  * 33 jobs for all HTo2XTo4Mu signal points
+  * 33 jobs for all HTo2XTo2Mu2J signal points
+  * 12 jobs for most background MC samples
+  * 7 jobs for data DoubleMuon Run2016 B-H
 
 ## Utilities/
 
