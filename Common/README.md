@@ -39,4 +39,4 @@ The `scripts/` directory contains three important scripts which generate the .da
   * If there are three quantities and the last is an integer, _DataHandler_ will return a list of strings `FILE_1.root` through `FILE_N.root`.
   * If there are four quantities and the last two are integers, _DataHandler_ will return a list of strings `FILE_N1.root` through `FILE_N2.root`.
 
-Note that the data .dat file is created by hand, as it only contains one sample at the moment.
+Note that the data .dat file is created by hand, since the structure of this file is fairly simple to keep updated by hand.

@@ -65,6 +65,7 @@ The `scripts/` directory contains a few useful scripts, and also serve as exampl
   * **dumpOne.py** runs the DAS client and dumps information about one specified `HTo2LongLivedTo4mu` signal point sample.
   * **dumpEvents.py** runs the DAS client and dumps the number of events in each dataset.
   * **printBranches.py** takes the output of `edmDumpEventContent` on an AOD file and prints it in a neater format.
+  * **enumerateNTuples.py** prints the name, file size, and number of events for each of the nTuples.
 
 <a name="test"></a>
 ## Test

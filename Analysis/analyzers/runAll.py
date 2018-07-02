@@ -17,20 +17,54 @@ args = parser.parse_args()
 SCRIPT = args.SCRIPT
 FOLDER = args.FOLDER
 
-# to be handled more generally later
-BGSampleList   = ('DY100to200',)
-DataSampleList = ('DoubleMuonRun2016D-07Aug17',)
+BGSampleList = (
+    ('DY100to200', None        ),
+    ('DY10to50'  , None        ),
+    ('WJets'     , None        ),
+    ('WW'        , None        ),
+    ('WZ-ext'    , None        ),
+    ('WZ'        , None        ),
+    ('ZZ-ext'    , None        ),
+    ('ZZ'        , None        ),
+    ('tW'        , None        ),
+    ('tbarW'     , None        ),
+    ('DY50toInf' , (68, 100000)),
+    ('ttbar'     , (36, 100000)),
+)
+DataSampleList = (
+    ('DoubleMuonRun2016C-07Aug17', None        ),
+    #('DoubleMuonRun2016D-07Aug17', (17, 100000)),
+    #('DoubleMuonRun2016E-07Aug17', (16, 100000)),
+    #('DoubleMuonRun2016F-07Aug17', (13, 100000)),
+    #('DoubleMuonRun2016G-07Aug17', (32, 100000)),
+    #('DoubleMuonRun2016H-07Aug17', (37, 100000)),
+)
 
 # prepare input arguments
+# signal samples are all small 30000 event samples, so they get one job each
+# any BG or data sample less than 100K events will also get one job each
+# the others will be split up
 ArgsList = []
 if 'S' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
 if '2' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
 if 'B' in args.SAMPLES:
-    ArgsList.extend(['--name {}'.format(NAME) for NAME in BGSampleList])
+    for NAME, SPLITTING in BGSampleList:
+        if SPLITTING is None:
+            ArgsList.append('--name {}'.format(NAME))
+        else:
+            NJOBS, NEVENTS = SPLITTING
+            for i in xrange(NJOBS):
+                ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 if 'D' in args.SAMPLES:
-    ArgsList.extend(['--name {}'.format(NAME) for NAME in DataSampleList])
+    for NAME, SPLITTING in DataSampleList:
+        if SPLITTING is None:
+            ArgsList.append('--name {}'.format(NAME))
+        else:
+            NJOBS, NEVENTS = SPLITTING
+            for i in xrange(NJOBS):
+                ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
 submitScript = '''
 #!/bin/bash

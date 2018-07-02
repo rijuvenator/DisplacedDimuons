@@ -92,6 +92,10 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
     * _Individual_ applies each cut individually, with no other selections
     * _Sequential_ applies each cut sequentially, in order (i.e. N&minus;1, N&minus;2, etc.)
     * _N&minus;1_ applies all cuts except for a given cut
+  * **studyMatching.py** produces event dumps for studying multiple matches, i.e. when gen muons match multiple reco muons.
+    * **reformatMatching.py** converts the single-line output _studyMatching.py_ into a file with percentages instead of counts, without rerunning.
+  * **studypTRes.py** produces event dumps for studying the poor p<sub>T</sub> resolution for some signal points.
+  * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
 
 <a name="analyzers"></a>
 ## Analyzers
@@ -111,6 +115,7 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
+  * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
 <a name="runall"></a>
@@ -156,6 +161,7 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
+  * **makeSignalVertexFitEffPlots.py** makes plots from ROOT files produced by **signalVertexFitEffPlots.py**
   * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 
 The following plotters open a text file produced by a dumper and produce actual styled `.pdf` plot files, using the _Plotter_ library.
@@ -177,4 +183,7 @@ parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 `special/` is where I keep some very special-purpose analyzers. They were written for one-time checks, using specific files.
 
   * **comparePATtoAOD.py** takes 2 nTuples, for two signal points, one produced from a PAT Tuple and the other produced directly from AOD, and produces a few histograms, comparing the contents bin by bin, and printing to the screen if anything is different. This script served as a proof that _PATFilter_ did not change anything significant from AOD.
+
+The following script is deprecated and has been removed, having been replaced by other analyzers and dumpers.
+
   * **compareTrackerTweak.py** takes 2 nTuples, for two signal points, one produced without a constraint forcing vertex refits to be within the tracker, and one with produced with it. For the purposes of this analysis, we need to _remove_ the constraint (namely, set it to something large). This script, and its corresponding plotter script **plotTrackerTweak.py**, produce gen L<sub>xy</sub> distributions and efficiency as a function of gen L<sub>xy</sub>, and show the efficiency gain from removing the constraint, as well as the difference in distributions for large L<sub>xy</sub>.
