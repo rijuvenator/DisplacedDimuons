@@ -17,6 +17,7 @@ class HistogramConfigurations(object):
         self.fs = fs
 
         # these values help calculate useful bin limits
+        HErr = 0.05 * 3/2.
         XErr = 0.005
 
         # the Lxy upper is best set by whether it's the min, mid, or max cTau
@@ -39,21 +40,23 @@ class HistogramConfigurations(object):
         # and axisTuples are of format (title, nBins, binLow, binHigh)
         # makeAttrDict knows what to do with this exact format
         attributes = {
-            'massH'      : [['Higgs Mass [GeV]' , 3600, 0.,               1200.]                                  ],
-            'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*.6    ]                                  ],
-            'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
-            'Lxy'        : [['L_{xy} [cm]'      , 100, 0.         , LxyUpper   ]                                  ],
-            'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
-            'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100, -math.pi   , math.pi    ]                                  ],
-            'dPhiMuX'    : [['#muX #Delta#phi'  , 100, -math.pi   , math.pi    ]                                  ],
-            'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
-            'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
-            'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [cm]'       , 5000, 0.        , 5000.      ]                                  ],
-            'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
-            'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
-            'LxyVSLz'    : [['L_{z} [cm]'       , 350, 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
+            'massH'      : [['Higgs Mass [GeV]' , 3600, 0.         , 1200.      ]                                  ],
+           #'massH'      : [['Higgs Mass [GeV]' , 100 , mH*(1-HErr), mH*(1+HErr)]                                  ],
+            'pTH'        : [['Higgs p_{T} [GeV]', 100 , 0.         , HPtUpper   ]                                  ],
+            'cTau'       : [['c#tau [cm]'       , 100 , 0.         , cTau*.6    ]                                  ],
+            'beta'       : [['#beta = v/c'      , 100 , 0.         , 1.         ]                                  ],
+            'Lxy'        : [['L_{xy} [cm]'      , 100 , 0.         , LxyUpper   ]                                  ],
+            'dR'         : [['#DeltaR'          , 100 , 0.         , 4.5        ]                                  ],
+            'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100 , -math.pi   , math.pi    ]                                  ],
+            'dPhiMuX'    : [['#muX #Delta#phi'  , 100 , -math.pi   , math.pi    ]                                  ],
+            'massX'      : [['X Mass [GeV]'     , 100 , mX*(1-XErr), mX*(1+XErr)]                                  ],
+            'pTX'        : [['X p_{T} [GeV]'    , 100 , 0.         , XPtUpper   ]                                  ],
+            'cosAlpha'   : [['cos(#alpha)'      , 100 , -1.        , 1.         ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 5000, 0.         , 5000.      ]                                  ],
+           #'d0'         : [['d_{0} [cm]'       , 100 , 0.         , cTau*.2    ]                                  ],
+            'pTmu'       : [['#mu p_{T} [GeV]'  , 100 , 0.         , MuPtUpper  ]                                  ],
+            'etaMu'      : [['#mu #eta'         , 100 , -5.        , 5.         ]                                  ],
+            'LxyVSLz'    : [['L_{z} [cm]'       , 350 , 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
         }
 
         self.data = {}
@@ -140,11 +143,11 @@ def makeAliasesAndExpressions(fs):
 
         # one per X, uses mu1 and mu2 info
         'dPhiMuMu': 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
-        'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
 
         # one per muon
-        'd0'   : '{MU}.d0',
-        'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'd0'      : '{MU}.d0',
+        'pTrel'   : 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
     }
 
     # basic particle aliases are set in RootTools
@@ -175,7 +178,6 @@ def makeAliasesAndExpressions(fs):
         'Lxy'        : [],         # X Lxy          : Lxy
         'dR'         : [],         # X deltaR       : dR
         'dPhiMuMu'   : [],         # X deltaPhiMuMu : dPhiMuMu
-        'dPhiMuX'    : [],         # X deltaPhiMuX  : dPhiMuX
 
         # per X, alias in RT
         'massX'      : [],         # X mass         : X.mass
@@ -184,6 +186,7 @@ def makeAliasesAndExpressions(fs):
 
         # per muon, alias above
         'd0'         : [],         # mu d0          : d0
+        'dPhiMuX'    : [],         # X deltaPhiMuX  : dPhiMuX
 
         # per muon, alias in RT
         'pTmu'       : [],         # mu pT          : mu.pt
