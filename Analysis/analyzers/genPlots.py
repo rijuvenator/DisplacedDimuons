@@ -40,20 +40,23 @@ class HistogramConfigurations(object):
         # and axisTuples are of format (title, nBins, binLow, binHigh)
         # makeAttrDict knows what to do with this exact format
         attributes = {
-            'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
-            'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*.6    ]                                  ],
-            'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
-            'Lxy'        : [['L_{xy} [cm]'      , 100, 0.         , LxyUpper   ]                                  ],
-            'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
-            'dPhi'       : [['#mu #Delta#phi'   , 100, -math.pi   , math.pi    ]                                  ],
-            'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
-            'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
-            'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [cm]'       , 100, 0.         , cTau*.2    ]                                  ],
-            'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
-            'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
-            'LxyVSLz'    : [['L_{z} [cm]'       , 350, 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
+            'massH'      : [['Higgs Mass [GeV]' , 3600, 0.         , 1200.      ]                                  ],
+           #'massH'      : [['Higgs Mass [GeV]' , 100 , mH*(1-HErr), mH*(1+HErr)]                                  ],
+            'pTH'        : [['Higgs p_{T} [GeV]', 100 , 0.         , HPtUpper   ]                                  ],
+            'cTau'       : [['c#tau [cm]'       , 100 , 0.         , cTau*.6    ]                                  ],
+            'beta'       : [['#beta = v/c'      , 100 , 0.         , 1.         ]                                  ],
+            'Lxy'        : [['L_{xy} [cm]'      , 100 , 0.         , LxyUpper   ]                                  ],
+            'dR'         : [['#DeltaR'          , 100 , 0.         , 4.5        ]                                  ],
+            'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100 , -math.pi   , math.pi    ]                                  ],
+            'dPhiMuX'    : [['#muX #Delta#phi'  , 100 , -math.pi   , math.pi    ]                                  ],
+            'massX'      : [['X Mass [GeV]'     , 100 , mX*(1-XErr), mX*(1+XErr)]                                  ],
+            'pTX'        : [['X p_{T} [GeV]'    , 100 , 0.         , XPtUpper   ]                                  ],
+            'cosAlpha'   : [['cos(#alpha)'      , 100 , -1.        , 1.         ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 5000, 0.         , 5000.      ]                                  ],
+           #'d0'         : [['d_{0} [cm]'       , 100 , 0.         , cTau*.2    ]                                  ],
+            'pTmu'       : [['#mu p_{T} [GeV]'  , 100 , 0.         , MuPtUpper  ]                                  ],
+            'etaMu'      : [['#mu #eta'         , 100 , -5.        , 5.         ]                                  ],
+            'LxyVSLz'    : [['L_{z} [cm]'       , 350 , 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
         }
 
         self.data = {}
@@ -139,11 +142,12 @@ def makeAliasesAndExpressions(fs):
         'dR'   : '{MU1}.deltaR',
 
         # one per X, uses mu1 and mu2 info
-        'dPhi' : 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
+        'dPhiMuMu': 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
 
         # one per muon
-        'd0'   : '{MU}.d0',
-        'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'd0'      : '{MU}.d0',
+        'pTrel'   : 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
     }
 
     # basic particle aliases are set in RootTools
@@ -153,11 +157,11 @@ def makeAliasesAndExpressions(fs):
     def setAliases(X):
         # per X quantities
         # dPhi can be lumped in here because its keys are compatible
-        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhi'):
+        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhiMuMu'):
             aliases[key+X] = tformulae[key].format(X='X'+X, MU1='mu'+X+'1', MU2='mu'+X+'2')
 
         # per muon quantities
-        for key in ('d0', 'pTrel'):
+        for key in ('d0', 'pTrel', 'dPhiMuX'):
             for mu in ('1', '2'):
                 aliases[key+X+mu] = tformulae[key].format(MU='mu'+X+mu, X='X'+X)
 
@@ -165,38 +169,39 @@ def makeAliasesAndExpressions(fs):
     # the Draw wrapper above will draw them in order, adding a + for multiple
     expressions = {
         # fixed
-        'massH'      : ['H.mass'], # H0 mass      : H.mass
-        'pTH'        : ['H.pt'],   # H0 pT        : H.pT
+        'massH'      : ['H.mass'], # H0 mass        : H.mass
+        'pTH'        : ['H.pt'],   # H0 pT          : H.pT
 
         # per X, alias above
-        'cTau'       : [],         # X cTau       : cTau
-        'beta'       : [],         # X beta       : beta
-        'Lxy'        : [],         # X Lxy        : Lxy
-        'dR'         : [],         # X deltaR     : dR
-        'dPhi'       : [],         # X deltaPhi   : dPhi
+        'cTau'       : [],         # X cTau         : cTau
+        'beta'       : [],         # X beta         : beta
+        'Lxy'        : [],         # X Lxy          : Lxy
+        'dR'         : [],         # X deltaR       : dR
+        'dPhiMuMu'   : [],         # X deltaPhiMuMu : dPhiMuMu
 
         # per X, alias in RT
-        'massX'      : [],         # X mass       : X.mass
-        'pTX'        : [],         # X pT         : X.pT
-        'cosAlpha'   : [],         # X cosAlpha   : mu.cosAlpha
+        'massX'      : [],         # X mass         : X.mass
+        'pTX'        : [],         # X pT           : X.pT
+        'cosAlpha'   : [],         # X cosAlpha     : mu.cosAlpha
 
         # per muon, alias above
-        'd0'         : [],         # mu d0        : d0
+        'd0'         : [],         # mu d0          : d0
+        'dPhiMuX'    : [],         # X deltaPhiMuX  : dPhiMuX
 
         # per muon, alias in RT
-        'pTmu'       : [],         # mu pT        : mu.pt
-        'etaMu'      : [],         # mu eta       : mu.eta
+        'pTmu'       : [],         # mu pT          : mu.pt
+        'etaMu'      : [],         # mu eta         : mu.eta
 
         # 2D plots, handle specially
-        'LxyVSLz'    : [],         # Lxy vs Lz    : Lz:Lxy
+        'LxyVSLz'    : [],         # Lxy vs Lz      : Lz:Lxy
     }
     def setExpressions(X):
         # per X quantities with aliases
-        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhi'):
+        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuMu'):
             expressions[key].append(key+X)
 
         # per muon quantities with aliases
-        for key in ('d0',):
+        for key in ('d0','dPhiMuX'):
             for mu in ('1', '2'):
                 expressions[key].append(key+X+mu)
 
@@ -236,7 +241,8 @@ HList = (
    'beta'      ,
    'Lxy'       ,
    'dR'        ,
-   'dPhi'      ,
+   'dPhiMuMu'  ,
+   'dPhiMuX'   ,
    'massX'     ,
    'pTX'       ,
    'cosAlpha'  ,
