@@ -23,7 +23,6 @@ for SP in Constants.SIGNALPOINTS:
 
 for NAME in (
     # Background MC
-    'DY100to200'                   ,
     'DY10to50'                     ,
     'DY50toInf'                    ,
     'tW'                           ,

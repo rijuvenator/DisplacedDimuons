@@ -5,7 +5,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # Monday July 2 2018 at 10:47 CET:
 # all HTo2XTo2Mu2J signal    PAT Tuples are available (33)
 # all HTo2XTo4Mu   signal    PAT Tuples are available (33)
-# all BG MC                  PAT Tuples are available (12) EXCEPT
+# all BG MC                  PAT Tuples are available (11) EXCEPT
 #   - most mass binned DY
 #   - QCD
 # all DoubleMuon Run2016 B-H PAT Tuples are available (7)
@@ -18,7 +18,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # you can also append
 #    --verbose  (print out args, cmsRun cfg, and CRAB cfg)
 #    --nosubmit (do not submit this job, whether CRAB, BATCH, or local)
-MODE = '--crab'
+MODE = '--crab --nosubmit'
 
 # block booleans
 Do_4Mu_GenOnly   = False
@@ -82,6 +82,5 @@ if Do_Background:
 if Do_Data:
     dataSamples = DH.getDataSamples()
     for data in dataSamples:
-        if 'ALICE' in data.name: continue
         verbose('DATA : {}'.format(data.name))
         bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)

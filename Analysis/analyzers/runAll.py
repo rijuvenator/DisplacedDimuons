@@ -18,7 +18,6 @@ SCRIPT = args.SCRIPT
 FOLDER = args.FOLDER
 
 BGSampleList = (
-    ('DY100to200', None        ),
     ('DY10to50'  , None        ),
     ('WJets'     , None        ),
     ('WW'        , None        ),
@@ -32,18 +31,20 @@ BGSampleList = (
     ('ttbar'     , (36, 100000)),
 )
 DataSampleList = (
-    ('DoubleMuonRun2016C-07Aug17', None        ),
-    #('DoubleMuonRun2016D-07Aug17', (17, 100000)),
-    #('DoubleMuonRun2016E-07Aug17', (16, 100000)),
-    #('DoubleMuonRun2016F-07Aug17', (13, 100000)),
-    #('DoubleMuonRun2016G-07Aug17', (32, 100000)),
-    #('DoubleMuonRun2016H-07Aug17', (37, 100000)),
+    #('DoubleMuonRun2016B-07Aug17-v2', ()          ),
+    #('DoubleMuonRun2016C-07Aug17'   , ()          ),
+    #('DoubleMuonRun2016D-07Aug17'   , (17, 100000)),
+    #('DoubleMuonRun2016E-07Aug17'   , (16, 100000)),
+    #('DoubleMuonRun2016F-07Aug17'   , (13, 100000)),
+    #('DoubleMuonRun2016G-07Aug17'   , (32, 100000)),
+    #('DoubleMuonRun2016H-07Aug17'   , (37, 100000)),
 )
 
 # prepare input arguments
 # signal samples are all small 30000 event samples, so they get one job each
-# any BG or data sample less than 100K events will also get one job each
-# the others will be split up
+# any BG sample less than 100K events will also get one job each
+# the other BG samples will be split up
+# all data samples are huge and must be split up
 ArgsList = []
 if 'S' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
@@ -116,15 +117,16 @@ if not args.LOCAL:
     # run on LSF LXBATCH
     if not args.CONDOR:
         for index, ARGS in enumerate(ArgsList):
-            scriptName = 'submit_{index}.sh'                     .format(**locals())
-            open(scriptName, 'w').write(submitScript             .format(**locals()))
-            bash.call('bsub -q 1nh -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
-            bash.call('rm {scriptName}'                          .format(**locals()), shell=True)
+            scriptName = 'submit_{index}.sh'                         .format(**locals())
+            open(scriptName, 'w').write(submitScript                 .format(**locals()))
+            queue = '1nh' if 'splitting' not in ARGS else '8nh'
+            bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
+            bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
     # run on CONDOR
     else:
         bash.call('mkdir -p logs', shell=True)
         executableName = 'condorExecutable.sh'
-        open(executableName, 'w').write(condorExecutable         .format(**locals()))
+        open(executableName, 'w').write(condorExecutable             .format(**locals()))
         submitName = 'condorSubmit'
         for index, ARGS in enumerate(ArgsList):
             if FOLDER == 'analyzers':
@@ -144,7 +146,7 @@ if not args.LOCAL:
 
         open(submitName, 'w').write(condorSubmit)
         bash.call('chmod +x '+executableName                  , shell=True)
-        #bash.call('condor_submit '+submitName                 , shell=True)
+       #bash.call('condor_submit '+submitName                 , shell=True)
         bash.call('cp '+executableName+' '+submitName+' logs/', shell=True)
         bash.call('rm '+submitName                            , shell=True)
 

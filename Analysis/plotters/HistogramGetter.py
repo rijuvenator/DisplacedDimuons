@@ -5,7 +5,20 @@ Patterns = {
     'HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
     'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
-for sample in ('DY100to200', 'DoubleMuonRun2016D-07Aug17'):
+for sample in (
+    'DY100to200',
+    'DY10to50'  ,
+    'WJets'     ,
+    'WW'        ,
+    'WZ-ext'    ,
+    'WZ'        ,
+    'ZZ-ext'    ,
+    'ZZ'        ,
+    'tW'        ,
+    'tbarW'     ,
+    'DY50toInf' ,
+    'ttbar'     ,
+    ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 
 # get all histograms
