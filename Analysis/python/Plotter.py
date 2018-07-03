@@ -322,8 +322,17 @@ class Canvas(R.TCanvas):
                 plot.Draw(plot.option+' sames')
 
     # sets the canvas maximum to 5% above the maximum of all the plots in plotList
-    def setMaximum(self):
-        self.firstPlot.SetMaximum(1.05 * max([p.GetMaximum() for p in self.plotList]))
+    # recompute forces recomputation of the maximum (if it's wrong, for example)
+    def setMaximum(self, recompute=False):
+        if not recompute:
+            self.firstPlot.SetMaximum(1.05 * max([p.GetMaximum() for p in self.plotList]))
+        else:
+            realMax = 0.
+            for p in self.plotList:
+                for ibin in xrange(1, p.GetNbinsX()+1):
+                    if p.GetBinContent(ibin) > realMax:
+                        realMax = p.GetBinContent(ibin)
+            self.firstPlot.SetMaximum(1.05 * realMax)
 
     # creates the legend
     # lWidth is width as fraction of pad; height defaults to 0.2, offset defaults to 0.03
@@ -497,6 +506,47 @@ class Canvas(R.TCanvas):
             latex.DrawLatexNDC(pos[0], pos[1], text)
         else:
             latex.DrawLatex(pos[0], pos[1], text)
+        return latex
+
+    # makes a stat box, given a ROOT color number
+    def makeStatsBox(self, plot, color=1):
+        entries = ('mean', 'stddev', 'nentries', 'underflow', 'overflow')
+        texts = (
+            '{:.4f}'.format(plot.GetMean()),
+            '{:.4f}'.format(plot.GetStdDev()),
+            '{:.0f}'.format(plot.GetEntries()),
+            '{:.0f}'.format(plot.GetBinContent(0)),
+            '{:.0f}'.format(plot.GetBinContent(plot.GetNbinsX()+1)),
+        )
+        names = ('#bar{x}', 's', 'n', 'u', 'o')
+
+        # width = (max length + name + 2 spaces + equals) * an average character width that works
+        width = (max([len(t) for t in texts]) + 4)*0.015
+
+        # pave coordinates: 0.03 for offset from frame, len(entries)*self.fontsize is approximately the height
+        pave = R.TPaveText(1-self.margins['r']-0.03-width, 1-self.margins['t']-0.03-len(entries)*self.fontsize,
+                           1-self.margins['r']-0.03      , 1-self.margins['t']-0.03,
+                           'NDCNB'
+        )
+
+        # set pave styles: tl, normal, no margin, fill, or border
+        pave.SetTextAlign(13)
+        pave.SetTextFont(42)
+        pave.SetTextSize(self.fontsize*.9)
+        pave.SetMargin(0)
+        pave.SetFillStyle(0)
+        pave.SetFillColor(4000)
+        pave.SetLineStyle(0)
+        pave.SetLineColor(4000)
+
+        # add all the entries and draw, then move the pave
+        for i, (entry, text, name) in enumerate(zip(entries, texts, names)):
+            pave.AddText(0., 1.-float(i)/len(entries)-0.1, '#color[{C}]{{{N} = {T}}}'.format(C=color, N=name, T=text))
+        pave.Draw()
+        MOVE_OBJECT(pave, Y=.08*len(entries)*self.fontsize)
+
+        # make sure you keep a reference to this or the text will disappear
+        return pave
     
     # draws the lumi text, 'CMS', extra text, and legend 
     def finishCanvas(self, mode='', extrascale=1., drawCMS=True):

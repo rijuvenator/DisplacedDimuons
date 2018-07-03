@@ -8,7 +8,7 @@ fstring='\033[31mFail.\033[m\n'
 pushd ../analyzers/ >/dev/null
 
 # these scripts run on S B D
-for s in dimuonPlots recoMuonPlots nMinusOnePlots tailCumulativePlots
+for s in dimuonPlots recoMuonPlots nMinusOnePlots nMinusOneEffPlots tailCumulativePlots
 do
     printf "$pstring" $s " on SIGNAL... "
     python ${s}.py --name HTo2XTo4Mu --test >/dev/null 2>&1
@@ -25,7 +25,7 @@ do
 done
 
 # these scripts run on S
-for s in signalMatchEffPlots signalMatchResPlots signalMiscPlots genPlots
+for s in signalMatchEffPlots signalMatchResPlots genPlots
 do
     printf "$pstring" $s "... "
     python ${s}.py --name HTo2XTo4Mu --test >/dev/null 2>&1

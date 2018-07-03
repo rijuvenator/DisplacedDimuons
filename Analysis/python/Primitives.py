@@ -82,12 +82,18 @@ class ETree(object):
             if MCTYPE == 'HTo2XTo4Mu':
                 muons   =             [GenMuon    (self, i        )        for i in range(4)                       ]
                 mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                return muons + mothers
+                extramu =             []
+                if len(self.gen_eta) > 8:
+                    extramu =         [Muon       (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                return muons + mothers + [extramu]
             elif MCTYPE == 'HTo2XTo2Mu2J':
                 muons   =             [GenMuon    (self, i        )        for i in range(2)                       ]
                 jets    =             [GenMuon    (self, i        )        for i in range(2, 4)                    ]
                 mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                return muons + jets + mothers
+                extramu =             []
+                if len(self.gen_eta) > 8:
+                    extramu =         [Muon       (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                return muons + jets + mothers + [extramu]
             else:
                 return                [Particle   (self, i, 'gen_')        for i in range(len(self.gen_eta       ))]
         if KEY == 'MUON'     : return [AODMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
@@ -125,10 +131,12 @@ class Event(Primitive):
         Primitive.__init__(self)
         for attr in ('run', 'lumi', 'event', 'bx'):
             self.set(attr, E, 'evt_'+attr)
-        # for simplicity reasons the gen_weight and gen_pileup (FIXME) branches
+        # for simplicity reasons the gen_weight and gen_tnpv branches
         # are stored with prefix gen_, but they are per event so should be stored here
         if hasattr(E, 'gen_weight'):
-            self.set(attr, E, 'gen_weight')
+            self.set('weight', E, 'gen_weight')
+        if hasattr(E, 'gen_tnpv'):
+            self.set('nTruePV', E, 'gen_tnpv')
 
 # MET class
 class MET(Primitive):
@@ -218,7 +226,7 @@ class Particle(Primitive):
 
         # set pdgID for gen particles
         if prefix == 'gen_':
-            self.set(attr, E, prefix+'pdgID', i)
+            self.set('pdgID', E, prefix+'pdgID', i)
 
         # set position TVector3
         self.pos = R.TVector3(self.x, self.y, self.z)

@@ -1,4 +1,4 @@
-import DisplacedDimuons.Tupler.Utilities.dataHandler as DH
+import DisplacedDimuons.Common.DataHandler as DH
 
 FINALSTATE  = '4Mu'
 SIGNALPOINT = (125, 20, 13)

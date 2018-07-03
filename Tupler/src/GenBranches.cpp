@@ -44,9 +44,11 @@ bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &ge
 
 void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
     const edm::Handle<GenEventInfoProduct> &GEIPHandle,
+    const edm::Handle<std::vector<PileupSummaryInfo> > &pileupInfo,
     const bool isSignal,
     const std::string finalState)
 {
+  static bool alreadyPrinted_pileup = false;
   static bool debug = false;
   Reset();
 
@@ -58,13 +60,37 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   // set gen weight
   gen_weight = GEIP.weight();
 
+  // Extract the true number of primary vertices in the event for
+  // pileup reweighting if PileupSummaryInfo collection exists.  See
+  // https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3592/1/2/1/1/1/1.html
+  // for more details.
+  if (pileupInfo.failedToGet()) {
+    if (!alreadyPrinted_pileup) {
+      edm::LogWarning("SimpleNTupler")
+        << "+++ Warning: PileupSummaryInfo is not found +++";
+      alreadyPrinted_pileup = true;
+    }
+  }
+  else {
+    std::vector<PileupSummaryInfo>::const_iterator pi;
+    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++) {
+      int bx = pi->getBunchCrossing();
+      if (bx == 0) { 
+	gen_tnpv = pi->getTrueNumInteractions();
+	continue;
+      }
+    }
+  }
+
   // find appropriate gen particles and fill branches
   if      (isSignal && finalState == "4Mu"  ) Fill4Mu  (gens);
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
  
   if (debug) {
-    std::cout << "Gen info: weight = " << gen_weight << "; gen particles: \n";
+    std::cout << "Gen info: weight = " << gen_weight
+	      << " true number of primary vertices = " << gen_tnpv
+	      << "; gen particles: \n";
     std::cout << " idx |   id  | stat| moth|    pt   |    eta   |   phi   |    M    |    E   | q |        (x;y;z)        | \n";
     unsigned int nparts = gen_status.size();
     for (unsigned int i = 0; i < nparts; i++) {
@@ -111,11 +137,13 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
   const reco::Candidate   *P    = nullptr;
 
   // loop over the gen particles and look for muons
+  bool allSet = false;
   for (const auto &gen : gens)
   {
     if (abs(gen.pdgId()) == PDGID::MUON and gen.status() == 1)
     {
       muAll.push_back(&gen);
+      if (allSet) continue;
 
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
@@ -131,7 +159,8 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 
         // once mu22 is found, no need to keep looping over the gen particles
         // X1, X2, mu11, mu12, mu21, and mu22 should be set
-        if (mu22 != nullptr) break;
+        //if (mu22 != nullptr) break;
+        if (mu22 != nullptr) {allSet=true;}
       }
     }
   }
@@ -221,6 +250,8 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 // fill gen branches for P -> H -> XX -> 2Mu 2Jet
 void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 {
+  // muAll is for all muons
+  std::vector<const reco::GenParticle*> muAll;
   const reco::GenParticle *mup  = nullptr;
   const reco::GenParticle *mum  = nullptr;
   const reco::Candidate   *q1   = nullptr;
@@ -229,11 +260,16 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   const reco::Candidate   *XP   = nullptr;
   const reco::Candidate   *H    = nullptr;
   const reco::Candidate   *P    = nullptr;
+
+  bool allSet = false;
   for (const auto &gen : gens)
   {
     // look for X -> mu1 mu2
     if (abs(gen.pdgId()) == PDGID::MUON && gen.status() == 1)
     {
+      muAll.push_back(&gen);
+      if (allSet) continue;
+
       // p will be a dummy changeable pointer to a particle
       // first look for the mother X, then based on the pointer addresses,
       // set the appropriate X and mu pointers. then look for Higgs, then proton
@@ -255,17 +291,20 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
         edm::LogWarning("NTupler::GenBranches") << "+++ Warning: X' does not have 2 daughters. Filling nothing. +++";
         return;
       }
-      if (XP->daughter(0)->pdgId() > 0) {
-	q1 = XP->daughter(0);
-	q2 = XP->daughter(1);
+      if (XP->daughter(0)->pdgId() > 0)
+      {
+        q1 = XP->daughter(0);
+        q2 = XP->daughter(1);
       }
-      else {
-	q1 = XP->daughter(1);
-	q2 = XP->daughter(0);
+      else
+      {
+        q1 = XP->daughter(1);
+        q2 = XP->daughter(0);
       }
     }
     // if both mu's and X' are set, no need to keep looping over gen particles
-    if (mup != nullptr && mum != nullptr && XP != nullptr) break;
+    //if (mup != nullptr && mum != nullptr && XP != nullptr) break;
+    if (mup != nullptr && mum != nullptr && XP != nullptr) {allSet=true;}
   }
   // make sure X and X' are non-null
   if (X == nullptr || XP == nullptr)
@@ -292,6 +331,16 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 
   // fill the branches: mu+, mu-, q, qbar, X, X', H, and P
   std::vector<const reco::Candidate*> particles = {mup, mum, q1, q2, X, XP, H, P};
+  if (muAll.size() > 2)
+  {
+    for (const auto &mu : muAll)
+    {
+      if (std::find(particles.begin(), particles.end(), mu) == particles.end())
+      {
+        particles.push_back(mu);
+      }
+    }
+  }
   for (const auto &p : particles)
   {
     gen_status.push_back(p->status());

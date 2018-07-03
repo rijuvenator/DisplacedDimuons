@@ -47,11 +47,11 @@ def makeEffPlots(quantity, fs, SP=None):
         h[key].Rebin(10)
 
     NumDens = (
-        ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kRed    ),
-        ('RSA_Eff'      , 'Den'          , 'RSA'       , R.kBlue   ),
+        ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kBlue   ),
+        ('RSA_Eff'      , 'Den'          , 'RSA'       , R.kRed    ),
         ('Extra'        , 'Den'          , 'Extra'     , R.kMagenta),
-        ('DSA_ChargeEff', 'DSA_ChargeDen', 'DSA:Charge', R.kRed    ),
-        ('RSA_ChargeEff', 'RSA_ChargeDen', 'RSA:Charge', R.kBlue   ),
+        ('DSA_ChargeEff', 'DSA_ChargeDen', 'DSA:Charge', R.kBlue   ),
+        ('RSA_ChargeEff', 'RSA_ChargeDen', 'RSA:Charge', R.kRed    ),
     )
 
     for num, den, leg, col in NumDens:

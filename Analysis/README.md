@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **14 June 2018**
+Last updated: **20 June 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -58,6 +58,24 @@ for event in t:
 	for muon in muons:
 		print muon.pt, muon.eta, muon.phi, muon.energy
 ```
+
+  The _Analyzer_ library declares the _ETree_ and makes it available to the `analyze()` function as `E`. Here documents how each of the current _Primitives_ objects are declared in analysis code:
+
+```python
+Event                                         = E.getPrimitives('EVENT')
+HLTPaths, HLTMuons, L1TMuons                  = E.getPrimitives('TRIGGER')
+MET                                           = E.getPrimitives('MET')
+Filters                                       = E.getPrimitives('FILTER')
+Beamspot                                      = E.getPrimitives('BEAMSPOT')
+Vertex                                        = E.getPrimitives('VERTEX')
+mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+mu1, mu2, j1, j2, X, XP, H, P, extramu        = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+Muons                                         = E.getPrimitives('MUON')
+DSAMuons                                      = E.getPrimitives('DSAMUON')
+RSAMuons                                      = E.getPrimitives('RSAMUON')
+Dimuons                                       = E.getPrimitives('MUON')
+```
+
   * **RootTools.py** contains a few small ROOT-related additions.
     * The _TVector_ section improves the Python implementation of _TVector2_, _TVector3_, and _TLorentzVector_ by adding a few functions and fixing the interface so as to be a bit more uniform.
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P** or **mu1, mu2, j1, j2, X, XP, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
@@ -70,7 +88,14 @@ for event in t:
 
 The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`, which here is symbolically linked to the file in `../analyzers/`.
 
-  * **cutEfficiencies.py** produces lines of cut efficiencies for muon and dimuon cuts, both individually and sequentially.
+  * **cutEfficiencies.py** produces text output lines of _integrated_ selection efficiencies for muons and dimuons, in three "modes":
+    * _Individual_ applies each cut individually, with no other selections
+    * _Sequential_ applies each cut sequentially, in order (i.e. N&minus;1, N&minus;2, etc.)
+    * _N&minus;1_ applies all cuts except for a given cut
+  * **studyMatching.py** produces event dumps for studying multiple matches, i.e. when gen muons match multiple reco muons.
+    * **reformatMatching.py** converts the single-line output _studyMatching.py_ into a file with percentages instead of counts, without rerunning.
+  * **studypTRes.py** produces event dumps for studying the poor p<sub>T</sub> resolution for some signal points.
+  * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
 
 <a name="analyzers"></a>
 ## Analyzers
@@ -86,10 +111,11 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
   * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
+  * **nMinusOneEffPlots.py** produces N-1 efficiency plots as a function of various variables.
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
   * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
   * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
-  * **signalMiscPlots.py** produces a few other signal reco level plots that have not been moved into more dedicated analyzers.
+  * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
 <a name="runall"></a>
@@ -105,13 +131,19 @@ The `--samples` parameter is a string subset of `S2BD`, controlling whether this
 For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
-python runAll.py signalResEffPlots.py --samples S
+python runAll.py signalResEffPlots.py --samples S2
 ```
 
 while `nMinusOnePlots.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
 
 ```python
 python runAll.py nMinusOnePlots.py --samples S2BD
+```
+
+The `--folder` parameter defaults to `analyzers`, the folder where most of the analyzers are stored. If the analyzer is stored somewhere else (e.g. `dumpers`), pass the folder name:
+
+```python
+python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
 ```
 
 <a name="plotters"></a>
@@ -125,10 +157,11 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeRecoMuonPlots.py** makes plots from ROOT files produced by **recoMuonPlots.py**
   * **makeDimuonPlots.py** makes plots from ROOT files produced by **dimuonPlots.py**
   * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOnePlots.py**
+  * **makeNMinusOneEffPlots.py** makes plots from ROOT files produced by **nMinusOneEffPlots.py**
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
   * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
   * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
-  * **makeSignalMiscPlots.py** makes plots from ROOT files produced by **signalMiscPlots.py**
+  * **makeSignalVertexFitEffPlots.py** makes plots from ROOT files produced by **signalVertexFitEffPlots.py**
   * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 
 The following plotters open a text file produced by a dumper and produce actual styled `.pdf` plot files, using the _Plotter_ library.
@@ -150,4 +183,7 @@ parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 `special/` is where I keep some very special-purpose analyzers. They were written for one-time checks, using specific files.
 
   * **comparePATtoAOD.py** takes 2 nTuples, for two signal points, one produced from a PAT Tuple and the other produced directly from AOD, and produces a few histograms, comparing the contents bin by bin, and printing to the screen if anything is different. This script served as a proof that _PATFilter_ did not change anything significant from AOD.
+
+The following script is deprecated and has been removed, having been replaced by other analyzers and dumpers.
+
   * **compareTrackerTweak.py** takes 2 nTuples, for two signal points, one produced without a constraint forcing vertex refits to be within the tracker, and one with produced with it. For the purposes of this analysis, we need to _remove_ the constraint (namely, set it to something large). This script, and its corresponding plotter script **plotTrackerTweak.py**, produce gen L<sub>xy</sub> distributions and efficiency as a function of gen L<sub>xy</sub>, and show the efficiency gain from removing the constraint, as well as the difference in distributions for large L<sub>xy</sub>.

@@ -8,11 +8,11 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pt' )),
+    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
     ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
     ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0' , 'd_{0} [cm]' , (1000,     -10.,     10.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
+    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
+    ('d0' , 'd_{0} [cm]' , (1000,       0.,    200.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -40,10 +40,10 @@ def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:
-        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
         genMuons = (mu11, mu12, mu21, mu22)
     elif '2Mu2J' in self.NAME:
-        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
         genMuons = (mu1, mu2)
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
@@ -107,15 +107,11 @@ def analyze(self, E, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
     )
     analyzer.writeHistograms('roots/SignalMatchEffPlots_{}.root')

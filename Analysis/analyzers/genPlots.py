@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
-from DisplacedDimuons.Common.Constants import DIR_EOS_RIJU, SIGNALS, SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALS, SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -20,7 +20,7 @@ class HistogramConfigurations(object):
         XErr = 0.005
 
         # the Lxy upper is best set by whether it's the min, mid, or max cTau
-        LxyUppers = [150., 1500., 15000.]
+        LxyUppers = [15., 150., 1500.]
         LxyUpper = LxyUppers[SIGNALS[mH][mX].index(cTau)]
 
         # all the H PT seem to fit in 0-250
@@ -41,9 +41,9 @@ class HistogramConfigurations(object):
         attributes = {
             'massH'      : [['Higgs Mass [GeV]' , 3600, 0.,               1200.]                                  ],
             'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
-            'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
+            'cTau'       : [['c#tau [cm]'       , 100, 0.         , cTau*.6    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
-            'Lxy'        : [['L_{xy} [mm]'      , 100, 0.         , LxyUpper   ]                                  ],
+            'Lxy'        : [['L_{xy} [cm]'      , 100, 0.         , LxyUpper   ]                                  ],
             'dR'         : [['#DeltaR'          , 100, 0.         , 4.5        ]                                  ],
             'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100, -math.pi   , math.pi    ]                                  ],
             'dPhiMuX'    : [['#muX #Delta#phi'  , 100, -math.pi   , math.pi    ]                                  ],
@@ -53,7 +53,7 @@ class HistogramConfigurations(object):
             'd0'         : [['d_{0} [cm]'       , 5000, 0.        , 5000.      ]                                  ],
             'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
             'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
-            'LxyVSLz'    : [['L_{z} [mm]'       , 350, 0.         , 1000.      ], ['L_{xy} [mm]'   , 200, 0., 50.]],
+            'LxyVSLz'    : [['L_{z} [cm]'       , 350, 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
         }
 
         self.data = {}
@@ -95,7 +95,6 @@ def Draw(t, HConfig, key, expressions):
 # opens file, gets tree, sets aliases, declares histograms, fills histograms, closes file
 def fillPlots(fs, sp, HList, FNAME):
     # get file and tree
-    #f = R.TFile.Open('root://eoscms.cern.ch/'+DIR_EOS_RIJU + 'NTuples/genOnly_ntuple_{}_{}.root'.format('HTo2XTo'+fs, SPStr(sp)))
     f = R.TFile.Open(FNAME.format('HTo2XTo'+fs+'_'+SPStr(sp)))
     t = f.Get('SimpleNTupler/DDTree')
 
@@ -133,19 +132,19 @@ def makeAliasesAndExpressions(fs):
     # used to build TTree aliases below
     tformulae = {
         # one per X, uses mu1 info only
-        'cTau'    : '10.*{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
-        'beta'    : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
-        'Lxy'     : '10.*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
-        'Lz'      : 'abs({MU1}.z-{X}.z)',
-        'dR'      : '{MU1}.deltaR',
+        'cTau' : '{X}.mass/sqrt(pow({X}.energy,2)-pow({X}.mass,2))*sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2) + pow({MU1}.z-{X}.z,2))',
+        'beta' : 'sqrt(pow({X}.energy,2)-pow({X}.mass,2))/{X}.energy',
+        'Lxy'  : 'sqrt(pow({MU1}.x-{X}.x,2) + pow({MU1}.y-{X}.y,2))',
+        'Lz'   : 'abs({MU1}.z-{X}.z)',
+        'dR'   : '{MU1}.deltaR',
 
         # one per X, uses mu1 and mu2 info
         'dPhiMuMu': 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
         'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
 
         # one per muon
-        'd0'      : '1.*({MU}.d0)',
-        'pTrel'   : 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
+        'd0'   : '{MU}.d0',
+        'pTrel': 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
     }
 
     # basic particle aliases are set in RootTools
@@ -253,7 +252,7 @@ HList = (
 #### MAIN CODE ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     if not ARGS.NAME.startswith('HTo2X'):
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     fs = ARGS.NAME.replace('HTo2XTo', '')
@@ -261,7 +260,7 @@ if __name__ == '__main__':
     HAliases, HExpressions = makeAliasesAndExpressions(fs)
 
     HISTS[(fs, sp)] = {}
-    fillPlots(fs, sp, HList, ARGS.FNAME)
+    fillPlots(fs, sp, HList, ARGS.SAMPLE.getNTuples())
     print 'Created all plots for', fs, sp
 
     FileName = 'roots/GenPlots_HTo2XTo{FS}_{SP}.root'.format(FS=fs, SP=SPStr(sp)) if not ARGS.TEST else 'test.root'

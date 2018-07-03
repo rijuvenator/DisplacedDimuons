@@ -3,18 +3,19 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
+from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pt'      : {'AXES':( 0., 100.   ), 'LAMBDA': lambda dimuon: dimuon.pt      },
-    'eta'     : {'AXES':(-5., 5.     ), 'LAMBDA': lambda dimuon: dimuon.eta     },
-    'Lxy'     : {'AXES':( 0., 600.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   },
-    'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig()},
-    'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2},
-    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  },
-    'mass'    : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.mass    },
-    'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi},
-    'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha},
+    'pT'      : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      , 'PRETTY':'p_{T} [GeV]'    },
+    'eta'     : {'AXES':(-3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     , 'PRETTY':None             },
+    'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'    },
+    'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None             },
+    'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None             },
+    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':None             },
+    'mass'    : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'},
+    'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None             },
+    'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None             },
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -23,13 +24,12 @@ def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
 
         # the pretty strings are mostly in the cut dictionary
-        # but change this if new quantities are added, with a PRETTY key in CONFIG
-        # so use the Pretty version and tack on units for pT and Lxy
-        XTIT = Selections.PrettyTitles[KEY]
-        if KEY == 'pt' : XTIT += ' [GeV]'
-        if KEY == 'Lxy': XTIT += ' [cm]'
+        # so use it if it's None
+        # but use the string given if not
+        XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
 
-        self.HistInit('Dim_'+KEY, ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+        self.HistInit('Dim_'+KEY           , ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+        self.HistInit('Dim_'+KEY+'_Matched', ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -55,22 +55,43 @@ def analyze(self, E, PARAMS=None):
     elif not SelectDimuons and not SelectMuons:
         selectedDimuons = Dimuons
 
+    # fill histograms for every dimuon
     for dimuon in selectedDimuons:
         for KEY in CONFIG:
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon))
 
+    # get gen particles if this is a signal sample
+    if self.SP is not None:
+        if '4Mu' in self.NAME:
+            mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+            genMuons = (mu11, mu12, mu21, mu22)
+            genMuonPairs = ((mu11, mu12), (mu21, mu22))
+        elif '2Mu2J' in self.NAME:
+            mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+            genMuons = (mu1, mu2)
+            genMuonPairs = ((mu1, mu2),)
+
+        # fill histograms only for matched reco muons
+        for genMuonPair in genMuonPairs:
+            # require genMuonPair to be within acceptance
+            # don't do it for now
+            #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
+
+            # find the matching dimuon, if any, and fill
+            dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+
+            if dimuon is not None:
+                for KEY in CONFIG:
+                    self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon))
+
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
-        BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
+        ARGS        = ARGS,
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON'),
     )
     analyzer.writeHistograms('roots/DimuonPlots_{}.root')

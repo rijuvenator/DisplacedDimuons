@@ -9,8 +9,8 @@ import HistogramGetter
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/nMinusOnePlots.root')
 f = R.TFile.Open('../analyzers/roots/nMinusOnePlots.root')
 
-# make per signal plots
-def makePerSignalPlots():
+# make per sample plots
+def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
             if type(ref) == tuple:
@@ -91,5 +91,5 @@ def makeStackPlots(DataMC=False):
 
         canvas.cleanup(fname)
 
-makePerSignalPlots()
+makePerSamplePlots()
 makeStackPlots(True)
