@@ -17,7 +17,6 @@ class HistogramConfigurations(object):
         self.fs = fs
 
         # these values help calculate useful bin limits
-        HErr = 0.05 * 3/2.
         XErr = 0.005
 
         # the Lxy upper is best set by whether it's the min, mid, or max cTau
@@ -40,7 +39,7 @@ class HistogramConfigurations(object):
         # and axisTuples are of format (title, nBins, binLow, binHigh)
         # makeAttrDict knows what to do with this exact format
         attributes = {
-            'massH'      : [['Higgs Mass [GeV]' , 100, mH*(1-HErr), mH*(1+HErr)]                                  ],
+            'massH'      : [['Higgs Mass [GeV]' , 3600, 0.,               1200.]                                  ],
             'pTH'        : [['Higgs p_{T} [GeV]', 100, 0.         , HPtUpper   ]                                  ],
             'cTau'       : [['c#tau [mm]'       , 100, 0.         , cTau*6.    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100, 0.         , 1.         ]                                  ],
@@ -51,7 +50,7 @@ class HistogramConfigurations(object):
             'massX'      : [['X Mass [GeV]'     , 100, mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100, 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100, -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [mm]'       , 100, 0.         , cTau*2.    ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 5000, 0.        , 5000.      ]                                  ],
             'pTmu'       : [['#mu p_{T} [GeV]'  , 100, 0.         , MuPtUpper  ]                                  ],
             'etaMu'      : [['#mu #eta'         , 100, -5.        , 5          ]                                  ],
             'LxyVSLz'    : [['L_{z} [mm]'       , 350, 0.         , 1000.      ], ['L_{xy} [mm]'   , 200, 0., 50.]],
@@ -145,7 +144,7 @@ def makeAliasesAndExpressions(fs):
         'dPhiMuX' : 'TVector2::Phi_mpi_pi({MU}.phi-{X}.phi)',
 
         # one per muon
-        'd0'      : '10.*({MU}.d0)',
+        'd0'      : '1.*({MU}.d0)',
         'pTrel'   : 'sqrt(pow({MU}.pt*TMath::Sin({MU}.phi)-{X}.pt*TMath::Sin({X}.phi),2) + pow({MU}.pt*TMath::Cos({MU}.phi)-{X}.pt*TMath::Cos({X}.phi),2))',
     }
 
@@ -196,11 +195,11 @@ def makeAliasesAndExpressions(fs):
     }
     def setExpressions(X):
         # per X quantities with aliases
-        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuX'):
+        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuMu'):
             expressions[key].append(key+X)
 
         # per muon quantities with aliases
-        for key in ('d0','dPhiMuMu'):
+        for key in ('d0','dPhiMuX'):
             for mu in ('1', '2'):
                 expressions[key].append(key+X+mu)
 
@@ -240,7 +239,8 @@ HList = (
    'beta'      ,
    'Lxy'       ,
    'dR'        ,
-   'dPhi'      ,
+   'dPhiMuMu'  ,
+   'dPhiMuX'   ,
    'massX'     ,
    'pTX'       ,
    'cosAlpha'  ,
