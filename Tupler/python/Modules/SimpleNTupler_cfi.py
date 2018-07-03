@@ -24,8 +24,11 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 
         # Versions to be checked for other data sets
         ddmHLTPaths    = cms.vstring(
-            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v4", # 2016D data
-            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v6"  # MC
+            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v2", # 2016B
+            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v3", # 2016BC
+            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v4", # 2016CDEFG
+            "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v6"  # 2016H and MC
+#            "HLT_L2DoubleMu38_NoVertex_2Cha_Angle2p5_Mass10_v6"  # backup
         ),
         triggerResults = cms.InputTag('TriggerResults', '', 'HLT'),
 
