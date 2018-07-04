@@ -18,12 +18,14 @@ def makePerSamplePlots():
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
                 name += SPStr(ref[1])
                 lumi = '{} ({}, {}, {})'.format(ref[0], *ref[1])
+                legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 name = ref
-                lumi = ref
+                lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
+                legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
             h = HISTS[ref][key]
-            p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC', 'l', 'hist')
+            p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/NM1_{}_{}.pdf'.format(key, name)
             canvas = Plotter.Canvas(lumi=lumi)
             canvas.lumi += ' : |#Delta#Phi| ' + ('<' if '_Less' in key else '>') + ' #pi/2'
@@ -83,8 +85,8 @@ def makeStackPlots(DataMC=False):
         canvas.addLegendEntry(p['Signal'   ])
         canvas.legend.resizeHeight()
 
-        if DataMC:
-            canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
+#       if DataMC:
+#           canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
 
         p['Signal'    ].SetLineStyle(2)
         p['Signal'    ].SetLineColor(R.kRed)

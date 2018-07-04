@@ -461,8 +461,8 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'WZ-ext', 'ZZ', 'ZZ-ext', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'WZ ext.', 'ZZ', 'ZZ ext.', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
 // sample names and labels
 var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          ].concat(BGLIST);

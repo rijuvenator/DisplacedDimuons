@@ -6,13 +6,10 @@ Patterns = {
     'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
 for sample in (
-    'DY100to200',
     'DY10to50'  ,
     'WJets'     ,
     'WW'        ,
-    'WZ-ext'    ,
     'WZ'        ,
-    'ZZ-ext'    ,
     'ZZ'        ,
     'tW'        ,
     'tbarW'     ,
@@ -52,3 +49,20 @@ def getHistograms(FILE):
                     HISTS[sample][key] = f.Get(hkey)
                     HISTS[sample][key].SetDirectory(0)
     return HISTS
+
+PLOTCONFIG = {}
+PlotData = (
+    ('HTo2XTo4Mu'  , 'H#rightarrow2X#rightarrow4#mu'  , R.kBlue),
+    ('HTo2XTo2Mu2J', 'H#rightarrow2X#rightarrow2#mu2j', R.kBlue),
+    ('DY10to50'    , 'Drell-Yan M(10, 50)'            , 210    ),
+    ('DY50toInf'   , 'Drell-Yan M(50, #infty)'        , 209    ),
+    ('WJets'       , 'W+Jets'                         , 52     ),
+    ('WW'          , 'WW'                             , 208    ),
+    ('WZ'          , 'WZ'                             , 98     ),
+    ('ZZ'          , 'ZZ'                             , 94     ),
+    ('tW'          , 'tW'                             , 66     ),
+    ('tbarW'       , '#bar{t}W'                       , 63     ),
+    ('ttbar'       , 't#bar{t}'                       , 4      ),
+)
+for name, latex, color in PlotData:
+    PLOTCONFIG[name] = {'LATEX':latex, 'COLOR':color}

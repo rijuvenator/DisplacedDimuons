@@ -21,7 +21,7 @@ def makeResPlots(quantity, fs):
         p = {}
         for MUON in h:
             h[MUON].Rebin(10)
-            p[MUON] = Plotter.Plot(h[MUON], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+            p[MUON] = Plotter.Plot(h[MUON], 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
 
         if DOFIT:
@@ -74,7 +74,7 @@ def makeResPlotsSingle(quantity, fs, MUON):
     for sp in SIGNALPOINTS:
         h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res'].Clone()
         h.Rebin(10)
-        p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+        p = Plotter.Plot(h, 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
 
         canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))

@@ -72,9 +72,7 @@ ttbar /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_ttbar.root
 WW /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WW.root
 WJets /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WJets.root
 WZ /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WZ.root
-WZ-ext /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WZ-ext.root
 ZZ /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_ZZ.root
-ZZ-ext /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_ZZ-ext.root
 DoubleMuonRun2016B-07Aug17-v2 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016B-07Aug17-v2.root
 DoubleMuonRun2016C-07Aug17 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016C-07Aug17.root
 DoubleMuonRun2016D-07Aug17 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016D-07Aug17.root

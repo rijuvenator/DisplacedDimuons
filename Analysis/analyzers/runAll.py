@@ -21,9 +21,7 @@ BGSampleList = (
     ('DY10to50'  , None        ),
     ('WJets'     , None        ),
     ('WW'        , None        ),
-    ('WZ-ext'    , None        ),
     ('WZ'        , None        ),
-    ('ZZ-ext'    , None        ),
     ('ZZ'        , None        ),
     ('tW'        , None        ),
     ('tbarW'     , None        ),
@@ -31,8 +29,8 @@ BGSampleList = (
     ('ttbar'     , (36, 100000)),
 )
 DataSampleList = (
-    #('DoubleMuonRun2016B-07Aug17-v2', ()          ),
-    #('DoubleMuonRun2016C-07Aug17'   , ()          ),
+    #('DoubleMuonRun2016B-07Aug17-v2', ( 5, 100000)),
+    #('DoubleMuonRun2016C-07Aug17'   , (10, 100000)),
     #('DoubleMuonRun2016D-07Aug17'   , (17, 100000)),
     #('DoubleMuonRun2016E-07Aug17'   , (16, 100000)),
     #('DoubleMuonRun2016F-07Aug17'   , (13, 100000)),

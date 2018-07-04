@@ -31,9 +31,9 @@ for NAME in (
     'WW'                           ,
     'WJets'                        ,
     'WZ'                           ,
-    'WZ-ext'                       ,
+#   'WZ-ext'                       ,
     'ZZ'                           ,
-    'ZZ-ext'                       ,
+#   'ZZ-ext'                       ,
     # Data
     'DoubleMuonRun2016B-07Aug17-v2',
     'DoubleMuonRun2016C-07Aug17'   ,

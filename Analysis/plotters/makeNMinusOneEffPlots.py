@@ -29,9 +29,11 @@ def makePerSamplePlots():
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
                 name += SPStr(ref[1])
                 lumi = '{} ({}, {}, {})'.format(ref[0], *ref[1])
+                legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 name = ref
-                lumi = ref
+                lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
+                legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
             h = HISTS[ref][key].Clone()
             g = R.TGraphAsymmErrors(h, HISTS[ref][key.replace('Eff', 'Den')], 'cp')

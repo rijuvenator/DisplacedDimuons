@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, findDimuon
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
@@ -48,6 +48,8 @@ def declareHistograms(self, PARAMS=None):
             for KEY2 in CONFIG:
                 if KEY == 'Lxy' and KEY2 == 'qm': continue
                 self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+CONFIG[KEY]['RESAXES']))
+    self.HistInit('RefitBefore_pTRes', ';Reco p_{T} #minus gen p_{T} / gen_p{T};Counts', *CONFIG['pT']['RESAXES'])
+    self.HistInit('RefitAfter_pTRes' , ';Reco p_{T} #minus gen p_{T} / gen_p{T};Counts', *CONFIG['pT']['RESAXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -132,6 +134,15 @@ def analyze(self, E, PARAMS=None):
                         if KEY2 == 'qm': continue
                         F2 = CONFIG[KEY2]['LAMBDA']
                         self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
+
+        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+        if dimuon is not None:
+            F = CONFIG['pT']['LAMBDA']
+            RF = CONFIG['pT']['RESFUNC']
+            for which, index in enumerate(muonMatches):
+                self.HISTS['RefitBefore_pTRes'].Fill(RF(F(DSAmuons[index]), F(genMuonPair[which])))
+                refittedMuon = dimuon.mu1 if dimuon.idx1 == index else dimuon.mu2
+                self.HISTS['RefitAfter_pTRes'].Fill(RF(F(refittedMuon), F(genMuonPair[which])))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
