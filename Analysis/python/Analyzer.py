@@ -72,6 +72,10 @@ class Analyzer(object):
         self.SPLITTING  = ARGS.SPLITTING
         self.SAMPLE     = ARGS.SAMPLE
 
+        # if TREELOOP was explicitly False, ensure that SPLITTING is None
+        if not TREELOOP:
+            self.SPLITTING = None
+
         # set the input tree or list of input trees; see the getNTuples function in DataHandler
         # set it to FILES if FILES is specified, as a special override
         if FILES is None:
