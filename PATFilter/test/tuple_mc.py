@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import sys, os
+import json
 from DisplacedDimuons.PATFilter.PATTuple_cfg import cms, process
+from DisplacedDimuons.PATFilter.tools import query_yes_no
 
 #process.maxEvents.input = -1
 process.maxEvents.input = 500
@@ -103,52 +105,24 @@ def optimize_units_per_job(sample):
 
 
 if __name__ == '__main__' and 'submit' in sys.argv:
-    crab_cfg = '''
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
-config = config()
-custom_tag = '_Jun2018-v1'
-config.General.requestName = 'MC2016_%(name)s'+custom_tag
-config.General.workArea = 'crab'
-#config.General.transferLogs = True
-config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'crab/psets/tuple_mc_crab_%(name)s.py'
-config.Data.inputDataset =  '%(dataset)s'
-config.Data.publication = True
-# config.Data.publication = False
-config.Data.outputDatasetTag = 'MC2016_%(name)s'+custom_tag
-config.Data.outLFNDirBase    = '/store/user/' + getUsernameFromSiteDB()
-# config.Data.splitting = 'Automatic'
-config.Data.splitting = 'EventAwareLumiBased'
-config.Data.ignoreLocality = True
-config.Data.totalUnits = -1
-if getUsernameFromSiteDB() in ["escalant", "stempl"]:
-    storageSite = 'T2_AT_Vienna'
-else:
-    storageSite = 'T2_CH_CERN'
 
-if "USER" in config.Data.inputDataset:
-    inputDBS = 'phys03'
-else:
-    inputDBS = 'global'
-config.Data.inputDBS = inputDBS
-
-config.Site.whitelist = ["T2_*"]
-config.Site.storageSite = storageSite
-# config.Site.storageSite = 'T2_CH_CERN'
-'''
+    # load the CRAB configuration
+    with open('crab_cfg.json', 'r') as f:
+        crab_cfg = json.load(f)['config']
 
     just_testing = 'testing' in sys.argv or '--testing' in sys.argv
-    create_only  = 'create_only' in sys.argv
-    limit_memory = 'limit_memory' in sys.argv
-    fix_units_per_job = 'fix_units_per_job' in sys.argv
+    create_only  = 'create_only' in sys.argv or '--create_only' in sys.argv
+    limit_memory = 'limit_memory' in sys.argv or '--limit_memory' in sys.argv
+    fix_units_per_job = 'fix_units_per_job' in sys.argv or '--fix_units_per_job' in sys.argv
+    dryrun = 'dryrun' in sys.argv or '--dryrun' in sys.argv
+
 
     from DisplacedDimuons.PATFilter.MCSamples import samples
+
     for sample in samples:
-       
-        # if not 'dy50ToInf' in sample.name and \
-        #         not 'tbarW' in sample.name and \
-        #         not 'ttbar' in sample.name:
-        #     continue
+
+        if sample.name != 'Hto2Xto4mu_125_50_50':
+            continue
 
         print sample.name
         print sample.dataset
@@ -166,35 +140,71 @@ config.Site.storageSite = storageSite
         os.system('mkdir -p crab/psets')
         open(sample.pset,'wt').write(new_py)
 
-        open('crabConfig.py', 'wt').write(crab_cfg % sample.__dict__)
+        # extract 'custom_tag' from the dict such that it can be properly
+        # inserted again later on
+        sample_dict = sample.__dict__
+        sample_dict['custom_tag'] = crab_cfg['custom_tag']
 
-        # set max memory
-        with open('crabConfig.py', 'a') as f:
-            if limit_memory:
-                f.write('\nconfig.JobType.maxMemoryMB = 2500')
-            else:
-                f.write('\nconfig.JobType.maxMemoryMB = 8000')
+        # fill in all known sample values
+        for k in crab_cfg.keys():
+            crab_cfg[k] = (crab_cfg[k] % sample_dict)
 
-        # set units per job 
-        if 'config.Data.unitsPerJob' in crab_cfg:
-            raise RuntimeError('Double definition of ' \
-                    '\'config.Data.unitsPerJob\'')
+        # dynamically modify certain elements of crab_cfg 
+        if os.environ['USER'] in ['stempl']:
+            crab_cfg['config.Site.storageSite'] = "'T2_AT_Vienna'"
+        elif 'config.Site.storageSite' not in crab_cfg.keys():
+            crab_cfg['config.Site.storageSite'] = "'T2_CH_CERN'"
 
-        with open('crabConfig.py', 'a') as f:
-            cfg_key = 'config.Data.unitsPerJob' 
-            if not fix_units_per_job:
-                cfg_val = optimize_units_per_job(sample)
-            else:
-                # define user-specific value here
-                cfg_val = 15000
+        if "USER" in crab_cfg['config.Data.inputDataset']:
+            crab_cfg['config.Data.inputDBS'] = "'phys03'"
+        else:
+            crab_cfg['config.Data.inputDBS'] = "'global'"
 
-            f.write('\n{} = {}'.format(cfg_key, cfg_val))
+        if limit_memory:
+            crab_cfg['config.JobType.maxMemoryMB'] = "2500"
+        else:
+            crab_cfg['config.JobType.maxMemoryMB'] = "8000"
+
+        if not fix_units_per_job:
+            crab_cfg['config.Data.unitsPerJob'] = \
+                    str(optimize_units_per_job(sample))
+        else:
+            crab_cfg['config.Data.unitsPerJob'] = "15000"
+
+        # define entries that should not be written to the final config file
+        discard_keys = ['custom_tag']
+
+        # further preparations for the final output file
+        crab_cfg_str = 'from CRABClient.UserUtilities import config, ' \
+                'getUsernameFromSiteDB'
+        crab_cfg_str += '\nconfig = config()\n'
+        crab_cfg_str += '\n'.join(['{} = {}'.format(k,v) for k,v in zip(
+            crab_cfg.keys(), crab_cfg.values()) if k not in discard_keys])
+
+        # write the crab config file
+        open('crabConfig.py', 'wt').write(crab_cfg_str % sample_dict)
+        print('Crab config file \'crabConfig.py\' written.')
+
 
         if not just_testing:
-            if create_only:
-                sample.job = 'crab_%(name)s.py' % sample.__dict__
-                os.system('crab submit -c ' + sample.job)
+            print('\n\nCurrent CRAB configuration:\n')
+            with open('crabConfig.py', 'r') as cc:
+                for l in cc.readlines():
+                    print('    {}'.format(l.strip('\n')))
+
+            print('\n')
+            if not query_yes_no('Proceed with submission?', default='yes'):
+                print('Aborting submission...')
+                sys.exit(1)
             else:
-                os.system('crab submit -c crabConfig.py')
+                pass
+
+            dryrun_str = ' --dryrun' if dryrun else ''
+
+            if create_only:
+                sample.job = 'crab_%(name)s.py' % sample_dict
+                os.system('crab submit -c ' + sample.job + dryrun_str)
+            else:
+                os.system('crab submit -c crabConfig.py' + dryrun_str)
                 os.system('rm crabConfig.py')
 
