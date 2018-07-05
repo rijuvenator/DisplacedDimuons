@@ -32,7 +32,7 @@ def makeResPlots(quantity, fs):
                 h[MUON].Fit('f'+MUON)
                 fplots[MUON] = Plotter.Plot(funcs[MUON], 'Gaussian fit ({})'.format(MUON), 'l', '')
 
-        canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
         canvas.addMainPlot(p['DSA'])
         canvas.addMainPlot(p['RSA'], addS=True)
 
@@ -190,6 +190,9 @@ def makeRefittedResPlot(fs):
 
         canvas.makeLegend(lWidth=.25, pos='tr')
         canvas.legend.resizeHeight()
+
+        # temporary
+        canvas.firstPlot.setTitles(X='Reco p_{T} #minus gen p_{T} / gen p_{T}')
 
         p['Before'].SetLineColor(R.kRed )
         p['After' ].SetLineColor(R.kBlue)

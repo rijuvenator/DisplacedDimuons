@@ -14,7 +14,7 @@ def makePerSignalPlots(fs):
         for key in HISTS[(fs, sp)]:
             h = HISTS[(fs, sp)][key]
             p = Plotter.Plot(h, '', 'p', 'hist')
-            canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+            canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
             canvas.addMainPlot(p)
             p.SetLineColor(R.kBlue)
             pave = canvas.makeStatsBox(p, color=R.kBlue)

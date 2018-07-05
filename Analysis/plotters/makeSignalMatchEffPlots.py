@@ -63,7 +63,7 @@ def makeEffPlots(quantity, fs, SP=None):
     SECOND = (3, 5)
     CHARGE = ''
     for SECTION in (FIRST, SECOND):
-        canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({}, {}, {})'.format(fs, *SP))
+        canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({} GeV, {} GeV, {} mm)'.format(fs, *SP))
         for i in range(SECTION[0], SECTION[1]):
             key = NumDens[i][0]
             col = NumDens[i][3]

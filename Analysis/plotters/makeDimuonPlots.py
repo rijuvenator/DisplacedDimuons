@@ -20,7 +20,7 @@ def makePerSamplePlots():
                     name = 'HTo2XTo2Mu2J_'
                     latexFS = '2#mu2j'
                 name += SPStr(ref[1])
-                lumi = '{} ({}, {}, {})'.format(ref[0], *ref[1])
+                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 name = ref

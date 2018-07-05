@@ -17,7 +17,7 @@ def makePerSignalPlots():
                 if ref[0] == '4Mu': name = 'HTo2XTo4Mu_'
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
                 name += SPStr(ref[1])
-                lumi = '{} ({}, {}, {})'.format(ref[0], *ref[1])
+                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
             else:
                 name = ref
                 lumi = ref

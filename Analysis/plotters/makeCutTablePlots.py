@@ -56,7 +56,7 @@ f.close()
 def makeIndividualPlots(obj, dtype, key):
     if type(key) == tuple:
         fs, sp = key
-        lumi = '{} ({}, {}, {})'.format(fs, *sp)
+        lumi = '{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp)
         fname = 'pdfs/CutTable_{}-{}_HTo2XTo{}_{}.pdf'.format(obj, dtype, fs, SPStr(sp))
     else:
         sample = key
