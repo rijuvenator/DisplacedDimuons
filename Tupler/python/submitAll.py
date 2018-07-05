@@ -18,7 +18,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # you can also append
 #    --verbose  (print out args, cmsRun cfg, and CRAB cfg)
 #    --nosubmit (do not submit this job, whether CRAB, BATCH, or local)
-MODE = '--crab --nosubmit'
+MODE = '--crab'
 
 # block booleans
 Do_4Mu_GenOnly   = False

@@ -9,7 +9,7 @@ if not 'lxplus' in os.environ['HOSTNAME']:
     PREFIX = Constants.PREFIX_CERN
 else:
     PREFIX = ''
-F_SIGNAL = PREFIX+'/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/aodOnly_ntuple_HTo2XTo4Mu_125_20_13.root'
+F_SIGNAL = PREFIX+Constants.DIR_EOS+'NTuples/ntuple_HTo2XTo4Mu_125_20_13.root'
 
 def tprint(msg):
     print '\033[32mSELECTIONS TEST: ' + msg + '\033[m'

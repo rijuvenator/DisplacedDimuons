@@ -174,6 +174,37 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     canvas.cleanup(fname)
 
+def makeRefittedResPlot(fs):
+    for sp in SIGNALPOINTS:
+        h = {}
+        p = {}
+        for TAG in ('Before', 'After'):
+            h[TAG] = HISTS[(fs, sp)]['Refit'+TAG+'_pTRes'].Clone()
+            h[TAG].Rebin(10)
+            p[TAG] = Plotter.Plot(h[TAG], TAG + ' fit', 'l', 'hist')
+        fname = 'pdfs/SMR_RefitBA_pTRes_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp))
+
+        canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+        canvas.addMainPlot(p['Before'])
+        canvas.addMainPlot(p['After'])
+
+        canvas.makeLegend(lWidth=.25, pos='tr')
+        canvas.legend.resizeHeight()
+
+        p['Before'].SetLineColor(R.kRed )
+        p['After' ].SetLineColor(R.kBlue)
+        canvas.setMaximum()
+
+        # top left edge
+        tle = {'x':canvas.legend.GetX1NDC(), 'y':canvas.legend.GetY1NDC()-0.02}
+
+        canvas.drawText('#color[{:d}]{{#bar{{x}} = {:.4f}'   .format(R.kRed , h['Before'].GetMean())   + '}', (tle['x'], tle['y']    ))
+        canvas.drawText('#color[{:d}]{{s = {:.4f}'           .format(R.kRed , h['Before'].GetStdDev()) + '}', (tle['x'], tle['y']-.04))
+        canvas.drawText('#color[{:d}]{{#bar{{x}} = {:.4f}'   .format(R.kBlue, h['After' ].GetMean())   + '}', (tle['x'], tle['y']-.08))
+        canvas.drawText('#color[{:d}]{{s = {:.4f}'           .format(R.kBlue, h['After' ].GetStdDev()) + '}', (tle['x'], tle['y']-.12))
+
+        canvas.cleanup(fname)
+
 # make plots
 if len(sys.argv) == 1: FS = '4Mu'
 else: FS = sys.argv[1]
@@ -199,3 +230,5 @@ for fs in (FS,):
             # 1D resolution binned by gen quantity
                 for sp in SIGNALPOINTS:
                     makeBinnedResPlot(MUON, quantity, q2, fs, sp)
+
+    makeRefittedResPlot(fs)

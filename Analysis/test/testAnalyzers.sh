@@ -15,7 +15,7 @@ do
     if [ $? -ne 0 ]; then printf $fstring; else printf $sstring; fi
 
     printf "$pstring" $s " on BACKGROUND... "
-    python ${s}.py --name DY100to200 --test >/dev/null 2>&1
+    python ${s}.py --name DY50toInf --test >/dev/null 2>&1
     if [ $? -ne 0 ]; then printf $fstring; else printf $sstring; fi
 
     printf "$pstring" $s " on DATA... "
@@ -25,7 +25,7 @@ do
 done
 
 # these scripts run on S
-for s in signalMatchEffPlots signalMatchResPlots genPlots
+for s in signalMatchEffPlots signalMatchResPlots signalVertexFitEffPlots genPlots
 do
     printf "$pstring" $s "... "
     python ${s}.py --name HTo2XTo4Mu --test >/dev/null 2>&1

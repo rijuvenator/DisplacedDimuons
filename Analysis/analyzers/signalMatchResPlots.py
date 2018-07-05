@@ -48,8 +48,8 @@ def declareHistograms(self, PARAMS=None):
             for KEY2 in CONFIG:
                 if KEY == 'Lxy' and KEY2 == 'qm': continue
                 self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+CONFIG[KEY]['RESAXES']))
-    self.HistInit('RefitBefore_pTRes', ';Reco p_{T} #minus gen p_{T} / gen_p{T};Counts', *CONFIG['pT']['RESAXES'])
-    self.HistInit('RefitAfter_pTRes' , ';Reco p_{T} #minus gen p_{T} / gen_p{T};Counts', *CONFIG['pT']['RESAXES'])
+    self.HistInit('RefitBefore_pTRes', ';Reco p_{T} #minus gen p_{T} / gen p_{T};Counts', *CONFIG['pT']['RESAXES'])
+    self.HistInit('RefitAfter_pTRes' , ';Reco p_{T} #minus gen p_{T} / gen p_{T};Counts', *CONFIG['pT']['RESAXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
