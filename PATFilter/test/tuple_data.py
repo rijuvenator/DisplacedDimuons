@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import sys, os, datetime, FWCore.ParameterSet.Config as cms
+import json
 from DisplacedDimuons.PATFilter.PATTuple_cfg import process
+from DisplacedDimuons.PATFilter.tools import query_yes_no
 #from crab_cfg import crab_cfg
 
 #process.maxEvents.input = -1
@@ -41,47 +43,11 @@ process.report = cms.EndPath(process.hlTrigReport)
 #print process.dumpPython()
 
 if __name__ == '__main__' and 'submit' in sys.argv:
-    crab_cfg = '''
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
-config = config()
-custom_tag = '_Jun2018-v1'
-config.General.requestName = 'PATFilter_%(name)s'+custom_tag
-config.General.workArea = 'crab'
-#config.General.transferLogs = True
-config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'tuple_data_crab.py'
-config.Data.inputDataset =  '%(ana_dataset)s'
-config.Data.publication = True
-# config.Data.publication = False
-config.Data.outputDatasetTag = 'PATFilter_%(name)s'+custom_tag
-config.Data.outLFNDirBase = '/store/user/' + getUsernameFromSiteDB()
-config.Data.ignoreLocality = True
-config.Data.splitting = 'LumiBased'
-config.Data.totalUnits = -1
-config.Data.unitsPerJob = 20
-config.Data.runRange = '273150-284044' # full run range for 2016 data
-# config.Data.runRange = '276315-276320' # for small test
-config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_MuonPhys.txt'
-config.Site.whitelist = ["T2_*"]
-
-if getUsernameFromSiteDB() in ["escalant", "stempl"]:
-    storageSite = 'T2_AT_Vienna'
-else:
-    storageSite = 'T2_CH_CERN'
-
-config.Site.storageSite = storageSite
-
-if "USER" in config.Data.inputDataset:
-    inputDBS = 'phys03'
-    print('WARNING: You are using phys03 DBS - are you sure about this?')
-else:
-    inputDBS = 'global'
-config.Data.inputDBS = inputDBS
-'''
 
     #create_only = 'create_only' in sys.argv
-    just_testing = 'testing' in sys.argv
-    limit_memory = 'limit_memory' in sys.argv
+    just_testing = 'testing' in sys.argv or '--testing' in sys.argv
+    limit_memory = 'limit_memory' in sys.argv or '--limit_memory' in sys.argv
+    dryrun = 'dryrun' in sys.argv or '--dryrun' in sys.argv
 
     # 7-Aug-2017 re-reco of the 2016 dataset: 287,057,183 events; 66.5 TB
     dataset_details = [
@@ -101,23 +67,74 @@ config.Data.inputDBS = inputDBS
         ('DoubleMuonRun2016H-07Aug17', '/DoubleMuon/Run2016H-07Aug17-v1/AOD')
         ]
 
+    # load the CRAB configuration
+    with open('crab_cfg.json', 'r') as f:
+        crab_cfg = json.load(f)['config_data']
+
     for name, ana_dataset in dataset_details:
         print name
 
         new_py = open('tuple_data.py').read()
         open('tuple_data_crab.py', 'wt').write(new_py)
-  
-        open('crabConfig.py', 'wt').write(crab_cfg % locals())
 
-        # set max memory
-        with open('crabConfig.py', 'a') as f:
-            if limit_memory:
-                f.write('\nconfig.JobType.maxMemoryMB = 2500')
-            else:
-                f.write('\nconfig.JobType.maxMemoryMB = 8000')
+         # extract 'custom_tag' from the dict such that it can be properly
+        # inserted again later on
+        locals_dict = locals()
+        locals_dict['custom_tag'] = crab_cfg['custom_tag']
+
+        # fill in all known values
+        for k in crab_cfg.keys():
+            crab_cfg[k] = (crab_cfg[k] % locals_dict)
+
+        # dynamically modify certain elements of crab_cfg 
+        if os.environ['USER'] in ['stempl']:
+            crab_cfg['config.Site.storageSite'] = "'T2_AT_Vienna'"
+        elif 'config.Site.storageSite' not in crab_cfg.keys():
+            crab_cfg['config.Site.storageSite'] = "'T2_CH_CERN'"
+
+        if "USER" in crab_cfg['config.Data.inputDataset']:
+            print('+++ Warning: You are using phys03 DBS. ' \
+                    'Are you sure about this?')
+            crab_cfg['config.Data.inputDBS'] = "'phys03'"
+        else:
+            crab_cfg['config.Data.inputDBS'] = "'global'"
+
+        if limit_memory:
+            crab_cfg['config.JobType.maxMemoryMB'] = "2500"
+        else:
+            crab_cfg['config.JobType.maxMemoryMB'] = "8000"
+
+        # define entries that should not be written to the final config file
+        discard_keys = ['custom_tag']
+
+        # further preparations for the final output file
+        crab_cfg_str = 'from CRABClient.UserUtilities import config, ' \
+                'getUsernameFromSiteDB'
+        crab_cfg_str += '\nconfig = config()\n'
+        crab_cfg_str += '\n'.join(['{} = {}'.format(k,v) for k,v in zip(
+            crab_cfg.keys(), crab_cfg.values()) if k not in discard_keys])
+
+        # write the crab config file
+        open('crabConfig.py', 'wt').write(crab_cfg_str % locals_dict)
+        print('Crab config file \'crabConfig.py\' written.')
 
         if not just_testing:
-            os.system('crab submit -c crabConfig.py')
+            print('\n\nCurrent CRAB configuration:\n')
+            with open('crabConfig.py', 'r') as cc:
+                for l in cc.readlines():
+                    print('    {}'.format(l.strip('\n')))
+
+            print('\n')
+            if not query_yes_no('Proceed with submission?', default='yes'):
+                print('Aborting submission...')
+                sys.exit(1)
+            else:
+                pass
+
+            dryrun_str = ' --dryrun' if dryrun else ''
+
+            os.system('crab submit -c crabConfig.py' + dryrun_str)
 
     if not just_testing:
         os.system('rm crabConfig.py crabConfig.pyc tuple_data_crab.py tuple_data_crab.pyc')
+

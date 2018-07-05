@@ -108,7 +108,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
     # load the CRAB configuration
     with open('crab_cfg.json', 'r') as f:
-        crab_cfg = json.load(f)['config']
+        crab_cfg = json.load(f)['config_mc']
 
     just_testing = 'testing' in sys.argv or '--testing' in sys.argv
     create_only  = 'create_only' in sys.argv or '--create_only' in sys.argv

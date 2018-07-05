@@ -1,6 +1,6 @@
 {
-    "config": {
-        "custom_tag": "'_crab_cfg_testing-v1'",
+    "config_mc": {
+        "custom_tag": "'_MMYYYY-vXX'",
         "config.General.requestName": "'MC2016_%(name)s'+%(custom_tag)s",
         "config.General.workArea": "'crab'",
         "config.General.transferLogs": "True",
@@ -16,6 +16,32 @@
         "config.Data.totalUnits": "-1",
         "config.Site.storageSite": "'T2_CH_CERN'",
         "config.Site.whitelist": "['T1_*', 'T2_*']"
+    },
+
+    "config_data": {
+        "custom_tag": "'_MMYYYY-vXX'",
+        "config.General.requestName": "'PATFilter_%(name)s'+%(custom_tag)s",
+        "config.General.workArea": "'crab'",
+        "config.General.transferLogs": "True",
+        "config.JobType.pluginName": "'Analysis'",
+        "config.JobType.psetName": "'tuple_data_crab.py'",
+        "config.Data.inputDataset": "'%(ana_dataset)s'",
+        "config.Data.publication": "False",
+        "config.Data.outputDatasetTag": "'PATFilter_%(name)s'+%(custom_tag)s",
+        "config.Data.outLFNDirBase": "'/store/user/' + getUsernameFromSiteDB()",
+        "config.Data.splitting": "'LumiBased'",
+        "config.Data.unitsPerJob": "20",
+        "config.Data.runRange":  "'273150-284044'",
+        "config.Data.lumiMask": "'/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_MuonPhys.txt'",
+        "config.Data.ignoreLocality": "True",
+        "config.Data.inputDBS": "'global'",
+        "config.Data.totalUnits": "-1",
+        "config.Site.storageSite": "'T2_CH_CERN'",
+        "config.Site.whitelist": "['T1_*', 'T2_*']"
+    },
+    "_comments_for_config_data": {
+        "full run range for 2016 data": "'273150-284044'",
+        "run subrange for small tests": "'276315-276320'" 
     }
 }
 
