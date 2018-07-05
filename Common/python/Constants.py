@@ -5,7 +5,7 @@ if 'stempl' in os.environ['USER']:
     DIR_WS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
     DIR_EOS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
 
-    PREFIX_CERN=''
+    PREFIX_CERN='root://eoscms.cern.ch/'
     PREFIX_FNAL=''
 else:
     DIR_WS= '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
