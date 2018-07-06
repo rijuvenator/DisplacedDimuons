@@ -18,6 +18,9 @@ else:
 CMSSW_BASE   = os.environ['CMSSW_BASE']
 DIR_DD = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
 
+LLX_PDGID = 6000113
+ABS_MUON_PDGID = 13
+
 # signal points as list of tuples
 SIGNALPOINTS = [
 	(1000, 350,   35),
