@@ -77,6 +77,12 @@ effect. Apart from that, all arguments can be applied in any combination.
 
   > *Example:* `python tuple_mc.py submit dryrun`
 
+- **`disable_confirmation`**: per default, the user is shown the final CRAB
+  configuration and has to invoke the actual CRAB submission by confirming it -
+  this command line argument disables the confirmation prompt
+
+  > *Example:* `python tuple_mc.py submit disable_confirmation`
+
 - **`create_only`**
 
   > *Example:* `python tuple_mc.py submit create_only`

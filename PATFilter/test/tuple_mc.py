@@ -113,8 +113,11 @@ if __name__ == '__main__' and 'submit' in sys.argv:
     just_testing = 'testing' in sys.argv or '--testing' in sys.argv
     create_only  = 'create_only' in sys.argv or '--create_only' in sys.argv
     limit_memory = 'limit_memory' in sys.argv or '--limit_memory' in sys.argv
-    fix_units_per_job = 'fix_units_per_job' in sys.argv or '--fix_units_per_job' in sys.argv
+    fix_units_per_job = 'fix_units_per_job' in sys.argv or \
+            '--fix_units_per_job' in sys.argv
     dryrun = 'dryrun' in sys.argv or '--dryrun' in sys.argv
+    disable_confirmation = 'disable_confirmation' in sys.argv or \
+            '--disable_confirmation' in sys.argv
 
 
     from DisplacedDimuons.PATFilter.MCSamples import samples
@@ -193,11 +196,12 @@ if __name__ == '__main__' and 'submit' in sys.argv:
                     print('    {}'.format(l.strip('\n')))
 
             print('\n')
-            if not query_yes_no('Proceed with submission?', default='yes'):
-                print('Aborting submission...')
-                sys.exit(1)
-            else:
-                pass
+            if not disable_confirmation:
+                if not query_yes_no('Proceed with submission?', default='yes'):
+                    print('Aborting submission...')
+                    sys.exit(1)
+                else:
+                    pass
 
             dryrun_str = ' --dryrun' if dryrun else ''
 
