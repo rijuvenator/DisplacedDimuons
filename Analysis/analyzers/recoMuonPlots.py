@@ -37,8 +37,15 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
+
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
 
     SelectMuons = False
     # require reco muons to pass all selections
@@ -57,8 +64,8 @@ def analyze(self, E, PARAMS=None):
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
         for muon in recoMuons:
             for KEY in CONFIG:
-                self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon))
-        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons))
+                self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
+        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
@@ -80,8 +87,8 @@ def analyze(self, E, PARAMS=None):
                 for match in matches:
                     muon = recoMuons[match['idx']]
                     for KEY in CONFIG:
-                        self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon))
-                self.HISTS[MUON+'_nMuon_Matched'].Fill(len(matches))
+                        self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
+                self.HISTS[MUON+'_nMuon_Matched'].Fill(len(matches), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -91,6 +98,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DSAMUON', 'RSAMUON', 'GEN'),
+        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'RSAMUON', 'GEN'),
     )
     analyzer.writeHistograms('roots/RecoMuonPlots_{}.root')

@@ -23,7 +23,6 @@ for SP in Constants.SIGNALPOINTS:
 
 for NAME in (
     # Background MC
-    'DY100to200'                   ,
     'DY10to50'                     ,
     'DY50toInf'                    ,
     'tW'                           ,
@@ -32,9 +31,9 @@ for NAME in (
     'WW'                           ,
     'WJets'                        ,
     'WZ'                           ,
-    'WZ-ext'                       ,
+#   'WZ-ext'                       ,
     'ZZ'                           ,
-    'ZZ-ext'                       ,
+#   'ZZ-ext'                       ,
     # Data
     'DoubleMuonRun2016B-07Aug17-v2',
     'DoubleMuonRun2016C-07Aug17'   ,

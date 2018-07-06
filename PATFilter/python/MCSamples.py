@@ -67,8 +67,12 @@ samples = [
     # Dilepton Drell-Yan aMC@NLO samples (including tautau); cross sections are from XSDB (i.e., from aMC@NLO).
     # Nevents below is the real number of events; no scaling by the negative weights is done.
     # To account for the negative weights, nevents should be multiplied by (1 - 2*f_neg_weights).
-    sample('dy10To50',     'DY10to50',     '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',        30935823, 0.1367, 209, 1., 18810.,  k_factor=1., is_madgraph=True),
-    sample('dy50ToInf',    'DY50toInf',    '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/AODSIM',      122547040, 0.1661, 209, 1.,  5941.,  k_factor=1., is_madgraph=True),
+    sample('dy10To50',     'DY10to50',
+        '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',
+        30935823, 0.136188, 209, 1., 18810.,  k_factor=1., is_madgraph=True),
+    sample('dy50ToInf',    'DY50toInf',
+        '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/AODSIM',
+        122547040, 0.164984, 209, 1.,  5941.,  k_factor=1., is_madgraph=True),
     # sample('dy100To200',   'DY100To200',   '/DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',  1083606, 0.1753, 209, 1., 226.6,   k_factor=1., is_madgraph=True),
     # sample('dy200To400',   'DY200to400',   '/DYJetsToLL_M-200to400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v2/AODSIM',   298679, 0.2111, 209, 1., 7.77,    k_factor=1., is_madgraph=True),
     # sample('dy400To500',   'DY400to500',   '/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',   287262, 0.2367, 209, 1., 0.4065,  k_factor=1., is_madgraph=True),

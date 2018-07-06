@@ -1,12 +1,39 @@
 import re
 import ROOT as R
+import DisplacedDimuons.Common.DataHandler as DH
+
+######################################
+#### HISTOGRAM GETTER AND REGEXES ####
+######################################
+
+# I name my histograms with a strict naming convention
+# Therefore it is very easy to parse the list of keys and split it up with a regex
+# so that the list of histograms can be organized by sample
+# These regexes help do exactly that
 
 Patterns = {
     'HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
     'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
-for sample in ('DY100to200', 'DoubleMuonRun2016D-07Aug17'):
+for sample in (
+    'DY10to50'  ,
+    'WJets'     ,
+    'WW'        ,
+    'WZ'        ,
+    'ZZ'        ,
+    'tW'        ,
+    'tbarW'     ,
+    'DY50toInf' ,
+    'ttbar'     ,
+    ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
+
+# Define the function that loops over the keys in a hadded histogram ROOT file
+# produced by an Analyzer using the correct naming convention
+# this is usually HNAME_(SAMPLE) or HNAME_HTo2XTo(FS)_(MH)_(MX)_(CTAU)
+# return a dictionary whose keys are either a string SAMPLE
+# or a tuple (FS, SP) where SP is the usual (MH, MX, CTAU) and FS is 4Mu or 2Mu2J
+# and SetDirectory(0) so that the histograms don't disappear
 
 # get all histograms
 def getHistograms(FILE):
@@ -39,3 +66,37 @@ def getHistograms(FILE):
                     HISTS[sample][key] = f.Get(hkey)
                     HISTS[sample][key].SetDirectory(0)
     return HISTS
+
+############################
+#### PLOT CONFIGURATION ####
+############################
+
+# Here stores sample specific information for configuring plots:
+# name, legend name, color, and sample weight
+# The sample weight is obtained from the DataHandler dataset classes
+# using the cross section, kFactor, nEvents, and negFrac
+# The script that generates the background data file adds any _ext samples
+# to their main sample, because the tuples are hadded together
+
+SAMPLES = DH.getAllSamples()
+PLOTCONFIG = {}
+PlotData = (
+    ('HTo2XTo4Mu'  , 'H#rightarrow2X#rightarrow4#mu'  , R.kBlue),
+    ('HTo2XTo2Mu2J', 'H#rightarrow2X#rightarrow2#mu2j', R.kBlue),
+    ('DY10to50'    , 'Drell-Yan M(10, 50)'            , 210    ),
+    ('DY50toInf'   , 'Drell-Yan M(50, #infty)'        , 209    ),
+    ('WJets'       , 'W+Jets'                         , 52     ),
+    ('WW'          , 'WW'                             , 208    ),
+    ('WZ'          , 'WZ'                             , 98     ),
+    ('ZZ'          , 'ZZ'                             , 94     ),
+    ('tW'          , 'tW'                             , 66     ),
+    ('tbarW'       , '#bar{t}W'                       , 63     ),
+    ('ttbar'       , 't#bar{t}'                       , 4      ),
+)
+for name, latex, color in PlotData:
+    if name.startswith('HTo2X'):
+        sampleWeight = 1.
+    else:
+        s = SAMPLES[name]
+        sampleWeight = (s.crossSection * s.kFactor) / (s.nEvents * (1. - 2. * s.negFrac))
+    PLOTCONFIG[name] = {'LATEX':latex, 'COLOR':color, 'WEIGHT':sampleWeight}

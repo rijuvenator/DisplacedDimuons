@@ -21,7 +21,7 @@ def makeResPlots(quantity, fs):
         p = {}
         for MUON in h:
             h[MUON].Rebin(10)
-            p[MUON] = Plotter.Plot(h[MUON], 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+            p[MUON] = Plotter.Plot(h[MUON], 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
 
         if DOFIT:
@@ -32,7 +32,7 @@ def makeResPlots(quantity, fs):
                 h[MUON].Fit('f'+MUON)
                 fplots[MUON] = Plotter.Plot(funcs[MUON], 'Gaussian fit ({})'.format(MUON), 'l', '')
 
-        canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
         canvas.addMainPlot(p['DSA'])
         canvas.addMainPlot(p['RSA'], addS=True)
 
@@ -74,10 +74,10 @@ def makeResPlotsSingle(quantity, fs, MUON):
     for sp in SIGNALPOINTS:
         h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res'].Clone()
         h.Rebin(10)
-        p = Plotter.Plot(h, 'H#rightarrow2X#rightarrow4#mu MC ({})'.format(MUON), 'l', 'hist')
+        p = Plotter.Plot(h, 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
 
-        canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
         canvas.addMainPlot(p)
 
         canvas.makeLegend(lWidth=.25, pos='tr' if quantity == 'pT' else 'tl')
@@ -153,7 +153,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     projections = {key:h.ProjectionY('_'+str(i), key[0], key[1]) for i,key in enumerate(binranges)}
     plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=PRETTY[q2], V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
 
-    canvas = Plotter.Canvas(lumi='{} ({}, {}, {})'.format(fs, *sp))
+    canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
     for key in binranges:
         plots[key].Rebin(10)
         if plots[key].Integral() != 0:
@@ -173,6 +173,66 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
         )
 
     canvas.cleanup(fname)
+
+def makeRefittedResPlot(fs):
+    DOFIT = True
+    for sp in SIGNALPOINTS:
+        h = {}
+        p = {}
+        funcs = {}
+        fplots = {}
+        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        for TAG in ('Before', 'After'):
+            h[TAG] = HISTS[(fs, sp)]['Refit'+TAG+'_pTRes'].Clone()
+            h[TAG].Rebin(10)
+
+            p[TAG] = Plotter.Plot(h[TAG], TAG + ' fit', 'l', 'hist')
+            canvas.addMainPlot(p[TAG], addS=True)
+
+            if DOFIT:
+                funcs[TAG] = R.TF1('f'+TAG, 'gaus', -0.3, 0.3)
+                h[TAG].Fit('f'+TAG)
+                fplots[TAG] = Plotter.Plot(funcs[TAG], 'Gaussian fit ({})'.format(TAG), 'l', '')
+                canvas.addMainPlot(fplots[TAG])
+
+
+        canvas.makeLegend(lWidth=.3, pos='tr')
+        canvas.legend.resizeHeight()
+
+        p['Before'].SetLineColor(R.kRed )
+        p['After' ].SetLineColor(R.kBlue)
+        canvas.setMaximum()
+
+        # top left edge = bottom left corner of legend shifted a tiny bit
+        tle = {'x':canvas.legend.GetX1NDC()+0.02, 'y':canvas.legend.GetY1NDC()-0.025}
+
+        canvas.drawText('#color[{:d}]{{#bar{{x}} = {:.4f}'   .format(R.kRed , h['Before'].GetMean())   + '}', (tle['x'], tle['y']    ))
+        canvas.drawText('#color[{:d}]{{s = {:.4f}'           .format(R.kRed , h['Before'].GetStdDev()) + '}', (tle['x'], tle['y']-.04))
+        canvas.drawText('#color[{:d}]{{#bar{{x}} = {:.4f}'   .format(R.kBlue, h['After' ].GetMean())   + '}', (tle['x'], tle['y']-.08))
+        canvas.drawText('#color[{:d}]{{s = {:.4f}'           .format(R.kBlue, h['After' ].GetStdDev()) + '}', (tle['x'], tle['y']-.12))
+
+        if DOFIT:
+            fplots['Before'].SetLineColor(R.kRed+1)
+            fplots['After' ].SetLineColor(R.kBlue+1)
+
+            canvas.setFitBoxStyle(h['Before'], lWidth=0.25, pos='tl', fontscale=0.6)
+            canvas.setFitBoxStyle(h['After' ], lWidth=0.25, pos='tl', fontscale=0.6)
+
+            sboxes = {
+                'Before': p['Before'].FindObject('stats'),
+                'After' : p['After' ].FindObject('stats')
+            }
+
+            sboxes['Before'].SetTextColor(R.kRed+1)
+            sboxes['After' ].SetTextColor(R.kBlue+1)
+
+            firstHeight = sboxes['Before'].GetY2NDC() - sboxes['Before'].GetY1NDC()
+
+            Plotter.MOVE_OBJECT(sboxes['After'], Y=-firstHeight-.01, NDC=True)
+
+
+        fname = 'pdfs/SMR_RefitBA_pTRes_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp))
+        canvas.cleanup(fname)
 
 # make plots
 if len(sys.argv) == 1: FS = '4Mu'
@@ -199,3 +259,5 @@ for fs in (FS,):
             # 1D resolution binned by gen quantity
                 for sp in SIGNALPOINTS:
                     makeBinnedResPlot(MUON, quantity, q2, fs, sp)
+
+    makeRefittedResPlot(fs)

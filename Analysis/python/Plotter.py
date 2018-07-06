@@ -551,6 +551,7 @@ class Canvas(R.TCanvas):
     # draws the lumi text, 'CMS', extra text, and legend 
     def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
         self.makeTransparent()
+        self.moveExponent()
         self.cd()
         self.mainPad.cd()
 

@@ -1,6 +1,6 @@
 # How to run the nTupler
 
-Last updated: **2 July 2018**
+Last updated: **6 July 2018**
 
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
@@ -55,7 +55,7 @@ The `--verbose` option prints the arguments, the configuration object, the newly
 Some examples of usage:
 
 ```bash
-python runNTupler.py DY100to200 --crab
+python runNTupler.py DY50toInf --crab
 python runNTupler.py HTo2XTo4Mu --signalpoint 125 20 13 --batch --outdir /afs/cern.ch/user/a/adasgupt/
 python runNTupler.py HTo2XTo4Mu --signalpoint 200 20 7 --genonly --crab
 python runNTupler.py DoubleMuonRun2016D-07Aug17 --test --verbose
@@ -65,11 +65,13 @@ python runNTupler.py DoubleMuonRun2016D-07Aug17 --test --verbose
 
 Finally, **submitAll.py** submits the full suite of jobs; all that is needed is to change the `MODE` variable inside the script as desired. If desired, each of the submission blocks can be turned off with the `Do_*` booleans, and the user is free to place additional restrictions on which samples will be run (for example, by adding a conditional statement inside the loop).
 
-Currently, the script will submit 85 jobs, all running on PAT Tuples, corresponding to
+Currently, the script will submit 84 jobs, all running on PAT Tuples, corresponding to
   * 33 jobs for all HTo2XTo4Mu signal points
   * 33 jobs for all HTo2XTo2Mu2J signal points
-  * 12 jobs for most background MC samples
+  * 11 jobs for most background MC samples
   * 7 jobs for data DoubleMuon Run2016 B-H
+
+Note that the WZ and ZZ samples have an extra dataset which will be merged afterwards, resulting in 82 total nTuples.
 
 ## Utilities/
 

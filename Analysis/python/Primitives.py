@@ -536,12 +536,7 @@ class RecoMuon(Muon):
 
         # all reco muons have idx, ptError, and impact parameter
         self.set('idx', E, prefix+'idx', i)
-        # temporary, just for comparing with the old trees for Lxy effs
-        # this is not in getMissingValues above because it's a one time thing for just this class
-        try:
-            self.set('ptError', E, prefix+'ptError', i)
-        except:
-            self.ptError = 0.
+        self.set('ptError', E, prefix+'ptError', i)
         self.IP = ImpactParameter(E, i, prefix)
 
         # only DSA and RSA have these attributes

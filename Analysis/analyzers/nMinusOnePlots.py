@@ -37,8 +37,15 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON')
+
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons]
@@ -61,7 +68,7 @@ def analyze(self, E, PARAMS=None):
                 # e.g. Selections.CUTS['nStations'].expr(mu) == mu.nDTStations + mu.nCSCStations
                 thisCut = Selections.CUTS[KEY]
                 fillValue = thisCut.expr(dimuon)
-                self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue)
+                self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue, eventWeight)
 
         for KEY in MUONCUTKEYS:
             # require dimuons to pass their full selection
@@ -77,7 +84,7 @@ def analyze(self, E, PARAMS=None):
                 # mfunc is max if cut is < or <=; mfunc is min if cut is > or >=
                 thisCut = Selections.CUTS[KEY]
                 fillValue = thisCut.mfunc(thisCut.expr(mu1), thisCut.expr(mu2))
-                self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue)
+                self.HISTS[NAME(KEY, DeltaPhiRegion)].Fill(fillValue, eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -87,6 +94,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'DIMUON'),
     )
     analyzer.writeHistograms('roots/nMinusOnePlots_{}.root')

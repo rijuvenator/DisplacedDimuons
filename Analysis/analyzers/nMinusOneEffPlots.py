@@ -23,8 +23,15 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
+
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
 
@@ -35,9 +42,9 @@ def analyze(self, E, PARAMS=None):
             for Q in ('pT', 'eta', 'd0'):
                 F = CONFIG[Q]['LAMBDA']
                 if muonSelection.allExcept(CUT):
-                    self.HISTS[CUT+'DenVS'+Q].Fill(F(muon))
+                    self.HISTS[CUT+'DenVS'+Q].Fill(F(muon), eventWeight)
                 if muonSelection:
-                    self.HISTS[CUT+'EffVS'+Q].Fill(F(muon))
+                    self.HISTS[CUT+'EffVS'+Q].Fill(F(muon), eventWeight)
 
     # loop over dimuons and select
     for dimuon in Dimuons:
@@ -51,9 +58,9 @@ def analyze(self, E, PARAMS=None):
                 for Q in ('Lxy',):
                     F = CONFIG[Q]['LAMBDA']
                     if dimuonSelection.allExcept(CUT):
-                        self.HISTS[CUT+'DenVS'+Q].Fill(F(dimuon))
+                        self.HISTS[CUT+'DenVS'+Q].Fill(F(dimuon), eventWeight)
                     if dimuonSelection:
-                        self.HISTS[CUT+'EffVS'+Q].Fill(F(dimuon))
+                        self.HISTS[CUT+'EffVS'+Q].Fill(F(dimuon), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -63,6 +70,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DIMUON', 'DSAMUON'),
+        BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON'),
     )
     analyzer.writeHistograms('roots/nMinusOneEffPlots_{}.root')

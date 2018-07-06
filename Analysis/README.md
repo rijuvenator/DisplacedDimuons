@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **20 June 2018**
+Last updated: **6 July 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -9,6 +9,7 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
   * [Analyzers](#analyzers)
     * [runAll.py](#runall)
   * [Plotters](#plotters)
+    * [HistogramGetter](#histogramgetter)
     * [convertone.sh](#convertone)
   * [Special](#special)
 
@@ -167,6 +168,13 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
 The following plotters open a text file produced by a dumper and produce actual styled `.pdf` plot files, using the _Plotter_ library.
 
   * **makeCutTablePlots.py** makes plots from the text file output of **cutEfficiencies.py**
+
+<a name="histogramgetter"></a>
+### HistogramGetter
+
+`HistogramGetter.py` is a small module designed for getting histograms from files in a systematic way (given the same naming convention), and for storing information about plotting (such as styles, e.g. colors and pretty TLatex names, as well as the relative sample weights).
+
+In other words, it's a simple Python module, but really important so that code is not duplicated and spread across several plotting scripts!
 
 <a name="convertone"></a>
 ### convertone.sh

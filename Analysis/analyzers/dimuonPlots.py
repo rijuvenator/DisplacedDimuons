@@ -33,8 +33,15 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    Event    = E.getPrimitives('EVENT'  )
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
+
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
 
     # modify this to determine what type of selections to apply, if any
     SelectDimuons = False
@@ -58,7 +65,7 @@ def analyze(self, E, PARAMS=None):
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
         for KEY in CONFIG:
-            self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon))
+            self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
@@ -82,7 +89,7 @@ def analyze(self, E, PARAMS=None):
 
             if dimuon is not None:
                 for KEY in CONFIG:
-                    self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon))
+                    self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -92,6 +99,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON'),
     )
     analyzer.writeHistograms('roots/DimuonPlots_{}.root')

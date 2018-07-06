@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, findDimuon
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
@@ -19,6 +19,10 @@ for VAL in VALUES:
     CONFIG[KEY] = dict(zip(HEADERS, VALS))
 
 #### CLASS AND FUNCTION DEFINITIONS ####
+# setup function for Analyzer class
+def begin(self, PARAMS=None):
+    self.COUNTERS = {'Before' : {'Total':0, 'QM':0, 'Not':0}, 'After' : {'Total':0, 'QM':0, 'Not':0}}
+
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
@@ -48,6 +52,11 @@ def declareHistograms(self, PARAMS=None):
             for KEY2 in CONFIG:
                 if KEY == 'Lxy' and KEY2 == 'qm': continue
                 self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+CONFIG[KEY]['RESAXES']))
+
+    for TAG in ('Before', 'After'):
+        XAXIS = 'Reco p_{T} #minus gen p_{T} / gen p_{T}'
+        self.HistInit('Refit'+TAG+'_pTRes'     , ';'+XAXIS+';Counts'                , *CONFIG['pT']['RESAXES']                        )
+        self.HistInit('Refit'+TAG+'_pTResVSLxy', ';gen L_{xy} [cm];'+XAXIS+';Counts', *(CONFIG['Lxy']['AXES']+CONFIG['pT']['RESAXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -133,11 +142,52 @@ def analyze(self, E, PARAMS=None):
                         F2 = CONFIG[KEY2]['LAMBDA']
                         self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
 
+        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+        if dimuon is not None:
+            F = CONFIG['pT']['LAMBDA']
+            RF = CONFIG['pT']['RESFUNC']
+            F2 = CONFIG['Lxy']['LAMBDA']
+            for which, index in enumerate(muonMatches):
+                self.HISTS['RefitBefore_pTRes'     ].Fill(RF(F(DSAmuons[index]), F(genMuonPair[which])))
+                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RF(F(DSAmuons[index]), F(genMuonPair[which])))
+
+                self.COUNTERS['Before']['Total'] += 1
+                if genMuonPair[which].charge == DSAmuons[index].charge:
+                    self.COUNTERS['Before']['QM'] += 1
+                else:
+                    self.COUNTERS['Before']['Not'] += 1
+
+                refittedMuon = dimuon.mu1 if dimuon.idx1 == index else dimuon.mu2
+                self.HISTS['RefitAfter_pTRes'      ].Fill(RF(F(refittedMuon), F(genMuonPair[which])))
+                self.HISTS['RefitAfter_pTResVSLxy' ].Fill(F2(genMuonPair[which]), RF(F(refittedMuon), F(genMuonPair[which])))
+
+                self.COUNTERS['After']['Total'] += 1
+                if genMuonPair[which].charge == refittedMuon.charge:
+                    self.COUNTERS['After']['QM'] += 1
+                else:
+                    self.COUNTERS['After']['Not'] += 1
+
+# cleanup function for Analyzer class
+def end(self, PARAMS=None):
+    FS = '4Mu' if '4Mu' in self.NAME else '2Mu2J'
+
+    for TAG in ('Before', 'After'):
+        print 'DATA: {FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d} {BA:1s} {tot:<6d} {qm:<6d} {nm:<6d}'.format(
+                FS=FS,
+                mH=self.SP.mH,
+                mX=self.SP.mX,
+                cTau=self.SP.cTau,
+                BA=TAG[0],
+                tot=self.COUNTERS[TAG]['Total'],
+                qm=self.COUNTERS[TAG]['QM'],
+                nm=self.COUNTERS[TAG]['Not']
+        )
+
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
-    for METHOD in ('declareHistograms', 'analyze'):
+    for METHOD in ('begin', 'declareHistograms', 'analyze', 'end'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,

@@ -5,9 +5,10 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # Monday July 2 2018 at 10:47 CET:
 # all HTo2XTo2Mu2J signal    PAT Tuples are available (33)
 # all HTo2XTo4Mu   signal    PAT Tuples are available (33)
-# all BG MC                  PAT Tuples are available (12) EXCEPT
+# all BG MC                  PAT Tuples are available (11) EXCEPT
 #   - most mass binned DY
 #   - QCD
+# Note that WZ and ZZ extra samples will be merged after Tuples are made.
 # all DoubleMuon Run2016 B-H PAT Tuples are available (7)
 
 # change MODE to one of:
@@ -82,6 +83,5 @@ if Do_Background:
 if Do_Data:
     dataSamples = DH.getDataSamples()
     for data in dataSamples:
-        if 'ALICE' in data.name: continue
         verbose('DATA : {}'.format(data.name))
         bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)

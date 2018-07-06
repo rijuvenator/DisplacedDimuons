@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
@@ -46,25 +46,19 @@ def analyze(self, E, PARAMS=None):
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        # check if any DSA muons match a genMuon
-        muonMatches = [None, None]
-        for i, genMuon in enumerate(genMuonPair):
-            matches = matchedMuons(genMuon, DSAmuons)
-            if len(matches) > 0:
-                muonMatches[i] = matches[0]['idx']
+        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
 
-        # if both genMuons matched, check if there is a dimuon with exactly those recoMuons
-        if muonMatches[0] is not None and muonMatches[1] is not None and muonMatches[0] != muonMatches[1]:
-            # fill the denominator histogram
+        # both gen muons matched, but no dimuon: fill den only
+        if exitcode == 2:
             for KEY in CONFIG:
                 F = CONFIG[KEY]['LAMBDA']
                 self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
-
-            for dimuon in Dimuons:
-                if dimuon.idx1 in muonMatches and dimuon.idx2 in muonMatches:
-                    for KEY in CONFIG:
-                        F = CONFIG[KEY]['LAMBDA']
-                        self.HISTS[KEY+'Eff'].Fill(F(genMuonPair[0]))
+        # both gen muons matched and a dimuon was found
+        elif exitcode == 0:
+            for KEY in CONFIG:
+                F = CONFIG[KEY]['LAMBDA']
+                self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
+                self.HISTS[KEY+'Eff'].Fill(F(genMuonPair[0]))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

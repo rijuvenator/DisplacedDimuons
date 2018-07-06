@@ -7,13 +7,12 @@ from DisplacedDimuons.PATFilter.MCSamples import samples
 # this script only uses MCSamples.py in PATFilter
 # to sustainably regenerate BackgroundMCSamples.dat
 
-# Note: at the moment, most of the Drell-Yan samples are commented out
+# Note: at the moment, most of the Drell-Yan samples and the QCD sample are commented out
 # Therefore, rerunning this script will not regenerate the .dat file exactly
 # Simply uncomment the samples in MCSamples.py to restore functionality
 
 # Add PAT datasets here are they are generated
 PATDatasets = {
-    'DY100to200' : '/DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/alfloren-MC2016_dy100To200-1f3b8c9856797cc8218eed4f9594f861/USER',
     'DY10to50'   : '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/stempl-MC2016_dy10To50_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
     'DY50toInf'  : '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/stempl-MC2016_dy50ToInf_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
     'tW'         : '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/stempl-MC2016_tW_Jun2018-v1-fc2578df0fe9569a82b5f2126d2d5c02/USER',
@@ -39,11 +38,23 @@ for sample in reversed(samples):
     systFrac     = sample.syst_frac
     crossSection = sample.cross_section
 
+    # edits to the info, to taste
+    # change e.g. dy50ToInf to DY50toInf
     if name.startswith('dy'):
         name = name.replace('dy', 'DY')
         name = name.replace('To', 'to')
+    # change Wjets to WJets
     if name == 'Wjets':
         name = 'WJets'
+    # add WZ_ext to WZ and ZZ_ext to ZZ
+    if name == 'WZ' or name == 'ZZ':
+        for extSample in reversed(samples):
+            if extSample.name == name + '_ext':
+                break
+        nEvents += extSample.nevents
+    # change WZ_ext and ZZ_ext to WZ-ext and ZZ-ext
+    # (underscores are important delimiters for me in various places,
+    # and I don't think I want them in the base sample names)
     if '_ext' in name:
         name = name.replace('_ext', '-ext')
 

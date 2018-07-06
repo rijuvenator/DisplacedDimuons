@@ -309,7 +309,7 @@ function update()
         {
             setupMH(state);
         }
-        else if (this.value == "DY100to200")
+        else if (BGLIST.includes(this.value))
         {
             setupPlotCat("1", BGVALS, BGLABELS, state);
         }
@@ -460,9 +460,13 @@ var SIGNALS = [
     new pair('Global', [])
 ];
 
+// background sample list
+var BGLIST = ['DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+
 // sample names and labels
-var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          , 'DY100to200'          , 'DoubleMuonRun2016D-07Aug17'];
-var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j', 'Drell-Yan M(100,200)', 'DoubleMuon2016D'           ];
+var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          ].concat(BGLIST);
+var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j'].concat(BGLABS);
 
 // plot category names and labels
 var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SVFE'];
@@ -488,7 +492,7 @@ var PLOTTYPEVALS = {
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0'], ['Eff', 'ChargeEff']],
-    SMR      : [['', 'DSA_', 'RSA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned']]],
+    SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
 var PLOTTYPELABELS = {
@@ -502,7 +506,7 @@ var PLOTTYPELABELS = {
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;(&mu;&mu;)', '&Delta;&Phi;(&mu;X)', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
     SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SMR      : [['Both', 'DSA', 'RSA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
+    SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
     SVFE     : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>'], ['v. f. &epsilon;']],
 }
 
