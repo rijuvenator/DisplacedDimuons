@@ -1,6 +1,6 @@
 # How to run the nTupler
 
-Last updated: **2 July 2018**
+Last updated: **6 July 2018**
 
 A VOMS proxy is required for using pretty much any of the files in this directory:
 ```bash
@@ -70,6 +70,8 @@ Currently, the script will submit 84 jobs, all running on PAT Tuples, correspond
   * 33 jobs for all HTo2XTo2Mu2J signal points
   * 11 jobs for most background MC samples
   * 7 jobs for data DoubleMuon Run2016 B-H
+
+Note that the WZ and ZZ samples have an extra dataset which will be merged afterwards, resulting in 82 total nTuples.
 
 ## Utilities/
 

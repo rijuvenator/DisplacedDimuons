@@ -8,6 +8,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # all BG MC                  PAT Tuples are available (11) EXCEPT
 #   - most mass binned DY
 #   - QCD
+# Note that WZ and ZZ extra samples will be merged after Tuples are made.
 # all DoubleMuon Run2016 B-H PAT Tuples are available (7)
 
 # change MODE to one of:

@@ -38,11 +38,23 @@ for sample in reversed(samples):
     systFrac     = sample.syst_frac
     crossSection = sample.cross_section
 
+    # edits to the info, to taste
+    # change e.g. dy50ToInf to DY50toInf
     if name.startswith('dy'):
         name = name.replace('dy', 'DY')
         name = name.replace('To', 'to')
+    # change Wjets to WJets
     if name == 'Wjets':
         name = 'WJets'
+    # add WZ_ext to WZ and ZZ_ext to ZZ
+    if name == 'WZ' or name == 'ZZ':
+        for extSample in reversed(samples):
+            if extSample.name == name + '_ext':
+                break
+        nEvents += extSample.nevents
+    # change WZ_ext and ZZ_ext to WZ-ext and ZZ-ext
+    # (underscores are important delimiters for me in various places,
+    # and I don't think I want them in the base sample names)
     if '_ext' in name:
         name = name.replace('_ext', '-ext')
 
