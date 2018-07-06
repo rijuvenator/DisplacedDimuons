@@ -104,3 +104,9 @@ effect. Apart from that, all arguments can be applied in any combination.
 | 1M - 10M             | 10                               |
 | 0 - 1M               | 1                                |
 
+
+## Documentation of CRAB productions
+
+| **Date** | **Tag** | **Produced data samples** | **Produced MC samples** | **Comments / further details** |
+| -------- | ------- | ------------------------- | ----------------------- | ------------------------------ |
+| June 2018 | `_Jun2018-1` | DoubleMuonRun2016[B-H] | see [MCSamples.py @ 99f079a2](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/99f079a27f1a7bf56284f09950a9a126f9b88b3e/PATFilter/python/MCSamples.py) | see [Dropbox paper](https://paper.dropbox.com/doc/DataMC-sample-production-on-CRAB-_Jun2018-v1--AG58Se6CYfWhvhEe48zMMTHsAQ-fBfzdJAQJskeXrdHaU7xq) |
