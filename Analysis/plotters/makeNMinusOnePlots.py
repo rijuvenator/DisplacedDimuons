@@ -47,51 +47,65 @@ def makePerSamplePlots():
 
 # make stack plots
 def makeStackPlots(DataMC=False):
-    #for hkey in HISTS[(125, 20, 13)]:
-    for hkey in ('deltaR_Less',):
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    for hkey in HISTS[('4Mu', (125, 20, 13))]:
+    #for hkey in ('d0Sig_Less',):
         h = {
-            'DY50toInf'  : HISTS['DY50toInf'                 ][hkey],
-#           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey],
-            'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey],
+#           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
+#           'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey].Clone(),
             'BG'         : R.THStack('hBG', '')
         }
 
         PConfig = {
-            'DY50toInf'  : ('Drell-Yan 50-#infty GeV'      , 'f' , 'hist'),
 #           'Data'       : ('DoubleMuon2016D'              , 'pe', 'pe'  ),
-            'Signal'     : ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist'),
+#           'Signal'     : ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist'),
             'BG'         : (''                             , ''  , 'hist'),
         }
 
-        h['BG'].Add(h['DY50toInf'])
+        PC = HistogramGetter.PLOTCONFIG
+
+        for key in BGORDER:
+            h[key] = HISTS[key][hkey]
+            h[key].Scale(PC[key]['WEIGHT'])
+            PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
+            h['BG'].Add(h[key])
 
         p = {}
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'NM1_Stack_{}.pdf'.format(hkey)
+        fname = 'pdfs/NM1_{}_Stack.pdf'.format(hkey)
 
-        p['DY50toInf'].SetLineColor(R.kOrange)
-        p['DY50toInf'].SetFillColor(R.kOrange)
+        for key in BGORDER:
+            p[key].SetLineColor(PC[key]['COLOR'])
+            p[key].SetFillColor(PC[key]['COLOR'])
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800)
         canvas.addMainPlot(p['BG'])
 #       canvas.addMainPlot(p['Data'])
-        canvas.addMainPlot(p['Signal'])
+#       canvas.addMainPlot(p['Signal'])
 
-        canvas.makeLegend(lWidth=.25, pos='tl', autoOrder=False)
+        canvas.lumi += ' : |#Delta#Phi| ' + ('<' if '_Less' in key else '>') + ' #pi/2'
+
+        canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
 #       canvas.addLegendEntry(p['Data'     ])
-        canvas.addLegendEntry(p['DY50toInf'])
-        canvas.addLegendEntry(p['Signal'   ])
+        for key in reversed(BGORDER):
+            canvas.addLegendEntry(p[key])
+#       canvas.addLegendEntry(p['Signal'])
         canvas.legend.resizeHeight()
+
+        p['BG'].setTitles(X=p['WJets'].GetXaxis().GetTitle(), Y='Normalized Counts')
+
+        canvas.firstPlot.SetMaximum(h['BG'].GetStack().Last().GetMaximum() * 1.05)
+        #canvas.firstPlot.SetMaximum(1.e-4)
 
 #       if DataMC:
 #           canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
 
-        p['Signal'    ].SetLineStyle(2)
-        p['Signal'    ].SetLineColor(R.kRed)
+#       p['Signal'    ].SetLineStyle(2)
+#       p['Signal'    ].SetLineColor(R.kRed)
 
         canvas.cleanup(fname)
 
 makePerSamplePlots()
-makeStackPlots(True)
+makeStackPlots(False)

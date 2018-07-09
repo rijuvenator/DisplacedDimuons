@@ -261,3 +261,6 @@ for fs in (FS,):
                     makeBinnedResPlot(MUON, quantity, q2, fs, sp)
 
     makeRefittedResPlot(fs)
+    for sp in SIGNALPOINTS:
+        makeBinnedResPlot('RefitBefore', 'pT', 'Lxy', fs, sp)
+        makeBinnedResPlot('RefitAfter' , 'pT', 'Lxy', fs, sp)
