@@ -18,6 +18,7 @@ else:
 CMSSW_BASE   = os.environ['CMSSW_BASE']
 DIR_DD = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
 
+# pdg IDs
 LLX_PDGID = 6000113
 ABS_MUON_PDGID = 13
 
