@@ -283,7 +283,7 @@ class HLTPath(Primitive):
         for prettyattr, attr in zip(('idx', 'name', 'HLTPrescale', 'L1TPrescale'), ('hlt_idx', 'hlt_path', 'hlt_prescale', 'l1t_prescale')):
             self.set(prettyattr, E, 'trig_'+attr, i)
             
-    def __repr(self):
+    def __repr__(self):
         return self.__str__()
 
 # TriggerMuon class
@@ -505,8 +505,8 @@ class GenMuon(Muon):
     def dz(self):
         return self.dz_
     
-    headerFormat = "{:8}|{:8}|{:8}|{:8}|\n"
-    dataFormat = "{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|\n"
+    headerFormat = "{:8}|{:8}|{:8}|{:8}|{:8}|\n"
+    dataFormat = "{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|\n"
     
     @staticmethod #so we don't need an instance of it
     def headerstr():
@@ -551,15 +551,15 @@ class RecoMuon(Muon):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
     # 'nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit'
-    headerFormat2 = "|{:10}|{:8}|{:8}|{:14}|{:14}|{:9}|{:9}|{:9}|{:9}|{:9}|\n"
-    dataFormat2 = "|{:10d}|{:8d}|{:8d}|{:14d}|{:14d}|{:9.2f}|{:9.2f}|{:9.2f}|{:9.2f}|{:9.2f}|\n"
+    headerFormat2 = "|{:10}|{:8}|{:8}|{:14}|{:14}|{:9}|{:9}|{:^27}|\n"
+    dataFormat2 = "|{:10d}|{:8d}|{:8d}|{:14d}|{:14d}|{:9.2f}|{:9.2f}|{:9.2f}{:9.2f}{:9.2f}|\n"
     
     headerFormat3 = "|{:8}|{:8}|{:8}|{:8}|\n"
     dataFormat3 = "|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n"
     
     @staticmethod
     def headerstr2():
-        return RecoMuon.headerFormat2.format('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit')
+        return RecoMuon.headerFormat2.format('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', '(x_fhit, y_fhit, z_fhit)')
     def datastr2(self):
         return RecoMuon.dataFormat2.format(self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations,\
                                            self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
