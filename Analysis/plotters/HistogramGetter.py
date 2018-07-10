@@ -2,6 +2,9 @@ import re
 import ROOT as R
 import DisplacedDimuons.Common.DataHandler as DH
 
+# integrated luminosity for 2016
+INTEGRATED_LUMINOSITY_2016 = 35900.
+
 ######################################
 #### HISTOGRAM GETTER AND REGEXES ####
 ######################################
@@ -98,5 +101,5 @@ for name, latex, color in PlotData:
         sampleWeight = 1.
     else:
         s = SAMPLES[name]
-        sampleWeight = (s.crossSection * s.kFactor) / (s.nEvents * (1. - 2. * s.negFrac))
+        sampleWeight = (s.crossSection * s.kFactor) / (s.nEvents * (1. - 2. * s.negFrac)) * INTEGRATED_LUMINOSITY_2016
     PLOTCONFIG[name] = {'LATEX':latex, 'COLOR':color, 'WEIGHT':sampleWeight}
