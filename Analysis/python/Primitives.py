@@ -133,7 +133,7 @@ class ETree(object):
             # Background
             else:
                 return                [GenParticle(self, i        )        for i in range(len(self.gen_eta       ))]
-        if KEY == 'MUON'     : return [AODMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
+        if KEY == 'MUON'     : return [PATMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
         if KEY == 'DSAMUON'  : return [RecoMuon   (self, i, 'DSA' )        for i in range(len(self.dsamu_eta     ))]
         if KEY == 'RSAMUON'  : return [RecoMuon   (self, i, 'RSA' )        for i in range(len(self.rsamu_eta     ))]
         if KEY == 'DIMUON'   : return [Dimuon     (self, i        )        for i in range(len(self.dim_eta       ))]
@@ -191,9 +191,9 @@ class ETree(object):
                 outstr +='\n'
 
             elif key == 'MUON':
-                outstr += colorText('AOD Muons') + '\n'
+                outstr += colorText('PAT Muons') + '\n'
                 if len(primitives) > 0:
-                    outstr += AODMuon.headerstr()
+                    outstr += PATMuon.headerstr()
                     for particle in primitives:
                         outstr += particle.datastr()
                 outstr +='\n'
@@ -514,8 +514,8 @@ class GenParticle(Particle):
 # Muon classes
 # sets all the particle variables
 # base class for several "kinds" of muons, each with different additional branches
-# AODMuon        : reco AOD muons from the reco::Muon collection (mu_)
-#   .gen         : gen muon matched/attached to the AOD muon     (mu_gen_)
+# PATMuon        : reco PAT muons from the reco::Muon collection (mu_)
+#   .gen         : gen muon matched/attached to the PAT muon     (mu_gen_)
 # GenMuon        : gen muons from the GenParticle collection     (gen_)
 # RecoMuon       : reco muons from a reco::Track collection
 #   ("DSA")      : reco DSA muons from displacedStandAloneMuons  (dsamu_)
@@ -526,9 +526,9 @@ class Muon(Particle):
     def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
 
-# AODMuon: see above
+# PATMuon: see above
 # note that the gen muon attached to it is of type Muon
-class AODMuon(Muon):
+class PATMuon(Muon):
     def __init__(self, E, i):
         Muon.__init__(self, E, i, 'mu_')
         self.gen = Muon(E, i, 'mu_gen_')

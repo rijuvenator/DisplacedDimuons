@@ -41,7 +41,7 @@ for i, event in enumerate(t):
     if i == 10: break
     E = Primitives.ETree(t, DecList=('GEN', 'DSAMUON', 'DIMUON'))
 
-    Gens     = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+    Gens     = E.getPrimitives('GEN')
     DSAMuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON')
 
