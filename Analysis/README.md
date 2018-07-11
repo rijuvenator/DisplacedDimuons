@@ -69,12 +69,18 @@ MET                                           = E.getPrimitives('MET')
 Filters                                       = E.getPrimitives('FILTER')
 Beamspot                                      = E.getPrimitives('BEAMSPOT')
 Vertex                                        = E.getPrimitives('VERTEX')
-mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
-mu1, mu2, j1, j2, X, XP, H, P, extramu        = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
+mu1, mu2, j1, j2, X, XP, H, P, extramu        = E.getPrimitives('GEN')
 Muons                                         = E.getPrimitives('MUON')
 DSAMuons                                      = E.getPrimitives('DSAMUON')
 RSAMuons                                      = E.getPrimitives('RSAMUON')
 Dimuons                                       = E.getPrimitives('MUON')
+```
+
+  The _Primitives_ library contains extensive printing functionality, so that at any time, any object or even the entire _ETree_ can be printed in with neatly formatted output. This output is colored by default; to turn it off, one only needs to add the following line to the analysis script:
+
+```python
+Primitives.COLORON = False
 ```
 
   * **RootTools.py** contains a few small ROOT-related additions.

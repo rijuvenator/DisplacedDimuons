@@ -20,8 +20,14 @@ CUTKEYS = {
     'LxySig'   : {'AXES':(100,  0., 12.)},
 }
 for KEY in CUTKEYS:
+    # make sure to add units if necessary
+    units = ''
+    if KEY == 'pT':
+        units = ' [GeV]'
+    elif KEY == 'mass':
+        units = ' [GeV]'
     # the title is ;XTITLE;Counts
-    CUTKEYS[KEY]['TITLE'] = ';' + Selections.PrettyTitles[KEY] + ';Counts'
+    CUTKEYS[KEY]['TITLE'] = ';' + Selections.PrettyTitles[KEY] + units + ';Counts'
 MUONCUTKEYS   = [KEY for KEY in CUTKEYS if KEY in Selections.CutLists['MuonCutList'  ]]
 DIMUONCUTKEYS = [KEY for KEY in CUTKEYS if KEY in Selections.CutLists['DimuonCutList']]
 

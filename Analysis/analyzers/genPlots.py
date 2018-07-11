@@ -52,11 +52,11 @@ class HistogramConfigurations(object):
             'massX'      : [['X Mass [GeV]'     , 100 , mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100 , 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100 , -1.        , 1.         ]                                  ],
-            'd0'         : [['d_{0} [cm]'       , 500 , 0.         , 1000.      ]                                  ],
+            'd0'         : [['d_{0} [cm]'       , 100 , 0.         , 1000.      ]                                  ],
            #'d0'         : [['d_{0} [cm]'       , 100 , 0.         , cTau*.2    ]                                  ],
             'pTmu'       : [['#mu p_{T} [GeV]'  , 100 , 0.         , MuPtUpper  ]                                  ],
             'etaMu'      : [['#mu #eta'         , 100 , -5.        , 5.         ]                                  ],
-            'LxyVSLz'    : [['L_{z} [cm]'       , 350 , 0.         , 1000.      ], ['L_{xy} [cm]'   , 200, 0., 50.]],
+            'LxyVSLz'    : [['L_{z} [cm]'       , 100 , 0.         , 1000.      ], ['L_{xy} [cm]'   , 100, 0., 50.]],
         }
 
         self.data = {}

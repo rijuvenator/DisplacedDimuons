@@ -1,13 +1,32 @@
 import re
 import math
 import ROOT as R
+import DisplacedDimuons.Analysis.RootTools
 import DisplacedDimuons.Common.Constants as Constants
+
+COLORON = True
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
 # Life is much better once you have a list of objects that are actual objects.
 ##########
 
+# Print strings
+def colorText(text, color=95):
+    if not COLORON:
+        return text
+    if color == 'red':
+        color = 91
+    elif color == 'green':
+        color = 92
+    elif color == 'blue':
+        color = 94
+    elif color == 'pink':
+        color = 95
+    return '\033[1m\033[{COLOR}m{TEXT}\033[0m:'.format(COLOR=color, TEXT=text)
+
+# Branch keys and corresponding prefixes
+# Stored as a tuple of tuples so that the order can be preserved
 BRANCHCONFIG = (
     ('EVENT'    , 'evt_'  ),
     ('TRIGGER'  , 'trig_' ),
@@ -21,9 +40,7 @@ BRANCHCONFIG = (
     ('RSAMUON'  , 'rsamu_'),
     ('DIMUON'   , 'dim_'  ),
 )
-
 BRANCHPREFIXES = dict(BRANCHCONFIG)
-
 BRANCHKEYS = tuple([key for key,val in BRANCHCONFIG])
 
 # Select Branches: 2-5x speedup
@@ -44,27 +61,31 @@ def SelectBranches(t, DecList=(), branches=()):
 class ETree(object):
     # initialize the ETree: copy all branches from the tree
     def __init__(self, t, DecList=BRANCHKEYS):
+        # save the DecList and the TTree just in case
+        # DecList is a list comprehension so as to preserve the same order as BRANCHKEYS
+        self.DecList = [key for key in BRANCHKEYS if key in DecList]
+        self.TTree   = t
+
         BranchList = [str(br.GetName()) for br in list(t.GetListOfBranches())]
-        self.DecList = [key for key in BRANCHKEYS if key in DecList] #sets correct order
         for KEY in DecList:
             for br in BranchList:
                 if re.match(BRANCHPREFIXES[KEY], br):
-                    self.copyBranch(t, br)
- 
+                    self.copyBranch(br)
+
     # this function copies the contents of t into the ETree
     # and makes a Python list from a vector if appropriate
-    def copyBranch(self, t, branch):
-        if 'vector' in type(getattr(t, branch)).__name__:
-            setattr(self, branch, list(getattr(t, branch)))
+    def copyBranch(self, branch):
+        if 'vector' in type(getattr(self.TTree, branch)).__name__:
+            setattr(self, branch, list(getattr(self.TTree, branch)))
         else:
-            setattr(self, branch, getattr(t, branch))
- 
+            setattr(self, branch, getattr(self.TTree, branch))
+
     # this function creates a list of Primitives objects given a tag
     # it should be called for each analysis object, once per event (after the ETree is declared)
     def getPrimitives(self, KEY):
         if not KEY in self.DecList:
-            raise Exception('Key: %s not found in tree'%KEY)
-        
+            raise Exception('Branch key "{}" not found in ETree; did you forget to add it to the DecList?'.format(KEY))
+
         if KEY == 'EVENT'    : return Event       (self)
         if KEY == 'TRIGGER'  :
             if not hasattr(self, 'trig_hlt_idx'):
@@ -86,25 +107,33 @@ class ETree(object):
         if KEY == 'GEN':
             if not hasattr(self, 'gen_eta'):
                 raise Exception('Sample does not contain GenParticle branches; cannot get GenParticle primitives for Data')
-            if Constants.LLX_PDGID in self.gen_pdgID: #signal sample
-                if abs(self.gen_pdgID[2]) != Constants.ABS_MUON_PDGID: #2mu2J sample
-                    muons   =             [GenMuon    (self, i        )        for i in range(2)                       ]
-                    jets    =             [GenMuon    (self, i        )        for i in range(2, 4)                    ]
-                    mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                    extramu =             []
+            # automatically detect whether this sample is HTo2XTo2Mu2J, HTo2XTo4Mu, or Background
+            # if the LLX pdgID is in the list of pdg IDs, it's a signal sample
+            # then check if the third element is a muon: if it is, then it's 4Mu, otherwise it's 2Mu2J
+            # otherwise, it's a background sample
+            # Signal
+            if Constants.LLX_PDGID in self.gen_pdgID:
+                # 2Mu2J
+                if abs(self.gen_pdgID[2]) != Constants.ABS_MUON_PDGID:
+                    muons   =         [GenMuon    (self, i        )        for i in range(2)                       ]
+                    jets    =         [GenMuon    (self, i        )        for i in range(2, 4)                    ]
+                    mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
+                    extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =         [Muon       (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + jets + mothers + [extramu]
-                else: #4mu
-                    muons   =             [GenMuon    (self, i        )        for i in range(4)                       ]
-                    mothers =             [Particle   (self, i, 'gen_')        for i in range(4, 8)                    ]
-                    extramu =             []
+                # 4Mu
+                else:
+                    muons   =         [GenMuon    (self, i        )        for i in range(4)                       ]
+                    mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
+                    extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =         [Muon       (self, i, 'gen_')        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + mothers + [extramu]
-            else: #backgound
-                return                [Particle   (self, i, 'gen_')        for i in range(len(self.gen_eta       ))]
-        if KEY == 'MUON'     : return [AODMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
+            # Background
+            else:
+                return                [GenParticle(self, i        )        for i in range(len(self.gen_eta       ))]
+        if KEY == 'MUON'     : return [PATMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
         if KEY == 'DSAMUON'  : return [RecoMuon   (self, i, 'DSA' )        for i in range(len(self.dsamu_eta     ))]
         if KEY == 'RSAMUON'  : return [RecoMuon   (self, i, 'RSA' )        for i in range(len(self.rsamu_eta     ))]
         if KEY == 'DIMUON'   : return [Dimuon     (self, i        )        for i in range(len(self.dim_eta       ))]
@@ -118,66 +147,84 @@ class ETree(object):
             return getattr(self, attr)
         else:
             return getattr(self, attr)[index]
-        
-        
-    def __repr__(self):
-        outstr = "\n\033[1m=======================================================\033[0m\n"
-        
+
+    # ETree print function
+    # gets all of the Primitives, loops over them, and prints out their individual information
+    # For Primitives that are lists, printing the header is handled specially, so that it only prints once per event
+    # instead of once per object
+    def __str__(self):
+        outstr = '\n=======================================================\n'
+
         for key in self.DecList:
-            
-            primitives = self.getPrimitives(key) 
-           
-            try: #is iterable
-                if key == 'TRIGGER':
-                    HLTPaths, HLTMuons, L1TMuons = primitives
-                    outstr += str(HLTPaths) + '\n'
-                    outstr+='\033[1m\033[95mTrigger Muons\033[0m\033[0m:\n'
-                    outstr+= TriggerMuon.headerstr()
-                    for trigmuon in L1TMuons: outstr += trigmuon.datastr()
-                    for trigmuon in HLTMuons: outstr += trigmuon.datastr()
-                    outstr+= '\n'
-                    
-                elif key == 'GEN':
-                    outstr+='\033[1m\033[95mGen Muons\033[0m\033[0m:\n'
-                    outstr += GenMuon.headerstr()
-                    for particle in primitives:
-                        
-                        if isinstance(particle, list):
-                            outstr +=" %i Extra Muons in event\n"%len(particle)
-                            for mu in particle:
-                                outstr += mu.datastr()
-                        else:
-                            outstr += particle.datastr()
-                    outstr +='\n'
-                    
-                elif key == 'MUON':
-                    outstr+='\033[1m\033[95mAOD MUON\033[0m\033[0m:\n'
-                    outstr += AODMuon.headerstr()
+
+            primitives = self.getPrimitives(key)
+
+            if key == 'TRIGGER':
+                HLTPaths, HLTMuons, L1TMuons = primitives
+                outstr += colorText('HLT Paths') + '\n'
+                for hltpath in HLTPaths: outstr += str(hltpath)
+
+                outstr += '\n'
+
+                outstr += colorText('Trigger Muons') + '\n'
+                if len(L1TMuons) + len(HLTMuons) > 0:
+                    outstr += TriggerMuon.headerstr()
+                    if len(L1TMuons) > 0:
+                        outstr += colorText('L1T Muons', color='blue') + '\n'
+                        for trigmuon in L1TMuons: outstr += trigmuon.datastr()
+                    if len(HLTMuons) > 0:
+                        outstr += colorText('HLT Muons', color='blue') + '\n'
+                        for trigmuon in HLTMuons: outstr += trigmuon.datastr()
+
+                outstr += '\n'
+
+            elif key == 'GEN':
+                outstr += colorText('Gen Particles') + '\n'
+                outstr += GenMuon.headerstr()
+                for particle in primitives:
+                    if isinstance(particle, list):
+                        outstr += '{} Extra Muons in event\n'.format(len(particle))
+                        for mu in particle:
+                            outstr += mu.datastr()
+                    else:
+                        outstr += particle.datastr()
+                outstr +='\n'
+
+            elif key == 'MUON':
+                outstr += colorText('PAT Muons') + '\n'
+                if len(primitives) > 0:
+                    outstr += PATMuon.headerstr()
                     for particle in primitives:
                         outstr += particle.datastr()
-                    outstr +='\n'
-                        
-                elif key == 'DSAMUON' or key == 'RSAMUON':
-                    outstr += '\033[1m\033[95m%s\033[0m\033[0m:\n' % key
-                    outstr += RecoMuon.headerstr()
+                outstr +='\n'
+
+            elif key == 'DSAMUON' or key == 'RSAMUON':
+                outstr += colorText(key[:3] + ' Muons') + '\n'
+                if len(primitives) > 0:
+                    for i in (1, 2):
+                        outstr += RecoMuon.headerstr(i)
+                        for particle in primitives:
+                            outstr += particle.datastr(i)
+                outstr += '\n'
+
+            elif key == 'DIMUON':
+                outstr += colorText('Dimuons') + '\n'
+                if len(primitives) > 0:
                     for particle in primitives:
-                        outstr += particle.datastr()
-                    outstr += RecoMuon.headerstr2()
-                    for particle in primitives:
-                        outstr += particle.datastr2()
-                    outstr += RecoMuon.headerstr3()
-                    for particle in primitives:
-                        outstr += particle.datastr3()
-                    outstr += '\n'
-                else:
+                        outstr += str(particle)
+                outstr += '\n'
+
+            else:
+                # is iterable
+                # this probably does not occur because all of the iterable keys
+                # are explicitly handled above
+                try:
                     for primitive in primitives:
                         outstr += str(primitive) + '\n'
-            except TypeError: #isn't iterable
-                outstr += str(primitives)  +'\n'          
+                # isn't iterable
+                except TypeError:
+                    outstr += str(primitives)  + '\n'
         return outstr
-
-
-        
 
 # The Primitives Classes: take in an ETree and an index, produces an object.
 # Base class for primitives
@@ -192,25 +239,26 @@ class Primitive(object):
 
     def set(self, attr, E, E_attr, index=None):
         setattr(self, attr, E.get(E_attr, index))
-        
-    def __str__(self):  
-        outstr = '\033[1m\033[95m' + self.__class__.__name__ +'\033[0m\033[0m:\n'
+
+    def __str__(self):
+        outstr = colorText(self.__class__.__name__) + '\n'
+        maxAttrLen = max([len(attr) for attr in self.__dict__.keys()])
         for attr in self.__dict__.keys():
-            tabs = ''
-            for ntabs in range(0,2-len(attr)/7): tabs+= '\t'
-            
             data = self.__dict__[attr]
-            if isinstance(data, bool): #format booleans in a nice way
-                if data: #print in green
-                    data = '\033[92m' + str(data) + '\033[0m'
-                else: #print in red
-                    data = '\033[91m' + str(data) + '\033[0m'  
+
+            # format booleans in a nice way
+            if isinstance(data, bool):
+                # print in green
+                if data:
+                    data = colorText(str(data), color='green').replace(':', '')
+                # print in red
+                else:
+                    data = colorText(str(data), color='red').replace(':', '')
             else:
                 data = str(data)
-            
-            outstr += attr + ':' + tabs +data + ' \n'
+
+            outstr += '{ATTR:{W}s}: {DATA} \n'.format(ATTR=attr, W=maxAttrLen, DATA=data)
         return outstr
-    
 
 # Event class
 class Event(Primitive):
@@ -224,8 +272,26 @@ class Event(Primitive):
             self.set('weight', E, 'gen_weight')
         if hasattr(E, 'gen_tnpv'):
             self.set('nTruePV', E, 'gen_tnpv')
-            
-            
+
+    def __str__(self):
+        outstr = colorText(self.__class__.__name__) + '\n'
+        maxAttrLen = max([len(attr) for attr in self.__dict__.keys()])
+        for attr in ('run', 'lumi', 'event', 'bx', 'weight', 'nTruePV'):
+            data = self.__dict__[attr]
+
+            # format booleans in a nice way
+            if isinstance(data, bool):
+                # print in green
+                if data:
+                    data = colorText(str(data), color='green').replace(':', '')
+                # print in red
+                else:
+                    data = colorText(str(data), color='red').replace(':', '')
+            else:
+                data = str(data)
+
+            outstr += '{ATTR:{W}s}: {DATA} \n'.format(ATTR=attr, W=maxAttrLen, DATA=data)
+        return outstr
 
 # MET class
 class MET(Primitive):
@@ -233,11 +299,11 @@ class MET(Primitive):
         Primitive.__init__(self)
         for attr in ('pt', 'phi', 'gen_pt'):
             self.set(attr, E, 'met_'+attr)
-            
-    def __str__(self):  
-        outstr = '\033[1m\033[95m' + self.__class__.__name__ +'\033[0m\033[0m:   '
-        for attr in self.__dict__.keys():
-            outstr += attr + ':  ' + '%3.3f\t'%self.__dict__[attr]
+
+    def __str__(self):
+        outstr = colorText(self.__class__.__name__) + '   '
+        for attr in ('pt', 'phi', 'gen_pt'):
+            outstr += '{}: {:3.3f}    '.format(attr, self.__dict__[attr])
         outstr += '\n'
         return outstr
 
@@ -248,24 +314,6 @@ class Filters(Primitive):
         for attr in ('PhysicsDeclared', 'PrimaryVertexFilter', 'AllMETFilters', 'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'CSCTightHaloFilter', 'EcalTPFilter', 'EeBadScFilter', 'BadPFMuonFilter', 'BadChargedCandidateFilter'):
             self.set(attr, E, 'flag_'+attr)
             setattr(self, attr, bool(getattr(self, attr)))
-    
-    def __str__(self):  
-        outstr = '\033[1m\033[95m' + self.__class__.__name__ +'\033[0m\033[0m:\n'
-        for attr in self.__dict__.keys():
-            tabs = ''
-            for ntabs in range(0,4-len(attr)/7): tabs+= '\t'
-            
-            data = self.__dict__[attr]
-            if isinstance(data, bool): #format booleans in a nice way
-                if data: #print in green
-                    data = '\033[92m' + str(data) + '\033[0m'
-                else: #print in red
-                    data = '\033[91m' + str(data) + '\033[0m'  
-            else:
-                data = str(data)
-            
-            outstr += attr + ':' + tabs +data + ' \n'
-        return outstr
 
 # Trigger classes
 # There are 3 distinct objects:
@@ -282,9 +330,6 @@ class HLTPath(Primitive):
         Primitive.__init__(self)
         for prettyattr, attr in zip(('idx', 'name', 'HLTPrescale', 'L1TPrescale'), ('hlt_idx', 'hlt_path', 'hlt_prescale', 'l1t_prescale')):
             self.set(prettyattr, E, 'trig_'+attr, i)
-            
-    def __repr__(self):
-        return self.__str__()
 
 # TriggerMuon class
 class TriggerMuon(Primitive):
@@ -300,17 +345,18 @@ class TriggerMuon(Primitive):
         self.p3 = R.TVector3(self.px, self.py, self.pz)
         self.pt = math.sqrt(self.px**2. + self.py**2.)
 
-                #'idx', 'trigger', 'pt', 'px', 'py', 'pz', 'eta', 'phi'
-    headerFormat = "|{:4}|{:8}|{:9.5}|{:9.9}|{:9.9}|{:9.9}|{:9.9}|{:9.9}|\n"
-    dataFormat = "|{:4d}|{:8s}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|\n"
-      
-    @staticmethod #so we don't need an instance of it
+    # idx, trigger, pt, px, py, pz, eta, phi
+    headerFormat = '|{:4s}|{:8s}|{:9s}|{:9s}|{:9s}|{:9s}|{:9s}|{:9s}|\n'
+    dataFormat   = '|{:4d}|{:8s}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|{:9.3f}|\n'
+
+    # so that we don't need an instance of the class to call this method
+    @staticmethod
     def headerstr():
-        return TriggerMuon.headerFormat.format('idx', 'trigger', 'pt', 'px', 'py', 'pz', 'eta', 'phi')    
-    
+        return TriggerMuon.headerFormat.format('idx', 'trigger', 'pt', 'px', 'py', 'pz', 'eta', 'phi')
+
     def datastr(self):
         return TriggerMuon.dataFormat.format(self.idx, self.trigger, self.pt, self.px, self.py, self.pz, self.eta, self.phi)
-    
+
     def __str__(self):
         return TriggerMuon.headerstr() + self.datastr()
 
@@ -323,14 +369,13 @@ class Beamspot(Primitive):
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)
-        
-    def __str__(self):  
-        outstr = '\033[1m\033[95m' + self.__class__.__name__ +'\033[0m\033[0m:\n'
-        outstr += 'x +/- dx =\t%3.3f +/- %3.3f [cm]\n'%(self.x, self.dx)
-        outstr += 'y +/- dy =\t%3.3f +/- %3.3f [cm]\n'%(self.y, self.dy)
-        outstr += 'z +/- dz =\t%3.3f +/- %3.3f [cm]\n'%(self.z, self.dz)
+
+    def __str__(self):
+        outstr = colorText(self.__class__.__name__) + '\n'
+        outstr += 'x +/- dx = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.x, self.dx)
+        outstr += 'y +/- dy = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.y, self.dy)
+        outstr += 'z +/- dz = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.z, self.dz)
         return outstr
-        
 
 # Vertex class
 # tree only saves primary vertex and nVtx
@@ -343,16 +388,13 @@ class Vertex(Primitive):
 
         self.pos = R.TVector3(self.x , self.y , self.z )
         self.err = R.TVector3(self.dx, self.dy, self.dz)
-        
-        
-            
-    def __str__(self):  
-        outstr = '\033[1m\033[95m' + self.__class__.__name__ +'\033[0m\033[0m:\n'
-        outstr += 'nvtx = %i\tntrk: %i\t chi2/ndf: %3.2f/%3.2f = %3.2f\n'%(self.nvtx, self.ntrk, self.chi2,
-                                                                  self.ndof, self.chi2/self.ndof)
-        outstr += 'x +/- dx =\t%3.3f +/- %3.3f [cm]\n'%(self.x, self.dx)
-        outstr += 'y +/- dy =\t%3.3f +/- %3.3f [cm]\n'%(self.y, self.dy)
-        outstr += 'z +/- dz =\t%3.3f +/- %3.3f [cm]\n'%(self.z, self.dz)
+
+    def __str__(self):
+        outstr = colorText(self.__class__.__name__) + '\n'
+        outstr += 'nvtx = {:d}    ntrk: {:d}    chi2/ndf: {:3.2f}/{:3.2f} = {:3.2f}\n'.format(self.nvtx, self.ntrk, self.chi2, self.ndof, self.chi2/self.ndof)
+        outstr += 'x +/- dx = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.x, self.dx)
+        outstr += 'y +/- dy = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.y, self.dy)
+        outstr += 'z +/- dz = {:6.3f} +/- {:6.3f} [cm]\n'.format(self.z, self.dz)
         return outstr
 
 # Things start to get more complicated here...
@@ -374,12 +416,6 @@ class Particle(Primitive):
             else:
                 self.set(attr, E, prefix+attr, i)
 
-        # set pdgID for gen particles
-        if prefix == 'gen_':
-            self.set('pdgID', E, prefix+'pdgID', i)
-            self.set('status', E, prefix+'status', i)
-            self.set('mother', E, prefix+'mother', i)
-
         # set position TVector3
         self.pos = R.TVector3(self.x, self.y, self.z)
 
@@ -391,7 +427,7 @@ class Particle(Primitive):
         self.p3 = R.TVector3(*self.p4.Vect())
 
     # Since the nTuples are no longer guaranteed to have all of the
-    # 9 basic particle variables above, so
+    # 9 basic particle variables above
     # I have to compute them myself from what exists in the tree
     # currently:
     #  - dsamu, rsamu, dim_mu* do not have pt, mass, energy, but have px, py, pz
@@ -432,39 +468,54 @@ class Particle(Primitive):
             else:
                 raise Exception('xyz for prefix '+prefix+' unavailable.')
         return missing
-    
-                   # pdgID, status, mother, pt,  eta, phi, mass, energy, q, (x,y,z)";    
-    headerFormat = "|{:9}|{:8}|{:8}|{:9}|{:10}|{:7}|{:10}|{:10}|{:5}|{:^21}|\n"
-    dataFormat = "|{:9s}|{:8s}|{:8s}|{:9.2f}|{:10.2f}|{:7.2f}|{:10.2f}|{:10.2f}|{:5.1f}|{:7.2f}{:7.2f}{:7.2f}|\n"
 
-    
-    @staticmethod #so we don't need an instance of it
+    # pt, eta, phi, mass, energy, q, (x,y,z);
+    headerFormat = '|{:9s}|{:10s}|{:7s}|{:10s}|{:10s}|{:6s}|{:^21s}|\n'
+    dataFormat   = '|{:9.2f}|{:10.2f}|{:7.2f}|{:10.2f}|{:10.2f}|{:6d}|{:7.2f}{:7.2f}{:7.2f}|\n'
+
+    # so that we don't need an instance of the class to call this method
+    @staticmethod
     def headerstr():
-        return Particle.headerFormat.format('pdgID', 'status', 'mother',\
-                                             'pt',  'eta', 'phi', 'mass',\
-                                              'energy', 'q', '(x,y,z)') 
-    
-    
+        return Particle.headerFormat.format(
+            'pt',  'eta', 'phi', 'mass', 'energy', 'charge', '(x,y,z)')
+
     def datastr(self):
-        pdgID_ = 'N/A' if not hasattr(self,'pdgID') else str(self.pdgID)
-        status_ = 'N/A' if not hasattr(self, 'status') else str(self.status)
-        mother_ = 'N/A' if not hasattr(self, 'mother') else str(self.mother)
-        
-        return Particle.dataFormat.format(pdgID_, status_, mother_,\
-                                           self.pt, self.eta, self.phi, self.mass, \
-                                           self.energy, self.charge, self.x, self.y, self.z)
-    
+        return Particle.dataFormat.format(
+            self.pt, self.eta, self.phi, self.mass, self.energy, int(self.charge), self.x, self.y, self.z)
+
     def __str__(self):
         return Particle.headerstr() + self.datastr()
-    
-    
 
+# GenParticle class
+# just like Particle, but also sets gen info: pdgID, status, and mother
+class GenParticle(Particle):
+    def __init__(self, E, i):
+        Particle.__init__(self, E, i, 'gen_')
+
+        # set gen info for gen particles
+        for attr in ('pdgID', 'status', 'mother'):
+            self.set(attr, E, 'gen_'+attr, i)
+
+    # pdgID, status, mother
+    headerFormatPre = '|{:9s}|{:8s}|{:8s}'
+    dataFormatPre   = '|{:9d}|{:8d}|{:8d}'
+
+    # so that we don't need an instance of the class to call this method
+    @staticmethod
+    def headerstr():
+        return GenParticle.headerFormatPre.format('pdgID', 'status', 'mother') + Particle.headerstr()
+
+    def datastr(self):
+        return GenParticle.dataFormatPre.format(self.pdgID, self.status, self.mother) + Particle.datastr(self)
+
+    def __str__(self):
+        return GenParticle.headerstr() + self.datastr()
 
 # Muon classes
 # sets all the particle variables
 # base class for several "kinds" of muons, each with different additional branches
-# AODMuon        : reco AOD muons from the reco::Muon collection (mu_)
-#   .gen         : gen muon matched/attached to the AOD muon     (mu_gen_)
+# PATMuon        : reco PAT muons from the reco::Muon collection (mu_)
+#   .gen         : gen muon matched/attached to the PAT muon     (mu_gen_)
 # GenMuon        : gen muons from the GenParticle collection     (gen_)
 # RecoMuon       : reco muons from a reco::Track collection
 #   ("DSA")      : reco DSA muons from displacedStandAloneMuons  (dsamu_)
@@ -475,9 +526,9 @@ class Muon(Particle):
     def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
 
-# AODMuon: see above
+# PATMuon: see above
 # note that the gen muon attached to it is of type Muon
-class AODMuon(Muon):
+class PATMuon(Muon):
     def __init__(self, E, i):
         Muon.__init__(self, E, i, 'mu_')
         self.gen = Muon(E, i, 'mu_gen_')
@@ -485,9 +536,10 @@ class AODMuon(Muon):
             self.set(attr, E, 'mu_'+attr, i)
 
 # GenMuon: see above
-class GenMuon(Muon):
+class GenMuon(Muon, GenParticle):
     def __init__(self, E, i):
         Muon.__init__(self, E, i, 'gen_')
+        GenParticle.__init__(self, E, i)
         for attr in ('cosAlpha', 'deltaR'):
             self.set(attr, E, 'gen_'+attr, i)
 
@@ -504,21 +556,19 @@ class GenMuon(Muon):
         return self.d0_
     def dz(self):
         return self.dz_
-    
-    headerFormat = "{:8}|{:8}|{:8}|{:8}|{:8}|\n"
-    dataFormat = "{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|\n"
-    
-    @staticmethod #so we don't need an instance of it
-    def headerstr():
-        header = Particle.headerstr().replace("\n", "") # take of the \n
-        return header + GenMuon.headerFormat.format('Lxy', 'cosA', 'd0', 'dz', 'dR')
-    
-    def datastr(self):
-        data = Particle.datastr(self).replace("\n", "")
-        return data + GenMuon.dataFormat.format(self.Lxy_, self.cosAlpha, self.d0_, self.dz_, self.deltaR)
 
-    
-    
+    # Lxy, cosAlpha, d0, dz, dR
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+
+    # so that we don't need an instance of the class to call this method
+    @staticmethod
+    def headerstr():
+        # take care of the \n
+        return GenParticle.headerstr().strip('\n') + GenMuon.headerFormatPost.format('Lxy', 'cosAlpha', 'd0', 'dz', 'dR')
+
+    def datastr(self):
+        return GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.d0_, self.dz_, self.deltaR)
 
 # RecoMuon: see above
 # the ImpactParameter is a member variable allowing easy access to d0, dz
@@ -550,29 +600,40 @@ class RecoMuon(Muon):
         if name in ('d0', 'dz', 'd0Sig', 'dzSig'):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
-    # 'nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit'
-    headerFormat2 = "|{:10}|{:8}|{:8}|{:14}|{:14}|{:9}|{:9}|{:^27}|\n"
-    dataFormat2 = "|{:10d}|{:8d}|{:8d}|{:14d}|{:14d}|{:9.2f}|{:9.2f}|{:9.2f}{:9.2f}{:9.2f}|\n"
-    
-    headerFormat3 = "|{:8}|{:8}|{:8}|{:8}|\n"
-    dataFormat3 = "|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n"
-    
+
+    # idx
+    headerFormatPre = '|{:3s}'
+    dataFormatPre   = '|{:3d}'
+
+    # nMuonHits, nDTHits, nCSCHits, nDTStations, nCSCStations, chi2, ndof, x_fhit, y_fhit, z_fhit
+    headerFormatExtra = '|{:10s}|{:8s}|{:8s}|{:14s}|{:14s}|{:9s}|{:9s}|{:^27s}|\n'
+    dataFormatExtra   = '|{:10d}|{:8d}|{:8d}|{:14d}|{:14d}|{:9.2f}|{:9.2f}|{:9.2f}{:9.2f}{:9.2f}|\n'
+
+    # ptError, d0, dz, d0Sig, dzSig
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+
     @staticmethod
-    def headerstr2():
-        return RecoMuon.headerFormat2.format('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', '(x_fhit, y_fhit, z_fhit)')
-    def datastr2(self):
-        return RecoMuon.dataFormat2.format(self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations,\
-                                           self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
-    
-    @staticmethod
-    def headerstr3():
-        return RecoMuon.headerFormat3.format('d0', 'dz', 'd0Sig', 'dzSig')
-    def datastr3(self):
-        return RecoMuon.dataFormat3.format(self.d0(), self.dz(), self.d0Sig(), self.dzSig())
-    
+    def headerstr(line=1):
+        if line == 1:
+            return RecoMuon.headerFormatPre.format('idx') +\
+                   Particle.headerstr().strip('\n')     +\
+                   RecoMuon.headerFormatPost.format('ptErr', 'd0', 'dz', 'd0Sig', 'dzSig')
+        elif line == 2:
+            return RecoMuon.headerFormatExtra.format(
+                'nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', '(x_fhit, y_fhit, z_fhit)')
+
+    def datastr(self, line=1):
+        if line == 1:
+            return RecoMuon.dataFormatPre.format(self.idx) +\
+                   Particle.datastr(self).strip('\n')    +\
+                   RecoMuon.dataFormatPost.format(self.ptError, self.d0(), self.dz(), self.d0Sig(), self.dzSig())
+        elif line == 2:
+            return RecoMuon.dataFormatExtra.format(
+                self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations, self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
+
     def __str__(self):
-        return Particle.headerstr() + self.datastr() + RecoMuon.headerstr2() + self.datastr2()\
-            + RecoMuon.headerstr3() + self.datastr3()
+        return ''.join([RecoMuon.headerstr(i) + self.datastr(i) for i in (1, 2, 3)])
 
 # impact parameter wrapper class for
 # d0 and dz, their significances,
@@ -628,8 +689,6 @@ class Dimuon(Particle):
 
         self.mu1 = RecoMuon(E, i, 'DIM_DSA1')
         self.mu2 = RecoMuon(E, i, 'DIM_DSA2')
-        
-        self.muons = [self.mu1, self.mu2]
 
         self.idx1 = self.mu1.idx
         self.idx2 = self.mu2.idx
@@ -638,26 +697,35 @@ class Dimuon(Particle):
         if name in ('Lxy', 'LxySig'):
             return getattr(self.Lxy_, name)
         raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
-    
-    
-    headerFormat = "|{:8}|{:8}|{:8}|{:8}|{:8}|{:8}|\n"
-    dataFormat = "|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n"
-    
+
+
+    # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+
+    @staticmethod
+    def headerstr(line=1):
+        # extra spaces are to align with the RecoMuon |idx| field
+        if line == 1:
+            return '    ' + Particle.headerstr().strip('\n') +\
+                   Dimuon.headerFormatPost.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'Lxy', 'LxySig')
+
+    def datastr(self, line=1):
+        # extra spaces are to align with the RecoMuon |idx| field
+        if line == 1:
+            return '    ' + Particle.datastr(self).strip('\n') +\
+                   Dimuon.dataFormatPost.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha, self.Lxy(), self.LxySig())
+
     def __str__(self):
-        outstr = '\033[1m\033[94m' + self.__class__.__name__ +'\033[0m\033[0m:\n'
-        outstr += Dimuon.headerFormat.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'Lxy', 'LxySig')
-        outstr += Dimuon.dataFormat.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha, self.Lxy(), self.LxySig()) + '\n'
-        
+        outstr = colorText('Dimuon', color='blue') + '\n'
+        outstr += Dimuon.headerstr() + self.datastr()
+        outstr += colorText('Refitted Muons', color='blue') + '\n'
         outstr += RecoMuon.headerstr()
-        for mu in self.muons:
+        for mu in (self.mu1, self.mu2):
             outstr += mu.datastr()
-        outstr += RecoMuon.headerstr3() #we don't fillheader 2 stuff here...
-        for mu in self.muons:
-            outstr += mu.datastr3()
-        outstr+='\n'
+        # no need to print header 2 because no header 2 quantities in refitted muons
+        outstr += '\n'
         return outstr
-        
-        
 
 # Lxy wrapper class for Lxy and its significance
 # and wrt PV or BS

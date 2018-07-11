@@ -1,6 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
+Primitives.COLORON = True
+
 TESTFILE = 'test.root'
 
 f = R.TFile.Open(TESTFILE)

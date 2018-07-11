@@ -44,3 +44,21 @@ def setGenAliases(t, signal='4Mu'):
         for attribute in ('pdgID', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z', 'd0', 'dz', 'cosAlpha', 'Lxy', 'deltaR'):
             if attribute in ('d0', 'dz', 'cosAlpha', 'Lxy', 'deltaR') and particle[0:2] != 'mu' and particle[0] != 'j': continue
             t.SetAlias(particle+'.'+attribute, 'gen_'+attribute+'['+str(i)+']')
+
+#### Histogram Tools
+def addBinWidth(plot):
+    yAxisTitle = plot.GetYaxis().GetTitle()
+    xAxisTitle = plot.GetXaxis().GetTitle()
+    binWidth = plot.GetXaxis().GetBinWidth(1)
+    if binWidth.is_integer():
+        binWidth = int(binWidth)
+        binWidthString = ' / {:d}'.format(binWidth)
+    else:
+        binWidthString = ' / {:.2f}'.format(binWidth)
+    if 'GeV' in xAxisTitle:
+        units = ' GeV'
+    elif 'cm' in xAxisTitle:
+        units = ' cm'
+    else:
+        units = ''
+    plot.setTitles(Y=yAxisTitle + binWidthString + units)

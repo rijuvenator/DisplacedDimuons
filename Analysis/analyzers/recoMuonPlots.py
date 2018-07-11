@@ -70,10 +70,10 @@ def analyze(self, E, PARAMS=None):
     # get gen particles if this is a signal sample
     if self.SP is not None:
         if '4Mu' in self.NAME:
-            mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+            mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)
         elif '2Mu2J' in self.NAME:
-            mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+            mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu1, mu2)
 
         # fill histograms only for matched reco muons

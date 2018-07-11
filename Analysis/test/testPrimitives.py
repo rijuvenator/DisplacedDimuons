@@ -57,7 +57,7 @@ for i, event in enumerate(t):
             Collection = E.getPrimitives(KEY)
             if KEY == 'GEN':
                 try:
-                    mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+                    mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
                 except Exception as e:
                     if e.message not in ErrorMessages:
                         ErrorMessages.append(e.message)

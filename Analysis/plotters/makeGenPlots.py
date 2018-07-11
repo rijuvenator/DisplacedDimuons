@@ -1,5 +1,6 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
@@ -17,6 +18,7 @@ def makePerSignalPlots(fs):
             canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
             canvas.addMainPlot(p)
             p.SetLineColor(R.kBlue)
+            RT.addBinWidth(p)
             pave = canvas.makeStatsBox(p, color=R.kBlue)
             canvas.cleanup('pdfs/Gen_{}_HTo2XTo{}_{}.pdf'.format(key, fs, SPStr(sp)))
 
