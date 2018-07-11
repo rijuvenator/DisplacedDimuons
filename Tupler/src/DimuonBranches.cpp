@@ -43,7 +43,13 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 
       // fit the secondary vertex
       std::vector<reco::TransientTrack> trackVector = {ott1, ott2};
-      TransientVertex tv = kvf.vertex(trackVector);
+      TransientVertex tv;
+      try {
+	tv = kvf.vertex(trackVector);
+      } catch ( VertexException & e ) {
+	edm::LogWarning("DimuonBranches")
+	  << "exception in common-vertex fit caught: " << e.what();
+      }
 
       // Only store those dimuons for which the common-vertex fit
       // converged.  If the fit failed, all dimuon quantities can be
