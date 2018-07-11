@@ -461,8 +461,8 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['Stack', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Stack', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
 // sample names and labels
 var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          ].concat(BGLIST);
@@ -506,7 +506,7 @@ var PLOTTYPELABELS = {
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;(&mu;&mu;)', '&Delta;&Phi;(&mu;X)', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
     SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
     SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
+    SMR      : [['Both', 'DSA', 'RSA', 'Refit BA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
     SVFE     : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>'], ['v. f. &epsilon;']],
 }
 

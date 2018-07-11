@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
@@ -48,6 +49,7 @@ def makeResPlots(quantity, fs):
 
         p['DSA'].SetLineColor(R.kBlue)
         p['RSA'].SetLineColor(R.kRed)
+        RT.addBinWidth(canvas.firstPlot)
 
         canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h['DSA'].GetMean())   + '}', (.75, .8    ))
         canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h['DSA'].GetStdDev()) + '}', (.75, .8-.04))

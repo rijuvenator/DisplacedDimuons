@@ -171,17 +171,18 @@ def analyze(self, E, PARAMS=None):
 def end(self, PARAMS=None):
     FS = '4Mu' if '4Mu' in self.NAME else '2Mu2J'
 
-    for TAG in ('Before', 'After'):
-        print 'DATA: {FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d} {BA:1s} {tot:<6d} {qm:<6d} {nm:<6d}'.format(
-                FS=FS,
-                mH=self.SP.mH,
-                mX=self.SP.mX,
-                cTau=self.SP.cTau,
-                BA=TAG[0],
-                tot=self.COUNTERS[TAG]['Total'],
-                qm=self.COUNTERS[TAG]['QM'],
-                nm=self.COUNTERS[TAG]['Not']
-        )
+    if False:
+        for TAG in ('Before', 'After'):
+            print 'DATA: {FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d} {BA:1s} {tot:<6d} {qm:<6d} {nm:<6d}'.format(
+                    FS=FS,
+                    mH=self.SP.mH,
+                    mX=self.SP.mX,
+                    cTau=self.SP.cTau,
+                    BA=TAG[0],
+                    tot=self.COUNTERS[TAG]['Total'],
+                    qm=self.COUNTERS[TAG]['QM'],
+                    nm=self.COUNTERS[TAG]['Not']
+            )
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

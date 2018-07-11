@@ -17,6 +17,10 @@ args = parser.parse_args()
 SCRIPT = args.SCRIPT
 FOLDER = args.FOLDER
 
+# specific scripts that should ignore the splitting parameter
+# e.g. scripts that do not loop on the tree but use existing histograms
+SplittingVetoList = ('tailCumulativePlots.py',)
+
 BGSampleList = (
     ('DY10to50'  , None        ),
     ('WJets'     , None        ),
@@ -25,8 +29,8 @@ BGSampleList = (
     ('ZZ'        , None        ),
     ('tW'        , None        ),
     ('tbarW'     , None        ),
-    ('DY50toInf' , (68, 100000)),
-    ('ttbar'     , (36, 100000)),
+    ('DY50toInf' , (136, 50000)),
+    ('ttbar'     , (72,  50000)),
 )
 DataSampleList = (
     #('DoubleMuonRun2016B-07Aug17-v2', ( 5, 100000)),
@@ -50,7 +54,7 @@ if '2' in args.SAMPLES:
     ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
 if 'B' in args.SAMPLES:
     for NAME, SPLITTING in BGSampleList:
-        if SPLITTING is None:
+        if SPLITTING is None or SCRIPT in SplittingVetoList:
             ArgsList.append('--name {}'.format(NAME))
         else:
             NJOBS, NEVENTS = SPLITTING
@@ -117,7 +121,9 @@ if not args.LOCAL:
         for index, ARGS in enumerate(ArgsList):
             scriptName = 'submit_{index}.sh'                         .format(**locals())
             open(scriptName, 'w').write(submitScript                 .format(**locals()))
-            queue = '1nh' if 'splitting' not in ARGS else '8nh'
+            # leaving this line commented in case fewer jobs are desired
+            #queue = '1nh' if 'splitting' not in ARGS else '8nh'
+            queue = '1nh'
             bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
             bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
     # run on CONDOR
