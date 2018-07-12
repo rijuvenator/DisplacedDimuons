@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
@@ -28,7 +29,8 @@ def makePerSamplePlots():
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
                 if '_Matched' in key: continue
 
-            h = HISTS[ref][key]
+            h = HISTS[ref][key].Clone()
+            if h.GetNbinsX() > 100: h.Rebin(10)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/{}_{}.pdf'.format(key, name)
 
@@ -38,6 +40,8 @@ def makePerSamplePlots():
             canvas.legend.moveLegend(Y=-.3)
             canvas.legend.resizeHeight()
             p.SetLineColor(R.kBlue)
+            RT.addBinWidth(p)
+
             pave = canvas.makeStatsBox(p, color=R.kBlue)
             canvas.cleanup(fname)
 
@@ -45,6 +49,7 @@ def makePerSamplePlots():
 def makeStackPlots(DataMC=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS[('4Mu', (125, 20, 13))]:
+        if 'Matched' in hkey: continue
     #for hkey in ('d0Sig_Less',):
         h = {
 #           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
@@ -61,7 +66,8 @@ def makeStackPlots(DataMC=False):
         PC = HistogramGetter.PLOTCONFIG
 
         for key in BGORDER:
-            h[key] = HISTS[key][hkey]
+            h[key] = HISTS[key][hkey].Clone()
+            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -89,6 +95,7 @@ def makeStackPlots(DataMC=False):
         canvas.legend.resizeHeight()
 
         p['BG'].setTitles(X=p['WJets'].GetXaxis().GetTitle(), Y='Normalized Counts')
+        RT.addBinWidth(p['BG'])
 
         canvas.firstPlot.SetMaximum(h['BG'].GetStack().Last().GetMaximum() * 1.05)
         #canvas.firstPlot.SetMaximum(1.e-4)

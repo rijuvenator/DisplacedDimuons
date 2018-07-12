@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
@@ -48,6 +49,7 @@ def makeEffPlots(quantity, fs, SP=None):
     canvas.addMainPlot(p['Eff'])
     p['Eff'].SetMarkerColor(R.kBlue)
     p['Eff'].SetLineColor(R.kBlue)
+    RT.addBinWidth(canvas.firstPlot)
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.)
     canvas.cleanup('pdfs/SVFE_{}Eff_HTo2XTo{}_{}.pdf'.format(quantity, fs, 'Global' if SP is None else SPStr(SP)))

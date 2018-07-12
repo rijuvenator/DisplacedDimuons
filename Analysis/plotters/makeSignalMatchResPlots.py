@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
@@ -29,7 +30,7 @@ def makeResPlots(quantity, fs):
             fplots = {}
             for MUON in h:
                 funcs[MUON] = R.TF1('f'+MUON, 'gaus', -0.5, 0.4)
-                h[MUON].Fit('f'+MUON)
+                h[MUON].Fit('f'+MUON, 'R')
                 fplots[MUON] = Plotter.Plot(funcs[MUON], 'Gaussian fit ({})'.format(MUON), 'l', '')
 
         canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
@@ -48,6 +49,7 @@ def makeResPlots(quantity, fs):
 
         p['DSA'].SetLineColor(R.kBlue)
         p['RSA'].SetLineColor(R.kRed)
+        RT.addBinWidth(canvas.firstPlot)
 
         canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h['DSA'].GetMean())   + '}', (.75, .8    ))
         canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h['DSA'].GetStdDev()) + '}', (.75, .8-.04))
@@ -190,8 +192,9 @@ def makeRefittedResPlot(fs):
             canvas.addMainPlot(p[TAG], addS=True)
 
             if DOFIT:
-                funcs[TAG] = R.TF1('f'+TAG, 'gaus', -0.3, 0.3)
-                h[TAG].Fit('f'+TAG)
+                MODE = h[TAG].GetXaxis().GetBinLowEdge(h[TAG].GetMaximumBin())
+                funcs[TAG] = R.TF1('f'+TAG, 'gaus', MODE-0.3, MODE+0.3)
+                h[TAG].Fit('f'+TAG, 'R')
                 fplots[TAG] = Plotter.Plot(funcs[TAG], 'Gaussian fit ({})'.format(TAG), 'l', '')
                 canvas.addMainPlot(fplots[TAG])
 

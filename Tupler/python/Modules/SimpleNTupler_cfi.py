@@ -22,7 +22,6 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
         triggerEvent   = cms.InputTag('patTriggerEvent'),
         prescales      = cms.InputTag('patTrigger', 'l1max', 'PAT'),
 
-        # Versions to be checked for other data sets
         ddmHLTPaths    = cms.vstring(
             "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v2", # 2016B
             "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v3", # 2016BC
