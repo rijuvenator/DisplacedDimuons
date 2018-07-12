@@ -492,22 +492,27 @@ var PLOTTYPEVALS = {
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0'], ['Eff', 'ChargeEff']],
-    SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned']]],
+    SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
+var PT   = 'p<sub>T</sub>'
+var D0   = 'd<sub>0</sub>'
+var LXY  = 'L<sub>xy</sub>'
+var CHI2 = '&chi;<sup>2</sup>/dof'
+
 var PLOTTYPELABELS = {
-    Dim      : [['p<sub>T</sub>', '&eta;', 'mass', '&Delta;R', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex &chi;<sup>2</sup>/dof', 'L<sub>xy</sub>', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>'], ['no selection', 'matched']],
-    DSA      : [['p<sub>T</sub>', '&sigma;<sub>pT</sub>/p<sub>T</sub>', '&eta;', 'd<sub>0</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
-    RSA      : [['p<sub>T</sub>', '&sigma;<sub>pT</sub>/p<sub>T</sub>', '&eta;', 'd<sub>0</sub0', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', '&chi;<sup>2</sup>/dof', 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
-    NM1      : ['p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', '&chi;<sup>2</sup>/dof', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex &chi;<sup>2</sup>/dof', '&Delta;R', 'L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
-    NM1E     : [['L<sub>xy</sub> sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. &chi;<sup>2</sup>/dof', 'p<sub>T</sub>', '&eta;', 'nMuonHits', 'nStations', 'track &chi;<sup>2</sup>/dof', 'd<sub>0</sub> sig.'], ['vs. p<sub>T</sub>', 'vs. &eta;', 'vs. d<sub>0</sub>', 'vs. L<sub>xy</sub>']],
-    TCUM     : ['L<sub>xy</sub>/&sigma;<sub>Lxy</sub>', '|d<sub>0</sub>|/&sigma;<sub>d0</sub>'],
+    Dim      : [[PT, '&eta;', 'mass', '&Delta;R', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>'], ['no selection', 'matched']],
+    DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
+    RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon'], ['no selection', 'matched']],
+    NM1      : [PT, '&eta;', 'nMuonHits', 'nStations', CHI2, '|'+D0+'|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex '+CHI2, '&Delta;R', LXY+'/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
+    NM1E     : [[LXY+' sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. '+CHI2, PT, '&eta;', 'nMuonHits', 'nStations', 'track '+CHI2, D0+' sig.'], ['vs. '+PT, 'vs. &eta;', 'vs. '+D0, 'vs. '+LXY]],
+    TCUM     : [LXY+'/&sigma;<sub>Lxy</sub>', '|'+D0+'|/&sigma;<sub>d0</sub>'],
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
-    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', 'p<sub>T</sub> H', 'p<sub>T</sub> X', 'p<sub>T</sub> &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;(&mu;&mu;)', '&Delta;&Phi;(&mu;X)', 'cos(&alpha;)', 'L<sub>xy</sub>', 'd<sub>0</sub>', '&Delta;R', 'L<sub>xy</sub> VS L<sub>z</sub>'],
-    SME      : ['&epsilon; : p<sub>T</sub>', '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : L<sub>xy</sub>', '&epsilon; : d<sub>0</sub>', 'Charge &epsilon; : p<sub>T</sub>', 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : L<sub>xy</sub>', 'Charge &epsilon; : d<sub>0</sub>'],
-    SME      : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>', 'd<sub>0</sub>'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SMR      : [['Both', 'DSA', 'RSA', 'Refit BA'], [['p<sub>T</sub> Res.', 'd<sub>0</sub> Dif.', 'L<sub>xy</sub> Dif.'], ['Int.', 'L<sub>xy</sub>-Binned', 'd<sub>0</sub>-Binned', 'p<sub>T</sub>-Binned', 'q.m.-Binned']]],
-    SVFE     : [['p<sub>T</sub>', '&eta;', '&phi;', 'L<sub>xy</sub>'], ['v. f. &epsilon;']],
+    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;(&mu;&mu;)', '&Delta;&Phi;(&mu;X)', 'cos(&alpha;)', LXY, D0, '&Delta;R', LXY+' VS L<sub>z</sub>'],
+    SME      : ['&epsilon; : '+PT, '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : '+LXY, '&epsilon; : '+D0, 'Charge &epsilon; : '+PT, 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : '+LXY, 'Charge &epsilon; : '+D0],
+    SME      : [[PT, '&eta;', '&phi;', LXY, D0], ['reco. &epsilon;', 'charge &epsilon;']],
+    SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [[PT+' Res.', D0+' Dif.', LXY+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
+    SVFE     : [[PT, '&eta;', '&phi;', LXY], ['v. f. &epsilon;']],
 }
 
 var NCOLS = 8;

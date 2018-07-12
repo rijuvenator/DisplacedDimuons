@@ -29,7 +29,7 @@ def makeResPlots(quantity, fs):
             funcs = {}
             fplots = {}
             for MUON in h:
-                funcs[MUON] = R.TF1('f'+MUON, 'gaus', -0.5, 0.4)
+                funcs[MUON] = R.TF1('f'+MUON, 'gaus', -0.4, 0.3)
                 h[MUON].Fit('f'+MUON, 'R')
                 fplots[MUON] = Plotter.Plot(funcs[MUON], 'Gaussian fit ({})'.format(MUON), 'l', '')
 
@@ -43,31 +43,30 @@ def makeResPlots(quantity, fs):
             canvas.addMainPlot(fplots['DSA'])
             canvas.addMainPlot(fplots['RSA'])
 
-        canvas.makeLegend(lWidth=.25, pos='tr' if quantity == 'pT' else 'tl')
-        canvas.legend.moveLegend(X=-.3 if quantity == 'pT' else 0.)
+        canvas.makeLegend(lWidth=.25, pos='tl')
         canvas.legend.resizeHeight()
 
         p['DSA'].SetLineColor(R.kBlue)
         p['RSA'].SetLineColor(R.kRed)
         RT.addBinWidth(canvas.firstPlot)
 
-        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h['DSA'].GetMean())   + '}', (.75, .8    ))
-        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h['DSA'].GetStdDev()) + '}', (.75, .8-.04))
-        canvas.drawText('#color[2]{' + '#bar{{x}} = {:.4f}'   .format(h['RSA'].GetMean())   + '}', (.75, .8-.08))
-        canvas.drawText('#color[2]{' + 's = {:.4f}'           .format(h['RSA'].GetStdDev()) + '}', (.75, .8-.12))
+        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h['DSA'].GetMean())   + '}', (.75, .85    ))
+        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h['DSA'].GetStdDev()) + '}', (.75, .85-.04))
+        canvas.drawText('#color[2]{' + '#bar{{x}} = {:.4f}'   .format(h['RSA'].GetMean())   + '}', (.75, .85-.08))
+        canvas.drawText('#color[2]{' + 's = {:.4f}'           .format(h['RSA'].GetStdDev()) + '}', (.75, .85-.12))
 
         if DOFIT:
-            fplots['DSA'].SetLineColor(R.kBlack)
-            fplots['RSA'].SetLineColor(R.kGreen+1)
+            fplots['DSA'].SetLineColor(R.kBlue+1)
+            fplots['RSA'].SetLineColor(R.kRed+1)
 
-            canvas.setFitBoxStyle(h['DSA'], lWidth=0.35, pos='tr')
-            canvas.setFitBoxStyle(h['RSA'], lWidth=0.35, pos='tr')
+            canvas.setFitBoxStyle(h['DSA'], lWidth=0.275, pos='tr')
+            canvas.setFitBoxStyle(h['RSA'], lWidth=0.275, pos='tr')
 
-            p['DSA'].FindObject('stats').SetTextColor(R.kBlack)
-            Plotter.MOVE_OBJECT(p['DSA'].FindObject('stats'), Y=-.25, NDC=True)
+            p['DSA'].FindObject('stats').SetTextColor(R.kBlue+1)
+            Plotter.MOVE_OBJECT(p['DSA'].FindObject('stats'), Y=-.15, NDC=True)
 
-            p['RSA'].FindObject('stats').SetTextColor(R.kGreen+1)
-            Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.5, NDC=True)
+            p['RSA'].FindObject('stats').SetTextColor(R.kRed+1)
+            Plotter.MOVE_OBJECT(p['RSA'].FindObject('stats'), Y=-.3, NDC=True)
 
         canvas.cleanup(fname)
 
@@ -87,9 +86,10 @@ def makeResPlotsSingle(quantity, fs, MUON):
         canvas.legend.resizeHeight()
 
         p.SetLineColor(R.kBlue)
+        RT.addBinWidth(canvas.firstPlot)
 
-        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.75, .8    ))
-        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.75, .8-.04))
+        canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h.GetMean())   + '}', (.75, .85    ))
+        canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h.GetStdDev()) + '}', (.75, .85-.04))
 
         canvas.cleanup(fname)
 
@@ -116,15 +116,9 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     canvas.scaleMargins(0.8, edges='L')
     canvas.cleanup('pdfs/SMR_'+fstring+'_HTo2XTo'+fs+'_Global.pdf')
 
-# make res plot binned by other quantities
-def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
-    h = HISTS[(fs, sp)]['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=quantity, Q2=q2)].Clone()
-
-    PRETTY = {'pT' : 'p_{T}', 'Lxy': 'L_{xy}', 'd0' : 'd_{0}', 'qm' : 'charge matched'}
-
-    fname = 'pdfs/SMR_{}_{}_{}-Binned_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, fs, SPStr(sp))
-
+def getBinningValues(q2):
     if q2 == 'pT':
+        pretty    = 'p_{T}'
         binranges = ((0,199), (200,599), (600,1000))
         binwidth  = 500./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
@@ -132,13 +126,15 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'Lxy':
-        binranges = ((0,199), (200,599), (600,1000))
+        pretty    = 'L_{xy}'
+        binranges = ((0,214), (215,424), (425,1000))
         binwidth  = 800./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'd0':
+        pretty    = 'd_{0}'
         binranges = ((0,199), (200,599), (600,1000))
         binwidth  = 200./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
@@ -146,14 +142,25 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2}'
     elif q2 == 'qm':
+        pretty    = 'charge matched'
         binranges = ((1, 1), (2, 2))
         values    = {(1, 1):(False, False),(2, 2):(True, True)}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue)))
         colors2   = dict(zip(binranges, (2     , 4      )))
         legName   = '{Q2} : {V1}'
 
+    return pretty, binranges, values, colors, colors2, legName
+
+# make res plot binned by other quantities
+def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
+    h = HISTS[(fs, sp)]['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=quantity, Q2=q2)].Clone()
+
+    fname = 'pdfs/SMR_{}_{}_{}-Binned_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, fs, SPStr(sp))
+
+    pretty, binranges, values, colors, colors2, legName = getBinningValues(q2)
+
     projections = {key:h.ProjectionY('_'+str(i), key[0], key[1]) for i,key in enumerate(binranges)}
-    plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=PRETTY[q2], V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
+    plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=pretty, V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
 
     canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
     for key in binranges:
@@ -174,8 +181,10 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
                         (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-(i*0.04)-.04)
         )
 
+    RT.addBinWidth(canvas.firstPlot)
     canvas.cleanup(fname)
 
+# make resolution plots of the tracks before and after the refit
 def makeRefittedResPlot(fs):
     DOFIT = True
     for sp in SIGNALPOINTS:
@@ -204,6 +213,7 @@ def makeRefittedResPlot(fs):
 
         p['Before'].SetLineColor(R.kRed )
         p['After' ].SetLineColor(R.kBlue)
+        RT.addBinWidth(canvas.firstPlot)
         canvas.setMaximum()
 
         # top left edge = bottom left corner of legend shifted a tiny bit
@@ -237,6 +247,51 @@ def makeRefittedResPlot(fs):
         fname = 'pdfs/SMR_RefitBA_pTRes_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp))
         canvas.cleanup(fname)
 
+# make res plot binned by other quantities, separated by bin
+# necessarily, this must account for multiple plot types -- we are splitting bins across plots,
+# so it must be because we're plotting two different plots of the same bin
+# therefore TAGS should be a list, even if of one element, e.g. ('DSA', 'RSA') or ('RefitBefore', 'RefitAfter')
+# outputTag should be whatever the resulting file name should be
+def makeBinnedResPlotsBinwise(TAGS, outputTag, quantity, q2, fs, sp):
+    defaultColorOrder = (R.kRed, R.kBlue, R.kGreen)
+    h = {}
+    for tag in TAGS:
+        h[tag] = HISTS[(fs, sp)]['{T}_{Q}ResVS{Q2}'.format(T=tag, Q=quantity, Q2=q2)].Clone()
+
+    # leaving space for the bin number
+    fname = 'pdfs/SMR_{}_{}_{}-Binned-Bin-{{}}_HTo2XTo{}_{}.pdf'.format(outputTag, quantity+'Res', q2, fs, SPStr(sp))
+
+    pretty, binranges, values, colors, colors2, legName = getBinningValues(q2)
+
+    for i, key in enumerate(binranges):
+        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        projections, plots = {}, {}
+        for j, tag in enumerate(TAGS):
+            projections[tag] = h[tag].ProjectionY('_'+str(i)+'_'+str(j), key[0], key[1])
+            plots[tag]       = Plotter.Plot(projections[tag], tag, 'l', 'hist')
+            plots[tag].Rebin(10)
+            if plots[tag].Integral() != 0:
+                plots[tag].Scale(1./plots[tag].Integral())
+            plots[tag].SetLineColor(defaultColorOrder[j])
+
+            canvas.addMainPlot(plots[tag])
+
+        canvas.makeLegend(lWidth=.25, pos='tr')
+        canvas.legend.resizeHeight()
+        canvas.setMaximum(recompute=True)
+
+        canvas.drawText(legName.format(Q2=pretty, V1=values[key][0], V2=values[key][1]), (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-.04))
+
+        for j, tag in enumerate(TAGS):
+            plots[tag].SetLineColor(defaultColorOrder[j])
+            plots[tag].setTitles(X=plots[tag].GetXaxis().GetTitle(), Y='Normalized Counts')
+            canvas.drawText('#color[{}]{{'.format(defaultColorOrder[j]) + '#sigma = {:.4f}'.format(plots[tag].GetStdDev()) + '}',
+                (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-(j*0.04)-.08)
+            )
+
+        RT.addBinWidth(canvas.firstPlot)
+        canvas.cleanup(fname.format(i+1))
+
 # make plots
 if len(sys.argv) == 1: FS = '4Mu'
 else: FS = sys.argv[1]
@@ -265,5 +320,4 @@ for fs in (FS,):
 
     makeRefittedResPlot(fs)
     for sp in SIGNALPOINTS:
-        makeBinnedResPlot('RefitBefore', 'pT', 'Lxy', fs, sp)
-        makeBinnedResPlot('RefitAfter' , 'pT', 'Lxy', fs, sp)
+        makeBinnedResPlotsBinwise(('RefitBefore', 'RefitAfter'), 'RefitBA', 'pT', 'Lxy', fs, sp)

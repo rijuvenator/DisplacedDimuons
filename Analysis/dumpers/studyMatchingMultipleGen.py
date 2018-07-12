@@ -7,6 +7,13 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 #### CLASS AND FUNCTION DEFINITIONS ####
+def begin(self, PARAMS=None):
+    self.COUNTERS = {
+        'nGenMuons' : 0,
+        'nMatches'  : 0,
+        'nMultiple' : 0,
+    }
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
@@ -33,29 +40,38 @@ def analyze(self, E, PARAMS=None):
     else:
         selectedDSAmuons = DSAmuons
 
-    # loop over genMuons and print if pTRes is poor
-    for genMuon in genMuons:
-
-        matches = matchedMuons(genMuon, selectedDSAmuons)
-        if len(matches) != 0:
-            closestRecoMuon = selectedDSAmuons[matches[0]['idx']]
-
-            if (closestRecoMuon.pt-genMuon.pt)/genMuon.pt < -0.8:
-                dumpInfo(Event, genMuon, selectedDSAmuons, len(matches), extramu, PARAMS)
+    # loop over genMuons and count various matching criteria
+    for genMuonPair in genMuonPairs:
+        alreadySelected = []
+        MATCHES = []
+        for genMuon in genMuonPair:
+            self.COUNTERS['nGenMuons'] += 1
+            matches = matchedMuons(genMuon, selectedDSAmuons)
+            MATCHES.append(matches)
+            if len(matches) != 0:
+                self.COUNTERS['nMatches'] += 1
+                if matches[0]['idx'] not in alreadySelected:
+                    alreadySelected.append(matches[0]['idx'])
+                else:
+                    self.COUNTERS['nMultiple'] += 1
+                    alreadySelected.append(matches[0]['idx'])
+                    if PARAMS.DUMP:
+                        dumpInfo(Event, genMuonPair, selectedDSAmuons, MATCHES, extramu, PARAMS)
 
 # dump info
-def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
+def dumpInfo(Event, genMuonPair, DSAmuons, MATCHES, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
-    print 'Gen Muon:      {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
-            genMuon.pt,
-            '',
-            genMuon.eta,
-            genMuon.phi,
-            genMuon.Lxy(),
-            nMatches
-    )
+    for genMuon, matches in zip(genMuonPair, MATCHES):
+        print 'Gen Muon:      {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
+                genMuon.pt,
+                '',
+                genMuon.eta,
+                genMuon.phi,
+                genMuon.Lxy(),
+                len(matches)
+        )
     for muon in DSAmuons:
-        fstring = '  Reco Muon:   {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
+        fstring = '  Reco Muon:   {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
             muon.pt,
             '±',
             muon.ptError,
@@ -63,7 +79,8 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
             muon.phi,
             '',
             '',
-            muon.p4.DeltaR(genMuon.p4),
+            muon.p4.DeltaR(genMuonPair[0].p4),
+            muon.p4.DeltaR(genMuonPair[1].p4),
             muon.nDTStations,
             muon.nCSCStations,
             muon.nDTHits,
@@ -85,12 +102,26 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
         )
     print ''
 
+# dump info
+def end(self, PARAMS=None):
+    fstring = 'DATA: {:4d} {:3d} {:4d} {:5s} {:6d} {:6d} {:6d} '
+    print fstring.format(
+        self.SP.mH,
+        self.SP.mX,
+        self.SP.cTau,
+        '4Mu' if '4Mu' in self.NAME else '2Mu2J',
+        self.COUNTERS['nGenMuons'],
+        self.COUNTERS['nMatches' ],
+        self.COUNTERS['nMultiple'],
+    )
+
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
-    Analyzer.PARSER.add_argument('--color', dest='COLOR', action='store_true', help='whether to print reco matches in color')
+    Analyzer.PARSER.add_argument('--color', dest='COLOR', action='store_true', help='whether to print reco matches in color'              )
+    Analyzer.PARSER.add_argument('--dump' , dest='DUMP' , action='store_true', help='whether to dump detailed information about the event')
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
-    for METHOD in ('analyze',):
+    for METHOD in ('begin', 'analyze', 'end'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
