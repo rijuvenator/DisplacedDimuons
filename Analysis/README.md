@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **6 July 2018**
+Last updated: **13 July 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -12,6 +12,7 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
     * [HistogramGetter](#histogramgetter)
     * [convertone.sh](#convertone)
   * [Special](#special)
+  * [Test](#test)
 
 <a name="python"></a>
 ## Python
@@ -101,7 +102,8 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
     * _Sequential_ applies each cut sequentially, in order (i.e. N&minus;1, N&minus;2, etc.)
     * _N&minus;1_ applies all cuts except for a given cut
   * **studyMatching.py** produces event dumps for studying multiple matches, i.e. when gen muons match multiple reco muons.
-    * **reformatMatching.py** converts the single-line output _studyMatching.py_ into a file with percentages instead of counts, without rerunning.
+    * **studyMatchingMultipleGen.py** produces event dumps for studying multiple matches, i.e. when both gen muons match the same reco muon.
+    * **reformatMatching.py** converts the single-line output of either of these scripts into a file with percentages instead of counts, without rerunning.
   * **studypTRes.py** produces event dumps for studying the poor p<sub>T</sub> resolution for some signal points.
   * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
 
@@ -202,3 +204,7 @@ parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 The following script is deprecated and has been removed, having been replaced by other analyzers and dumpers.
 
   * **compareTrackerTweak.py** takes 2 nTuples, for two signal points, one produced without a constraint forcing vertex refits to be within the tracker, and one with produced with it. For the purposes of this analysis, we need to _remove_ the constraint (namely, set it to something large). This script, and its corresponding plotter script **plotTrackerTweak.py**, produce gen L<sub>xy</sub> distributions and efficiency as a function of gen L<sub>xy</sub>, and show the efficiency gain from removing the constraint, as well as the difference in distributions for large L<sub>xy</sub>.
+
+<a name="test"></a>
+## Test
+`test/` contains several important testing scripts. They are standalone python or shell scripts that are specifically aimed at testing various libraries: _Primitives_, _Selections_, all the _Analyzers_, and the dump functionality of _Primitives_. These scripts generally run successfully if there are no syntax errors or other issues in the whole analysis ecosystem.
