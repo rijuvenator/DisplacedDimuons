@@ -50,7 +50,7 @@ def makePerSamplePlots():
 # make stack plots
 def makeStackPlots(DataMC=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
-    for hkey in HISTS[('4Mu', (125, 20, 13))]:
+    for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
     #for hkey in ('d0Sig_Less',):
         h = {

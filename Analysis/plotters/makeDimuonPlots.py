@@ -13,6 +13,7 @@ f = R.TFile.Open('../analyzers/roots/DimuonPlots.root')
 def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
+            if 'LxySigVSLxy' in key: continue
             if type(ref) == tuple:
                 if ref[0] == '4Mu':
                     name = 'HTo2XTo4Mu_'
@@ -48,8 +49,9 @@ def makePerSamplePlots():
 # make stack plots
 def makeStackPlots(DataMC=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
-    for hkey in HISTS[('4Mu', (125, 20, 13))]:
+    for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
+        if 'LxySigVSLxy' in key: continue
     #for hkey in ('d0Sig_Less',):
         h = {
 #           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
@@ -108,5 +110,38 @@ def makeStackPlots(DataMC=False):
 
         canvas.cleanup(fname)
 
+# make 3D color plots
+def makeColorPlots(key):
+    key = 'Dim_' + key
+
+    for ref in HISTS:
+        if type(ref) == tuple:
+            if ref[0] == '4Mu':
+                name = 'HTo2XTo4Mu_'
+                latexFS = '4#mu'
+            elif ref[0] == '2Mu2J':
+                name = 'HTo2XTo2Mu2J_'
+                latexFS = '2#mu2j'
+            name += SPStr(ref[1])
+            lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+        else:
+            name = ref
+            lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
+            if '_Matched' in key: continue
+
+        h = HISTS[ref][key].Clone()
+        h.Rebin2D(10, 10)
+        p = Plotter.Plot(h, '', '', 'colz')
+        canvas = Plotter.Canvas(lumi=lumi)
+        #canvas.mainPad.SetLogz(True)
+        canvas.addMainPlot(p)
+        canvas.scaleMargins(1.75, edges='R')
+        canvas.scaleMargins(0.8, edges='L')
+
+        fname = 'pdfs/{}_{}.pdf'.format(key, name)
+        canvas.cleanup(fname)
+
 makePerSamplePlots()
 makeStackPlots(False)
+makeColorPlots('LxySigVSLxy')
+makeColorPlots('LxySigVSLxy_Matched')

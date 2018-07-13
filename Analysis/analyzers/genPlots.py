@@ -46,7 +46,7 @@ class HistogramConfigurations(object):
             'cTau'       : [['c#tau [cm]'       , 100 , 0.         , cTau*.6    ]                                  ],
             'beta'       : [['#beta = v/c'      , 100 , 0.         , 1.         ]                                  ],
             'Lxy'        : [['L_{xy} [cm]'      , 100 , 0.         , LxyUpper   ]                                  ],
-            'dR'         : [['#DeltaR'          , 100 , 0.         , 4.5        ]                                  ],
+            'dR'         : [['#mu#mu #DeltaR'   , 100 , 0.         , 4.5        ]                                  ],
             'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100 , -math.pi   , math.pi    ]                                  ],
             'dPhiMuX'    : [['#muX #Delta#phi'  , 100 , -math.pi   , math.pi    ]                                  ],
             'massX'      : [['X Mass [GeV]'     , 100 , mX*(1-XErr), mX*(1+XErr)]                                  ],

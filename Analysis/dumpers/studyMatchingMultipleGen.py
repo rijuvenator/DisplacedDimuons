@@ -53,7 +53,7 @@ def analyze(self, E, PARAMS=None):
                 if matches[0]['idx'] not in alreadySelected:
                     alreadySelected.append(matches[0]['idx'])
                 else:
-                    self.COUNTERS['nMultiple'] += 1
+                    self.COUNTERS['nMultiple'] += 2
                     alreadySelected.append(matches[0]['idx'])
                     if PARAMS.DUMP:
                         dumpInfo(Event, genMuonPair, selectedDSAmuons, MATCHES, extramu, PARAMS)
@@ -87,11 +87,22 @@ def dumpInfo(Event, genMuonPair, DSAmuons, MATCHES, extramu, PARAMS):
             muon.nCSCHits,
             muon.nMuonHits
         )
-        if muon.p4.DeltaR(genMuon.p4) < 0.3:
+        if muon.p4.DeltaR(genMuonPair[1].p4) < 0.3 and muon.p4.DeltaR(genMuonPair[0].p4) < 0.3:
+            if PARAMS.COLOR:
+                fstring = '\033[35m' + fstring + '\033[m'
+            else:
+                fstring = '**' + fstring[2:]
+        elif muon.p4.DeltaR(genMuonPair[1].p4) < 0.3:
             if PARAMS.COLOR:
                 fstring = '\033[31m' + fstring + '\033[m'
             else:
+                fstring = ' *' + fstring[2:]
+        elif muon.p4.DeltaR(genMuonPair[0].p4) < 0.3:
+            if PARAMS.COLOR:
+                fstring = '\033[32m' + fstring + '\033[m'
+            else:
                 fstring = '*' + fstring[1:]
+
         print fstring
     for extraGen in extramu:
         print 'Extra GenMuon: {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(

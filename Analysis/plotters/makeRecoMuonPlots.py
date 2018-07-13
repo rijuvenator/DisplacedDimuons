@@ -13,6 +13,7 @@ f = R.TFile.Open('../analyzers/roots/RecoMuonPlots.root')
 def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
+            if 'deltaRGR' in key: continue
             if type(ref) == tuple:
                 if ref[0] == '4Mu':
                     name = 'HTo2XTo4Mu_'
@@ -48,7 +49,7 @@ def makePerSamplePlots():
 # make stack plots
 def makeStackPlots(DataMC=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
-    for hkey in HISTS[('4Mu', (125, 20, 13))]:
+    for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
     #for hkey in ('d0Sig_Less',):
         h = {
@@ -108,5 +109,48 @@ def makeStackPlots(DataMC=False):
 
         canvas.cleanup(fname)
 
+# make plots that are per sample
+def makeGenRecoPlots():
+    for ref in HISTS:
+        if not type(ref) == tuple: continue
+        if ref[0] == '4Mu':
+            name = 'HTo2XTo4Mu_'
+            latexFS = '4#mu'
+        elif ref[0] == '2Mu2J':
+            name = 'HTo2XTo2Mu2J_'
+            latexFS = '2#mu2j'
+        name += SPStr(ref[1])
+        lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+
+        colors = {'Matched':R.kRed, 'Closest':R.kBlue}
+        KEYS = ('Matched', 'Closest')
+
+        for MUON in ('DSA', 'RSA'):
+            h, p = {}, {}
+            for key in KEYS:
+                h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()
+                if h[key].GetNbinsX() > 100: h.Rebin(10)
+                p[key] = Plotter.Plot(h[key], key, 'l', 'hist')
+            fname = 'pdfs/{}_{}_{}_{}.pdf'.format(MUON, 'deltaRGR', 'Matched', name)
+
+            canvas = Plotter.Canvas(lumi=lumi)
+            for key in KEYS:
+                canvas.addMainPlot(p[key])
+                p[key].SetLineColor(colors[key])
+
+            canvas.makeLegend(lWidth=.25, pos='tr')
+            canvas.legend.resizeHeight()
+            canvas.setMaximum()
+            RT.addBinWidth(canvas.firstPlot)
+
+            LPOS = (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-.04)
+
+            for i, key in enumerate(KEYS):
+                canvas.drawText(text='#color[{}]{{n = {:d}}}'.format(colors[key], int(p[key].GetEntries())), pos=(LPOS[0], LPOS[1]-i*0.04))
+
+
+            canvas.cleanup(fname)
+
 makePerSamplePlots()
 makeStackPlots(False)
+makeGenRecoPlots()

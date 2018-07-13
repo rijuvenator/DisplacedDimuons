@@ -28,12 +28,20 @@ def declareHistograms(self, PARAMS=None):
         XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
 
         for MUON in ('DSA', 'RSA'):
-            self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
-            self.HistInit(MUON+'_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
+            if True:
+                self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
+
+            if self.SP is not None:
+                self.HistInit(MUON+'_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
     for MUON in ('DSA', 'RSA'):
-        self.HistInit(MUON+'_nMuon'        , ';Muon Multiplicity;Counts', 15, 0., 15.)
-        self.HistInit(MUON+'_nMuon_Matched', ';Muon Multiplicity;Counts', 15, 0., 15.)
+        if True:
+            self.HistInit(MUON+'_nMuon'           , ';Muon Multiplicity;Counts', 15  , 0., 15.)
+
+        if self.SP is not None:
+            self.HistInit(MUON+'_nMuon_Matched'   , ';Muon Multiplicity;Counts', 15  , 0., 15.)
+            self.HistInit(MUON+'_deltaRGR_Matched', ';#DeltaR(gen-reco);Counts', 100 , 0., 0.3)
+            self.HistInit(MUON+'_deltaRGR_Closest', ';#DeltaR(gen-reco);Counts', 100 , 0., 0.3)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -88,7 +96,11 @@ def analyze(self, E, PARAMS=None):
                     muon = recoMuons[match['idx']]
                     for KEY in CONFIG:
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
+                    self.HISTS[MUON+'_deltaRGR_Matched'].Fill(genMuon.p4.DeltaR(muon.p4), eventWeight)
                 self.HISTS[MUON+'_nMuon_Matched'].Fill(len(matches), eventWeight)
+                if len(matches) > 0:
+                    closestMuon = recoMuons[matches[0]['idx']]
+                    self.HISTS[MUON+'_deltaRGR_Closest'].Fill(genMuon.p4.DeltaR(closestMuon.p4), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
