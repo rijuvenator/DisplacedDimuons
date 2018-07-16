@@ -43,6 +43,15 @@ def declareHistograms(self, PARAMS=None):
     if self.SP is not None:
         self.HistInit('Dim_LxySigVSLxy_Matched', TITLE, *AXES)
 
+    # make Lxy err vs Lxy
+    TITLE = ';' + CONFIG['Lxy']['PRETTY'] + ';' + '#sigma_{L_{xy}} [cm]' + ';Counts'
+    AXES  = (1000,) + CONFIG['Lxy']['AXES'] + (1000,) + (0., 200.)
+    if True:
+        self.HistInit('Dim_LxyErrVSLxy'        , TITLE, *AXES)
+
+    if self.SP is not None:
+        self.HistInit('Dim_LxyErrVSLxy_Matched', TITLE, *AXES)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     Event    = E.getPrimitives('EVENT'  )
@@ -80,6 +89,7 @@ def analyze(self, E, PARAMS=None):
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
 
         self.HISTS['Dim_LxySigVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
+        self.HISTS['Dim_LxyErrVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
@@ -105,6 +115,7 @@ def analyze(self, E, PARAMS=None):
                 for KEY in CONFIG:
                     self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
                 self.HISTS['Dim_LxySigVSLxy_Matched'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
+                self.HISTS['Dim_LxyErrVSLxy_Matched'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

@@ -47,7 +47,7 @@ def makePerSamplePlots():
             canvas.cleanup(fname)
 
 # make stack plots
-def makeStackPlots(DataMC=False):
+def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
@@ -77,13 +77,13 @@ def makeStackPlots(DataMC=False):
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/{}_Stack.pdf'.format(hkey)
+        fname = 'pdfs/{}_Stack{}.pdf'.format(hkey, '-Log' if logy else '')
 
         for key in BGORDER:
             p[key].SetLineColor(PC[key]['COLOR'])
             p[key].SetFillColor(PC[key]['COLOR'])
 
-        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800)
+        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
         canvas.addMainPlot(p['BG'])
 #       canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
@@ -153,4 +153,5 @@ def makeGenRecoPlots():
 
 makePerSamplePlots()
 makeStackPlots(False)
+makeStackPlots(False, True)
 makeGenRecoPlots()
