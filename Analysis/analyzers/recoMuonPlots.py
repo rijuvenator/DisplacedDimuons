@@ -55,6 +55,8 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
+    ISDATA = True if 'DoubleMuon' in self.NAME else False
+
     SelectMuons = False
     # require reco muons to pass all selections
     if SelectMuons:
@@ -71,6 +73,9 @@ def analyze(self, E, PARAMS=None):
     # fill histograms for every reco muon
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
         for muon in recoMuons:
+            # data blinding!
+            if ISDATA:
+                if muon.d0Sig() > 3.: continue
             for KEY in CONFIG:
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
         self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)

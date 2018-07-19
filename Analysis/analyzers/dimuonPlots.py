@@ -64,6 +64,8 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
+    ISDATA = True if 'DoubleMuon' in self.NAME else False
+
     # modify this to determine what type of selections to apply, if any
     SelectDimuons = False
     SelectMuons   = False
@@ -85,6 +87,10 @@ def analyze(self, E, PARAMS=None):
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
+        # data blinding!
+        if ISDATA:
+            if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
+                continue
         for KEY in CONFIG:
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
 
