@@ -29,6 +29,7 @@ def makePerSamplePlots():
                 lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
                 if '_Matched' in key: continue
+                if 'DoubleMuon' in ref: continue
 
             h = HISTS[ref][key].Clone()
             if h.GetNbinsX() > 100: h.Rebin(10)
@@ -53,13 +54,13 @@ def makeStackPlots(DataMC=False, logy=False):
         if 'Matched' in hkey: continue
 
         h = {
-#           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
+            'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),
 #           'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey].Clone(),
             'BG'         : R.THStack('hBG', '')
         }
 
         PConfig = {
-#           'Data'       : ('DoubleMuon2016D'              , 'pe', 'pe'  ),
+            'Data'       : ('DoubleMuon2016'               , 'pe', 'pe'  ),
 #           'Signal'     : ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist'),
             'BG'         : (''                             , ''  , 'hist'),
         }
@@ -73,6 +74,9 @@ def makeStackPlots(DataMC=False, logy=False):
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
 
+        for era in ('C', 'D', 'E', 'F', 'G', 'H'):
+            h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
+
         p = {}
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
@@ -85,11 +89,11 @@ def makeStackPlots(DataMC=False, logy=False):
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
         canvas.addMainPlot(p['BG'])
-#       canvas.addMainPlot(p['Data'])
+        canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
 
         canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
-#       canvas.addLegendEntry(p['Data'     ])
+        canvas.addLegendEntry(p['Data'     ])
         for key in reversed(BGORDER):
             canvas.addLegendEntry(p[key])
 #       canvas.addLegendEntry(p['Signal'])

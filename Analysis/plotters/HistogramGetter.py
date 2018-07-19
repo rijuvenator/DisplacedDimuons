@@ -30,6 +30,16 @@ for sample in (
     'ttbar'     ,
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
+for sample in (
+    'DoubleMuonRun2016B-07Aug17-v2',
+    'DoubleMuonRun2016C-07Aug17'   ,
+    'DoubleMuonRun2016D-07Aug17'   ,
+    'DoubleMuonRun2016E-07Aug17'   ,
+    'DoubleMuonRun2016F-07Aug17'   ,
+    'DoubleMuonRun2016G-07Aug17'   ,
+    'DoubleMuonRun2016H-07Aug17'   ,
+    ):
+    Patterns[sample] = re.compile(r'(.*)_'+sample)
 
 # Define the function that loops over the keys in a hadded histogram ROOT file
 # produced by an Analyzer using the correct naming convention
