@@ -25,7 +25,8 @@ def makePerSamplePlots():
                 lumi = ref
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
-            h = HISTS[ref][key]
+            h = HISTS[ref][key].Clone()
+            RT.addFlows(h)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/TCUM_{}_{}.pdf'.format(key.rstrip('_TCUM'), name)
             canvas = Plotter.Canvas(lumi=lumi)
@@ -51,7 +52,6 @@ def makePerSamplePlots():
 def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
-        if 'Matched' in hkey: continue
 
         h = {
 #           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
@@ -70,6 +70,7 @@ def makeStackPlots(DataMC=False, logy=False):
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
             if h[key].GetNbinsX() > 100: h[key].Rebin(10)
+            RT.addFlows(h[key])
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])

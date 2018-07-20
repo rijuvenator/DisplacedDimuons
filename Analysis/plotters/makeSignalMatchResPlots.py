@@ -21,6 +21,7 @@ def makeResPlots(quantity, fs):
         }
         p = {}
         for MUON in h:
+            RT.addFlows(h[MUON])
             h[MUON].Rebin(10)
             p[MUON] = Plotter.Plot(h[MUON], 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_HTo2XTo{}_{}.pdf'.format(quantity+'Res', fs, SPStr(sp))
@@ -74,6 +75,7 @@ def makeResPlots(quantity, fs):
 def makeResPlotsSingle(quantity, fs, MUON):
     for sp in SIGNALPOINTS:
         h = HISTS[(fs, sp)][MUON+'_'+quantity+'Res'].Clone()
+        RT.addFlows(h)
         h.Rebin(10)
         p = Plotter.Plot(h, 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SMR_{}_{}_HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', fs, SPStr(sp))
@@ -164,6 +166,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
 
     canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
     for key in binranges:
+        RT.addFlows(plots[key])
         plots[key].Rebin(10)
         if plots[key].Integral() != 0:
             plots[key].Scale(1./plots[key].Integral())
@@ -195,6 +198,7 @@ def makeRefittedResPlot(fs):
         canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
         for TAG in ('Before', 'After'):
             h[TAG] = HISTS[(fs, sp)]['Refit'+TAG+'_pTRes'].Clone()
+            RT.addFlows(h[TAG])
             h[TAG].Rebin(10)
 
             p[TAG] = Plotter.Plot(h[TAG], TAG + ' fit', 'l', 'hist')
@@ -269,6 +273,7 @@ def makeBinnedResPlotsBinwise(TAGS, outputTag, quantity, q2, fs, sp):
         for j, tag in enumerate(TAGS):
             projections[tag] = h[tag].ProjectionY('_'+str(i)+'_'+str(j), key[0], key[1])
             plots[tag]       = Plotter.Plot(projections[tag], tag, 'l', 'hist')
+            RT.addFlows(plots[tag])
             plots[tag].Rebin(10)
             if plots[tag].Integral() != 0:
                 plots[tag].Scale(1./plots[tag].Integral())

@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
@@ -36,7 +37,10 @@ def makePerSamplePlots():
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
             h = HISTS[ref][key].Clone()
-            g = R.TGraphAsymmErrors(h, HISTS[ref][key.replace('Eff', 'Den')], 'cp')
+            RT.addFlows(h)
+            d = HISTS[ref][key.replace('Eff', 'Den')].Clone()
+            RT.addFlows(d)
+            g = R.TGraphAsymmErrors(h, d, 'cp')
             g.SetNameTitle('g_'+key, ';'+h.GetXaxis().GetTitle()+';'+h.GetYaxis().GetTitle())
             p = Plotter.Plot(g, '', 'pe', 'pe')
 
@@ -54,7 +58,6 @@ def makePerSamplePlots():
 def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
-        if 'Matched' in hkey: continue
         if 'DenVS' in hkey: continue
 
         matches = re.match(r'(.*)EffVS(.*)', hkey)
@@ -91,6 +94,7 @@ def makeStackPlots(DataMC=False, logy=False):
             for DICT, KEY in ((h, hkey), (d, dkey)):
                 DICT[key] = HISTS[key][KEY].Clone()
                 if DICT[key].GetNbinsX() > 100: DICT[key].Rebin(10)
+                RT.addFlows(DICT[key])
                 DICT[key].Scale(PC[key]['WEIGHT'])
                 DICT['BG'].Add(DICT[key])
 

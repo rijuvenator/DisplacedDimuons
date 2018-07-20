@@ -94,20 +94,27 @@ def getHistograms(FILE):
 SAMPLES = DH.getAllSamples()
 PLOTCONFIG = {}
 PlotData = (
-    ('HTo2XTo4Mu'  , 'H#rightarrow2X#rightarrow4#mu'  , R.kBlue),
-    ('HTo2XTo2Mu2J', 'H#rightarrow2X#rightarrow2#mu2j', R.kBlue),
-    ('DY10to50'    , 'Drell-Yan M(10, 50)'            , 210    ),
-    ('DY50toInf'   , 'Drell-Yan M(50, #infty)'        , 209    ),
-    ('WJets'       , 'W+Jets'                         , 52     ),
-    ('WW'          , 'WW'                             , 208    ),
-    ('WZ'          , 'WZ'                             , 98     ),
-    ('ZZ'          , 'ZZ'                             , 94     ),
-    ('tW'          , 'tW'                             , 66     ),
-    ('tbarW'       , '#bar{t}W'                       , 63     ),
-    ('ttbar'       , 't#bar{t}'                       , 4      ),
+    ('HTo2XTo4Mu'                   , 'H#rightarrow2X#rightarrow4#mu'  , R.kBlue),
+    ('HTo2XTo2Mu2J'                 , 'H#rightarrow2X#rightarrow2#mu2j', R.kBlue),
+    ('DY10to50'                     , 'Drell-Yan M(10, 50)'            , 210    ),
+    ('DY50toInf'                    , 'Drell-Yan M(50, #infty)'        , 209    ),
+    ('WJets'                        , 'W+Jets'                         , 52     ),
+    ('WW'                           , 'WW'                             , 208    ),
+    ('WZ'                           , 'WZ'                             , 98     ),
+    ('ZZ'                           , 'ZZ'                             , 94     ),
+    ('tW'                           , 'tW'                             , 66     ),
+    ('tbarW'                        , '#bar{t}W'                       , 63     ),
+    ('ttbar'                        , 't#bar{t}'                       , 4      ),
+    ('DoubleMuonRun2016B-07Aug17-v2', 'DoubleMuon2016B'                , 1      ),
+    ('DoubleMuonRun2016C-07Aug17'   , 'DoubleMuon2016C'                , 1      ),
+    ('DoubleMuonRun2016D-07Aug17'   , 'DoubleMuon2016D'                , 1      ),
+    ('DoubleMuonRun2016E-07Aug17'   , 'DoubleMuon2016E'                , 1      ),
+    ('DoubleMuonRun2016F-07Aug17'   , 'DoubleMuon2016F'                , 1      ),
+    ('DoubleMuonRun2016G-07Aug17'   , 'DoubleMuon2016G'                , 1      ),
+    ('DoubleMuonRun2016H-07Aug17'   , 'DoubleMuon2016H'                , 1      ),
 )
 for name, latex, color in PlotData:
-    if name.startswith('HTo2X'):
+    if name.startswith('HTo2X') or name.startswith('DoubleMuon'):
         sampleWeight = 1.
     else:
         s = SAMPLES[name]

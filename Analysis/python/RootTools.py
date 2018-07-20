@@ -46,6 +46,9 @@ def setGenAliases(t, signal='4Mu'):
             t.SetAlias(particle+'.'+attribute, 'gen_'+attribute+'['+str(i)+']')
 
 #### Histogram Tools
+# appends '/ binwidth' to axes, with cm or GeV as appropriate
+# works for any 1D type plot, basically unless TH2 is in the title
+# TH2s just skip the process; to do: add a TH2 version
 def addBinWidth(plot, floatFormat=None):
     try:
         if 'TH2' in str(plot.plot.__class__):
@@ -79,3 +82,23 @@ def addBinWidth(plot, floatFormat=None):
         else:
             units = ''
         plot.setTitles(Y=yAxisTitle + binWidthString + units)
+
+# add the content of the underflow and overflow bins to the end bins
+def addFlows(plot, overflow=True, underflow=True):
+    try:
+        if 'TH2' in str(plot.plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+    except:
+        if 'TH2' in str(plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+
+    if TYPE == '1D':
+        NBins = plot.GetNbinsX()
+        if overflow:
+            plot.SetBinContent(NBins, plot.GetBinContent(NBins+1))
+        if underflow:
+            plot.SetBinContent(1    , plot.GetBinContent(0      ))

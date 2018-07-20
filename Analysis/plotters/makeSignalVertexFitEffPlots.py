@@ -39,6 +39,7 @@ def makeEffPlots(quantity, fs, SP=None):
             h[key].SetDirectory(0)
 
     for key in HKeys:
+        RT.addFlows(h[key])
         h[key].Rebin(10)
 
     g['Eff'] = R.TGraphAsymmErrors(h['Eff'], h['Den'], 'cp')

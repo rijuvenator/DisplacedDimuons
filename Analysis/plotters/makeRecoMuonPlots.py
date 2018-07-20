@@ -14,6 +14,7 @@ def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
             if 'deltaRGR' in key: continue
+            if 'DoubleMuon' in ref: continue
             if type(ref) == tuple:
                 if ref[0] == '4Mu':
                     name = 'HTo2XTo4Mu_'
@@ -25,14 +26,14 @@ def makePerSamplePlots():
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
+                if '_Matched' in key: continue
                 name = ref
                 lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
-                if '_Matched' in key: continue
-                if 'DoubleMuon' in ref: continue
 
             h = HISTS[ref][key].Clone()
             if h.GetNbinsX() > 100: h.Rebin(10)
+            RT.addFlows(h)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/{}_{}.pdf'.format(key, name)
 
@@ -70,6 +71,7 @@ def makeStackPlots(DataMC=False, logy=False):
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
             if h[key].GetNbinsX() > 100: h[key].Rebin(10)
+            RT.addFlows(h[key])
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -135,6 +137,7 @@ def makeGenRecoPlots():
             for key in KEYS:
                 h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()
                 if h[key].GetNbinsX() > 100: h.Rebin(10)
+                RT.addFlows(h[key])
                 p[key] = Plotter.Plot(h[key], key, 'l', 'hist')
             fname = 'pdfs/{}_{}_{}_{}.pdf'.format(MUON, 'deltaRGR', 'Matched', name)
 

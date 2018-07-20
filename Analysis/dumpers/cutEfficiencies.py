@@ -52,13 +52,13 @@ def end(self, PARAMS=None):
 
     # DoubleMuonRun2016B-07Aug17-v2 has 29 characters
     if self.NAME.startswith('HTo2X'):
-        sampleTitleFString = '{FS:<5s} {mH:<4s} {mX:<3s} {cTau:<4s}           {total:<6s}'
-        sampleDataFString  = '{FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d}           {total:<6d}'
+        sampleTitleFString = '{FS:<5s} {mH:<4s} {mX:<3s} {cTau:<4s}           {total:<7s}'
+        sampleDataFString  = '{FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d}           {total:<7d}'
         FS                 = '4Mu' if '4Mu' in self.NAME else '2Mu2J'
         SAMPLE             = ''
     else:
-        sampleTitleFString = '{SAM:<29s} {total:<6s}'
-        sampleDataFString  = '{SAM:<29s} {total:<6d}'
+        sampleTitleFString = '{SAM:<29s} {total:<7s}'
+        sampleDataFString  = '{SAM:<29s} {total:<7d}'
         FS                 = ''
         SAMPLE             = self.NAME
 
