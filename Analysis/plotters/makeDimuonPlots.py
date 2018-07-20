@@ -78,6 +78,7 @@ def makeStackPlots(DataMC=False, logy=False):
 
         for era in ('C', 'D', 'E', 'F', 'G', 'H'):
             h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
+        if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
