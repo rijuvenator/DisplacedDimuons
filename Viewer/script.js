@@ -147,8 +147,39 @@ function setupSamples()
         i_plottype3 : 0,
     };
 
-    setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS);
-    setupMH(state);
+    url = window.location;
+    if (!url.href.includes('#'))
+    {
+        setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS);
+        setupMH(state);
+    }
+    else
+    {
+        qs = url.hash.substring(1);
+        pairs = qs.split('&');
+        for (i=0;i<pairs.length;i++)
+        {
+            keyval = pairs[i].split('=');
+            if (['sample', 'mH', 'mX', 'cTau', 'plotcat', 'dphi', 'plottype', 'plottype2', 'plottype3'].includes(keyval[0]))
+            {
+                state['i_'+keyval[0]] = Number(keyval[1]);
+            }
+        }
+        setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS, state['i_sample']);
+        let thisSample = getFormValueByColumn("0");
+        if (thisSample == 'HTo2XTo2Mu2J' || thisSample == 'HTo2XTo4Mu')
+        {
+            setupMH(state);
+        }
+        else if (BGLIST.includes(thisSample))
+        {
+            setupPlotCat("1", BGVALS, BGLABELS, state);
+        }
+        else if (thisSample == "DoubleMuonRun2016D-07Aug17")
+        {
+            setupPlotCat("1", DATAVALS, DATALABELS, state);
+        }
+    }
 }
 
 // initialize mH, probably into column 1
@@ -344,6 +375,18 @@ function update()
     }
 
     setPlot();
+    let fields = ['sample', 'mH', 'mX', 'cTau', 'plotcat', 'dphi', 'plottype', 'plottype2', 'plottype3'];
+    let hash = '';
+    for (i=0;i<fields.length;i++)
+    {
+        hash += fields[i] + '=' + String(state['i_'+fields[i]]);
+        if (i!=fields.length-1)
+        {
+            hash += '&';
+        }
+    }
+    window.location.hash = hash;
+
 }
 
 // set plot function
@@ -461,8 +504,8 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['Stack', 'Stack-Log', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Stack', 'Stack (Log)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['Stack', 'Stack-Log', 'Stack-Log-Rat', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Stack', 'Stack (Log)', 'Stack (Log, Ratio)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
 // sample names and labels
 var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          ].concat(BGLIST);

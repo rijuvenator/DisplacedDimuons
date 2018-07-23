@@ -59,7 +59,7 @@ def makeStackPlots(DataMC=False, logy=False):
 
         h = {
             'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),
-#           'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey].Clone(),
+#           'Signal'     : HISTS[('4Mu', (125, 20, 13))         ][hkey].Clone(),
             'BG'         : R.THStack('hBG', '')
         }
 
@@ -82,23 +82,24 @@ def makeStackPlots(DataMC=False, logy=False):
         for era in ('C', 'D', 'E', 'F', 'G', 'H'):
             h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
         if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
+        RT.addFlows(h['Data'])
 
         p = {}
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/{}_Stack{}.pdf'.format(hkey, '-Log' if logy else '')
+        fname = 'pdfs/{}_Stack{}{}.pdf'.format(hkey, '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
             p[key].SetLineColor(PC[key]['COLOR'])
             p[key].SetFillColor(PC[key]['COLOR'])
 
-        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
+        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
         canvas.addMainPlot(p['BG'])
         canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
 
-        canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+        canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DataMC else 1.)
         canvas.addLegendEntry(p['Data'     ])
         for key in reversed(BGORDER):
             canvas.addLegendEntry(p[key])
@@ -111,13 +112,17 @@ def makeStackPlots(DataMC=False, logy=False):
         canvas.firstPlot.SetMaximum(h['BG'].GetStack().Last().GetMaximum() * 1.05)
         #canvas.firstPlot.SetMaximum(1.e-4)
 
-#       if DataMC:
-#           canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
+        if DataMC:
+            canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())
+            canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+            canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
 
 #       p['Signal'    ].SetLineStyle(2)
 #       p['Signal'    ].SetLineColor(R.kRed)
 
-        canvas.cleanup(fname)
+        canvas.finishCanvas(extrascale=1. if not DataMC else 1.+1./3.)
+        canvas.save(fname)
+        canvas.deleteCanvas()
 
 # make 3D color plots
 def makeColorPlots(key):
@@ -154,6 +159,7 @@ def makeColorPlots(key):
 makePerSamplePlots()
 makeStackPlots(False)
 makeStackPlots(False, True)
+makeStackPlots(True, True)
 makeColorPlots('LxySigVSLxy')
 makeColorPlots('LxySigVSLxy_Matched')
 makeColorPlots('LxyErrVSLxy')
