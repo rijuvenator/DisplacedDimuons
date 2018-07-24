@@ -43,14 +43,6 @@ BRANCHCONFIG = (
 BRANCHPREFIXES = dict(BRANCHCONFIG)
 BRANCHKEYS = tuple([key for key,val in BRANCHCONFIG])
 
-TRIGGERLIST = ['PhysicsDeclared', 'PrimaryVertexFilter', 'AllMETFilters', 'HBHENoiseFilter', 'HBHEIsoNoiseFilter', \
-               'CSCTightHaloFilter', 'EcalTPFilter', 'EeBadScFilter', 'BadPFMuonFilter', 'BadChargedCandidateFilter']
-
-VERTEXDICTIONARY = {'PV': 'Primary Vertex',
-                        'BS': 'Beamspot'}
-
-DIMUON_PRESPACE = '    '
-
 # Select Branches: 2-5x speedup
 def SelectBranches(t, DecList=(), branches=()):
     t.SetBranchStatus('*', 0)
@@ -319,14 +311,27 @@ class MET(Primitive):
 class Filters(Primitive):
     def __init__(self, E):
         Primitive.__init__(self)
-        for attr in TRIGGERLIST:
+        for attr in Filters.FILTERLIST:
             self.set(attr, E, 'flag_'+attr)
             setattr(self, attr, bool(getattr(self, attr)))
-            
+
+    FILTERLIST = (
+        'PhysicsDeclared',
+        'PrimaryVertexFilter',
+        'AllMETFilters',
+        'HBHENoiseFilter',
+        'HBHEIsoNoiseFilter',
+        'CSCTightHaloFilter',
+        'EcalTPFilter',
+        'EeBadScFilter',
+        'BadPFMuonFilter',
+        'BadChargedCandidateFilter'
+    )
+
     def __str__(self):
         outstr = colorText(self.__class__.__name__) + '\n'
         maxAttrLen = max([len(attr) for attr in self.__dict__.keys()])
-        for attr in TRIGGERLIST:
+        for attr in Filters.FILTERLIST:
             data = self.__dict__[attr]
 
             # format booleans in a nice way
@@ -506,7 +511,7 @@ class Particle(Primitive):
     @staticmethod
     def headerstr():
         return Particle.headerFormat.format(
-            'p','pt',  'eta', 'phi', 'mass', 'energy', 'charge', '(x,y,z)')
+            'p', 'pt', 'eta', 'phi', 'mass', 'energy', 'charge', '(x,y,z)')
 
     def datastr(self):
         return Particle.dataFormat.format(
@@ -651,7 +656,6 @@ class RecoMuon(Muon):
         elif line == 2:
             return RecoMuon.headerFormatExtra.format(
                 'nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', '(x_fhit, y_fhit, z_fhit)')
-            
         elif line == 3:
             return ImpactParameter.headerstr()
         else:
@@ -665,12 +669,10 @@ class RecoMuon(Muon):
         elif line == 2:
             return RecoMuon.dataFormatExtra.format(
                 self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations, self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
-
         elif line == 3:
             return self.IP.datastr()
         else:
             return ''
-            
 
     def __str__(self):
         return ''.join([RecoMuon.headerstr(i) + self.datastr(i) for i in (1, 2, 3)])
@@ -716,48 +718,45 @@ class ImpactParameter(Primitive):
     def dz   (self, vertex='PV', extrap=None): return self.getValue('dz', None , vertex, extrap)
     def d0Sig(self, vertex='PV', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
     def dzSig(self, vertex='PV', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
-    
-    
+
+
     headerVertexFormat        = '|{:^63s}'
     headerExtrapolationFormat = '|{:^31s}'
     headerValuesFormat        = '|{:7s}|{:7s}|{:7s}|{:7s}'
-    
+
     dataValuesFormat          = '|{:7.2f}|{:7.2f}|{:7.2f}|{:7.2f}'
-        
-    extrapolationDictionary = {None : 'Full Fit',
-                               'LIN': 'Linear Fit'}
-    
+
+    extrapolationDictionary   = {None : 'Full Fit', 'LIN': 'Linear Fit'}
+    vertexDictionary          = {'PV': 'Primary Vertex', 'BS': 'Beamspot'}
+
     @staticmethod
     def headerstr():
-        
+
         outstr = ''
-        for vertex in VERTEXDICTIONARY.keys():
-            outstr += ImpactParameter.headerVertexFormat.format(\
-                                        VERTEXDICTIONARY[vertex])
-            
+        for vertex in ImpactParameter.vertexDictionary.keys():
+            outstr += ImpactParameter.headerVertexFormat.format(ImpactParameter.vertexDictionary[vertex])
+
         outstr += '|\n'
-        
-        for vertex in VERTEXDICTIONARY.keys():
+
+        for vertex in ImpactParameter.vertexDictionary.keys():
             for extrapolation in ImpactParameter.extrapolationDictionary.keys():
-                outstr += ImpactParameter.headerExtrapolationFormat.format(\
-                                            ImpactParameter.extrapolationDictionary[extrapolation])
+                outstr += ImpactParameter.headerExtrapolationFormat.format(ImpactParameter.extrapolationDictionary[extrapolation])
         outstr +='|\n'             
-        
-        for vertex in VERTEXDICTIONARY.keys():
+
+        for vertex in ImpactParameter.vertexDictionary.keys():
             for extrapolation in ImpactParameter.extrapolationDictionary.keys():
-                outstr+= ImpactParameter.headerValuesFormat.format(\
-                                                                   'd0', 'd0Sig','dz',  'dzSig')
+                outstr+= ImpactParameter.headerValuesFormat.format('d0', 'd0Sig','dz',  'dzSig')
         outstr +='|\n'  
         return outstr
-    
+
     def datastr(self): 
         outstr = ''
-        for vertex in VERTEXDICTIONARY.keys():
+        for vertex in ImpactParameter.vertexDictionary.keys():
             for extrapolation in ImpactParameter.extrapolationDictionary.keys():
                 outstr+= ImpactParameter.dataValuesFormat.format(
-                    self.d0(vertex, extrapolation),\
-                    self.d0Sig(vertex, extrapolation),\
-                    self.dz(vertex, extrapolation),\
+                    self.d0(vertex, extrapolation),
+                    self.d0Sig(vertex, extrapolation),
+                    self.dz(vertex, extrapolation),
                     self.dzSig(vertex, extrapolation))
         outstr +='|\n'
         return outstr
@@ -787,12 +786,13 @@ class Dimuon(Particle):
     # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
     headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|\n'
     dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+    DIMUON_PRESPACE  = '    '
 
     @staticmethod
     def headerstr(line=1):
         # extra spaces are to align with the RecoMuon |idx| field
         if line == 1:
-            return DIMUON_PRESPACE + Particle.headerstr().strip('\n') +\
+            return Dimuon.DIMUON_PRESPACE + Particle.headerstr().strip('\n') +\
                    Dimuon.headerFormatPost.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha')
         elif line == 2:
             return TransverseDecayLength.headerstr()
@@ -800,9 +800,9 @@ class Dimuon(Particle):
     def datastr(self, line=1):
         # extra spaces are to align with the RecoMuon |idx| field
         if line == 1:
-            return DIMUON_PRESPACE + Particle.datastr(self).strip('\n') +\
+            return Dimuon.DIMUON_PRESPACE + Particle.datastr(self).strip('\n') +\
                    Dimuon.dataFormatPost.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha)
-                   
+
         elif line == 2: 
             return self.Lxy_.datastr() 
 
@@ -845,31 +845,29 @@ class TransverseDecayLength(Primitive):
 
     def Lxy   (self, vertex='PV'): return self.getValue(None , vertex)
     def LxySig(self, vertex='PV'): return self.getValue('SIG', vertex)
-    
-    
-    headerVertexFormat        = '|{:^15s}'
-    headerValuesFormat        = '|{:7}|{:7}'
-    dataValuesFormat          = '|{:7.3f}|{:7.3f}'
-    
+
+
+    headerVertexFormat = '|{:^15s}'
+    headerValuesFormat = '|{:7}|{:7}'
+    dataValuesFormat   = '|{:7.3f}|{:7.3f}'
+    vertexDictionary   = {'PV': 'Primary Vertex', 'BS': 'Beamspot'}
+
     @staticmethod
     def headerstr():
-        outstr = DIMUON_PRESPACE
-        for vertex in VERTEXDICTIONARY.keys():
-            outstr += TransverseDecayLength.headerVertexFormat.format(VERTEXDICTIONARY[vertex])
-        outstr += '|\n' + DIMUON_PRESPACE
-        for vertex in VERTEXDICTIONARY.keys():
+        outstr = ''
+        for vertex in TransverseDecayLength.vertexDictionary.keys():
+            outstr += TransverseDecayLength.headerVertexFormat.format(TransverseDecayLength.vertexDictionary[vertex])
+        outstr += '|\n'
+        for vertex in TransverseDecayLength.vertexDictionary.keys():
             outstr += TransverseDecayLength.headerValuesFormat.format('Lxy', "Lxy Sig")
         outstr += '|\n'
-        
-        
+
+
         return outstr
-    
+
     def datastr(self):
-        outstr = DIMUON_PRESPACE
-        for vertex in VERTEXDICTIONARY.keys():
+        outstr = ''
+        for vertex in TransverseDecayLength.vertexDictionary.keys():
             outstr += TransverseDecayLength.dataValuesFormat.format(self.Lxy(vertex), self.LxySig(vertex))
         outstr += '|\n'
         return outstr
-        
-            
-        
