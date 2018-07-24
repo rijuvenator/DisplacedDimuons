@@ -19,6 +19,6 @@ except:
     
 # test collections
 for i, event in enumerate(t):
-    if i == 10: break
+    if i == 3: break
     E = Primitives.ETree(t)
     print E
