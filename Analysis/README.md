@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **13 July 2018**
+Last updated: **24 July 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -106,6 +106,7 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
     * **reformatMatching.py** converts the single-line output of either of these scripts into a file with percentages instead of counts, without rerunning.
   * **studypTRes.py** produces event dumps for studying the poor p<sub>T</sub> resolution for some signal points.
   * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
+  * **studyDeltaR.py** produces event dumps for studying the effects of the proximity matching cut between gen and reco.
 
 <a name="analyzers"></a>
 ## Analyzers
