@@ -1,4 +1,9 @@
-f = open('text/multipleMatches.txt')
+import sys
+
+try:
+    f = open(sys.argv[1])
+except:
+    f = open('text/multipleMatchesAll.txt')
 
 output = ''
 for line in f:

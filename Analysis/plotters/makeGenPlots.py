@@ -14,6 +14,7 @@ def makePerSignalPlots(fs):
     for sp in SIGNALPOINTS:
         for key in HISTS[(fs, sp)]:
             h = HISTS[(fs, sp)][key]
+            RT.addFlows(h)
             p = Plotter.Plot(h, '', 'p', 'hist')
             canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
             canvas.addMainPlot(p)

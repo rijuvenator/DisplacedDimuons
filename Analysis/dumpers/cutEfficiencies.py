@@ -50,14 +50,15 @@ def end(self, PARAMS=None):
     COLMAX = max(max([len(s) for s in self.COUNTERS['MUON'  ]['IND']]),
                  max([len(s) for s in self.COUNTERS['DIMUON']['IND']]))
 
+    # DoubleMuonRun2016B-07Aug17-v2 has 29 characters
     if self.NAME.startswith('HTo2X'):
-        sampleTitleFString = '{FS:<5s} {mH:<4s} {mX:<3s} {cTau:<4s} '
-        sampleDataFString  = '{FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d} '
+        sampleTitleFString = '{FS:<5s} {mH:<4s} {mX:<3s} {cTau:<4s}           {total:<7s}'
+        sampleDataFString  = '{FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d}           {total:<7d}'
         FS                 = '4Mu' if '4Mu' in self.NAME else '2Mu2J'
         SAMPLE             = ''
     else:
-        sampleTitleFString = '{SAM:<19s} '
-        sampleDataFString  = '{SAM:<19s} '
+        sampleTitleFString = '{SAM:<29s} {total:<7s}'
+        sampleDataFString  = '{SAM:<29s} {total:<7d}'
         FS                 = ''
         SAMPLE             = self.NAME
 
@@ -77,28 +78,18 @@ def end(self, PARAMS=None):
                     mH='mH',
                     mX='mX',
                     cTau='cTau',
+                    total='Total',
                     **{KEY:KEY for KEY in Selections.CutLists[CutListName]}
                 )
 
             if DTYPE in ('IND', 'SEQ'):
-                TOTAL = float(self.COUNTERS[OBJECT]['TOTAL'])
-                fstring = '{SHORT:3s} {DTYPE:3s}: ' + sampleDataFString
-                fstring += ' '.join(['{'+KEY+':<{COLMAX}.3f}}'.format(COLMAX=COLMAX) for KEY in Selections.CutLists[CutListName]])
-                print fstring.format(
-                    SHORT=SHORT,
-                    DTYPE=DTYPE,
-                    SAM=SAMPLE,
-                    FS=FS,
-                    mH=self.SP.mH if self.SP is not None else 0,
-                    mX=self.SP.mX if self.SP is not None else 0,
-                    cTau=self.SP.cTau if self.SP is not None else 0,
-                    **{KEY:(VAL/TOTAL if TOTAL != 0 else 0.) for KEY, VAL in self.COUNTERS[OBJECT][DTYPE].iteritems()}
-                )
-
+                TOTAL = self.COUNTERS[OBJECT]['TOTAL']
             elif DTYPE == 'NM1':
-                TOTAL = float(self.COUNTERS[OBJECT]['IND']['all'])
+                TOTAL = self.COUNTERS[OBJECT]['IND']['all']
+
+            if True:
                 fstring = '{SHORT:3s} {DTYPE:3s}: ' + sampleDataFString
-                fstring += ' '.join(['{'+KEY+':<{COLMAX}.3f}}'.format(COLMAX=COLMAX) for KEY in Selections.CutLists[CutListName]])
+                fstring += ' '.join(['{'+KEY+':<{COLMAX}d}}'.format(COLMAX=COLMAX) for KEY in Selections.CutLists[CutListName]])
                 print fstring.format(
                     SHORT=SHORT,
                     DTYPE=DTYPE,
@@ -107,9 +98,9 @@ def end(self, PARAMS=None):
                     mH=self.SP.mH if self.SP is not None else 0,
                     mX=self.SP.mX if self.SP is not None else 0,
                     cTau=self.SP.cTau if self.SP is not None else 0,
-                    **{KEY:(TOTAL/VAL if VAL != 0 else 0.) for KEY, VAL in self.COUNTERS[OBJECT][DTYPE].iteritems()}
+                    total=TOTAL,
+                    **{KEY:VAL for KEY, VAL in self.COUNTERS[OBJECT][DTYPE].iteritems()}
                 )
-
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

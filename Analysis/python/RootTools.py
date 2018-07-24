@@ -46,19 +46,59 @@ def setGenAliases(t, signal='4Mu'):
             t.SetAlias(particle+'.'+attribute, 'gen_'+attribute+'['+str(i)+']')
 
 #### Histogram Tools
-def addBinWidth(plot):
-    yAxisTitle = plot.GetYaxis().GetTitle()
-    xAxisTitle = plot.GetXaxis().GetTitle()
-    binWidth = plot.GetXaxis().GetBinWidth(1)
-    if binWidth.is_integer():
-        binWidth = int(binWidth)
-        binWidthString = ' / {:d}'.format(binWidth)
-    else:
-        binWidthString = ' / {:.2f}'.format(binWidth)
-    if 'GeV' in xAxisTitle:
-        units = ' GeV'
-    elif 'cm' in xAxisTitle:
-        units = ' cm'
-    else:
-        units = ''
-    plot.setTitles(Y=yAxisTitle + binWidthString + units)
+# appends '/ binwidth' to axes, with cm or GeV as appropriate
+# works for any 1D type plot, basically unless TH2 is in the title
+# TH2s just skip the process; to do: add a TH2 version
+def addBinWidth(plot, floatFormat=None):
+    try:
+        if 'TH2' in str(plot.plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+    except:
+        if 'TH2' in str(plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+
+    if TYPE == '1D':
+        yAxisTitle = plot.GetYaxis().GetTitle()
+        xAxisTitle = plot.GetXaxis().GetTitle()
+        binWidth = plot.GetXaxis().GetBinWidth(1)
+        if binWidth.is_integer():
+            binWidth = int(binWidth)
+            binWidthString = ' / {:d}'.format(binWidth)
+        else:
+            if floatFormat is None:
+                binWidthString = ' / {:.2f}'.format(binWidth)
+                if binWidthString == ' / 0.00':
+                    binWidthString = ' / {:.2e}'.format(binWidth)
+            else:
+                binWidthString = (' / {:'+floatFormat+'}').format(binWidth)
+        if 'GeV' in xAxisTitle:
+            units = ' GeV'
+        elif 'cm' in xAxisTitle:
+            units = ' cm'
+        else:
+            units = ''
+        plot.setTitles(Y=yAxisTitle + binWidthString + units)
+
+# add the content of the underflow and overflow bins to the end bins
+def addFlows(plot, overflow=True, underflow=True):
+    try:
+        if 'TH2' in str(plot.plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+    except:
+        if 'TH2' in str(plot.__class__):
+            TYPE = '2D'
+        else:
+            TYPE = '1D'
+
+    if TYPE == '1D':
+        NBins = plot.GetNbinsX()
+        if overflow:
+            plot.SetBinContent(NBins, plot.GetBinContent(NBins+1))
+        if underflow:
+            plot.SetBinContent(1    , plot.GetBinContent(0      ))

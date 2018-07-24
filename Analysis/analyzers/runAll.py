@@ -21,6 +21,7 @@ FOLDER = args.FOLDER
 # e.g. scripts that do not loop on the tree but use existing histograms
 SplittingVetoList = ('tailCumulativePlots.py',)
 
+# 7 + 136 + 72 = 215 background jobs
 BGSampleList = (
     ('DY10to50'  , None        ),
     ('WJets'     , None        ),
@@ -29,17 +30,18 @@ BGSampleList = (
     ('ZZ'        , None        ),
     ('tW'        , None        ),
     ('tbarW'     , None        ),
-    ('DY50toInf' , (136, 50000)),
-    ('ttbar'     , (72,  50000)),
+    ('DY50toInf' , (136, 50000)), # 6.76M events
+    ('ttbar'     , (72,  50000)), # 3.60M events
 )
+# 257 data jobs
 DataSampleList = (
-    #('DoubleMuonRun2016B-07Aug17-v2', ( 5, 100000)),
-    #('DoubleMuonRun2016C-07Aug17'   , (10, 100000)),
-    #('DoubleMuonRun2016D-07Aug17'   , (17, 100000)),
-    #('DoubleMuonRun2016E-07Aug17'   , (16, 100000)),
-    #('DoubleMuonRun2016F-07Aug17'   , (13, 100000)),
-    #('DoubleMuonRun2016G-07Aug17'   , (32, 100000)),
-    #('DoubleMuonRun2016H-07Aug17'   , (37, 100000)),
+    ('DoubleMuonRun2016B-07Aug17-v2', ( 9, 50000)), # 0.41M events
+    ('DoubleMuonRun2016C-07Aug17'   , (20, 50000)), # 0.96M events
+    ('DoubleMuonRun2016D-07Aug17'   , (34, 50000)), # 1.67M events
+    ('DoubleMuonRun2016E-07Aug17'   , (32, 50000)), # 1.59M events
+    ('DoubleMuonRun2016F-07Aug17'   , (26, 50000)), # 1.26M events
+    ('DoubleMuonRun2016G-07Aug17'   , (63, 50000)), # 3.12M events
+    ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
 
 # prepare input arguments

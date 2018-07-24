@@ -3,6 +3,7 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+import HistogramGetter
 import re
 
 # some constants
@@ -21,8 +22,8 @@ TITLES = {
 
 # get data from text file
 DATA = {
-    'MUO' : {'IND' : [], 'SEQ' : [], 'NM1' : [] },
-    'DIM' : {'IND' : [], 'SEQ' : [], 'NM1' : [] }
+    'MUO' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} },
+    'DIM' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} }
 }
 signal = True
 f = open('../dumpers/cutTable.txt')
@@ -40,17 +41,38 @@ for line in f:
 
     # define the headers for the columns
     if signal:
-        headers = ('FS', 'mH', 'mX', 'cTau') + cutList
+        headers = ('FS', 'mH', 'mX', 'cTau', 'Total') + cutList
+        ref = (cols[2], (int(cols[3]), int(cols[4]), int(cols[5])))
+        start = 4
     else:
-        headers = ('Sample',) + cutList
+        headers = ('Sample', 'Total') + cutList
+        ref = cols[2]
+        start = 1
 
-    # fill data
-    # i+2 because the first two columns are OBJ DTYPE:
-    fields = {}
-    for i, header in enumerate(headers):
-        fields[header] = cols[i+2]
-    DATA[short][dtype].append(fields)
+    # make a line for each sample
+    # add onto it if there are multiple
+    if ref not in DATA[short][dtype]:
+        DATA[short][dtype][ref] = {}
+        for i, header in enumerate(headers[start:], start+2):
+            DATA[short][dtype][ref][header]  = int(cols[i])
+    else:
+        for i, header in enumerate(headers[start:], start+2):
+            DATA[short][dtype][ref][header] += int(cols[i])
+
 f.close()
+
+# compute the "Stack" version
+BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+for obj in DATA:
+    for dtype in DATA[obj]:
+        cutList = Selections.CutLists[MAPPING[obj] + 'CutList' + MAPPING[dtype]]
+        DATA[obj][dtype]['Stack'] = {}
+        for ref in BGORDER:
+            for header in ('Total',) + cutList:
+                try:
+                    DATA[obj][dtype]['Stack'][header] += DATA[obj][dtype][ref][header] * HistogramGetter.PLOTCONFIG[ref]['WEIGHT']
+                except:
+                    DATA[obj][dtype]['Stack'][header]  = DATA[obj][dtype][ref][header] * HistogramGetter.PLOTCONFIG[ref]['WEIGHT']
 
 # plotter function
 def makeIndividualPlots(obj, dtype, key):
@@ -88,84 +110,28 @@ HISTS = {
 for obj in DATA:
     for dtype in DATA[obj]:
         cutList = Selections.CutLists[MAPPING[obj] + 'CutList' + MAPPING[dtype]]
-        for fields in DATA[obj][dtype]:
-            if 'mH' in fields:
-                sp = (int(fields['mH']), int(fields['mX']), int(fields['cTau']))
-                fs = fields['FS']
-                name = 'CutTable_{}-{}_HTo2XTo{}_{}'.format(obj, dtype, fs, SPStr(sp))
-                key = (fs, sp)
+        if dtype in ('IND', 'SEQ'):
+            func = lambda val, total: val/float(total) if total != 0 else 0.
+        elif dtype in ('NM1',):
+            func = lambda val, total: total/float(val) if val   != 0 else 0.
+        for ref in DATA[obj][dtype]:
+            if type(ref) == tuple:
+                fs, sp = ref
+                fname = 'CutTable_{}-{}_HTo2XTo{}_{}'.format(obj, dtype, fs, SPStr(sp))
             else:
-                sample = fields['Sample']
-                name = 'CutTable_{}-{}_{}'.format(obj, dtype, sample)
-                key = sample
+                sample = ref
+                fname = 'CutTable_{}-{}_{}'.format(obj, dtype, sample)
+
+            fields = DATA[obj][dtype][ref]
+            total = fields['Total']
 
             TITLE = ';' + MAPPING[obj] + ' Cuts;' + TITLES[dtype]
-            HISTS[obj][dtype][key] = R.TH1F(name, TITLE, len(cutList), 0., float(len(cutList)))
+            HISTS[obj][dtype][ref] = R.TH1F(fname, TITLE, len(cutList), 0., float(len(cutList)))
 
             for i, header in enumerate(cutList):
-                HISTS[obj][dtype][key].SetBinContent(i+1, float(fields[header]))
-                HISTS[obj][dtype][key].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
+                HISTS[obj][dtype][ref].SetBinContent(i+1, func(fields[header], total))
+                HISTS[obj][dtype][ref].GetXaxis().SetBinLabel(i+1, Selections.PrettyTitles[header])
 
-            HISTS[obj][dtype][key].Write()
+            HISTS[obj][dtype][ref].Write()
 
-            makeIndividualPlots(obj, dtype, key)
-
-# this is not that interesting or useful
-#COLORS = {
-#    (1000, 350,   35) : R.kBlack,
-#    (1000, 350,  350) : R.kBlack+1,
-#    (1000, 350, 3500) : R.kBlack+2,
-#    (1000, 150,   10) : R.kYellow,
-#    (1000, 150,  100) : R.kYellow+1,
-#    (1000, 150, 1000) : R.kYellow+2,
-#    (1000,  50,    4) : R.kViolet,
-#    (1000,  50,   40) : R.kViolet+1,
-#    (1000,  50,  400) : R.kViolet+2,
-#    (1000,  20,    2) : R.kRed,
-#    (1000,  20,   20) : R.kRed+1,
-#    (1000,  20,  200) : R.kRed+2,
-#    ( 400, 150,   40) : R.kBlue,
-#    ( 400, 150,  400) : R.kBlue+1,
-#    ( 400, 150, 4000) : R.kBlue+2,
-#    ( 400,  50,    8) : R.kSpring,
-#    ( 400,  50,   80) : R.kSpring+1,
-#    ( 400,  50,  800) : R.kSpring+2,
-#    ( 400,  20,    4) : R.kMagenta,
-#    ( 400,  20,   40) : R.kMagenta+1,
-#    ( 400,  20,  400) : R.kMagenta+2,
-#    ( 200,  50,   20) : R.kCyan,
-#    ( 200,  50,  200) : R.kCyan+1,
-#    ( 200,  50, 2000) : R.kCyan+2,
-#    ( 200,  20,    7) : R.kTeal,
-#    ( 200,  20,   70) : R.kTeal+1,
-#    ( 200,  20,  700) : R.kTeal+2,
-#    ( 125,  50,   50) : R.kGreen,
-#    ( 125,  50,  500) : R.kGreen+1,
-#    ( 125,  50, 5000) : R.kGreen+2,
-#    ( 125,  20,   13) : R.kOrange,
-#    ( 125,  20,  130) : R.kOrange+1,
-#    ( 125,  20, 1300) : R.kOrange+2,
-#}
-#
-#PLOTS = {}
-#for sp in HISTS:
-#    PLOTS[sp] = Plotter.Plot(HISTS[sp], legName='({}, {}, {})'.format(*sp), legType='lp', option='hist p')
-#
-#def makeCombinedPlot():
-#    canvas = Plotter.Canvas(lumi='CutTable Plot', cWidth=1000)
-#    for sp in SIGNALPOINTS:
-#        canvas.addMainPlot(PLOTS[sp])
-#        PLOTS[sp].SetMarkerColor(COLORS[sp])
-#        PLOTS[sp].SetLineColor(COLORS[sp])
-#
-#    canvas.firstPlot.SetMaximum(1.)
-#    canvas.firstPlot.SetMinimum(0.)
-#    canvas.scaleMargins(3.5, 'R')
-#
-#    canvas.makeLegend()
-#    canvas.legend.resizeHeight(scale=.8)
-#    canvas.legend.moveLegend(X=.18)
-#
-#    canvas.cleanup('pdfs/CutTable_HTo2XTo4Mu_Global.pdf')
-#
-#makeCombinedPlot()
+            makeIndividualPlots(obj, dtype, ref)

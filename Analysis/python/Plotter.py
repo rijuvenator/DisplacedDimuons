@@ -408,25 +408,27 @@ class Canvas(R.TCanvas):
         self.ratPad.cd()
         self.ratPad.SetGridy(R.kTRUE)
 
-        self.rat = topHist.Clone()
+        rat = topHist.Clone()
         bot = bottomHist.Clone()
-        self.rat.Divide(bot)
+        rat.Divide(bot)
+
+        self.rat = Plot(rat, '', '', option)
 
         factor = (1 - self.ratioFactor)/self.ratioFactor
 
         if (xtit != ''):
-            self.rat.GetXaxis().SetTitle(xtit)
-        SCALE(self.rat, 'TitleSize', factor, Axes='XY')
-        SCALE(self.rat, 'LabelSize', factor, Axes='XY')
-        SCALE(self.rat, 'TickLength', factor, Axes='X')
+            self.rat.setTitles(X=xtit)
+        self.rat.scaleTitles         (factor, axes='XY')
+        self.rat.scaleLabels         (factor, axes='XY')
+        SCALE(self.rat, 'TickLength', factor, Axes='X' )
         self.rat.GetXaxis().CenterTitle()
 
-        self.rat.GetYaxis().SetTitle(ytit)
-        SCALE(self.rat, 'TitleOffset', 1./factor, Axes='Y')
-        self.rat.GetYaxis().SetTickLength (0.01)
-        self.rat.GetYaxis().CenterTitle()
+        self.rat.setTitles(Y=ytit)
+        self.rat.scaleTitleOffsets(1./factor, axes='Y')
+        self.rat.GetYaxis().SetTickLength(0.01)
         self.rat.GetYaxis().SetNdivisions(5)
         self.rat.GetYaxis().SetRangeUser(1-plusminus,1+plusminus)
+        self.rat.GetYaxis().CenterTitle()
 
         self.rat.Draw(option)
 

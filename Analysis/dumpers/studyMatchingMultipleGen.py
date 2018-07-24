@@ -10,10 +10,8 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 def begin(self, PARAMS=None):
     self.COUNTERS = {
         'nGenMuons' : 0,
-        'nGenAcc'   : 0,
         'nMatches'  : 0,
         'nMultiple' : 0,
-        'multiDict' : {},
     }
 
 # internal loop function for Analyzer class
@@ -43,40 +41,37 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = DSAmuons
 
     # loop over genMuons and count various matching criteria
-    for genMuon in genMuons:
-
-        self.COUNTERS['nGenMuons'] += 1
-
-        if Selections.AcceptanceSelection(genMuon):
-            self.COUNTERS['nGenAcc'] += 1
-
-        matches = matchedMuons(genMuon, selectedDSAmuons)
-        if len(matches) != 0:
-            self.COUNTERS['nMatches'] += 1
-
-            if len(matches) > 1:
-                self.COUNTERS['nMultiple'] += 1
-
-                if PARAMS.DUMP:
-                    dumpInfo(Event, genMuon, selectedDSAmuons, len(matches), extramu, PARAMS)
-
-                if len(matches) not in self.COUNTERS['multiDict']:
-                    self.COUNTERS['multiDict'][len(matches)] = 0
-                self.COUNTERS['multiDict'][len(matches)] += 1
+    for genMuonPair in genMuonPairs:
+        alreadySelected = []
+        MATCHES = []
+        for genMuon in genMuonPair:
+            self.COUNTERS['nGenMuons'] += 1
+            matches = matchedMuons(genMuon, selectedDSAmuons)
+            MATCHES.append(matches)
+            if len(matches) != 0:
+                self.COUNTERS['nMatches'] += 1
+                if matches[0]['idx'] not in alreadySelected:
+                    alreadySelected.append(matches[0]['idx'])
+                else:
+                    self.COUNTERS['nMultiple'] += 2
+                    alreadySelected.append(matches[0]['idx'])
+                    if PARAMS.DUMP:
+                        dumpInfo(Event, genMuonPair, selectedDSAmuons, MATCHES, extramu, PARAMS)
 
 # dump info
-def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
+def dumpInfo(Event, genMuonPair, DSAmuons, MATCHES, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
-    print 'Gen Muon:      {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
-            genMuon.pt,
-            '',
-            genMuon.eta,
-            genMuon.phi,
-            genMuon.Lxy(),
-            nMatches
-    )
+    for genMuon, matches in zip(genMuonPair, MATCHES):
+        print 'Gen Muon:      {:10.4f} {:12s} {:7.4f} {:7.4f} {:9.4f} {:2d}'.format(
+                genMuon.pt,
+                '',
+                genMuon.eta,
+                genMuon.phi,
+                genMuon.Lxy(),
+                len(matches)
+        )
     for muon in DSAmuons:
-        fstring = '  Reco Muon:   {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
+        fstring = '  Reco Muon:   {:10.4f} {:1s}{:11.4f} {:7.4f} {:7.4f} {:9s} {:2s} {:7.4f} {:7.4f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
             muon.pt,
             '±',
             muon.ptError,
@@ -84,18 +79,30 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
             muon.phi,
             '',
             '',
-            muon.p4.DeltaR(genMuon.p4),
+            muon.p4.DeltaR(genMuonPair[0].p4),
+            muon.p4.DeltaR(genMuonPair[1].p4),
             muon.nDTStations,
             muon.nCSCStations,
             muon.nDTHits,
             muon.nCSCHits,
             muon.nMuonHits
         )
-        if muon.p4.DeltaR(genMuon.p4) < 0.3:
+        if muon.p4.DeltaR(genMuonPair[1].p4) < 0.3 and muon.p4.DeltaR(genMuonPair[0].p4) < 0.3:
+            if PARAMS.COLOR:
+                fstring = '\033[35m' + fstring + '\033[m'
+            else:
+                fstring = '**' + fstring[2:]
+        elif muon.p4.DeltaR(genMuonPair[1].p4) < 0.3:
             if PARAMS.COLOR:
                 fstring = '\033[31m' + fstring + '\033[m'
             else:
+                fstring = ' *' + fstring[2:]
+        elif muon.p4.DeltaR(genMuonPair[0].p4) < 0.3:
+            if PARAMS.COLOR:
+                fstring = '\033[32m' + fstring + '\033[m'
+            else:
                 fstring = '*' + fstring[1:]
+
         print fstring
     for extraGen in extramu:
         print 'Extra GenMuon: {:10.4f} {:12s} {:7.4f} {:7.4f}'.format(
@@ -108,25 +115,15 @@ def dumpInfo(Event, genMuon, DSAmuons, nMatches, extramu, PARAMS):
 
 # dump info
 def end(self, PARAMS=None):
-    fstring = 'DATA: {:4d} {:3d} {:4d} {:5s} {:6d} {:6d} {:6d} {:6d} '
-    multiDictCounts = []
-    for i in xrange(max(self.COUNTERS['multiDict'].keys())-1):
-        fstring += '{:6d} '
-        try:
-            multiDictCounts.append(self.COUNTERS['multiDict'][i+2])
-        except:
-            multiDictCounts.append(0)
-
+    fstring = 'DATA: {:4d} {:3d} {:4d} {:5s} {:6d} {:6d} {:6d} '
     print fstring.format(
         self.SP.mH,
         self.SP.mX,
         self.SP.cTau,
         '4Mu' if '4Mu' in self.NAME else '2Mu2J',
         self.COUNTERS['nGenMuons'],
-        self.COUNTERS['nGenAcc'  ],
         self.COUNTERS['nMatches' ],
         self.COUNTERS['nMultiple'],
-        *multiDictCounts
     )
 
 #### RUN ANALYSIS ####

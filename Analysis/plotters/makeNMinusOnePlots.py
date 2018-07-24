@@ -25,7 +25,8 @@ def makePerSamplePlots():
                 lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
-            h = HISTS[ref][key]
+            h = HISTS[ref][key].Clone()
+            RT.addFlows(h)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/NM1_{}_{}.pdf'.format(key, name)
             canvas = Plotter.Canvas(lumi=lumi)
@@ -48,11 +49,10 @@ def makePerSamplePlots():
             canvas.cleanup(fname)
 
 # make stack plots
-def makeStackPlots(DataMC=False):
+def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
-    for hkey in HISTS[('4Mu', (125, 20, 13))]:
-        if 'Matched' in hkey: continue
-    #for hkey in ('d0Sig_Less',):
+    for hkey in HISTS['DY50toInf']:
+
         h = {
 #           'Data'       : HISTS['DoubleMuonRun2016D-07Aug17'][hkey].Clone(),
 #           'Signal'     : HISTS[('4Mu', (125, 20, 13))      ][hkey].Clone(),
@@ -70,6 +70,7 @@ def makeStackPlots(DataMC=False):
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
             if h[key].GetNbinsX() > 100: h[key].Rebin(10)
+            RT.addFlows(h[key])
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -78,13 +79,13 @@ def makeStackPlots(DataMC=False):
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/NM1_{}_Stack.pdf'.format(hkey)
+        fname = 'pdfs/NM1_{}_Stack{}.pdf'.format(hkey, '-Log' if logy else '')
 
         for key in BGORDER:
             p[key].SetLineColor(PC[key]['COLOR'])
             p[key].SetFillColor(PC[key]['COLOR'])
 
-        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800)
+        canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
         canvas.addMainPlot(p['BG'])
 #       canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
@@ -114,3 +115,4 @@ def makeStackPlots(DataMC=False):
 
 makePerSamplePlots()
 makeStackPlots(False)
+makeStackPlots(False, True)

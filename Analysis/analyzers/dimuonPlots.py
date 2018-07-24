@@ -12,7 +12,7 @@ CONFIG = {
     'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'    },
     'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None             },
     'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None             },
-    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':None             },
+    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':'#DeltaR(#mu#mu)'},
     'mass'    : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'},
     'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None             },
     'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None             },
@@ -28,8 +28,29 @@ def declareHistograms(self, PARAMS=None):
         # but use the string given if not
         XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
 
-        self.HistInit('Dim_'+KEY           , ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
-        self.HistInit('Dim_'+KEY+'_Matched', ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+        if True:
+            self.HistInit('Dim_'+KEY           , ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+
+        if self.SP is not None:
+            self.HistInit('Dim_'+KEY+'_Matched', ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+
+    # make LxySig vs Lxy
+    TITLE = ';' + CONFIG['Lxy']['PRETTY'] + ';' + Selections.PrettyTitles['LxySig'] + ';Counts'
+    AXES  = (1000,) + CONFIG['Lxy']['AXES'] + (1000,) + (CONFIG['LxySig']['AXES'])
+    if True:
+        self.HistInit('Dim_LxySigVSLxy'        , TITLE, *AXES)
+
+    if self.SP is not None:
+        self.HistInit('Dim_LxySigVSLxy_Matched', TITLE, *AXES)
+
+    # make Lxy err vs Lxy
+    TITLE = ';' + CONFIG['Lxy']['PRETTY'] + ';' + '#sigma_{L_{xy}} [cm]' + ';Counts'
+    AXES  = (1000,) + CONFIG['Lxy']['AXES'] + (1000,) + (0., 200.)
+    if True:
+        self.HistInit('Dim_LxyErrVSLxy'        , TITLE, *AXES)
+
+    if self.SP is not None:
+        self.HistInit('Dim_LxyErrVSLxy_Matched', TITLE, *AXES)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -42,6 +63,8 @@ def analyze(self, E, PARAMS=None):
         eventWeight = 1. if Event.weight > 0. else -1.
     except:
         pass
+
+    ISDATA = True if 'DoubleMuon' in self.NAME else False
 
     # modify this to determine what type of selections to apply, if any
     SelectDimuons = False
@@ -64,8 +87,15 @@ def analyze(self, E, PARAMS=None):
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
+        # data blinding!
+        if ISDATA:
+            if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
+                continue
         for KEY in CONFIG:
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
+
+        self.HISTS['Dim_LxySigVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
+        self.HISTS['Dim_LxyErrVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
@@ -90,6 +120,8 @@ def analyze(self, E, PARAMS=None):
             if dimuon is not None:
                 for KEY in CONFIG:
                     self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
+                self.HISTS['Dim_LxySigVSLxy_Matched'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
+                self.HISTS['Dim_LxyErrVSLxy_Matched'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
