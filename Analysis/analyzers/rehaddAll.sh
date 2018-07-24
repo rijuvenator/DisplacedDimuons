@@ -15,7 +15,7 @@ mkdir -p tmp
 mv *DY50toInf_* *ttbar_* tmp
 
 # now rehadd everything: the script_* glob will not match the script_sample_* files because they are in tmp
-for i in RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes
+for i in RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative
 do
     ./rehadd ${i}Plots
 done

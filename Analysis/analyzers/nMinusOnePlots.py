@@ -53,14 +53,14 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    ISDATA = True if 'DoubleMuon' in self.NAME else False
+    BLIND = True
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons]
 
     for dimSel, dimuon in zip(DimuonSelections, Dimuons):
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
                 continue
         DeltaPhiRegion = 'Less' if dimSel['deltaPhi'] else 'More'

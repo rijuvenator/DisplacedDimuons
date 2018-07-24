@@ -55,7 +55,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    ISDATA = True if 'DoubleMuon' in self.NAME else False
+    BLIND = True
 
     SelectMuons = False
     # require reco muons to pass all selections
@@ -74,7 +74,7 @@ def analyze(self, E, PARAMS=None):
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
         for muon in recoMuons:
             # data blinding!
-            if ISDATA:
+            if BLIND:
                 if muon.d0Sig() > 3.: continue
             for KEY in CONFIG:
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)

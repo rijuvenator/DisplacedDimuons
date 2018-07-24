@@ -8,8 +8,8 @@ import HistogramGetter
 import sys
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchResPlots.root')
-f = R.TFile.Open('../analyzers/roots/SignalMatchResPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalMatchResPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/SignalMatchResPlots.root')
 
 # DSA RSA overlaid, per signal
 def makeResPlots(quantity, fs):

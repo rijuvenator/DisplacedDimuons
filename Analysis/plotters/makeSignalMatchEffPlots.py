@@ -7,8 +7,8 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/SignalMatchEffPlots.root')
-f = R.TFile.Open('../analyzers/roots/SignalMatchEffPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalMatchEffPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/SignalMatchEffPlots.root')
 
 # make overlaid plots that combine all signal points
 def makeEffPlots(quantity, fs, SP=None):

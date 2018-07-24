@@ -102,7 +102,7 @@ def makeIndividualPlots(obj, dtype, key):
     canvas.cleanup(fname)
 
 # make histograms, write them to a file, and make the PDFs
-f = R.TFile('../analyzers/roots/CutTable.root', 'RECREATE')
+f = R.TFile('../analyzers/roots/Main/CutTable.root', 'RECREATE')
 HISTS = {
     'MUO' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} },
     'DIM' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} }

@@ -7,8 +7,8 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/TailCumulativePlots.root')
-f = R.TFile.Open('../analyzers/roots/TailCumulativePlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/TailCumulativePlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/TailCumulativePlots.root')
 
 # make per sample plots
 def makePerSamplePlots():

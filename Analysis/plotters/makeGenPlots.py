@@ -6,8 +6,8 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/GenPlots.root')
-f = R.TFile.Open('../analyzers/roots/GenPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/GenPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/GenPlots.root')
 
 # make plots using Plotter class per signal point
 def makePerSignalPlots(fs):

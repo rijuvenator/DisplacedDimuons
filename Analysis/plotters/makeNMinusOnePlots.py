@@ -7,8 +7,8 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/nMinusOnePlots.root')
-f = R.TFile.Open('../analyzers/roots/nMinusOnePlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/nMinusOnePlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/nMinusOnePlots.root')
 
 # make per sample plots
 def makePerSamplePlots():

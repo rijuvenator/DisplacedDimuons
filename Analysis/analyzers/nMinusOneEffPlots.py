@@ -33,14 +33,14 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    ISDATA = True if 'DoubleMuon' in self.NAME else False
+    BLIND = True
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
 
     # loop over DSAmuons and select
     for muon, muonSelection in zip(DSAmuons,DSASelections):
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if muon.d0Sig() > 3.: continue
 
         for CUT in Selections.CutLists['MuonCutList']:
@@ -54,7 +54,7 @@ def analyze(self, E, PARAMS=None):
     # loop over dimuons and select
     for dimuon in Dimuons:
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
                 continue
         muon1Selection = DSASelections[dimuon.idx1]
