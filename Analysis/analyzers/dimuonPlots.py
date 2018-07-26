@@ -64,11 +64,13 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
+    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
     BLIND = True
 
     # modify this to determine what type of selections to apply, if any
-    SelectDimuons = False
-    SelectMuons   = False
+    SelectDimuons    = False
+    SelectMuons      = False
+    SelectMuons_pT30 = True
 
     # require dimuons to pass all selections and the DSA muons to pass all selections
     if SelectDimuons and SelectMuons:
@@ -79,6 +81,11 @@ def analyze(self, E, PARAMS=None):
     # don't require dimuons to pass all selections, but require DSA muons to pass all selections
     elif not SelectDimuons and SelectMuons:
         DSASelections   = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        selectedDimuons = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
+    elif not SelectDimuons and SelectMuons_pT30:
+        DSASelections   = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
         selectedDimuons = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, and don't require DSA muons to pass all selections, either

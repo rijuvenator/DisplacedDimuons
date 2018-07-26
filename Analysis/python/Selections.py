@@ -29,7 +29,7 @@ class Cut(object):
 CUTS = {
 
 ### RECO MUON CUTS ###
-    'pT'        : Cut('pT'       , lambda muon: muon.pt                             , operator.gt,  28.      ),
+    'pT'        : Cut('pT'       , lambda muon: muon.pt                             , operator.gt,  30.      ),
     'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
     'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
     'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17       ),

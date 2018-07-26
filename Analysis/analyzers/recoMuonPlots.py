@@ -55,13 +55,22 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
+    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
     BLIND = True
 
     SelectMuons = False
+    SelectMuons_pT30 = True
     # require reco muons to pass all selections
     if SelectMuons:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
         RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
+
+    # require reco muons to pass only the pT cut
+    elif SelectMuons_pT30:
+        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
 
