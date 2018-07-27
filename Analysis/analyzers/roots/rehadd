@@ -1,10 +1,19 @@
 #!/bin/bash
 
 PREFIX="$1"
-if [ -z $PREFIX ]; then
+if [ -z $PREFIX ]
+then
 	echo "No prefix given; exiting now"
     exit
 fi
 
-echo "Will run: rm ${PREFIX}.root; hadd ${PREFIX}.root ${PREFIX}_*"
-rm ${PREFIX}.root; hadd ${PREFIX}.root ${PREFIX}_*
+if compgen -G "${PREFIX}_*" > /dev/null
+then
+    echo "Removing ${PREFIX}.root if it exists"
+    rm -f ${PREFIX}.root
+
+    echo "Running hadd ${PREFIX}.root ${PREFIX}_*"
+    hadd ${PREFIX}.root ${PREFIX}_*
+else
+    echo "No files found matching ${PREFIX}_*; exiting now"
+fi

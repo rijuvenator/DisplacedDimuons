@@ -1,22 +1,92 @@
 #!/bin/bash
 
-# This hadds together sample_0 ... sample_N
-pushd roots
-for i in RecoMuon Dimuon nMinusOne nMinusOneEff
-do
-    for s in DY50toInf ttbar
+# Mode: start with option C when newly produced root files from batch
+read -p '[C]ombine final split files, or [R]ehadd Main files? [CR] '
+echo
+
+if [ "$REPLY" == "C" ]
+then
+
+    # These tags will be hadded together sample_0 ... sample_N
+    read -p $'Split tags to combine...\ndefault : RecoMuon Dimuon nMinusOne nMinusOneEff\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        SPLITTAGS="RecoMuon Dimuon nMinusOne nMinusOneEff"
+    else
+        SPLITTAGS="$REPLY"
+    fi
+    echo
+
+    # These are the samples to be hadded above
+    read -p $'Samples to combine...\ndefault : DY50toInf ttbar DoubleMuonRun2016B-07Aug17-v2 DoubleMuonRun2016{C,D,E,F,G,H}-07Aug17\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        SAMPLES=$(echo DY50toInf ttbar DoubleMuonRun2016B-07Aug17-v2 DoubleMuonRun2016{C,D,E,F,G,H}-07Aug17)
+    else
+        SAMPLES=$(eval echo $REPLY)
+    fi
+    echo
+
+    # This hadds together sample_0 ... sample_N
+    # This only needs to be done for data, DY50toInf, and ttbar
+    pushd roots
+    for i in $SPLITTAGS
     do
-        ./rehadd ${i}Plots_${s}
+        for s in $SAMPLES
+        do
+            ./rehadd ${i}Plots_${s}
+        done
     done
-done
+    echo
 
-# Move all the sample_* to a directory, so that they do not interfere with hadd
-mkdir -p tmp
-mv *DY50toInf_* *ttbar_* tmp
+    # This directory will be where all the split files go
+    read -p $'Directory to move all the split samples...\ndefault : tmp\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        TMP='tmp'
+    else
+        TMP="$REPLY"
+    fi
+    echo
 
-# now rehadd everything: the script_* glob will not match the script_sample_* files because they are in tmp
-for i in RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative
-do
-    ./rehadd ${i}Plots
-done
-popd
+    # Move all the sample_* to a directory, so that they do not interfere with hadd
+    mkdir -p $TMP
+    for i in $SPLITTAGS
+    do
+        for s in $SAMPLES
+        do
+            mv ${i}Plots_${s}_* $TMP
+        done
+    done
+
+# at this point, move data files to data, MC BG, Signal4Mu, and Signal2Mu2J to appropriate directories
+# then rerun with option R instead of option C
+
+elif [ "$REPLY" == "R" ]
+then
+
+    pushd roots
+    # Give an explicit list of directories
+    read -p $'Directories to look for files to hadd?\ndefault : DataBlind MCFull Signal4Mu Signal2Mu2J\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        DIRS='DataBlind MCFull Signal4Mu Signal2Mu2J'
+    else
+        DIRS="$REPLY"
+    fi
+    echo
+
+    # rehadd
+    for i in RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative
+    do
+        FILES=""
+        for d in $DIRS
+        do
+            FILES+="${d}/${i}Plots* "
+        done
+        echo "Rehadding ${i}Plots.root with $DIRS"
+        hadd ${i}Plots.root $FILES
+    done
+    popd
+
+fi
