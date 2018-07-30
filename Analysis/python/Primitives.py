@@ -92,7 +92,7 @@ class ETree(object):
                 raise Exception('Sample does not contain Trigger branches; tree must be made from PAT Tuple')
             HLTPaths =                [HLTPath    (self, i)                for i in range(len(self.trig_hlt_idx  ))]
             HLTMuons =                [TriggerMuon(self, i, 'trig_hltmu_') for i in range(len(self.trig_hltmu_idx))]
-            L1TMuons =                [TriggerMuon(self, i, 'trig_l1tmu_') for i in range(len(self.trig_hltmu_idx))]
+            L1TMuons =                [TriggerMuon(self, i, 'trig_l1tmu_') for i in range(len(self.trig_l1tmu_idx))]
             return                    HLTPaths, HLTMuons, L1TMuons
         if KEY == 'MET'      :
             if not hasattr(self, 'met_pt'):
