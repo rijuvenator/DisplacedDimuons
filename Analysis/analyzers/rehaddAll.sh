@@ -76,8 +76,18 @@ then
     fi
     echo
 
+    # Give an explicit list of tags
+    read -p $'Tags to rehadd?\ndefault : RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        TAGS='RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative'
+    else
+        TAGS="$REPLY"
+    fi
+    echo
+
     # rehadd
-    for i in RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative
+    for i in $TAGS
     do
         FILES=""
         for d in $DIRS

@@ -23,6 +23,7 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    if self.SP is not None and not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -33,7 +34,8 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    BLIND = True
+    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
+    BLIND = True if self.SP is None else False
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
 
@@ -79,6 +81,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON'),
+        BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON', 'TRIGGER'),
     )
     analyzer.writeHistograms('roots/nMinusOneEffPlots_{}.root')
