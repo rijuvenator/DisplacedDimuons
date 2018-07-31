@@ -21,7 +21,7 @@ for VAL in VALUES:
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
-def declareHistograms(self):
+def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
         # one Eff, ChargeEff, and ChargeDen plot for each of DSA and RSA
         #for MUON in ('DSA', 'RSA'):
@@ -38,14 +38,14 @@ def declareHistograms(self):
         #self.HistInit(KEY+'Extra'      , '', *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
-def analyze(self, E):
+def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
     if '4Mu' in self.NAME:
-        mu11, mu12, mu21, mu22, X1, X2, H, P = E.getPrimitives('GEN', 'HTo2XTo4Mu')
+        mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
     elif '2Mu2J' in self.NAME:
-        mu1, mu2, j1, j2, X, XP, H, P = E.getPrimitives('GEN', 'HTo2XTo2Mu2J')
+        mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu1, mu2)
     HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
 
@@ -114,17 +114,13 @@ def analyze(self, E):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
-    Analyzer.setFNAME(ARGS)
+    Analyzer.setSample(ARGS)
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
-        NAME        = ARGS.NAME,
-        SIGNALPOINT = Utilities.SignalPoint(ARGS.SIGNALPOINT),
+        ARGS = ARGS,
         #BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
-        BRANCHKEYS  = ('GEN', 'TRIGGER'),
-        TEST        = ARGS.TEST,
-        SPLITTING   = ARGS.SPLITTING,
-        FILE        = ARGS.FNAME
+        BRANCHKEYS  = ('GEN', 'TRIGGER')
     )
     analyzer.writeHistograms('roots/SignalTriggerEffPlots_{}.root')
 
