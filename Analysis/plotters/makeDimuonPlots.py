@@ -5,6 +5,8 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/DimuonPlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/DimuonPlots.root')
@@ -23,6 +25,8 @@ def makePerSamplePlots():
                 elif ref[0] == '2Mu2J':
                     name = 'HTo2XTo2Mu2J_'
                     latexFS = '2#mu2j'
+                if TRIGGER:
+                    name = 'Trig-'+name
                 name += SPStr(ref[1])
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
@@ -137,6 +141,8 @@ def makeColorPlots(key):
             elif ref[0] == '2Mu2J':
                 name = 'HTo2XTo2Mu2J_'
                 latexFS = '2#mu2j'
+            if TRIGGER:
+                name = 'Trig-'+name
             name += SPStr(ref[1])
             lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
         else:

@@ -5,6 +5,8 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/GenPlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/GenPlots.root')
@@ -21,7 +23,7 @@ def makePerSignalPlots(fs):
             p.SetLineColor(R.kBlue)
             RT.addBinWidth(p)
             pave = canvas.makeStatsBox(p, color=R.kBlue)
-            canvas.cleanup('pdfs/Gen_{}_HTo2XTo{}_{}.pdf'.format(key, fs, SPStr(sp)))
+            canvas.cleanup('pdfs/Gen_{}_{}HTo2XTo{}_{}.pdf'.format(key, 'Trig-' if TRIGGER else '', fs, SPStr(sp)))
 
 for fs in ('4Mu', '2Mu2J'):
     makePerSignalPlots(fs)

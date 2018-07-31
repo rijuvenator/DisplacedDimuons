@@ -6,6 +6,8 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalVertexFitEffPlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/SignalVertexFitEffPlots.root')
@@ -53,7 +55,7 @@ def makeEffPlots(quantity, fs, SP=None):
     RT.addBinWidth(canvas.firstPlot)
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.)
-    canvas.cleanup('pdfs/SVFE_{}Eff_HTo2XTo{}_{}.pdf'.format(quantity, fs, 'Global' if SP is None else SPStr(SP)))
+    canvas.cleanup('pdfs/SVFE_{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
     for fs in ('4Mu', '2Mu2J'):
