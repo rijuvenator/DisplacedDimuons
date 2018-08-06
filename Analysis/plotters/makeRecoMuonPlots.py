@@ -37,8 +37,8 @@ def makePerSamplePlots():
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
             h = HISTS[ref][key].Clone()
-            if h.GetNbinsX() > 100: h.Rebin(10)
             RT.addFlows(h)
+            if h.GetNbinsX() > 100: h.Rebin(10)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/{}_{}.pdf'.format(key, name)
 
@@ -76,8 +76,8 @@ def makeStackPlots(DataMC=False, logy=False):
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
             if not PRINTINTEGRALS:
-                if h[key].GetNbinsX() > 100: h[key].Rebin(10)
                 RT.addFlows(h[key])
+                if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -85,8 +85,8 @@ def makeStackPlots(DataMC=False, logy=False):
         for era in ('C', 'D', 'E', 'F', 'G', 'H'):
             h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
         if not PRINTINTEGRALS:
-            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
             RT.addFlows(h['Data'])
+            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
@@ -167,8 +167,8 @@ def makeGenRecoPlots():
             h, p = {}, {}
             for key in KEYS:
                 h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()
-                if h[key].GetNbinsX() > 100: h.Rebin(10)
                 RT.addFlows(h[key])
+                if h[key].GetNbinsX() > 100: h.Rebin(10)
                 p[key] = Plotter.Plot(h[key], key, 'l', 'hist')
             fname = 'pdfs/{}_{}_{}_{}.pdf'.format(MUON, 'deltaRGR', 'Matched', name)
 

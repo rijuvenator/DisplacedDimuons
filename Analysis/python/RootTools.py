@@ -99,6 +99,6 @@ def addFlows(plot, overflow=True, underflow=True):
     if TYPE == '1D':
         NBins = plot.GetNbinsX()
         if overflow:
-            plot.SetBinContent(NBins, plot.GetBinContent(NBins+1))
+            plot.SetBinContent(NBins, plot.GetBinContent(NBins)+plot.GetBinContent(NBins+1))
         if underflow:
-            plot.SetBinContent(1    , plot.GetBinContent(0      ))
+            plot.SetBinContent(1    , plot.GetBinContent(1    )+plot.GetBinContent(0      ))

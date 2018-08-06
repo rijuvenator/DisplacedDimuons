@@ -97,8 +97,8 @@ def makeStackPlots(DataMC=False, logy=False):
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             for DICT, KEY in ((h, hkey), (d, dkey)):
                 DICT[key] = HISTS[key][KEY].Clone()
-                if DICT[key].GetNbinsX() > 100: DICT[key].Rebin(10)
                 RT.addFlows(DICT[key])
+                if DICT[key].GetNbinsX() > 100: DICT[key].Rebin(10)
                 DICT[key].Scale(PC[key]['WEIGHT'])
                 DICT['BG'].Add(DICT[key])
 
