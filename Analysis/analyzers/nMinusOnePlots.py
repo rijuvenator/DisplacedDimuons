@@ -43,7 +43,7 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
-    if self.SP is not None and not Selections.passedTrigger(E): return
+    if self.TRIGGER and self.SP is not None and not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON')

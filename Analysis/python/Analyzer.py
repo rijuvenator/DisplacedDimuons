@@ -21,6 +21,7 @@ PARSER.add_argument('--name'       , dest='NAME'       ,                      de
 PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
 PARSER.add_argument('--test'       , dest='TEST'       , action='store_true',                        help='run test mode for 1000 events')
 PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
+PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true',                      , help='apply trigger to signal'      )
 
 # important setSample function
 # this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler
@@ -56,6 +57,8 @@ class Analyzer(object):
             PARAMS      = None
         ):
 
+        self.ARGS = ARGS
+
         # if this is NOT a signal sample, make sure SIGNALPOINT is None
         # SP will be None if it's not signal, can serve as a test of signal
         if not ARGS.NAME.startswith('HTo2XTo'):
@@ -71,6 +74,7 @@ class Analyzer(object):
         self.TEST       = ARGS.TEST
         self.SPLITTING  = ARGS.SPLITTING
         self.SAMPLE     = ARGS.SAMPLE
+        self.TRIGGER    = ARGS.TRIGGER
 
         # if TREELOOP was explicitly False, ensure that SPLITTING is None
         if not TREELOOP:

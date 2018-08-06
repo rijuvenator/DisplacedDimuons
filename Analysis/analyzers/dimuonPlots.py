@@ -52,6 +52,12 @@ def declareHistograms(self, PARAMS=None):
     if self.SP is not None:
         self.HistInit('Dim_LxyErrVSLxy_Matched', TITLE, *AXES)
 
+    # make nDimuon
+    TITLE = ';Dimuon Multiplicity;Counts'
+    AXES  = (20, 0., 20.)
+    if True:
+        self.HistInit('Dim_nDimuon'            , TITLE, *AXES)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     Event    = E.getPrimitives('EVENT'  )
@@ -65,12 +71,13 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if self.SP is None else False
+    #BLIND = True if self.SP is None else False
+    BLIND = False
 
     # modify this to determine what type of selections to apply, if any
     SelectDimuons    = False
     SelectMuons      = False
-    SelectMuons_pT30 = True
+    SelectMuons_pT30 = False
 
     # require dimuons to pass all selections and the DSA muons to pass all selections
     if SelectDimuons and SelectMuons:
@@ -107,10 +114,12 @@ def analyze(self, E, PARAMS=None):
 
         self.HISTS['Dim_LxySigVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
         self.HISTS['Dim_LxyErrVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
+        self.HISTS['Dim_nDimuon'    ].Fill(len(selectedDimuons), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
-        if not Selections.passedTrigger(E): return
+        if self.TRIGGER:
+            if not Selections.passedTrigger(E): return
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)

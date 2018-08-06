@@ -7,15 +7,17 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 CMSSW_BASE = os.environ['CMSSW_BASE']
 
 parser = argparse.ArgumentParser()
-parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                            )
-parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                                         )
-parser.add_argument('--condor' , dest='CONDOR' , action='store_true', help='whether to run on condor instead of LXBATCH'                    )
-parser.add_argument('--samples', dest='SAMPLES', default='S2BD'     , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
-parser.add_argument('--folder' , dest='FOLDER' , default='analyzers', help='which folder the script is located in'                          )
+parser.add_argument('SCRIPT'   ,                                        help='which script to run'                                            )
+parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'  , help='whether to run locally'                                         )
+parser.add_argument('--condor' , dest='CONDOR' , action='store_true'  , help='whether to run on condor instead of LXBATCH'                    )
+parser.add_argument('--samples', dest='SAMPLES', default='S2BD'       , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'  , help='which folder the script is located in'                          )
+parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*', help='any extra command-line parameters to be passed to script'       )
 args = parser.parse_args()
 
 SCRIPT = args.SCRIPT
 FOLDER = args.FOLDER
+EXTRA  = args.EXTRA
 
 # specific scripts that should ignore the splitting parameter
 # e.g. scripts that do not loop on the tree but use existing histograms
@@ -70,6 +72,15 @@ if 'D' in args.SAMPLES:
             NJOBS, NEVENTS = SPLITTING
             for i in xrange(NJOBS):
                 ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+
+# This is clunky, but I don't have a better way of doing it
+# if additional command-line parameters need to be passed to the analyzer script,
+# do it with --extra EXTRA PARAMETERS
+# if the extra parameters are options, such as --trigger or --blind, you MUST use __ instead of --
+# if you do not, then argparse has no way of knowing that --trigger is an argument and not an option
+if len(EXTRA) > 0:
+    EXTRA = [e.replace('__','--') for e in EXTRA]
+    ArgsList = [a+' '+' '.join(EXTRA) for a in ArgsList]
 
 submitScript = '''
 #!/bin/bash
