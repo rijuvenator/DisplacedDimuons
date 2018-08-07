@@ -187,7 +187,6 @@ if PRINTINTEGRALS:
 
 makePerSamplePlots()
 makeStackPlots(False)
-makeStackPlots(False, True)
 makeStackPlots(True, True)
 makeColorPlots('LxySigVSLxy')
 makeColorPlots('LxySigVSLxy_Matched')

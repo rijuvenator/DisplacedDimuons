@@ -19,9 +19,9 @@ R.gROOT.SetBatch(True)
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
 PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
-PARSER.add_argument('--test'       , dest='TEST'       , action='store_true',                        help='run test mode for 1000 events')
+PARSER.add_argument('--test'       , dest='TEST'       , action='store_true'                       , help='run test mode for 1000 events')
 PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
-PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true',                      , help='apply trigger to signal'      )
+PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true'                       , help='apply trigger to signal'      )
 
 # important setSample function
 # this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler

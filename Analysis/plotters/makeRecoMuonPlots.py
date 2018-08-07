@@ -5,7 +5,7 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
-TRIGGER = True
+TRIGGER = False
 PRINTINTEGRALS = False
 
 # get histograms
@@ -196,6 +196,5 @@ if PRINTINTEGRALS:
 
 makePerSamplePlots()
 makeStackPlots(False)
-makeStackPlots(False, True)
 makeStackPlots(True, True)
 makeGenRecoPlots()
