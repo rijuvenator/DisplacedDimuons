@@ -6,6 +6,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 CMSSW_BASE = os.environ['CMSSW_BASE']
 USER = os.environ['USER']
+USER_INITIAL = os.environ['USER'][0].lower()  # needed for workdir path on HEPHY batch
 HOME = os.environ['HOME']
 
 parser = argparse.ArgumentParser()
@@ -84,7 +85,7 @@ rm -f core.*
 '''
 
 submitHephyScript = '''#!/bin/sh
-#SBATCH -o /afs/hephy.at/work/a/{USER}/batch_output/batch-runAll.%j.out
+#SBATCH -o /afs/hephy.at/work/{USER_INITIAL}/{USER}/batch_output/batch-runAll.%j.out
 export X509_USER_PROXY={HOME}/private/.proxy
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
