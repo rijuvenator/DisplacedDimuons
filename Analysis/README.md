@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **13 July 2018**
+Last updated: **8 August 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -130,7 +130,7 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
 
 <a name="runall"></a>
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU `parallel`, given the optional parameter `--local`.
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default), locally with GNU `parallel` (given the optional parameter `--local`) or to the HEPHY batch system (given the optional parameter `--hephy`).
 
 The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
