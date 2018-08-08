@@ -39,6 +39,7 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if not Selections.passedTrigger(E): return
     if '4Mu' in self.NAME:
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
@@ -49,10 +50,18 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
 
     SelectMuons = False
+    SelectMuons_pT30 = True
     # require reco muons to pass all selections
     if SelectMuons:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
         RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+
+    # require DSA muons to pass only the pT cut
+    elif SelectMuons_pT30:
+        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
 
@@ -112,6 +121,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER'),
     )
     analyzer.writeHistograms('roots/SignalMatchEffPlots_{}.root')

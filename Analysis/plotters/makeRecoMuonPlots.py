@@ -5,9 +5,11 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/RecoMuonPlots.root')
-f = R.TFile.Open('../analyzers/roots/RecoMuonPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/RecoMuonPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/RecoMuonPlots.root')
 
 # make plots that are per sample
 def makePerSamplePlots():
@@ -22,6 +24,8 @@ def makePerSamplePlots():
                 elif ref[0] == '2Mu2J':
                     name = 'HTo2XTo2Mu2J_'
                     latexFS = '2#mu2j'
+                if TRIGGER:
+                    name = 'Trig-'+name
                 name += SPStr(ref[1])
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
@@ -131,6 +135,8 @@ def makeGenRecoPlots():
         elif ref[0] == '2Mu2J':
             name = 'HTo2XTo2Mu2J_'
             latexFS = '2#mu2j'
+        if TRIGGER:
+            name = 'Trig-'+name
         name += SPStr(ref[1])
         lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
 

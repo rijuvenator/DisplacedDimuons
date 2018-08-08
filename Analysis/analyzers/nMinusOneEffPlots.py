@@ -23,6 +23,7 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    if self.SP is not None and not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -33,14 +34,15 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    ISDATA = True if 'DoubleMuon' in self.NAME else False
+    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
+    BLIND = True if self.SP is None else False
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
 
     # loop over DSAmuons and select
     for muon, muonSelection in zip(DSAmuons,DSASelections):
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if muon.d0Sig() > 3.: continue
 
         for CUT in Selections.CutLists['MuonCutList']:
@@ -54,7 +56,7 @@ def analyze(self, E, PARAMS=None):
     # loop over dimuons and select
     for dimuon in Dimuons:
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
                 continue
         muon1Selection = DSASelections[dimuon.idx1]
@@ -79,6 +81,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON'),
+        BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON', 'TRIGGER'),
     )
     analyzer.writeHistograms('roots/nMinusOneEffPlots_{}.root')

@@ -167,7 +167,7 @@ function setupSamples()
         }
         setupColumn("0", "sample", "sample", SAMPLEVALS, SAMPLELABELS, state['i_sample']);
         let thisSample = getFormValueByColumn("0");
-        if (thisSample == 'HTo2XTo2Mu2J' || thisSample == 'HTo2XTo4Mu')
+        if (SIGNALLIST.includes(thisSample))
         {
             setupMH(state);
         }
@@ -336,7 +336,7 @@ function update()
     if (this.name == "opt_sample")
     {
         clearEverythingAfter(0);
-        if (this.value == "HTo2XTo4Mu" || this.value == "HTo2XTo2Mu2J")
+        if (SIGNALLIST.includes(this.value))
         {
             setupMH(state);
         }
@@ -507,9 +507,12 @@ var SIGNALS = [
 var BGLIST = ['Stack', 'Stack-Log', 'Stack-Log-Rat', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
 var BGLABS = ['Stack', 'Stack (Log)', 'Stack (Log, Ratio)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
+var SIGNALLIST = ['HTo2XTo4Mu'          , 'Trig-HTo2XTo4Mu'            , 'HTo2XTo2Mu2J'          , 'Trig-HTo2XTo2Mu2J'            ]
+var SIGNALLABS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;4&mu; (Trig)', 'H&rarr;2X&rarr;2&mu;2j', 'H&rarr;2X&rarr;2&mu;2j (Trig)']
+
 // sample names and labels
-var SAMPLEVALS   = ['HTo2XTo4Mu'          , 'HTo2XTo2Mu2J'          ].concat(BGLIST);
-var SAMPLELABELS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;2&mu;2j'].concat(BGLABS);
+var SAMPLEVALS   = [].concat(SIGNALLIST).concat(BGLIST);
+var SAMPLELABELS = [].concat(SIGNALLABS).concat(BGLABS);
 
 // plot category names and labels
 var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SVFE'];
@@ -526,9 +529,9 @@ var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
 
 // plottype names and labels
 var PLOTTYPEVALS = {
-    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxySigVSLxy', 'LxyErrVSLxy'], ['', '_Matched']],
-    DSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched']],
-    RSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched']],
+    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxySigVSLxy', 'LxyErrVSLxy'], ['', '_Matched', '_pT30', '_Matched_pT30']],
+    DSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched', '_pT30', '_Matched_pT30']],
+    RSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched', '_pT30', '_Matched_pT30']],
     NM1      : ['pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
@@ -544,9 +547,9 @@ var LXY  = 'L<sub>xy</sub>'
 var CHI2 = '&chi;<sup>2</sup>/dof'
 
 var PLOTTYPELABELS = {
-    Dim      : [[PT, '&eta;', 'mass', '&Delta;R(&mu;&mu;)', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', LXY+' sig. vs. '+LXY, LXY+' Err. vs. '+LXY], ['no selection', 'matched']],
-    DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched']],
-    RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched']],
+    Dim      : [[PT, '&eta;', 'mass', '&Delta;R(&mu;&mu;)', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', LXY+' sig. vs. '+LXY, LXY+' Err. vs. '+LXY], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
+    DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
+    RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
     NM1      : [PT, '&eta;', 'nMuonHits', 'nStations', CHI2, '|'+D0+'|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex '+CHI2, '&Delta;R', LXY+'/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
     NM1E     : [[LXY+' sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. '+CHI2, PT, '&eta;', 'nMuonHits', 'nStations', 'track '+CHI2, D0+' sig.'], ['vs. '+PT, 'vs. &eta;', 'vs. '+D0, 'vs. '+LXY]],
     TCUM     : [LXY+'/&sigma;<sub>Lxy</sub>', '|'+D0+'|/&sigma;<sub>d0</sub>'],

@@ -2,6 +2,16 @@ import operator
 import math
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
+# for signal samples, whether or not this event passed the trigger
+# E is the whole ETree, contingent on adding TRIGGER to the DecList
+# This is wasteful since it calls getPrimitives, but probably okay
+# because this will only be called once per event
+def passedTrigger(E):
+    HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+    if len(HLTPaths) > 0:
+        return True
+    return False
+
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264'}
 
@@ -29,7 +39,7 @@ class Cut(object):
 CUTS = {
 
 ### RECO MUON CUTS ###
-    'pT'        : Cut('pT'       , lambda muon: muon.pt                             , operator.gt,  28.      ),
+    'pT'        : Cut('pT'       , lambda muon: muon.pt                             , operator.gt,  30.      ),
     'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
     'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
     'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17       ),

@@ -64,31 +64,42 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    ISDATA = True if 'DoubleMuon' in self.NAME else False
+    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
+    BLIND = True if self.SP is None else False
 
     # modify this to determine what type of selections to apply, if any
-    SelectDimuons = False
-    SelectMuons   = False
+    SelectDimuons    = False
+    SelectMuons      = False
+    SelectMuons_pT30 = True
 
     # require dimuons to pass all selections and the DSA muons to pass all selections
     if SelectDimuons and SelectMuons:
         DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
         DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, but require DSA muons to pass all selections
     elif not SelectDimuons and SelectMuons:
-        DSASelections   = [Selections.MuonSelection(muon) for muon in DSAmuons]
-        selectedDimuons = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
+    elif not SelectDimuons and SelectMuons_pT30:
+        DSASelections    = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, and don't require DSA muons to pass all selections, either
     elif not SelectDimuons and not SelectMuons:
-        selectedDimuons = Dimuons
+        selectedDSAmuons = DSAmuons
+        selectedDimuons  = Dimuons
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
         # data blinding!
-        if ISDATA:
+        if BLIND:
             if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
                 continue
         for KEY in CONFIG:
@@ -99,6 +110,7 @@ def analyze(self, E, PARAMS=None):
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
+        if not Selections.passedTrigger(E): return
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)
@@ -115,7 +127,7 @@ def analyze(self, E, PARAMS=None):
             #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
 
             # find the matching dimuon, if any, and fill
-            dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+            dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
 
             if dimuon is not None:
                 for KEY in CONFIG:
@@ -131,6 +143,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON', 'TRIGGER'),
     )
     analyzer.writeHistograms('roots/DimuonPlots_{}.root')

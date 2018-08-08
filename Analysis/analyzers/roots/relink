@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PREFIX="$1"
+SUFFIX="$2"
+
+if [ -z "$PREFIX" ]
+then
+    echo "Argument 1 should be prefix; exiting now"
+    exit
+fi
+if [ -z "$SUFFIX" ]
+then
+    echo "Argument 2 should be suffix; exiting now"
+fi
+
+echo "Unlinking ${PREFIX}.root, relinking to ${PREFIX}_${SUFFIX}.root"
+unlink ${PREFIX}.root; ln -s ${PREFIX}_${SUFFIX}.root ${PREFIX}.root
