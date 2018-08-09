@@ -49,6 +49,7 @@ class HistogramConfigurations(object):
             'dR'         : [['#mu#mu #DeltaR'   , 100 , 0.         , 4.5        ]                                  ],
             'dPhiMuMu'   : [['#mu#mu #Delta#phi', 100 , -math.pi   , math.pi    ]                                  ],
             'dPhiMuX'    : [['#muX #Delta#phi'  , 100 , -math.pi   , math.pi    ]                                  ],
+            'dPhiCol'    : [['|#Delta#Phi|'     , 100 , 0.         , math.pi    ]                                  ],
             'massX'      : [['X Mass [GeV]'     , 100 , mX*(1-XErr), mX*(1+XErr)]                                  ],
             'pTX'        : [['X p_{T} [GeV]'    , 100 , 0.         , XPtUpper   ]                                  ],
             'cosAlpha'   : [['cos(#alpha)'      , 100 , -1.        , 1.         ]                                  ],
@@ -143,6 +144,7 @@ def makeAliasesAndExpressions(fs):
 
         # one per X, uses mu1 and mu2 info
         'dPhiMuMu': 'TVector2::Phi_mpi_pi({MU1}.phi-{MU2}.phi)',
+        'dPhiCol' : 'TMath::ACos(({MU1}.x*({MU1}.pt*TMath::Cos({MU1}.phi) + {MU2}.pt*TMath::Cos({MU2}.phi)) + {MU1}.y*({MU1}.pt*TMath::Sin({MU1}.phi) + {MU2}.pt*TMath::Sin({MU2}.phi)))/(sqrt(pow({MU1}.x,2)+pow({MU1}.y,2))*sqrt(pow({MU1}.pt*TMath::Cos({MU1}.phi) + {MU2}.pt*TMath::Cos({MU2}.phi),2)+pow({MU1}.pt*TMath::Sin({MU1}.phi) + {MU2}.pt*TMath::Sin({MU2}.phi),2))))',
 
         # one per muon
         'd0'      : '{MU}.d0',
@@ -157,7 +159,7 @@ def makeAliasesAndExpressions(fs):
     def setAliases(X):
         # per X quantities
         # dPhi can be lumped in here because its keys are compatible
-        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhiMuMu'):
+        for key in ('cTau', 'beta', 'Lxy', 'Lz', 'dR', 'dPhiMuMu', 'dPhiCol'):
             aliases[key+X] = tformulae[key].format(X='X'+X, MU1='mu'+X+'1', MU2='mu'+X+'2')
 
         # per muon quantities
@@ -178,6 +180,7 @@ def makeAliasesAndExpressions(fs):
         'Lxy'        : [],         # X Lxy          : Lxy
         'dR'         : [],         # X deltaR       : dR
         'dPhiMuMu'   : [],         # X deltaPhiMuMu : dPhiMuMu
+        'dPhiCol'    : [],         # DeltaPhiCol    : dPhiCol
 
         # per X, alias in RT
         'massX'      : [],         # X mass         : X.mass
@@ -197,7 +200,7 @@ def makeAliasesAndExpressions(fs):
     }
     def setExpressions(X):
         # per X quantities with aliases
-        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuMu'):
+        for key in ('cTau', 'beta', 'Lxy', 'dR', 'dPhiMuMu', 'dPhiCol'):
             expressions[key].append(key+X)
 
         # per muon quantities with aliases
@@ -243,6 +246,7 @@ HList = (
    'dR'        ,
    'dPhiMuMu'  ,
    'dPhiMuX'   ,
+   'dPhiCol'   ,
    'massX'     ,
    'pTX'       ,
    'cosAlpha'  ,

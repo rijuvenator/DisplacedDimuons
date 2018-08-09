@@ -54,7 +54,7 @@ def declareHistograms(self, PARAMS=None):
 
     # make nDimuon
     TITLE = ';Dimuon Multiplicity;Counts'
-    AXES  = (20, 0., 20.)
+    AXES  = (22, 0., 22.)
     if True:
         self.HistInit('Dim_nDimuon'            , TITLE, *AXES)
 
@@ -114,7 +114,7 @@ def analyze(self, E, PARAMS=None):
 
         self.HISTS['Dim_LxySigVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
         self.HISTS['Dim_LxyErrVSLxy'].Fill(CONFIG['Lxy']['LAMBDA'](dimuon), CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon), eventWeight)
-        self.HISTS['Dim_nDimuon'    ].Fill(len(selectedDimuons), eventWeight)
+    self.HISTS['Dim_nDimuon'].Fill(len(selectedDimuons), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
