@@ -5,18 +5,21 @@ import argparse
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 CMSSW_BASE = os.environ['CMSSW_BASE']
+USER = os.environ['USER']
+USER_INITIAL = os.environ['USER'][0].lower()  # needed for workdir path on HEPHY batch
+HOME = os.environ['HOME']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                            )
 parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                                         )
 parser.add_argument('--condor' , dest='CONDOR' , action='store_true', help='whether to run on condor instead of LXBATCH'                    )
+parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true', help='whether to run on HEPHY batch system instead of LXBATCH'        )
 parser.add_argument('--samples', dest='SAMPLES', default='S2BD'     , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
 parser.add_argument('--folder' , dest='FOLDER' , default='analyzers', help='which folder the script is located in'                          )
 args = parser.parse_args()
 
 SCRIPT = args.SCRIPT
 FOLDER = args.FOLDER
-
 # specific scripts that should ignore the splitting parameter
 # e.g. scripts that do not loop on the tree but use existing histograms
 SplittingVetoList = ('tailCumulativePlots.py',)
@@ -81,6 +84,15 @@ python {SCRIPT} {ARGS}
 rm -f core.*
 '''
 
+submitHephyScript = '''#!/bin/sh
+#SBATCH -o /afs/hephy.at/work/{USER_INITIAL}/{USER}/batch_output/batch-runAll.%j.out
+export X509_USER_PROXY={HOME}/private/.proxy
+cd {CMSSW_BASE}/src/
+eval `scramv1 runtime -sh`
+cd DisplacedDimuons/Analysis/{FOLDER}
+python {SCRIPT} {ARGS}
+'''
+
 condorExecutable = '''
 #!/bin/bash
 export SCRAM_ARCH='slc6_amd64_gcc530'
@@ -118,8 +130,22 @@ def getRootOutputFile(SCRIPT, ARGS):
     return fname
 
 if not args.LOCAL:
+    # run on HEPHY Batch
+    if not args.CONDOR and args.HEPHY:
+        #if the certificate does not exist or is >6h old, create a new one in a a place accesible in AFS. .
+        if os.path.isfile('{HOME}/private/.proxy'.format(**locals())) == False \
+                or int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
+                            **locals()), shell=True)) > 6*3600:
+            print "You need a GRID certificate or current certificate is older than 6h..."
+            bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
+        for index, ARGS in enumerate(ArgsList):
+            scriptName = 'submit_{index}.sh'                         .format(**locals())
+            open(scriptName, 'w').write(submitHephyScript            .format(**locals()))
+            bash.call('sbatch -J ana_{index} {scriptName}'.format(**locals()), shell=True)
+            bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
+
     # run on LSF LXBATCH
-    if not args.CONDOR:
+    if not args.CONDOR and not args.HEPHY:
         for index, ARGS in enumerate(ArgsList):
             scriptName = 'submit_{index}.sh'                         .format(**locals())
             open(scriptName, 'w').write(submitScript                 .format(**locals()))
