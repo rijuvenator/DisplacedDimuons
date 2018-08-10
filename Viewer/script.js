@@ -504,8 +504,8 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['Stack', 'Stack-Log', 'Stack-Log-Rat', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Stack', 'Stack (Log)', 'Stack (Log, Ratio)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['Stack', 'Stack-Log-Rat', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
 var SIGNALLIST = ['HTo2XTo4Mu'          , 'Trig-HTo2XTo4Mu'            , 'HTo2XTo2Mu2J'          , 'Trig-HTo2XTo2Mu2J'            ]
 var SIGNALLABS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;4&mu; (Trig)', 'H&rarr;2X&rarr;2&mu;2j', 'H&rarr;2X&rarr;2&mu;2j (Trig)']

@@ -1,3 +1,5 @@
+import ROOT as R
+
 # defines a match between a genMuon (Primitives.GenMuon) and a recoMuon (Primitives.RecoMuon)
 # returns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
 # idx is the 'real' idx of the LIST of recoMuons
@@ -49,3 +51,8 @@ def findDimuon(genMuonPair, recoMuons, dimuons):
             return None, 2, muonMatches, oMuonMatches
     else:
         return None, 1, muonMatches, oMuonMatches
+
+# function for computing ZBi given nOn, nOff, and tau
+def ZBi(nOn, nOff, tau):
+    PBi = R.TMath.BetaIncomplete(1./(1.+tau),nOn,nOff+1)
+    return R.TMath.Sqrt(2.)*R.TMath.ErfInverse(1. - 2.*PBi)

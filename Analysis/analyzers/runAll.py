@@ -4,37 +4,21 @@ import subprocess as bash
 import argparse
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
-CMSSW_BASE = os.environ['CMSSW_BASE']
-USER = os.environ['USER']
-USER_INITIAL = os.environ['USER'][0].lower()  # needed for workdir path on HEPHY batch
-HOME = os.environ['HOME']
-
-parser = argparse.ArgumentParser()
-parser.add_argument('SCRIPT'   ,                                      help='which script to run'                                            )
-parser.add_argument('--local'  , dest='LOCAL'  , action='store_true', help='whether to run locally'                                         )
-parser.add_argument('--condor' , dest='CONDOR' , action='store_true', help='whether to run on condor instead of LXBATCH'                    )
-parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true', help='whether to run on HEPHY batch system instead of LXBATCH'        )
-parser.add_argument('--samples', dest='SAMPLES', default='S2BD'     , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
-parser.add_argument('--folder' , dest='FOLDER' , default='analyzers', help='which folder the script is located in'                          )
-args = parser.parse_args()
-
-SCRIPT = args.SCRIPT
-FOLDER = args.FOLDER
-# specific scripts that should ignore the splitting parameter
-# e.g. scripts that do not loop on the tree but use existing histograms
-SplittingVetoList = ('tailCumulativePlots.py',)
+#########################################
+#### GLOBAL CONFIGURATION PARAMETERS ####
+#########################################
 
 # 7 + 136 + 72 = 215 background jobs
 BGSampleList = (
     ('DY10to50'  , None        ),
-    ('WJets'     , None        ),
-    ('WW'        , None        ),
-    ('WZ'        , None        ),
-    ('ZZ'        , None        ),
-    ('tW'        , None        ),
-    ('tbarW'     , None        ),
-    ('DY50toInf' , (136, 50000)), # 6.76M events
-    ('ttbar'     , (72,  50000)), # 3.60M events
+#    ('WJets'     , None        ),
+#    ('WW'        , None        ),
+#    ('WZ'        , None        ),
+#    ('ZZ'        , None        ),
+#    ('tW'        , None        ),
+#    ('tbarW'     , None        ),
+#    ('DY50toInf' , (136, 50000)), # 6.76M events
+#    ('ttbar'     , (72,  50000)), # 3.60M events
 )
 # 257 data jobs
 DataSampleList = (
@@ -46,6 +30,54 @@ DataSampleList = (
     ('DoubleMuonRun2016G-07Aug17'   , (63, 50000)), # 3.12M events
     ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
+
+# specific scripts that should ignore the splitting parameter
+# e.g. scripts that do not loop on the tree but use existing histograms
+SplittingVetoList = ('tailCumulativePlots.py',)
+
+# set some global variables needed for submission scripts
+CMSSW_BASE   = os.environ['CMSSW_BASE']
+USER         = os.environ['USER']
+USER_INITIAL = os.environ['USER'][0].lower()  # needed for workdir path on HEPHY batch
+HOME         = os.environ['HOME']
+
+#########################
+#### ARGUMENT PARSER ####
+#########################
+
+# parse arguments -- this configures which samples to process, which analyzer to run, and which batch system to use
+parser = argparse.ArgumentParser()
+parser.add_argument('SCRIPT'   ,                                        help='which script to run'                                            )
+parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'  , help='whether to run locally'                                         )
+parser.add_argument('--condor' , dest='CONDOR' , action='store_true'  , help='whether to run on condor instead of LXBATCH'                    )
+parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'  , help='whether to run on HEPHY batch system instead of LXBATCH'        )
+parser.add_argument('--samples', dest='SAMPLES', default='S2BD'       , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'  , help='which folder the script is located in'                          )
+parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*', help='any extra command-line parameters to be passed to script'       )
+args = parser.parse_args()
+
+# this is mostly so that **locals() works later on
+SCRIPT = args.SCRIPT
+FOLDER = args.FOLDER
+EXTRA  = args.EXTRA
+
+# set mode: local, lxbatch, hephy, or condor
+if (args.LOCAL, args.HEPHY, args.CONDOR).count(True) > 1:
+    print '[RUNALL ERROR]: Only one of --local, --hephy, or --condor may be set'
+    exit()
+if   args.LOCAL : MODE = 'LOCAL'
+elif args.HEPHY : MODE = 'HEPHY'
+elif args.CONDOR: MODE = 'CONDOR'
+else            : MODE = 'LXBATCH'
+
+# ensure that FOLDER/SCRIPT exists
+if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
+    print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}. Did you forget to use --folder?'.format(**locals())
+    exit()
+
+###############################
+#### BUILD INPUT ARGUMENTS ####
+###############################
 
 # prepare input arguments
 # signal samples are all small 30000 event samples, so they get one job each
@@ -74,6 +106,21 @@ if 'D' in args.SAMPLES:
             for i in xrange(NJOBS):
                 ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
+# This is clunky, but I don't have a better way of doing it
+# if additional command-line parameters need to be passed to the analyzer script,
+# do it with --extra EXTRA PARAMETERS
+# if the extra parameters are options, such as --trigger or --blind, you MUST use __ instead of --
+# if you do not, then argparse has no way of knowing that --trigger is an argument and not an option
+if len(EXTRA) > 0:
+    EXTRA = [e.replace('__','--') for e in EXTRA]
+    ArgsList = [a+' '+' '.join(EXTRA) for a in ArgsList]
+
+####################################
+#### SUBMISSION SCRIPT LITERALS ####
+####################################
+
+# Various literal submission scripts with formatting placeholders for use in submission loops below
+# Some format specifiers are global; otherwise ARGS will be set during the loop + format
 submitScript = '''
 #!/bin/bash
 #export X509_USER_PROXY=/afs/cern.ch/user/a/adasgupt/x509up_u79337
@@ -118,6 +165,7 @@ arguments              = {ARGS}
 queue 1
 '''
 
+# used for condor mode; not very useful
 def getRootOutputFile(SCRIPT, ARGS):
     line = bash.check_output('grep writeHistograms '+SCRIPT, shell=True)
     matches = re.search(r'roots/.*\.root', line)
@@ -129,61 +177,65 @@ def getRootOutputFile(SCRIPT, ARGS):
     fname = matches.group(0).replace('{}', sample)
     return fname
 
-if not args.LOCAL:
-    # run on HEPHY Batch
-    if not args.CONDOR and args.HEPHY:
-        #if the certificate does not exist or is >6h old, create a new one in a a place accesible in AFS. .
-        if os.path.isfile('{HOME}/private/.proxy'.format(**locals())) == False \
-                or int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
-                            **locals()), shell=True)) > 6*3600:
-            print "You need a GRID certificate or current certificate is older than 6h..."
-            bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
-        for index, ARGS in enumerate(ArgsList):
-            scriptName = 'submit_{index}.sh'                         .format(**locals())
-            open(scriptName, 'w').write(submitHephyScript            .format(**locals()))
-            bash.call('sbatch -J ana_{index} {scriptName}'.format(**locals()), shell=True)
-            bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
+#############################
+#### SUBMIT AND RUN JOBS ####
+#############################
 
-    # run on LSF LXBATCH
-    if not args.CONDOR and not args.HEPHY:
-        for index, ARGS in enumerate(ArgsList):
-            scriptName = 'submit_{index}.sh'                         .format(**locals())
-            open(scriptName, 'w').write(submitScript                 .format(**locals()))
-            # leaving this line commented in case fewer jobs are desired
-            #queue = '1nh' if 'splitting' not in ARGS else '8nh'
-            queue = '1nh'
-            bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
-            bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
-    # run on CONDOR
-    else:
-        bash.call('mkdir -p logs', shell=True)
-        executableName = 'condorExecutable.sh'
-        open(executableName, 'w').write(condorExecutable             .format(**locals()))
-        submitName = 'condorSubmit'
-        for index, ARGS in enumerate(ArgsList):
-            if FOLDER == 'analyzers':
-                OUTPUT = getRootOutputFile(SCRIPT, ARGS)
-                REMAP  = OUTPUT.replace('roots/', '') + '=' + OUTPUT
-            else:
-                OUTPUT = '""'
-                REMAP  = ''
+#### Run on LSF LXBATCH ####
+if MODE == 'LXBATCH':
+    for index, ARGS in enumerate(ArgsList):
+        scriptName = 'submit_{index}.sh'                         .format(**locals())
+        open(scriptName, 'w').write(submitScript                 .format(**locals()))
+        # leaving this line commented in case fewer jobs are desired
+        #queue = '1nh' if 'splitting' not in ARGS else '8nh'
+        queue = '1nh'
+        bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
+        bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
 
-            condorSubmit += condorSubmitAdd.format(
-                logname = SCRIPT.replace('.py', ''),
-                index   = index,
-                ARGS    = SCRIPT + ' ' + ARGS,
-                OUTPUT  = OUTPUT,
-                REMAP   = REMAP,
-            )
+#### Run on HEPHY Batch ####
+elif MODE == 'HEPHY':
+    #if the certificate does not exist or is >6h old, create a new one in a a place accesible in AFS. .
+    if os.path.isfile('{HOME}/private/.proxy'.format(**locals())) == False \
+            or int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
+                        **locals()), shell=True)) > 6*3600:
+        print "You need a GRID certificate or current certificate is older than 6h..."
+        bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
+    for index, ARGS in enumerate(ArgsList):
+        scriptName = 'submit_{index}.sh'                         .format(**locals())
+        open(scriptName, 'w').write(submitHephyScript            .format(**locals()))
+        bash.call('sbatch -J ana_{index} {scriptName}'.format(**locals()), shell=True)
+        bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
 
-        open(submitName, 'w').write(condorSubmit)
-        bash.call('chmod +x '+executableName                  , shell=True)
-       #bash.call('condor_submit '+submitName                 , shell=True)
-        bash.call('cp '+executableName+' '+submitName+' logs/', shell=True)
-        bash.call('rm '+submitName                            , shell=True)
+#### Run on CONDOR ####
+elif MODE == 'CONDOR':
+    bash.call('mkdir -p logs', shell=True)
+    executableName = 'condorExecutable.sh'
+    open(executableName, 'w').write(condorExecutable.format(**locals()))
+    submitName = 'condorSubmit'
+    for index, ARGS in enumerate(ArgsList):
+        if FOLDER == 'analyzers':
+            OUTPUT = getRootOutputFile(SCRIPT, ARGS)
+            REMAP  = OUTPUT.replace('roots/', '') + '=' + OUTPUT
+        else:
+            OUTPUT = '""'
+            REMAP  = ''
 
-else:
-    # run locally with GNU PARALLEL
+        condorSubmit += condorSubmitAdd.format(
+            logname = SCRIPT.replace('.py', ''),
+            index   = index,
+            ARGS    = SCRIPT + ' ' + ARGS,
+            OUTPUT  = OUTPUT,
+            REMAP   = REMAP,
+        )
+
+    open(submitName, 'w').write(condorSubmit)
+    bash.call('chmod +x '+executableName                  , shell=True)
+#   bash.call('condor_submit '+submitName                 , shell=True)
+    bash.call('cp '+executableName+' '+submitName+' logs/', shell=True)
+    bash.call('rm '+submitName                            , shell=True)
+
+#### Run locally with GNU PARALLEL ####
+elif MODE == 'LOCAL':
     parallel_command = ['bash', '-c',  'parallel --colsep " " python {SCRIPT} :::: <(echo -e "{ARGLIST}")'.format(
         SCRIPT  = SCRIPT,
         ARGLIST = r'\n'.join(ArgsList)

@@ -73,8 +73,8 @@ def makeStackPlots(DataMC=False, logy=False):
 
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
-            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             RT.addFlows(h[key])
+            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])

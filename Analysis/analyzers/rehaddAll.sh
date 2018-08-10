@@ -97,6 +97,20 @@ then
         echo "Rehadding ${i}Plots.root with $DIRS"
         hadd ${i}Plots.root $FILES
     done
+    echo
+
+    # Rename output file
+    read -p $'Optional output file suffix?\ndefault : <none> (e.g. Blind)\nsomething else? '
+    if [ -z "$REPLY" ]
+    then
+        :
+    else
+        for i in $TAGS
+        do
+            echo "Moving ${i}Plots.root to ${i}Plots_${REPLY}.root"
+            mv ${i}Plots.root ${i}Plots_${REPLY}.root
+        done
+    fi
     popd
 
 fi

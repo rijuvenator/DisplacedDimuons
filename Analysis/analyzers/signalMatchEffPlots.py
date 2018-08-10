@@ -39,7 +39,8 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
-    if not Selections.passedTrigger(E): return
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
     if '4Mu' in self.NAME:
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
