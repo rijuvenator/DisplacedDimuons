@@ -83,4 +83,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('EVENT', 'DIMUON', 'DSAMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/nMinusOneEffPlots_{}.root')
+    analyzer.writeHistograms('roots/nMinusOneEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

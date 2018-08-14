@@ -86,4 +86,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalVertexFitEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalVertexFitEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

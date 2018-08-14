@@ -11,14 +11,14 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 # 7 + 136 + 72 = 215 background jobs
 BGSampleList = (
     ('DY10to50'  , None        ),
-#    ('WJets'     , None        ),
-#    ('WW'        , None        ),
-#    ('WZ'        , None        ),
-#    ('ZZ'        , None        ),
-#    ('tW'        , None        ),
-#    ('tbarW'     , None        ),
-#    ('DY50toInf' , (136, 50000)), # 6.76M events
-#    ('ttbar'     , (72,  50000)), # 3.60M events
+    ('WJets'     , None        ),
+    ('WW'        , None        ),
+    ('WZ'        , None        ),
+    ('ZZ'        , None        ),
+    ('tW'        , None        ),
+    ('tbarW'     , None        ),
+    ('DY50toInf' , (136, 50000)), # 6.76M events
+    ('ttbar'     , (72,  50000)), # 3.60M events
 )
 # 257 data jobs
 DataSampleList = (
