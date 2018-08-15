@@ -55,7 +55,7 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if self.SP is None else False
+    BLIND = True if 'Blind' in self.CUTS else False
 
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons]

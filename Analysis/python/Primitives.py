@@ -504,8 +504,8 @@ class Particle(Primitive):
         return missing
 
     # p, pt, eta, phi, mass, energy, q, (x,y,z);
-    headerFormat = '|{:9s}|{:9s}|{:10s}|{:7s}|{:10s}|{:10s}|{:6s}|{:^21s}|\n'
-    dataFormat   = '|{:9.2f}|{:9.2f}|{:10.2f}|{:7.2f}|{:10.2f}|{:10.2f}|{:6d}|{:7.2f}{:7.2f}{:7.2f}|\n'
+    headerFormat = '|{:9s}|{:9s}|{:10s}|{:7s}|{:10s}|{:10s}|{:6s}|{:^24s}|\n'
+    dataFormat   = '|{:9.2f}|{:9.2f}|{:10.2f}|{:7.2f}|{:10.2f}|{:10.2f}|{:6d}|{:8.2f}{:8.2f}{:8.2f}|\n'
 
     # so that we don't need an instance of the class to call this method
     @staticmethod
@@ -531,13 +531,13 @@ class GenParticle(Particle):
             self.set(attr, E, 'gen_'+attr, i)
 
     # pdgID, status, mother
-    headerFormatPre = '|{:9s}|{:8s}|{:8s}'
-    dataFormatPre   = '|{:9d}|{:8d}|{:8d}'
+    headerFormatPre = '|{:7s}|{:6s}|{:5s}'
+    dataFormatPre   = '|{:7d}|{:6d}|{:5d}'
 
     # so that we don't need an instance of the class to call this method
     @staticmethod
     def headerstr():
-        return GenParticle.headerFormatPre.format('pdgID', 'status', 'mother') + Particle.headerstr()
+        return GenParticle.headerFormatPre.format('pdgID', 'stat', 'mom') + Particle.headerstr()
 
     def datastr(self):
         return GenParticle.dataFormatPre.format(self.pdgID, self.status, self.mother) + Particle.datastr(self)
@@ -592,8 +592,8 @@ class GenMuon(Muon, GenParticle):
         return self.dz_
 
     # Lxy, cosAlpha, d0, dz, dR
-    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
-    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:6.2f}|\n'
 
     # so that we don't need an instance of the class to call this method
     @staticmethod

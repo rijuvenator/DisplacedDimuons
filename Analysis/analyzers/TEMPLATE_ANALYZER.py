@@ -45,4 +45,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/test_{}.root')
+    analyzer.writeHistograms('roots/test{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

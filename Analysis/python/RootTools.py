@@ -17,9 +17,11 @@ for CLASS in R.TLorentzVector, R.TVector3, R.TVector2:
     CLASS.Inverse    = genericInverse
     CLASS.__format__ = genericFormat
 
-# TLorentzVector doesn't implement an iterator (for..in or *) or a length, but TVector2/3 do
+# TLorentzVector and TVector2 don't implement an iterator (for..in or *) or a length, but TVector3 does
 R.TLorentzVector.__len__  = lambda self : 4
 R.TLorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[3]])
+R.TVector2.__len__  = lambda self : 2
+R.TVector2.__iter__ = lambda self : iter([self.X(), self.Y()])
 
 # TVector2 doesn't do __mul__ correctly. Also, make Mag() return Mod().
 def fixedMul(self, second):
@@ -30,6 +32,11 @@ def fixedMul(self, second):
 R.TVector2.__mul__ = fixedMul
 R.TVector2.__rmul__ = fixedMul
 R.TVector2.Mag = R.TVector2.Mod
+
+# It's often useful to take a TVector3 (x, y, z) and return (x, y, 0)
+def Proj2D(self):
+    return R.TVector3(self.X(), self.Y(), 0.)
+R.TVector3.Proj2D = Proj2D
 
 #### TTree Tools
 # takes an ntuple tree with gen_ branches of length 8

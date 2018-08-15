@@ -8,11 +8,12 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
-    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
-    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0' , 'd_{0} [cm]' , (1000,       0.,    200.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
+    ('pT' , 'p_{T} [GeV]'    , (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
+    ('eta', '#eta'           , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
+    ('phi', '#phi'           , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
+    ('Lxy', 'L_{xy} [cm]'    , (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
+    ('d0' , 'd_{0} [cm]'     , (1000,       0.,    200.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
+    ('dR' , '#DeltaR(#mu#mu)', (1000,       0.,      5.), lambda muon: muon.deltaR   , '#DeltaR', lambda sel: sel                   ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -124,4 +125,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalMatchEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalMatchEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

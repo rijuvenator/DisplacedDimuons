@@ -17,6 +17,20 @@ CONFIG = {
     'pTSig'    : {'AXES':(1000, 0.,  3. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
 }
 
+EXTRACONFIG = {
+    'fYVSfX' : {},
+    'fRVSfZ' : {}
+}
+
+EXTRACONFIG['fYVSfX']['TITLE' ] = ';x_{f} [cm];y_{f} [cm];Counts'
+EXTRACONFIG['fRVSfZ']['TITLE' ] = ';z_{f} [cm];R_{f} [cm];Counts'
+
+EXTRACONFIG['fYVSfX']['AXES'  ] = (1000, -500., 500., 1000, -500., 500.)
+EXTRACONFIG['fRVSfZ']['AXES'  ] = (1000, -500., 500.,  800,    0., 800.)
+
+EXTRACONFIG['fYVSfX']['LAMBDA'] = (lambda muon: muon.fhit.X(), lambda muon: muon.fhit.Y()   )
+EXTRACONFIG['fRVSfZ']['LAMBDA'] = (lambda muon: muon.fhit.Z(), lambda muon: muon.fhit.Perp())
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -33,6 +47,15 @@ def declareHistograms(self, PARAMS=None):
 
             if self.SP is not None:
                 self.HistInit(MUON+'_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
+
+    for KEY in EXTRACONFIG:
+        for MUON in ('DSA', 'RSA'):
+            if True:
+                self.HistInit(MUON+'_'+KEY           , EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
+
+            if self.SP is not None:
+                self.HistInit(MUON+'_'+KEY+'_Matched', EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
+
 
     for MUON in ('DSA', 'RSA'):
         if True:
@@ -56,10 +79,10 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if self.SP is None else False
+    BLIND = True if 'Blind' in self.CUTS else False
 
     SelectMuons = False
-    SelectMuons_pT30 = True
+    SelectMuons_pT30 = True if 'pT30' in self.CUTS else False
     # require reco muons to pass all selections
     if SelectMuons:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
@@ -87,6 +110,10 @@ def analyze(self, E, PARAMS=None):
                 if muon.d0Sig() > 3.: continue
             for KEY in CONFIG:
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
+            for KEY in EXTRACONFIG:
+                F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
+                F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
+                self.HISTS[MUON+'_'+KEY].Fill(F1(muon), F2(muon), eventWeight)
         self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
 
     # get gen particles if this is a signal sample
@@ -112,6 +139,10 @@ def analyze(self, E, PARAMS=None):
                     muon = recoMuons[match['idx']]
                     for KEY in CONFIG:
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
+                    for KEY in EXTRACONFIG:
+                        F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
+                        F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
+                        self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(F1(muon), F2(muon), eventWeight)
                     self.HISTS[MUON+'_deltaRGR_Matched'].Fill(genMuon.p4.DeltaR(muon.p4), eventWeight)
                 self.HISTS[MUON+'_nMuon_Matched'].Fill(len(matches), eventWeight)
                 if len(matches) > 0:
@@ -128,4 +159,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('EVENT', 'DSAMUON', 'RSAMUON', 'GEN', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/RecoMuonPlots_{}.root')
+    analyzer.writeHistograms('roots/RecoMuonPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
