@@ -25,8 +25,8 @@ EXTRACONFIG = {
 EXTRACONFIG['fYVSfX']['TITLE' ] = ';x_{f} [cm];y_{f} [cm];Counts'
 EXTRACONFIG['fRVSfZ']['TITLE' ] = ';z_{f} [cm];R_{f} [cm];Counts'
 
-EXTRACONFIG['fYVSfX']['AXES'  ] = (1000, -500., 500., 1000, -500., 500.)
-EXTRACONFIG['fRVSfZ']['AXES'  ] = (1000, -500., 500.,  800,    0., 800.)
+EXTRACONFIG['fYVSfX']['AXES'  ] = (800 , -800. , 800. , 800, -800., 800.)
+EXTRACONFIG['fRVSfZ']['AXES'  ] = (1100, -1100., 1100., 800,    0., 800.)
 
 EXTRACONFIG['fYVSfX']['LAMBDA'] = (lambda muon: muon.fhit.X(), lambda muon: muon.fhit.Y()   )
 EXTRACONFIG['fRVSfZ']['LAMBDA'] = (lambda muon: muon.fhit.Z(), lambda muon: muon.fhit.Perp())

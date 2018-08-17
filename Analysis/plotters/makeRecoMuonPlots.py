@@ -192,6 +192,38 @@ def makeGenRecoPlots():
 
             canvas.cleanup(fname)
 
+# make 3D color plots
+def makeColorPlots(key):
+    for ref in HISTS:
+        if 'DoubleMuon' in ref: continue
+        if type(ref) == tuple:
+            if ref[0] == '4Mu':
+                name = 'HTo2XTo4Mu_'
+                latexFS = '4#mu'
+            elif ref[0] == '2Mu2J':
+                name = 'HTo2XTo2Mu2J_'
+                latexFS = '2#mu2j'
+            if TRIGGER:
+                name = 'Trig-'+name
+            name += SPStr(ref[1])
+            lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+        else:
+            name = ref
+            lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
+            if '_Matched' in key: continue
+
+        h = HISTS[ref][key].Clone()
+        h.Rebin2D(10, 10)
+        p = Plotter.Plot(h, '', '', 'colz')
+        canvas = Plotter.Canvas(lumi=lumi)
+        #canvas.mainPad.SetLogz(True)
+        canvas.addMainPlot(p)
+        canvas.scaleMargins(1.75, edges='R')
+        canvas.scaleMargins(0.8, edges='L')
+
+        fname = 'pdfs/{}_{}.pdf'.format(key, name)
+        canvas.cleanup(fname)
+
 if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
@@ -200,3 +232,7 @@ makePerSamplePlots()
 makeStackPlots(False)
 makeStackPlots(True, True)
 makeGenRecoPlots()
+makeColorPlots('DSA_fYVSfX')
+makeColorPlots('DSA_fRVSfZ')
+makeColorPlots('DSA_fYVSfX_Matched')
+makeColorPlots('DSA_fRVSfZ_Matched')
