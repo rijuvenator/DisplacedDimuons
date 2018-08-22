@@ -30,6 +30,8 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
     if '4Mu' in self.NAME:
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
@@ -41,12 +43,26 @@ def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
+    SelectMuons_pT30 = True
+    SelectDimuons = False
+
+    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
+    if not SelectDimuons and SelectMuons_pT30:
+        DSASelections    = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    # don't require dimuons to pass all selections, and don't require DSA muons to pass all selections, either
+    else:
+        selectedDSAmuons = DSAmuons
+        selectedDimuons  = Dimuons
+
     for genMuonPair in genMuonPairs:
         # require genMuonPair to be within acceptance
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
 
         # both gen muons matched, but no dimuon: fill den only
         if exitcode == 2:
@@ -68,6 +84,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalVertexFitEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalVertexFitEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

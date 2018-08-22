@@ -14,13 +14,18 @@ R.gROOT.SetBatch(True)
 # splitting is 2 numbers CHUNK JOB defining splitting parameters:
 #    - CHUNK is how many events to process for this instance
 #    - JOB is which job number this is (so that the Analyzer knows which part of the tree to access)
+# maxevents is the maximum number of events to run on, if --test is set
+# trigger is whether or not to apply the trigger selection to signal samples
 # In any given Analyzer, one may add a few extra parameters to PARSER
 # in case any additional command-line parameters are desired
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
 PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
-PARSER.add_argument('--test'       , dest='TEST'       , action='store_true',                        help='run test mode for 1000 events')
+PARSER.add_argument('--test'       , dest='TEST'       , action='store_true'                       , help='run test mode for 1000 events')
 PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
+PARSER.add_argument('--maxevents'  , dest='MAXEVENTS'  , type=int,            default=1000         , help='max events for test mode'     )
+PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true'                       , help='apply trigger to signal'      )
+PARSER.add_argument('--cuts'       , dest='CUTS'       ,                      default=''           , help='cut string'                   )
 
 # important setSample function
 # this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler
@@ -44,17 +49,17 @@ class Analyzer(object):
     #    Contains NAME, SIGNALPOINT, TEST, SPLITTING, and SAMPLE. Required.
     #  FILES: ONLY for overriding the default nTuples. Use with caution.
     #  BRANCHKEYS: from Primitives (for ETree)
-    #  MAX_EVENTS: if something other than 1000; only does anything if ARGS.TEST is true
     #  TREELOOP: whether to actually loop over the tree (usually True)
     #  PARAMS: any additional parameters that can't be obtained any other way
     def __init__(self,
             ARGS,
             BRANCHKEYS  = Primitives.BRANCHKEYS,
             FILES       = None,
-            MAX_EVENTS  = 1000,
             TREELOOP    = True,
             PARAMS      = None
         ):
+
+        self.ARGS = ARGS
 
         # if this is NOT a signal sample, make sure SIGNALPOINT is None
         # SP will be None if it's not signal, can serve as a test of signal
@@ -70,7 +75,10 @@ class Analyzer(object):
         self.SP         = None if ARGS.SIGNALPOINT is None else Utilities.SignalPoint(ARGS.SIGNALPOINT)
         self.TEST       = ARGS.TEST
         self.SPLITTING  = ARGS.SPLITTING
+        self.MAX        = ARGS.MAXEVENTS
         self.SAMPLE     = ARGS.SAMPLE
+        self.TRIGGER    = ARGS.TRIGGER
+        self.CUTS       = ARGS.CUTS
 
         # if TREELOOP was explicitly False, ensure that SPLITTING is None
         if not TREELOOP:
@@ -86,7 +94,6 @@ class Analyzer(object):
         # these are constants and the rest of the parameters from the constructor
         self.TREE       = 'SimpleNTupler/DDTree'
         self.BRANCHKEYS = BRANCHKEYS
-        self.MAX        = MAX_EVENTS
         self.TREELOOP   = TREELOOP
         self.PARAMS     = PARAMS
 

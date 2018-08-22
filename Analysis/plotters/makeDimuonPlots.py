@@ -5,6 +5,9 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+PRINTINTEGRALS = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/DimuonPlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/DimuonPlots.root')
@@ -13,8 +16,7 @@ f = R.TFile.Open('../analyzers/roots/Main/DimuonPlots.root')
 def makePerSamplePlots():
     for ref in HISTS:
         for key in HISTS[ref]:
-            if 'LxySigVSLxy' in key: continue
-            if 'LxyErrVSLxy' in key: continue
+            if 'VS' in key: continue
             if 'DoubleMuon' in ref: continue
             if type(ref) == tuple:
                 if ref[0] == '4Mu':
@@ -23,6 +25,8 @@ def makePerSamplePlots():
                 elif ref[0] == '2Mu2J':
                     name = 'HTo2XTo2Mu2J_'
                     latexFS = '2#mu2j'
+                if TRIGGER:
+                    name = 'Trig-'+name
                 name += SPStr(ref[1])
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
@@ -33,8 +37,8 @@ def makePerSamplePlots():
                 legName = HistogramGetter.PLOTCONFIG[ref]['LATEX']
 
             h = HISTS[ref][key].Clone()
-            if h.GetNbinsX() > 100: h.Rebin(10)
             RT.addFlows(h)
+            if h.GetNbinsX() > 100: h.Rebin(10)
             p = Plotter.Plot(h, legName, 'l', 'hist')
             fname = 'pdfs/{}_{}.pdf'.format(key, name)
 
@@ -54,8 +58,7 @@ def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
-        if 'LxySigVSLxy' in hkey: continue
-        if 'LxyErrVSLxy' in hkey: continue
+        if 'VS' in key: continue
 
         h = {
             'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),
@@ -73,16 +76,18 @@ def makeStackPlots(DataMC=False, logy=False):
 
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
-            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
-            RT.addFlows(h[key])
+            if not PRINTINTEGRALS:
+                RT.addFlows(h[key])
+                if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
 
         for era in ('C', 'D', 'E', 'F', 'G', 'H'):
             h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
-        if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
-        RT.addFlows(h['Data'])
+        if not PRINTINTEGRALS:
+            RT.addFlows(h['Data'])
+            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
@@ -120,8 +125,24 @@ def makeStackPlots(DataMC=False, logy=False):
 #       p['Signal'    ].SetLineStyle(2)
 #       p['Signal'    ].SetLineColor(R.kRed)
 
-        canvas.finishCanvas(extrascale=1. if not DataMC else 1.+1./3.)
-        canvas.save(fname)
+        if PRINTINTEGRALS and 'LxySig' in hkey:
+            print hkey
+            for key in h:
+                if key == 'Data': continue
+                if key == 'BG': continue
+                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, p[key].GetNbinsX(), int(p[key].GetEntries()), p[key].Integral(0, p[key].GetNbinsX()+1))
+            for era in ('B', 'C', 'D', 'E', 'F', 'G', 'H'):
+                thisH = HISTS['DoubleMuonRun2016{}-07Aug17{}'.format(era, '-v2' if era=='B' else '')][hkey].Clone()
+                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(era, thisH .GetNbinsX(), int(thisH .GetEntries()), thisH .Integral(0, thisH .GetNbinsX()+1))
+            for key in ('Data',):
+                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, p[key].GetNbinsX(), int(p[key].GetEntries()), p[key].Integral(0, p[key].GetNbinsX()+1))
+            for key in ('BG',):
+                meh = p[key].GetStack().Last()
+                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, meh   .GetNbinsX(), int(meh   .GetEntries()), meh   .Integral(0, meh   .GetNbinsX()+1))
+
+        if not PRINTINTEGRALS:
+            canvas.finishCanvas(extrascale=1. if not DataMC else 1.+1./3.)
+            canvas.save(fname)
         canvas.deleteCanvas()
 
 # make 3D color plots
@@ -137,6 +158,8 @@ def makeColorPlots(key):
             elif ref[0] == '2Mu2J':
                 name = 'HTo2XTo2Mu2J_'
                 latexFS = '2#mu2j'
+            if TRIGGER:
+                name = 'Trig-'+name
             name += SPStr(ref[1])
             lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
         else:
@@ -156,11 +179,16 @@ def makeColorPlots(key):
         fname = 'pdfs/{}_{}.pdf'.format(key, name)
         canvas.cleanup(fname)
 
+if PRINTINTEGRALS:
+    makeStackPlots(False)
+    exit()
+
 makePerSamplePlots()
 makeStackPlots(False)
-makeStackPlots(False, True)
 makeStackPlots(True, True)
 makeColorPlots('LxySigVSLxy')
 makeColorPlots('LxySigVSLxy_Matched')
 makeColorPlots('LxyErrVSLxy')
 makeColorPlots('LxyErrVSLxy_Matched')
+makeColorPlots('deltaRVSdeltaPhi')
+makeColorPlots('deltaRVSdeltaPhi_Matched')

@@ -8,11 +8,12 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
-    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
-    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
-    ('Lxy', 'L_{xy} [cm]', (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0' , 'd_{0} [cm]' , (1000,       0.,    200.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
+    ('pT' , 'p_{T} [GeV]'    , (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
+    ('eta', '#eta'           , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
+    ('phi', '#phi'           , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
+    ('Lxy', 'L_{xy} [cm]'    , (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
+    ('d0' , 'd_{0} [cm]'     , (1000,       0.,    200.), lambda muon: muon.d0()     , 'd_{0}'  , lambda sel: sel                   ),
+    ('dR' , '#DeltaR(#mu#mu)', (1000,       0.,      5.), lambda muon: muon.deltaR   , '#DeltaR', lambda sel: sel                   ),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -39,6 +40,8 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
     if '4Mu' in self.NAME:
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
@@ -49,10 +52,18 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
 
     SelectMuons = False
+    SelectMuons_pT30 = True
     # require reco muons to pass all selections
     if SelectMuons:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
         RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+
+    # require DSA muons to pass only the pT cut
+    elif SelectMuons_pT30:
+        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
 
@@ -112,6 +123,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalMatchEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalMatchEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

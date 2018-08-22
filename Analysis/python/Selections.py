@@ -2,6 +2,16 @@ import operator
 import math
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
+# for signal samples, whether or not this event passed the trigger
+# E is the whole ETree, contingent on adding TRIGGER to the DecList
+# This is wasteful since it calls getPrimitives, but probably okay
+# because this will only be called once per event
+def passedTrigger(E):
+    HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+    if len(HLTPaths) > 0:
+        return True
+    return False
+
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264'}
 

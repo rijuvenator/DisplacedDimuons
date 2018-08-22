@@ -62,6 +62,8 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
     if '4Mu' in self.NAME:
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
@@ -74,8 +76,9 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectDimuons = False
-    SelectMuons   = False
+    SelectDimuons    = False
+    SelectMuons      = False
+    SelectMuons_pT30 = True
     # require dimuons and muons to pass all selections
     if SelectDimuons and SelectMuons:
         DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
@@ -85,6 +88,15 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
+    elif not SelectDimuons and SelectMuons_pT30:
+        DSASelections    = [Selections.MuonSelection  (muon, cutList=('pT',))   for muon   in DSAmuons]
+        RSASelections    = [Selections.MuonSelection  (muon, cutList=('pT',))   for muon   in RSAmuons]
+        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
+        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
 
     # don't require dimuons and muons to pass all selections
     else:
@@ -142,22 +154,26 @@ def analyze(self, E, PARAMS=None):
                         F2 = CONFIG[KEY2]['LAMBDA']
                         self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
 
-        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
         if dimuon is not None:
             F = CONFIG['pT']['LAMBDA']
             RF = CONFIG['pT']['RESFUNC']
             F2 = CONFIG['Lxy']['LAMBDA']
-            for which, index in enumerate(muonMatches):
-                self.HISTS['RefitBefore_pTRes'     ].Fill(RF(F(DSAmuons[index]), F(genMuonPair[which])))
-                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RF(F(DSAmuons[index]), F(genMuonPair[which])))
+            # be very careful with the indices in muonMatches vs. oMuonMatches
+            # the muonMatches indices are the index of the selectedDSAmuons LIST
+            # the oMuonMatches indices are the index of the DSAmuons list, the "original" indices
+            # a dimuon.idx can only be compared to an oIndex!
+            for which, (index, oIndex) in enumerate(zip(muonMatches, oMuonMatches)):
+                self.HISTS['RefitBefore_pTRes'     ].Fill(RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
+                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
 
                 self.COUNTERS['Before']['Total'] += 1
-                if genMuonPair[which].charge == DSAmuons[index].charge:
+                if genMuonPair[which].charge == selectedDSAmuons[index].charge:
                     self.COUNTERS['Before']['QM'] += 1
                 else:
                     self.COUNTERS['Before']['Not'] += 1
 
-                refittedMuon = dimuon.mu1 if dimuon.idx1 == index else dimuon.mu2
+                refittedMuon = dimuon.mu1 if dimuon.idx1 == oIndex else dimuon.mu2
                 self.HISTS['RefitAfter_pTRes'      ].Fill(RF(F(refittedMuon), F(genMuonPair[which])))
                 self.HISTS['RefitAfter_pTResVSLxy' ].Fill(F2(genMuonPair[which]), RF(F(refittedMuon), F(genMuonPair[which])))
 
@@ -192,6 +208,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalMatchResPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalMatchResPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

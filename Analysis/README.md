@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **24 July 2018**
+Last updated: **17 August 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -24,7 +24,10 @@ The `python/` directory contains the following libraries:
     * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
     * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
     * `--splitting`: two numbers controlling splitting: the first is how many events per file, the second is what _job_ number this is (so that the _Analyzer_ knows which subset of the tree to run over)
-    * `--test`: as in the _Tupler_, runs over 1000 events (or a provided `MAX_EVENTS`) and creates `test.root` instead
+    * `--test`: as in the _Tupler_, runs over 1000 events and creates `test.root` instead
+    * `--maxevents`: if `--test` is set, run over this maximum number of events instead of 1000
+    * `--trigger`: apply the trigger selection to signal samples
+    * `--cuts`: a cut string, for potential use in filenames or for control flow logic within an _Analyzer_
   * **Plotter.py** is my general-purpose plot making and styling library, with plots based on standard TDR style and with a large number of useful functions and classes that I've found useful when creating and managing plots. See the _Plotter_ documentation ([PlotterDoc](python/PlotterDoc.md) in `python/`) for full details.
   * **Primitives.py** is my starting point for creating Python objects from flat nTuples. The basic idea is that it's much easier to write code like
 
@@ -107,6 +110,7 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
   * **studypTRes.py** produces event dumps for studying the poor p<sub>T</sub> resolution for some signal points.
   * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
   * **studyDeltaR.py** produces event dumps for studying the effects of the proximity matching cut between gen and reco.
+  * **studyPairingCriteria.py** produces output related to selecting a reconstructed dimuon pair.
 
 <a name="analyzers"></a>
 ## Analyzers
@@ -131,7 +135,7 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
 
 <a name="runall"></a>
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default) or locally with GNU `parallel`, given the optional parameter `--local`.
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default), locally with GNU `parallel` (given the optional parameter `--local`), or to the HEPHY batch system (given the optional parameter `--hephy`).
 
 The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
@@ -145,17 +149,23 @@ For example, at the moment, `signalResEffPlots.py` only runs on signal samples, 
 python runAll.py signalResEffPlots.py --samples S2
 ```
 
-while `nMinusOnePlots.py` runs on all types of samples, so one would accept the default value for this script: explicitly,
+while `nMinusOnePlots.py` runs on all types of samples, so one could accept the default value for this script: explicitly,
 
 ```python
 python runAll.py nMinusOnePlots.py --samples S2BD
 ```
+
+At the top of _runAll.py_ are some configuration parameters defining exactly which background and data samples to run. If one desires to run over fewer samples, one can simply comment them out before calling _runAll.py_.
+
+Additionally, there is a variable `SplittingVetoList`. This is a fixed list of scripts that should ignore the splitting parameter, as defined in the `BGSampleList` and `DataSampleList`. For example, `tailCumulativePlots.py` runs on a ROOT file of histograms, rather than as an event-by-event analyzer. It should not split jobs at all.
 
 The `--folder` parameter defaults to `analyzers`, the folder where most of the analyzers are stored. If the analyzer is stored somewhere else (e.g. `dumpers`), pass the folder name:
 
 ```python
 python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
 ```
+
+The `--extra` parameter should be passed last, if at all. It is for passing any additional arguments to the _Analyzer_ script, e.g. `--trigger` or `--cuts`. Everything after `--extra` will be passed directly to the given _Analyzer_, except that all instances of `__` will be replaced with `--`. This is necessary because if they are passed with `--`, the parser in _runAll.py_ will interpret them as options for itself, rather than additional options for the _Analyzer_. To do: this can probably be improved by requiring that the parameter be a single quoted string, but it works for now.
 
 <a name="plotters"></a>
 ## Plotters

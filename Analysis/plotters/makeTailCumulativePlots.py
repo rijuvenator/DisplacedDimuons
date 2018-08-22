@@ -6,6 +6,8 @@ import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/TailCumulativePlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/TailCumulativePlots.root')
@@ -18,6 +20,8 @@ def makePerSamplePlots():
                 if ref[0] == '4Mu': name = 'HTo2XTo4Mu_'
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
                 name += SPStr(ref[1])
+                if TRIGGER:
+                    name = 'Trig-'+name
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:

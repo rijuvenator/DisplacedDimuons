@@ -7,6 +7,8 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
+TRIGGER = False
+
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/nMinusOneEffPlots.root')
 f = R.TFile.Open('../analyzers/roots/Main/nMinusOneEffPlots.root')
@@ -29,6 +31,8 @@ def makePerSamplePlots():
                 if ref[0] == '4Mu': name = 'HTo2XTo4Mu_'
                 elif ref[0] == '2Mu2J' : name = 'HTo2XTo2Mu2J_'
                 name += SPStr(ref[1])
+                if TRIGGER:
+                    name = 'Trig-'+name
                 lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
@@ -93,8 +97,8 @@ def makeStackPlots(DataMC=False, logy=False):
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             for DICT, KEY in ((h, hkey), (d, dkey)):
                 DICT[key] = HISTS[key][KEY].Clone()
-                if DICT[key].GetNbinsX() > 100: DICT[key].Rebin(10)
                 RT.addFlows(DICT[key])
+                if DICT[key].GetNbinsX() > 100: DICT[key].Rebin(10)
                 DICT[key].Scale(PC[key]['WEIGHT'])
                 DICT['BG'].Add(DICT[key])
 

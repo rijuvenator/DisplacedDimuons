@@ -6,6 +6,8 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import HistogramGetter
 import re
 
+TRIGGER = False
+
 # some constants
 MAPPING = {
     'MUO' : 'Muon',
@@ -79,7 +81,7 @@ def makeIndividualPlots(obj, dtype, key):
     if type(key) == tuple:
         fs, sp = key
         lumi = '{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp)
-        fname = 'pdfs/CutTable_{}-{}_HTo2XTo{}_{}.pdf'.format(obj, dtype, fs, SPStr(sp))
+        fname = 'pdfs/CutTable_{}-{}_{}HTo2XTo{}_{}.pdf'.format(obj, dtype, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
     else:
         sample = key
         lumi = sample
@@ -102,7 +104,7 @@ def makeIndividualPlots(obj, dtype, key):
     canvas.cleanup(fname)
 
 # make histograms, write them to a file, and make the PDFs
-f = R.TFile('../analyzers/roots/Main/CutTable.root', 'RECREATE')
+f = R.TFile('../analyzers/roots/Main/CutTable{}.root', 'RECREATE'.format('_Trig' if TRIGGER else '')
 HISTS = {
     'MUO' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} },
     'DIM' : {'IND' : {}, 'SEQ' : {}, 'NM1' : {} }
