@@ -11,12 +11,15 @@ def matchedMuons(genMuon, recoMuons):
     matches = []
     if len(recoMuons) == 0:
         return matches
-
     for i,muon in enumerate(recoMuons):
-        dR = deltaR(genMuon, muon)
-        #if dR < min(0.3,genMuon.dR) and Selections.CUTS['pT'].apply(muon) and muon.charge == genMuon.charge:
-        if dR < 0.2:
-            matches.append({'idx':i, 'deltaR':dR, 'pt':muon.pt, 'oidx':muon.idx})
+        deltaR = muon.p4.DeltaR(genMuon.p4)
+        #if deltaR < min(0.3,genMuon.deltaR) and Selections.CUTS['pT'].apply(muon) and muon.charge == genMuon.charge:
+        if deltaR < 0.2:
+            try:
+                oidx = muon.idx
+            except AttributeError:
+                oidx = None  # if genMuons are used, which don't have the idx attribute
+            matches.append({'idx':i, 'deltaR':deltaR, 'pt':muon.pt, 'oidx':oidx})
     return sorted(matches, key=lambda dic:dic['deltaR'])
 
 # defines a match between a genMuonPair (Primitives.GenMuon) and a dimuon (Primitives.Dimuon)
@@ -58,19 +61,6 @@ def findDimuon(genMuonPair, recoMuons, dimuons):
             return None, 2, muonMatches, oMuonMatches
     else:
         return None, 1, muonMatches, oMuonMatches
-
-
-def deltaR(p1, p2):
-    dphi = deltaPhi(p1, p2)
-    deta = p1.eta - p2.eta
-    return math.sqrt(dphi*dphi + deta*deta)
-
-
-def deltaPhi(p1, p2):
-    dphi = abs(p1.phi - p2.phi)
-    if dphi > math.pi:
-        dphi = 2*math.pi - dphi
-    return dphi
 
 
 # function for computing ZBi given nOn, nOff, and tau
