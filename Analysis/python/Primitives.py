@@ -375,6 +375,10 @@ class TriggerMuon(Primitive):
         for attr in ('idx', 'px', 'py', 'pz', 'eta', 'phi'):
             self.set(attr, E, prefix+attr, i)
 
+        triggerMuonEnergy = math.sqrt(sum([x*x for x in (self.px, self.py, self.pz)]) + 0.105658375*0.105658375)
+        self.p4 = R.TLorentzVector()
+        self.p4.SetPxPyPzE(self.px, self.py, self.pz, triggerMuonEnergy) 
+
         self.p3 = R.TVector3(self.px, self.py, self.pz)
         self.pt = math.sqrt(self.px**2. + self.py**2.)
 

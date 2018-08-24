@@ -5,21 +5,20 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
-# manual definition of pT cut that defines the beginning of the plateau
-PTMIN = 30
 
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt          , 'p_{T}'   ), 
-    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta         , '#eta'    ),
-    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi         , '#phi'    ),
-    ('Lxy', 'L_{xy}^{gen} [cm]', (1000, 0.,    500.), lambda muon: muon.Lxy()       , 'L_{xy}'  ),
-    ('d0' , 'd_{0} [cm]' , (1000,     -10.,     10.), lambda muon: muon.d0()        , 'd_{0}'   ),
+    ('pT' , 'p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}' ), 
+    ('eta', '#eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'  ),
+    ('phi', '#phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'  ),
+    ('Lxy', 'L_{xy}^{gen} [cm]', (1000, 0.,    500.), lambda muon: muon.Lxy()    , 'L_{xy}'),
+    ('d0' , 'd_{0} [cm]' , (1000,     -10.,     10.), lambda muon: muon.d0()     , 'd_{0}' ),
 )
 CONFIG = {}
 for VAL in VALUES:
     KEY, VALS = VAL[0], VAL[1:]
     CONFIG[KEY] = dict(zip(HEADERS, VALS))
+
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 
@@ -32,7 +31,7 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit(MUON+'_'+KEY+'Eff'      , TITLE, *CONFIG[KEY]['AXES'])
 
             # gen denominator plots, can reuse the axes
-            self.HistInit(MUON+'_'+KEY+'Den'        , '', *CONFIG[KEY]['AXES'])
+            self.HistInit(MUON+'_'+KEY+'Den'      , ''   , *CONFIG[KEY]['AXES'])
             # self.HistInit(MUON+'_'+KEY+'FullDen'    , '', *CONFIG[KEY]['AXES'])
 
 
@@ -52,12 +51,15 @@ def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
 
+    # define which muon type the "denominator muons" should be matched with
     matchWith_den = {
         'GEN': None,
         'DSA': GENmuons,
         'RSA': GENmuons,
     }
 
+    # define which muon type the "numerator muons" should be matched with (in
+    # addition to the matching of the "denominator muons"
     matchWith_num = {
         'GEN': HLTMuons,
         'DSA': HLTMuons,
@@ -67,13 +69,12 @@ def analyze(self, E, PARAMS=None):
     for MUONTYPE, MUONS in (('GEN', GENmuons), ('DSA', DSAmuons),
             ('RSA', RSAmuons)):
 
-        # loop over the entire event and collect the selected muons, separately
-        # for the denominator and the numerator
+        # loop over the entire event and collect the selected muons, for the
+        # denominator and the numerator separately
         accepted_muons_den = []
         accepted_muons_num = []
         for muon in MUONS:
             # apply selections
-            if Selections.CUTS['pT'].expr(muon) < PTMIN: continue
             if not Selections.CUTS['eta'].apply(muon): continue
             if MUONTYPE != 'GEN' and \
                     Selections.CUTS['nStations'].expr(muon) <= 1: continue
@@ -119,7 +120,7 @@ def analyze(self, E, PARAMS=None):
                 else:
                     accepted_muons_num.append(muon)
 
-        # sort collected muons according to their pT (descending order)
+        # sort collected muons according to their pT (in descending order)
         accepted_muons_den.sort(key=lambda m: m.pt, reverse=True)
         # accepted_muons_num.sort(key=lambda m: m.pt, reverse=True)
 
@@ -145,9 +146,6 @@ def analyze(self, E, PARAMS=None):
                 Lxy = getMuonGenLxy(muon_den, GENmuons)
                 if Lxy is not None:
                     self.HISTS[MUONTYPE+'_'+KEY+'Den'].Fill(Lxy)
-
-                # fill the numerator only if there are at least two muons in the
-                # event that satisfy the "numerator (matching) requirement"
                 if muon_num is not None and len(accepted_muons_num) >= 2 and \
                         Lxy is not None:
                     # muon_den and muon_num are the same object at this point,
@@ -186,4 +184,4 @@ if __name__ == '__main__':
             ARGS = ARGS,
             BRANCHKEYS = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalTriggerEffPlots_{}.root')
+    analyzer.writeHistograms('roots/SignalTriggerEffTurnOnPlots_{}.root')
