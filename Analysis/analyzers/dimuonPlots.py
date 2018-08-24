@@ -7,16 +7,17 @@ from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'      : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      , 'PRETTY':'p_{T} [GeV]'    },
-    'eta'     : {'AXES':(-3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     , 'PRETTY':None             },
-    'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'    },
-    'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None             },
-    'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None             },
-    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':'#DeltaR(#mu#mu)'},
-    'mass'    : {'AXES':( 0., 1000.  ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'},
-    'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None             },
-    'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None             },
-    'pTT'     : {'AXES':( 0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'p_{T,p} [GeV]'  }
+    'pT'      : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      , 'PRETTY':'p_{T} [GeV]'         },
+    'eta'     : {'AXES':(-3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     , 'PRETTY':None                  },
+    'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'         },
+    'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None                  },
+    'LxyErr'  : {'AXES':( 0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'#sigma_{L_{xy}} [cm]'},
+    'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None                  },
+    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':'#DeltaR(#mu#mu)'     },
+    'mass'    : {'AXES':( 0., 1000.  ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'     },
+    'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None                  },
+    'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None                  },
+#   'pTT'     : {'AXES':( 0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'p_{T,p} [GeV]'       }
 }
 
 # define some additional functions
@@ -30,30 +31,28 @@ def getLxyErr(dimuon):
     return CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon)
 
 # actually set the lambda for pTT -- that's why it had to be None before
-CONFIG['pTT']['LAMBDA'] = getPTT
+#CONFIG['pTT']['LAMBDA'] = getPTT
+CONFIG['LxyErr']['LAMBDA'] = getLxyErr
 
 # EXTRACONFIG stores some information about additional histograms
 EXTRACONFIG = {
-    'LxySigVSLxy'      : {},
-    'LxyErrVSLxy'      : {},
-    'deltaRVSdeltaPhi' : {},
-    'nDimuon'          : {}
+    'nDimuon' : {}
 }
 
-EXTRACONFIG['LxySigVSLxy'     ]['TITLE' ] = ';' + CONFIG['Lxy']['PRETTY']             + ';' + Selections.PrettyTitles['LxySig'] + ';Counts'
-EXTRACONFIG['LxyErrVSLxy'     ]['TITLE' ] = ';' + CONFIG['Lxy']['PRETTY']             + ';' + '#sigma_{L_{xy}} [cm]'            + ';Counts'
-EXTRACONFIG['deltaRVSdeltaPhi']['TITLE' ] = ';' + Selections.PrettyTitles['deltaPhi'] + ';' + CONFIG['deltaR']['PRETTY']        + ';Counts'
-EXTRACONFIG['nDimuon'         ]['TITLE' ] = ';Dimuon Multiplicity;Counts'
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR'):
+    for q2 in ('Lxy', 'deltaPhi'):
+        if q1 == q2: continue
+        key = q1 + 'VS' + q2
+        EXTRACONFIG[key] = {}
+        TITLE1 = Selections.PrettyTitles[q1] if CONFIG[q1]['PRETTY'] is None else CONFIG[q1]['PRETTY']
+        TITLE2 = Selections.PrettyTitles[q2] if CONFIG[q2]['PRETTY'] is None else CONFIG[q2]['PRETTY']
+        EXTRACONFIG[key]['TITLE' ] = ';' + TITLE2 + ';' + TITLE1 + ';Counts'
+        EXTRACONFIG[key]['AXES'  ] = (1000,) + CONFIG[q2]['AXES'] + (1000,) + CONFIG[q1]['AXES']
+        EXTRACONFIG[key]['LAMBDA'] = (CONFIG[q2]['LAMBDA'], CONFIG[q1]['LAMBDA'])
 
-EXTRACONFIG['LxySigVSLxy'     ]['AXES'  ] = (1000,) + CONFIG['Lxy']     ['AXES'] + (1000,) + CONFIG['LxySig']['AXES']
-EXTRACONFIG['LxyErrVSLxy'     ]['AXES'  ] = (1000,) + CONFIG['Lxy']     ['AXES'] + (1000,) + (0., 200.)
-EXTRACONFIG['deltaRVSdeltaPhi']['AXES'  ] = (1000,) + CONFIG['deltaPhi']['AXES'] + (1000,) + CONFIG['deltaR']['AXES']
-EXTRACONFIG['nDimuon'         ]['AXES'  ] = (22, 0., 22.)
-
-EXTRACONFIG['LxySigVSLxy'     ]['LAMBDA'] = (CONFIG['Lxy']['LAMBDA']     , CONFIG['LxySig']['LAMBDA'])
-EXTRACONFIG['LxyErrVSLxy'     ]['LAMBDA'] = (CONFIG['Lxy']['LAMBDA']     , getLxyErr                 )
-EXTRACONFIG['deltaRVSdeltaPhi']['LAMBDA'] = (CONFIG['deltaPhi']['LAMBDA'], CONFIG['deltaR']['LAMBDA'])
-EXTRACONFIG['nDimuon'         ]['LAMBDA'] = None
+EXTRACONFIG['nDimuon']['TITLE' ] = ';Dimuon Multiplicity;Counts'
+EXTRACONFIG['nDimuon']['AXES'  ] = (22, 0., 22.)
+EXTRACONFIG['nDimuon']['LAMBDA'] = None
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
@@ -83,6 +82,7 @@ def analyze(self, E, PARAMS=None):
     Event    = E.getPrimitives('EVENT'  )
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
+    Vertex   = E.getPrimitives('VERTEX' )
 
     eventWeight = 1.
     try:
@@ -92,6 +92,7 @@ def analyze(self, E, PARAMS=None):
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
     BLIND = True if 'Blind' in self.CUTS else False
+    CS = True if 'CS' in self.CUTS else False
 
     # modify this to determine what type of selections to apply, if any
     SelectDimuons    = False
@@ -128,6 +129,10 @@ def analyze(self, E, PARAMS=None):
         if BLIND:
             if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
                 continue
+        if CS:
+            if dimuon.LxySig() < 4.:
+                continue
+
         for KEY in CONFIG:
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
 
@@ -161,6 +166,10 @@ def analyze(self, E, PARAMS=None):
             dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
 
             if dimuon is not None:
+                if CS:
+                    if dimuon.LxySig() < 4.:
+                        continue
+
                 for KEY in CONFIG:
                     self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
                 for KEY in EXTRACONFIG:
@@ -177,6 +186,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON', 'TRIGGER'),
+        BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON', 'TRIGGER', 'VERTEX'),
     )
     analyzer.writeHistograms('roots/DimuonPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

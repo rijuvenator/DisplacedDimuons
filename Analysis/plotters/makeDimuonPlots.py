@@ -179,6 +179,64 @@ def makeColorPlots(key):
         fname = 'pdfs/{}_{}.pdf'.format(key, name)
         canvas.cleanup(fname)
 
+# make split delta phi plots
+def makeSplitDeltaPhiPlots():
+    for ref in HISTS:
+        for KEY in HISTS[ref]:
+            if 'VSdeltaPhi' not in KEY: continue
+            if 'DoubleMuon' in ref: continue
+            if type(ref) == tuple:
+                if ref[0] == '4Mu':
+                    name = 'HTo2XTo4Mu_'
+                    latexFS = '4#mu'
+                elif ref[0] == '2Mu2J':
+                    name = 'HTo2XTo2Mu2J_'
+                    latexFS = '2#mu2j'
+                if TRIGGER:
+                    name = 'Trig-'+name
+                name += SPStr(ref[1])
+                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+            else:
+                name = ref
+                lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
+                if '_Matched' in KEY: continue
+
+            H = HISTS[ref][KEY].Clone()
+            nBins = H.GetNbinsX()
+
+            h = {
+                    'Less' : {'hist': H.ProjectionY('Less', 1        , nBins/2), 'legName' : '|#Delta#Phi|<#pi/2', 'color' : R.kBlue},
+                    'More' : {'hist': H.ProjectionY('More', nBins/2+1, nBins  ), 'legName' : '|#Delta#Phi|>#pi/2', 'color' : R.kRed },
+            }
+
+            p = {}
+            for key in h:
+                h[key]['hist'].Scale(1./h[key]['hist'].Integral())
+                if nBins > 100: h[key]['hist'].Rebin(10)
+                p[key] = Plotter.Plot(h[key]['hist'], h[key]['legName'], 'l', 'hist')
+
+            canvas = Plotter.Canvas(lumi=lumi)
+            for key in h:
+                canvas.addMainPlot(p[key])
+                p[key].SetLineColor(h[key]['color'])
+            canvas.makeLegend(pos='tl')
+            canvas.legend.resizeHeight()
+            canvas.setMaximum(recompute=True)
+
+            pave = []
+            for key in h:
+                pave.append(canvas.makeStatsBox(p[key], color=h[key]['color']))
+            for i, box in enumerate(pave):
+                if i == 0: continue
+                HEIGHT = pave[i-1].GetY2NDC() - pave[i-1].GetY1NDC()
+                Plotter.MOVE_OBJECT(box, Y=-HEIGHT-.05)
+
+            parse = re.match(r'Dim_(.*)VSdeltaPhi(.*)', KEY)
+            yAxis, other = parse.group(1), parse.group(2)
+            fname = 'pdfs/Dim_{}{}_Both_{}.pdf'.format(yAxis, other, name)
+            canvas.cleanup(fname)
+
+
 if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
@@ -186,9 +244,10 @@ if PRINTINTEGRALS:
 makePerSamplePlots()
 makeStackPlots(False)
 makeStackPlots(True, True)
-makeColorPlots('LxySigVSLxy')
-makeColorPlots('LxySigVSLxy_Matched')
-makeColorPlots('LxyErrVSLxy')
-makeColorPlots('LxyErrVSLxy_Matched')
-makeColorPlots('deltaRVSdeltaPhi')
-makeColorPlots('deltaRVSdeltaPhi_Matched')
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR'):
+    for q2 in ('Lxy', 'deltaPhi'):
+        if q1 == q2: continue
+        key = q1 + 'VS' + q2
+        makeColorPlots(key)
+        makeColorPlots(key+'_Matched')
+makeSplitDeltaPhiPlots()

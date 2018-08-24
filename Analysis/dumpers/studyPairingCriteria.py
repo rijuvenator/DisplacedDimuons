@@ -9,7 +9,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
 def begin(self, PARAMS=None):
     self.COUNTERS = {
         'all'   : { 'nDimuon' : 0, 'nSuccess' : 0 , 'nFail' : 0, 'nFalse' : 0},
-        'pT'    : { 'nDimuon' : 0, 'nSuccess' : 0 , 'nFail' : 0, 'nFalse' : 0},
+#       'pT'    : { 'nDimuon' : 0, 'nSuccess' : 0 , 'nFail' : 0, 'nFalse' : 0},
 #       'pT_MS' : { 'nDimuon' : 0, 'nSuccess' : 0 , 'nFail' : 0, 'nFalse' : 0},
     }
 
@@ -17,6 +17,9 @@ def begin(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
         raise Exception('[ANALYZER ERROR]: This script runs on signal only.')
+
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
 
     Event   = E.getPrimitives('EVENT'  )
     muons   = E.getPrimitives('DSAMUON')
@@ -32,7 +35,7 @@ def analyze(self, E, PARAMS=None):
 
     muonSelections = {
         'all'   : [True for mu in muons],
-        'pT'    : [Selections.MuonSelection(mu, cutList=('pT',)) for mu in muons],
+#       'pT'    : [Selections.MuonSelection(mu, cutList=('pT',)) for mu in muons],
 #       'pT_MS' : [Selections.MuonSelection(mu, cutList=('pT','nStations')) for mu in muons]
     }
 
@@ -65,7 +68,8 @@ def analyze(self, E, PARAMS=None):
 def end(self, PARAMS=None):
     print '[DATA] === {:<5s} {:4d} {:3d} {:4d} ==='.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', *self.SP.SP)
 #   for key in ('all', 'pT', 'pT_MS'):
-    for key in ('all', 'pT'):
+#   for key in ('all', 'pT'):
+    for key in ('all',):
         print '[DATA]  {:<5s} : {:5d} correct of {:5d} ({:5.2%}), {:5d} fails with {:5d} false'.format(
             key,
             self.COUNTERS[key]['nSuccess'],
@@ -90,5 +94,5 @@ if __name__ == '__main__':
     # declare analyzer
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DSAMUON', 'EVENT', 'GEN', 'DIMUON'),
+        BRANCHKEYS  = ('DSAMUON', 'EVENT', 'GEN', 'DIMUON', 'TRIGGER'),
     )

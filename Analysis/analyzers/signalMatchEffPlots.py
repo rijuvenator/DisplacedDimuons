@@ -52,7 +52,7 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
 
     SelectMuons = False
-    SelectMuons_pT30 = True
+    SelectMuons_pT30 = False
     # require reco muons to pass all selections
     if SelectMuons:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]

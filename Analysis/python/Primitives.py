@@ -604,6 +604,9 @@ class GenMuon(Muon, GenParticle):
     def datastr(self):
         return GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.d0_, self.dz_, self.deltaR)
 
+    def __str__(self):
+        return GenMuon.headerstr() + self.datastr()
+
 # RecoMuon: see above
 # the ImpactParameter is a member variable allowing easy access to d0, dz
 # and the associated quantities. allow accessing its methods directly on the muon.

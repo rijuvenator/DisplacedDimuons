@@ -87,15 +87,15 @@ function setupColumn(COL, HEADING, OPTNAME, VALUES, LABELS, CHECKOPT)
 {
     // set the width
     let div = document.getElementById("info_"+COL);
-    if      (OPTNAME == 'sample'       ) { div.style.width = '20%'  ; }
-    else if (OPTNAME == 'mH'           ) { div.style.width = '8%'   ; }
-    else if (OPTNAME == 'mX'           ) { div.style.width = '8%'   ; }
-    else if (OPTNAME == 'cTau'         ) { div.style.width = '8%'   ; }
-    else if (OPTNAME == 'plotcat'      ) { div.style.width = '12.5%'; }
-    else if (OPTNAME == 'deltaPhiRange') { div.style.width = '12.5%'; }
-    else if (OPTNAME == 'plottype'     ) { div.style.width = '12.5%'; }
-    else if (OPTNAME == 'plottype2'    ) { div.style.width = '12.5%'; }
-    else if (OPTNAME == 'plottype3'    ) { div.style.width = '12.5%'; }
+    if      (OPTNAME == 'sample'       ) { div.style.width = '15%'  ; }
+    else if (OPTNAME == 'mH'           ) { div.style.width = '6%'   ; }
+    else if (OPTNAME == 'mX'           ) { div.style.width = '6%'   ; }
+    else if (OPTNAME == 'cTau'         ) { div.style.width = '6%'   ; }
+    else if (OPTNAME == 'plotcat'      ) { div.style.width = '11%'  ; }
+    else if (OPTNAME == 'deltaPhiRange') { div.style.width = '11%'  ; }
+    else if (OPTNAME == 'plottype'     ) { div.style.width = '11%'  ; }
+    else if (OPTNAME == 'plottype2'    ) { div.style.width = '11%'  ; }
+    else if (OPTNAME == 'plottype3'    ) { div.style.width = '11%'  ; }
 
     // set the heading
     document.getElementById("title_"+COL).innerHTML = HEADING;
@@ -238,7 +238,8 @@ function setupPlotCat(COL, VALUES, LABELS, state)
     setupColumn(COL, "plot category", "plotcat", VALUES, LABELS, state['i_plotcat']);
     // make dPhi column only for certain categories, otherwise continue to plottype
     let optValue = getFormValueByColumn(COL);
-    if (optValue == 'NM1' || optValue == 'TCUM')
+    //if (optValue == 'NM1' || optValue == 'TCUM')
+    if (true)
     {
         setupDPHI((Number(COL)+1).toString(), DPHIVALS, DPHILABELS, state);
     }
@@ -364,7 +365,8 @@ function update()
         let optArray = this.id.split("_");
         COL = Number(optArray[1]);
         clearEverythingAfter(COL);
-        if (this.value == "NM1" || this.value == "TCUM")
+        //if (this.value == "NM1" || this.value == "TCUM")
+        if (true)
         {
             setupDPHI((COL+1).toString(), DPHIVALS, DPHILABELS, state);
         }
@@ -524,20 +526,20 @@ var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail
 var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 
 // delta phi range names and labels
-var DPHIVALS   = ['Less', 'More'];
-var DPHILABELS = ['|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2'];
+var DPHIVALS   = ['', 'Less', 'More', 'Both'];
+var DPHILABELS = ['Combined', '|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2', 'Overlaid'];
 
 // plottype names and labels
 var PLOTTYPEVALS = {
-    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxySigVSLxy', 'LxyErrVSLxy'], ['', '_Matched', '_pT30', '_Matched_pT30']],
-    DSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched', '_pT30', '_Matched_pT30']],
-    RSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR'], ['', '_Matched', '_pT30', '_Matched_pT30']],
+    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxyErr', 'nDimuon', 'LxySigVSLxy', 'LxyErrVSLxy', 'deltaRVSLxy', 'LxyVSdeltaPhi', 'LxySigVSdeltaPhi', 'LxyErrVSdeltaPhi', 'deltaRVSdeltaPhi'], ['', '_Matched', '_pT30', '_Matched_pT30', '_CS', '_Matched_CS', '_CS_pT30', '_Matched_CS_pT30']],
+    DSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR', 'fYVSfX', 'fRVSfZ'], ['', '_Matched', '_pT30', '_Matched_pT30']],
+    RSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR', 'fYVSfX', 'fRVSfZ'], ['', '_Matched', '_pT30', '_Matched_pT30']],
     NM1      : ['pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
     TCUM     : ['LxySig', 'd0Sig'],
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
-    Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
-    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0'], ['Eff', 'ChargeEff']],
+    Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'dPhiCol', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
+    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR'], ['Eff', 'ChargeEff']],
     SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
@@ -545,23 +547,25 @@ var PT   = 'p<sub>T</sub>'
 var D0   = 'd<sub>0</sub>'
 var LXY  = 'L<sub>xy</sub>'
 var CHI2 = '&chi;<sup>2</sup>/dof'
+var DR   = '&Delta;R'
+var DPHI = '&Delta;&Phi;'
 
 var PLOTTYPELABELS = {
-    Dim      : [[PT, '&eta;', 'mass', '&Delta;R(&mu;&mu;)', 'cos(&alpha;)', '&Delta;&Phi;', 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', LXY+' sig. vs. '+LXY, LXY+' Err. vs. '+LXY], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
-    DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
-    RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', '&Delta;R(g-r)'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
-    NM1      : [PT, '&eta;', 'nMuonHits', 'nStations', CHI2, '|'+D0+'|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex '+CHI2, '&Delta;R', LXY+'/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
-    NM1E     : [[LXY+' sig.', 'cos(&alpha;)', '&Delta;&Phi;', '&Delta;R', 'M(&mu;&mu;)', 'vtx. '+CHI2, PT, '&eta;', 'nMuonHits', 'nStations', 'track '+CHI2, D0+' sig.'], ['vs. '+PT, 'vs. &eta;', 'vs. '+D0, 'vs. '+LXY]],
+    Dim      : [[PT, '&eta;', 'mass', DR+'(&mu;&mu;)', 'cos(&alpha;)', DPHI, 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', '&sigma;<sub>Lxy</sub>', 'nDimuon', LXY+' sig. vs. '+LXY, LXY+' err. vs. '+LXY, DR+' vs. '+LXY, LXY+' vs. '+DPHI, LXY+' sig. vs. '+DPHI, LXY+' err. vs. '+DPHI, DR+' vs. '+DPHI], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30', 'CS', 'matched, CS', 'CS, '+PT+'&gt;30', 'matched, CS, '+PT+'&gt;30']],
+    DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', DR+'(g-r)', 'fY vs. fX', 'fR vs. fZ'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
+    RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', DR+'(g-r)', 'fY vs. fX', 'fR vs. fZ'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
+    NM1      : [PT, '&eta;', 'nMuonHits', 'nStations', CHI2, '|'+D0+'|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex '+CHI2, DR, LXY+'/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
+    NM1E     : [[LXY+' sig.', 'cos(&alpha;)', DPHI, DR, 'M(&mu;&mu;)', 'vtx. '+CHI2, PT, '&eta;', 'nMuonHits', 'nStations', 'track '+CHI2, D0+' sig.'], ['vs. '+PT, 'vs. &eta;', 'vs. '+D0, 'vs. '+LXY]],
     TCUM     : [LXY+'/&sigma;<sub>Lxy</sub>', '|'+D0+'|/&sigma;<sub>d0</sub>'],
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
-    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&Phi;(&mu;&mu;)', '&Delta;&Phi;(&mu;X)', 'cos(&alpha;)', LXY, D0, '&Delta;R(&mu;&mu;)', LXY+' VS L<sub>z</sub>'],
+    Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&phi;(&mu;&mu;)', '&Delta;&phi;(&mu;X)', '|'+DPHI+'|', 'cos(&alpha;)', LXY, D0, DR+'(&mu;&mu;)', LXY+' VS L<sub>z</sub>'],
     SME      : ['&epsilon; : '+PT, '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : '+LXY, '&epsilon; : '+D0, 'Charge &epsilon; : '+PT, 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : '+LXY, 'Charge &epsilon; : '+D0],
-    SME      : [[PT, '&eta;', '&phi;', LXY, D0], ['reco. &epsilon;', 'charge &epsilon;']],
+    SME      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
     SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [[PT+' Res.', D0+' Dif.', LXY+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
     SVFE     : [[PT, '&eta;', '&phi;', LXY], ['v. f. &epsilon;']],
 }
 
-var NCOLS = 8;
+var NCOLS = 9;
 var plottype2exists = false;
 
 //**** MAIN CODE ****
