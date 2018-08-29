@@ -6,6 +6,7 @@ from DisplacedDimuons.Common.Utilities import SPStr
 import HistogramGetter
 
 TRIGGER = False
+CUTSTRING = ''
 PRINTINTEGRALS = False
 
 # get histograms
@@ -40,7 +41,7 @@ def makePerSamplePlots():
             RT.addFlows(h)
             if h.GetNbinsX() > 100: h.Rebin(10)
             p = Plotter.Plot(h, legName, 'l', 'hist')
-            fname = 'pdfs/{}_{}.pdf'.format(key, name)
+            fname = 'pdfs/{}{}_{}.pdf'.format(key, CUTSTRING, name)
 
             canvas = Plotter.Canvas(lumi=lumi)
             canvas.addMainPlot(p)
@@ -93,7 +94,7 @@ def makeStackPlots(DataMC=False, logy=False):
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/{}_Stack{}{}.pdf'.format(hkey, '-Log' if logy else '', '-Rat' if DataMC else '')
+        fname = 'pdfs/{}{}_Stack{}{}.pdf'.format(hkey, CUTSTRING, '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
             p[key].SetLineColor(PC[key]['COLOR'])
@@ -176,7 +177,7 @@ def makeColorPlots(key):
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')
 
-        fname = 'pdfs/{}_{}.pdf'.format(key, name)
+        fname = 'pdfs/{}{}_{}.pdf'.format(key, CUTSTRING, name)
         canvas.cleanup(fname)
 
 # make split delta phi plots
@@ -233,7 +234,7 @@ def makeSplitDeltaPhiPlots():
 
             parse = re.match(r'Dim_(.*)VSdeltaPhi(.*)', KEY)
             yAxis, other = parse.group(1), parse.group(2)
-            fname = 'pdfs/Dim_{}{}_Both_{}.pdf'.format(yAxis, other, name)
+            fname = 'pdfs/Dim_{}{}{}_Both_{}.pdf'.format(yAxis, other, CUTSTRING, name)
             canvas.cleanup(fname)
 
 
@@ -244,7 +245,7 @@ if PRINTINTEGRALS:
 makePerSamplePlots()
 makeStackPlots(False)
 makeStackPlots(True, True)
-for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR'):
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi'):
     for q2 in ('Lxy', 'deltaPhi'):
         if q1 == q2: continue
         key = q1 + 'VS' + q2

@@ -7,17 +7,19 @@ from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'      : {'AXES':( 0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      , 'PRETTY':'p_{T} [GeV]'         },
-    'eta'     : {'AXES':(-3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     , 'PRETTY':None                  },
-    'Lxy'     : {'AXES':( 0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'         },
-    'LxySig'  : {'AXES':( 0., 20.    ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None                  },
-    'LxyErr'  : {'AXES':( 0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'#sigma_{L_{xy}} [cm]'},
-    'vtxChi2' : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None                  },
-    'deltaR'  : {'AXES':( 0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':'#DeltaR(#mu#mu)'     },
-    'mass'    : {'AXES':( 0., 1000.  ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'     },
-    'deltaPhi': {'AXES':( 0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None                  },
-    'cosAlpha': {'AXES':(-1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None                  },
-#   'pTT'     : {'AXES':( 0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'p_{T,p} [GeV]'       }
+    'pT'      : {'AXES':(1000,      0., 500.   ), 'LAMBDA': lambda dimuon: dimuon.pt      , 'PRETTY':'p_{T} [GeV]'         },
+    'eta'     : {'AXES':(1000,     -3., 3.     ), 'LAMBDA': lambda dimuon: dimuon.eta     , 'PRETTY':None                  },
+    'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dimuon: dimuon.Lxy()   , 'PRETTY':'L_{xy} [cm]'         },
+    'LxySig'  : {'AXES':(5000,      0., 100.   ), 'LAMBDA': lambda dimuon: dimuon.LxySig(), 'PRETTY':None                  },
+    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'#sigma_{L_{xy}} [cm]'},
+    'vtxChi2' : {'AXES':(1000,      0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.normChi2, 'PRETTY':None                  },
+    'deltaR'  : {'AXES':(1000,      0., 5.     ), 'LAMBDA': lambda dimuon: dimuon.deltaR  , 'PRETTY':'#DeltaR(#mu#mu)'     },
+    'mass'    : {'AXES':(1000,      0., 1000.  ), 'LAMBDA': lambda dimuon: dimuon.mass    , 'PRETTY':'M(#mu#mu) [GeV]'     },
+    'deltaPhi': {'AXES':(1000,      0., math.pi), 'LAMBDA': lambda dimuon: dimuon.deltaPhi, 'PRETTY':None                  },
+    'cosAlpha': {'AXES':(1000,     -1., 1.     ), 'LAMBDA': lambda dimuon: dimuon.cosAlpha, 'PRETTY':None                  },
+    'deltaEta': {'AXES':(1000,     -5., 5.     ), 'LAMBDA': None                          , 'PRETTY':'#Delta#eta(#mu#mu)'  },
+    'deltaphi': {'AXES':(1000,-math.pi, math.pi), 'LAMBDA': None                          , 'PRETTY':'#Delta#phi(#mu#mu)'  },
+#   'pTT'     : {'AXES':(1000,      0., 100.   ), 'LAMBDA': None                          , 'PRETTY':'p_{T,p} [GeV]'       }
 }
 
 # define some additional functions
@@ -30,16 +32,24 @@ def getPTT(dimuon, which='1'):
 def getLxyErr(dimuon):
     return CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon)
 
-# actually set the lambda for pTT -- that's why it had to be None before
+def getMuMuDeltaEta(dimuon):
+    return dimuon.mu1.eta - dimuon.mu2.eta
+
+def getMuMuDeltaPhi(dimuon):
+    return dimuon.mu1.p4.DeltaPhi(dimuon.mu2.p4)
+
+# actually set the lambda for the keys that were set to None (since the function was not yet defined)
 #CONFIG['pTT']['LAMBDA'] = getPTT
 CONFIG['LxyErr']['LAMBDA'] = getLxyErr
+CONFIG['deltaEta']['LAMBDA'] = getMuMuDeltaEta
+CONFIG['deltaphi']['LAMBDA'] = getMuMuDeltaPhi
 
 # EXTRACONFIG stores some information about additional histograms
 EXTRACONFIG = {
     'nDimuon' : {}
 }
 
-for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR'):
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi'):
     for q2 in ('Lxy', 'deltaPhi'):
         if q1 == q2: continue
         key = q1 + 'VS' + q2
@@ -47,7 +57,7 @@ for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR'):
         TITLE1 = Selections.PrettyTitles[q1] if CONFIG[q1]['PRETTY'] is None else CONFIG[q1]['PRETTY']
         TITLE2 = Selections.PrettyTitles[q2] if CONFIG[q2]['PRETTY'] is None else CONFIG[q2]['PRETTY']
         EXTRACONFIG[key]['TITLE' ] = ';' + TITLE2 + ';' + TITLE1 + ';Counts'
-        EXTRACONFIG[key]['AXES'  ] = (1000,) + CONFIG[q2]['AXES'] + (1000,) + CONFIG[q1]['AXES']
+        EXTRACONFIG[key]['AXES'  ] = CONFIG[q2]['AXES'] + CONFIG[q1]['AXES']
         EXTRACONFIG[key]['LAMBDA'] = (CONFIG[q2]['LAMBDA'], CONFIG[q1]['LAMBDA'])
 
 EXTRACONFIG['nDimuon']['TITLE' ] = ';Dimuon Multiplicity;Counts'
@@ -65,10 +75,10 @@ def declareHistograms(self, PARAMS=None):
         XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
 
         if True:
-            self.HistInit('Dim_'+KEY           , ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+            self.HistInit('Dim_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
         if self.SP is not None:
-            self.HistInit('Dim_'+KEY+'_Matched', ';'+XTIT+';Counts', 1000, *CONFIG[KEY]['AXES'])
+            self.HistInit('Dim_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
     for KEY in EXTRACONFIG:
         TITLE = EXTRACONFIG[KEY]['TITLE']
@@ -79,6 +89,8 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    if self.TRIGGER and self.SP is not None:
+        if not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT'  )
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -145,8 +157,6 @@ def analyze(self, E, PARAMS=None):
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
-        if self.TRIGGER:
-            if not Selections.passedTrigger(E): return
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)

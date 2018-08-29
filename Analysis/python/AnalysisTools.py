@@ -45,7 +45,7 @@ def matchedDimuons(genMuonPair, dimuons):
 def findDimuon(genMuonPair, recoMuons, dimuons):
     muonMatches = [None, None]
     oMuonMatches = [None, None]
-    if len(dimuons) == 0: return None, 3, muonMatches
+    if len(dimuons) == 0: return None, 3, muonMatches, oMuonMatches
 
     for i, genMuon in enumerate(genMuonPair):
         matches = matchedMuons(genMuon, recoMuons)

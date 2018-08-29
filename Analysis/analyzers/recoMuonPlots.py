@@ -68,6 +68,8 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    if self.TRIGGER and self.SP is not None:
+        if not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
@@ -118,8 +120,6 @@ def analyze(self, E, PARAMS=None):
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
-        if self.TRIGGER:
-            if not Selections.passedTrigger(E): return
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)
