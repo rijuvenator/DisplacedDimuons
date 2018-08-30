@@ -49,9 +49,10 @@ EXTRACONFIG = {
     'nDimuon' : {}
 }
 
-for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi'):
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
     for q2 in ('Lxy', 'deltaPhi'):
         if q1 == q2: continue
+        if q1 == 'mass' and q2 == 'Lxy': continue
         key = q1 + 'VS' + q2
         EXTRACONFIG[key] = {}
         TITLE1 = Selections.PrettyTitles[q1] if CONFIG[q1]['PRETTY'] is None else CONFIG[q1]['PRETTY']

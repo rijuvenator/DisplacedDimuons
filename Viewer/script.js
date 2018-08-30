@@ -404,7 +404,7 @@ function setPlot()
     let mX       = getFormValueByTitle("mX").toString();
     let cTau     = getFormValueByTitle("cTau").toString();
 
-    filename = "img/png/";
+    filename = "img/png/"+plotcat+"/";
                             filename += plotcat;
     if (plottype != "")   { filename += "_"+plottype; }
     if (dphi     != "")   { filename += "_"+dphi;     }
@@ -506,8 +506,8 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['Stack', 'Stack-Log-Rat', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['Stack', 'Stack-Log-Rat', 'StackMC', 'StackMC-Log', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Stack (MC)', 'Stack (MC, Log)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
 
 var SIGNALLIST = ['HTo2XTo4Mu'          , 'Trig-HTo2XTo4Mu'            , 'HTo2XTo2Mu2J'          , 'Trig-HTo2XTo2Mu2J'            ]
 var SIGNALLABS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;4&mu; (Trig)', 'H&rarr;2X&rarr;2&mu;2j', 'H&rarr;2X&rarr;2&mu;2j (Trig)']
@@ -526,12 +526,12 @@ var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail
 var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 
 // delta phi range names and labels
-var DPHIVALS   = ['', 'Less', 'More', 'Both'];
-var DPHILABELS = ['Combined', '|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2', 'Overlaid'];
+var DPHIVALS   = ['', 'Less', 'More', 'Both', 'BothRat'];
+var DPHILABELS = ['Combined', '|&Delta;&Phi;| &lt; &pi;/2', '|&Delta;&Phi;| &gt; &pi;/2', 'Overlaid', 'Overlaid + Ratio'];
 
 // plottype names and labels
 var PLOTTYPEVALS = {
-    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxyErr', 'nDimuon', 'LxySigVSLxy', 'LxyErrVSLxy', 'deltaRVSLxy', 'LxyVSdeltaPhi', 'LxySigVSdeltaPhi', 'LxyErrVSdeltaPhi', 'deltaRVSdeltaPhi'], ['', '_Matched', '_pT30', '_Matched_pT30', '_CS', '_Matched_CS', '_CS_pT30', '_Matched_CS_pT30']],
+    Dim      : [['pT', 'eta', 'mass', 'deltaR', 'cosAlpha', 'deltaPhi', 'vtxChi2', 'Lxy', 'LxySig', 'LxyErr', 'nDimuon', 'deltaEta', 'deltaphi', 'LxySigVSLxy', 'LxyErrVSLxy', 'deltaRVSLxy', 'deltaEtaVSLxy', 'deltaphiVSLxy', 'LxyVSdeltaPhi', 'LxySigVSdeltaPhi', 'LxyErrVSdeltaPhi', 'deltaRVSdeltaPhi', 'deltaEtaVSdeltaPhi', 'deltaphiVSdeltaPhi'], ['', '_Matched', '_pT30', '_Matched_pT30', '_CS', '_Matched_CS', '_CS_pT30', '_Matched_CS_pT30']],
     DSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR', 'fYVSfX', 'fRVSfZ'], ['', '_Matched', '_pT30', '_Matched_pT30']],
     RSA      : [['pT', 'pTSig', 'eta', 'd0', 'd0Sig', 'normChi2', 'nMuonHits', 'nStations', 'nMuon', 'deltaRGR', 'fYVSfX', 'fRVSfZ'], ['', '_Matched', '_pT30', '_Matched_pT30']],
     NM1      : ['pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig', 'mass', 'vtxChi2', 'deltaR', 'LxySig', 'cosAlpha'],
@@ -539,7 +539,7 @@ var PLOTTYPEVALS = {
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'dPhiCol', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
-    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR'], ['Eff', 'ChargeEff']],
+    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'], ['Eff', 'ChargeEff']],
     SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
@@ -551,7 +551,7 @@ var DR   = '&Delta;R'
 var DPHI = '&Delta;&Phi;'
 
 var PLOTTYPELABELS = {
-    Dim      : [[PT, '&eta;', 'mass', DR+'(&mu;&mu;)', 'cos(&alpha;)', DPHI, 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', '&sigma;<sub>Lxy</sub>', 'nDimuon', LXY+' sig. vs. '+LXY, LXY+' err. vs. '+LXY, DR+' vs. '+LXY, LXY+' vs. '+DPHI, LXY+' sig. vs. '+DPHI, LXY+' err. vs. '+DPHI, DR+' vs. '+DPHI], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30', 'CS', 'matched, CS', 'CS, '+PT+'&gt;30', 'matched, CS, '+PT+'&gt;30']],
+    Dim      : [[PT, '&eta;', 'mass', DR+'(&mu;&mu;)', 'cos(&alpha;)', DPHI, 'vertex '+CHI2, LXY, LXY+'/&sigma;<sub>Lxy</sub>', '&sigma;<sub>Lxy</sub>', 'nDimuon', '&Delta;&eta;(&mu;&mu;)', '&Delta;&phi;(&mu;&mu;)', LXY+' sig. vs. '+LXY, LXY+' err. vs. '+LXY, DR+' vs. '+LXY, '&Delta;&eta; vs. '+LXY, '&Delta;&phi; vs. '+LXY, LXY+' vs. '+DPHI, LXY+' sig. vs. '+DPHI, LXY+' err. vs. '+DPHI, DR+' vs. '+DPHI, '&Delta;&eta; vs. '+DPHI, '&Delta;&phi; vs. '+DPHI], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30', 'CS', 'matched, CS', 'CS, '+PT+'&gt;30', 'matched, CS, '+PT+'&gt;30']],
     DSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', DR+'(g-r)', 'fY vs. fX', 'fR vs. fZ'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
     RSA      : [[PT, '&sigma;<sub>pT</sub>/'+PT, '&eta;', D0, '|'+D0+'|/&sigma;<sub>d0</sub>', CHI2, 'nMuonHits', 'nStations', 'nMuon', DR+'(g-r)', 'fY vs. fX', 'fR vs. fZ'], ['no selection', 'matched', PT+'&gt;30', 'matched, '+PT+'&gt;30']],
     NM1      : [PT, '&eta;', 'nMuonHits', 'nStations', CHI2, '|'+D0+'|/&sigma;<sub>d0</sub>', 'M(&mu;&mu;)', 'vertex '+CHI2, DR, LXY+'/&sigma;<sub>Lxy</sub>', 'cos(&alpha;)'],
@@ -559,8 +559,7 @@ var PLOTTYPELABELS = {
     TCUM     : [LXY+'/&sigma;<sub>Lxy</sub>', '|'+D0+'|/&sigma;<sub>d0</sub>'],
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&phi;(&mu;&mu;)', '&Delta;&phi;(&mu;X)', '|'+DPHI+'|', 'cos(&alpha;)', LXY, D0, DR+'(&mu;&mu;)', LXY+' VS L<sub>z</sub>'],
-    SME      : ['&epsilon; : '+PT, '&epsilon; : &eta;', '&epsilon; : &phi;', '&epsilon; : '+LXY, '&epsilon; : '+D0, 'Charge &epsilon; : '+PT, 'Charge &epsilon; : &eta;', 'Charge &epsilon; : &phi;', 'Charge &epsilon; : '+LXY, 'Charge &epsilon; : '+D0],
-    SME      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
+    SME      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)', '&Delta;&phi;(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
     SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [[PT+' Res.', D0+' Dif.', LXY+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
     SVFE     : [[PT, '&eta;', '&phi;', LXY], ['v. f. &epsilon;']],
 }

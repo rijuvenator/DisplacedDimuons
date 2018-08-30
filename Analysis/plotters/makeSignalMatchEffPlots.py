@@ -83,7 +83,7 @@ def makeEffPlots(quantity, fs, SP=None):
         canvas.cleanup('pdfs/SME_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 
-for quantity in ('pT', 'eta', 'phi', 'Lxy', 'd0', 'dR'):
+for quantity in ('pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'):
     for fs in ('4Mu', '2Mu2J'):
         makeEffPlots(quantity, fs)
         for sp in SIGNALPOINTS:

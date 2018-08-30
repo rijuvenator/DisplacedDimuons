@@ -59,7 +59,7 @@ def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
-        if 'VS' in key: continue
+        if 'VS' in hkey: continue
 
         h = {
             'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),
@@ -237,6 +237,119 @@ def makeSplitDeltaPhiPlots():
             fname = 'pdfs/Dim_{}{}{}_Both_{}.pdf'.format(yAxis, other, CUTSTRING, name)
             canvas.cleanup(fname)
 
+# make split delta phi plots
+# this function is a combination of the stack plot code and the split delta phi code
+def makeSplitDeltaPhiStackPlots(logy=False):
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    for hkey in HISTS['DY50toInf']:
+        if 'Matched' in hkey: continue
+        if 'VSdeltaPhi' not in hkey: continue
+
+        h = {}
+        for DeltaPhiRange in ('Less', 'More'):
+            h[DeltaPhiRange] = {
+                'BG' : R.THStack('hBG_'+DeltaPhiRange, '')
+            }
+
+        PConfig = {
+            'BG' : ('', '', 'hist'),
+        }
+
+        PC = HistogramGetter.PLOTCONFIG
+
+        for key in BGORDER:
+            H = HISTS[key][hkey].Clone()
+            nBins = H.GetNbinsX()
+
+            h['Less'][key] = H.ProjectionY(key+'_Less', 1        , nBins/2)
+            h['More'][key] = H.ProjectionY(key+'_More', nBins/2+1, nBins  )
+
+            for DeltaPhiRange in ('Less', 'More'):
+                h[DeltaPhiRange][key].Scale(PC[key]['WEIGHT'])
+                if h[DeltaPhiRange][key].GetNbinsX() > 100: h[DeltaPhiRange][key].Rebin(10)
+                h[DeltaPhiRange]['BG'].Add(h[DeltaPhiRange][key])
+
+            PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
+
+        # make less, more
+        p = {}
+        for DeltaPhiRange in ('Less', 'More'):
+            p[DeltaPhiRange] = {}
+            for key in h['Less']:
+                p[DeltaPhiRange][key] = Plotter.Plot(h[DeltaPhiRange][key], *PConfig[key])
+
+            for key in BGORDER:
+                p[DeltaPhiRange][key].SetLineColor(PC[key]['COLOR'])
+                p[DeltaPhiRange][key].SetFillColor(PC[key]['COLOR'])
+
+            canvas = Plotter.Canvas(logy=logy)
+            canvas.addMainPlot(p[DeltaPhiRange]['BG'])
+
+            canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False)
+            for key in reversed(BGORDER):
+                canvas.addLegendEntry(p[DeltaPhiRange][key])
+            canvas.legend.resizeHeight()
+
+            p[DeltaPhiRange]['BG'].setTitles(X=p[DeltaPhiRange]['WJets'].GetXaxis().GetTitle(), Y='Normalized Counts')
+            RT.addBinWidth(p[DeltaPhiRange]['BG'])
+
+            realMax = 0.
+            dh = h[DeltaPhiRange]['BG'].GetStack().Last()
+            for ibin in xrange(1, dh.GetNbinsX()+1):
+                if dh.GetBinContent(ibin) > realMax:
+                    realMax = dh.GetBinContent(ibin)
+            canvas.firstPlot.SetMaximum(1.05 * realMax)
+
+            parse = re.match(r'Dim_(.*)VSdeltaPhi(.*)', hkey)
+            yAxis, other = parse.group(1), parse.group(2)
+            fname = 'pdfs/Dim_{}{}{}{}_StackMC{}.pdf'.format(yAxis, other, CUTSTRING, '_'+DeltaPhiRange, '-Log' if logy else '')
+            canvas.cleanup(fname)
+
+        # make both, using the Last(), and ratio
+        hLast = {}
+        LastConfig = {
+            'Less' : {'legName' : '|#Delta#Phi|<#pi/2', 'color' : R.kBlue},
+            'More' : {'legName' : '|#Delta#Phi|>#pi/2', 'color' : R.kRed },
+        }
+        for DeltaPhiRange in ('Less', 'More'):
+            hLast[DeltaPhiRange] = h[DeltaPhiRange]['BG'].GetStack().Last()
+            p[DeltaPhiRange]['Last'] = Plotter.Plot(hLast[DeltaPhiRange], LastConfig[DeltaPhiRange]['legName'], 'l', 'hist')
+
+        for makeRatio in (False, True):
+            canvas = Plotter.Canvas(ratioFactor=0. if not makeRatio else 1./3., logy=logy, fontscale=1. if not makeRatio else 1.+1./3.)
+
+            canvas.addMainPlot(p['Less']['Last'])
+            canvas.addMainPlot(p['More']['Last'])
+
+            for DeltaPhiRange in ('Less', 'More'):
+                p[DeltaPhiRange]['Last'].SetLineColor(LastConfig[DeltaPhiRange]['color'])
+
+            canvas.firstPlot.setTitles(Y='Normalized Counts')
+            RT.addBinWidth(canvas.firstPlot)
+
+            canvas.makeLegend(pos='tl')
+            canvas.legend.resizeHeight()
+            canvas.setMaximum(recompute=True)
+
+            if makeRatio:
+                canvas.makeRatioPlot(p['Less']['Last'], p['More']['Last'])
+                canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+                canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+            canvas.mainPad.cd()
+
+            pave = []
+            for DeltaPhiRange in ('Less', 'More'):
+                pave.append(canvas.makeStatsBox(p[DeltaPhiRange]['Last'], color=LastConfig[DeltaPhiRange]['color']))
+            for i, box in enumerate(pave):
+                if i == 0: continue
+                HEIGHT = pave[i-1].GetY2NDC() - pave[i-1].GetY1NDC()
+                Plotter.MOVE_OBJECT(box, Y=-HEIGHT-.05)
+
+            parse = re.match(r'Dim_(.*)VSdeltaPhi(.*)', hkey)
+            yAxis, other = parse.group(1), parse.group(2)
+            fname = 'pdfs/Dim_{}{}{}_Both{}_StackMC{}.pdf'.format(yAxis, other, CUTSTRING, '' if not makeRatio else 'Rat', '-Log' if logy else '')
+            canvas.cleanup(fname)
+
 
 if PRINTINTEGRALS:
     makeStackPlots(False)
@@ -244,10 +357,14 @@ if PRINTINTEGRALS:
 
 makePerSamplePlots()
 makeStackPlots(False)
+makeStackPlots(False, True)
 makeStackPlots(True, True)
-for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi'):
+makeSplitDeltaPhiStackPlots()
+makeSplitDeltaPhiStackPlots(True)
+for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
     for q2 in ('Lxy', 'deltaPhi'):
         if q1 == q2: continue
+        if q1 == 'mass' and q2 == 'Lxy': continue
         key = q1 + 'VS' + q2
         makeColorPlots(key)
         makeColorPlots(key+'_Matched')
