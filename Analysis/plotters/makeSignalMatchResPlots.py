@@ -220,7 +220,7 @@ def makeRefittedResPlot(fs):
         p['Before'].SetLineColor(R.kRed )
         p['After' ].SetLineColor(R.kBlue)
         RT.addBinWidth(canvas.firstPlot)
-        canvas.setMaximum()
+        canvas.setMaximum(recompute=True)
 
         # top left edge = bottom left corner of legend shifted a tiny bit
         tle = {'x':canvas.legend.GetX1NDC()+0.02, 'y':canvas.legend.GetY1NDC()-0.025}

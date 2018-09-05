@@ -313,8 +313,6 @@ class Canvas(R.TCanvas):
             plot.GetXaxis().CenterTitle()
             plot.GetYaxis().CenterTitle()
 
-            if self.ratioFactor != 0:
-                plot.GetXaxis().SetLabelSize(0)
         else:
             if not addS:
                 plot.Draw(plot.option+' same')
@@ -329,9 +327,15 @@ class Canvas(R.TCanvas):
         else:
             realMax = 0.
             for p in self.plotList:
-                for ibin in xrange(1, p.GetNbinsX()+1):
-                    if p.GetBinContent(ibin) > realMax:
-                        realMax = p.GetBinContent(ibin)
+                h = p.plot
+                if not isinstance(p.plot, R.TH1):
+                    try:
+                        h = p.plot.GetStack().Last()
+                    except:
+                        continue
+                for ibin in xrange(1, h.GetNbinsX()+1):
+                    if h.GetBinContent(ibin) > realMax:
+                        realMax = h.GetBinContent(ibin)
             self.firstPlot.SetMaximum(1.05 * realMax)
 
     # creates the legend
@@ -411,6 +415,8 @@ class Canvas(R.TCanvas):
         rat = topHist.Clone()
         bot = bottomHist.Clone()
         rat.Divide(bot)
+
+        self.firstPlot.GetXaxis().SetLabelSize(0)
 
         self.rat = Plot(rat, '', '', option)
 

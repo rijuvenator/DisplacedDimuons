@@ -332,7 +332,7 @@ def makeSplitDeltaPhiStackPlots(logy=False):
             canvas.setMaximum(recompute=True)
 
             if makeRatio:
-                canvas.makeRatioPlot(p['Less']['Last'], p['More']['Last'])
+                canvas.makeRatioPlot(p['Less']['Last'], p['More']['Last'], ytit='Less/Greater')
                 canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
                 canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
             canvas.mainPad.cd()
