@@ -42,11 +42,14 @@ bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &ge
   return false;
 }
 
-void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+void GenBranches::Fill(
+    const edm::Handle<reco::GenParticleCollection> &gensHandle,
     const edm::Handle<GenEventInfoProduct> &GEIPHandle,
     const edm::Handle<std::vector<PileupSummaryInfo> > &pileupInfo,
-    const bool isSignal,
-    const std::string finalState)
+    const bool isSignal, const std::string finalState,
+    const edm::Handle<reco::BeamSpot> &beamspotHandle,
+    const edm::ESHandle<Propagator>& propagator,
+    const edm::ESHandle<MagneticField>& magfield)
 {
   static bool alreadyPrinted_pileup = false;
   static bool debug = false;
@@ -86,26 +89,74 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   if      (isSignal && finalState == "4Mu"  ) Fill4Mu  (gens);
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
+
+  // Propagate parameters of stable charged particles to the point of
+  // closest approach to the beam spot and store the propagated
+  // parameters in the tree for comparison with parameters of the
+  // reconstructed tracks.
+  for (unsigned int ipart = 0; ipart < gen_status.size(); ipart++) {
+    float px = -999., py = -999., pz = -999., pt = -999., ene = -999.;
+    float vx = -999., vy = -999., vz = -999., eta = -999., phi = -999.;
+    if (gen_status[ipart] == 1) {
+      if (gen_charge[ipart] != 0) {
+	if (!beamspotHandle.failedToGet()) {
+	  const reco::BeamSpot &beamspot = *beamspotHandle;
+	  FreeTrajectoryState fts =
+	    PropagateToBeamSpot(ipart, beamspot, propagator, magfield);
+
+	  px  = fts.momentum().x();
+	  py  = fts.momentum().y();
+	  pz  = fts.momentum().z();
+	  pt  = fts.momentum().perp();
+	  eta = fts.momentum().eta();
+	  phi = fts.momentum().phi();
+	  ene = sqrt(pow(fts.momentum().mag(),2) + pow(gen_mass[ipart],2));
+	  vx  = fts.position().x();
+	  vy  = fts.position().y();
+	  vz  = fts.position().z();
+	}
+      }
+    }
+    gen_px_bs    .push_back(px );
+    gen_py_bs    .push_back(py );
+    gen_pz_bs    .push_back(pz );
+    gen_pt_bs    .push_back(pt );
+    gen_eta_bs   .push_back(eta);
+    gen_phi_bs   .push_back(phi);
+    gen_energy_bs.push_back(ene);
+    gen_x_bs     .push_back(vx );
+    gen_y_bs     .push_back(vy );
+    gen_z_bs     .push_back(vz );
+  }
  
   if (debug) {
     std::cout << "Gen info: weight = " << gen_weight
 	      << " true number of primary vertices = " << gen_tnpv
 	      << "; gen particles: \n";
-    std::cout << " idx |   id  | stat| moth|    pt   |    eta   |   phi   |    M    |    E   | q |        (x;y;z)        | \n";
+    std::cout << " idx |   id  | stat| moth|   pt  |    eta   |   phi  |    M    |    E   | q |        (x;y;z)        |";
+    std:: cout << " pt@bs | eta@bs | phi@bs |       (x;y;z)@bs      |\n";
     unsigned int nparts = gen_status.size();
     for (unsigned int i = 0; i < nparts; i++) {
       std::cout << std::setw(5) << i << "|" << std::setw(7) << gen_pdgID[i]
 		<< "|" << std::setw(5)  << gen_status[i]
 		<< "|" << std::setw(5)  << gen_mother[i] << std::setprecision(4)
-		<< "|" << std::setw(9)  << gen_pt[i] 
+		<< "|" << std::setw(7)  << gen_pt[i] 
 		<< "|" << std::setw(10) << gen_eta[i]
-		<< "|" << std::setw(9)  << gen_phi[i]
+		<< "|" << std::setw(8)  << gen_phi[i]
 		<< "|" << std::setw(9)  << gen_mass[i]
 		<< "|" << std::setw(8)  << gen_energy[i]
 		<< "|" << std::setw(3)  << gen_charge[i]
 		<< "|" << std::setw(7)  << gen_x[i]
 		<< " " << std::setw(7)  << gen_y[i]
-		<< " " << std::setw(7)  << gen_z[i] << "|" << std::endl;
+		<< " " << std::setw(7)  << gen_z[i];
+      if (gen_pt_bs[i] > 0.) 
+	std::cout      << "|" << std::setw(7) << gen_pt_bs[i] 
+		       << "|" << std::setw(8) << gen_eta_bs[i]
+		       << "|" << std::setw(8) << gen_phi_bs[i]
+		       << "|" << std::setw(7) << gen_x_bs[i]
+		       << " " << std::setw(7) << gen_y_bs[i]
+		       << " " << std::setw(7) << gen_z_bs[i];
+      std::cout << "|" << std::endl;
     }
     unsigned int npairs = gen_Lxy.size();
     if (npairs > 0) {
@@ -204,6 +255,9 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
     gen_phi   .push_back(p->phi   ());
@@ -345,6 +399,9 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
     gen_phi   .push_back(p->phi   ());
@@ -399,6 +456,9 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
+    gen_px    .push_back(p.px    ());
+    gen_py    .push_back(p.py    ());
+    gen_pz    .push_back(p.pz    ());
     gen_pt    .push_back(p.pt    ());
     gen_eta   .push_back(p.eta   ());
     gen_phi   .push_back(p.phi   ());
@@ -414,4 +474,23 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 
     gen_mother.push_back(mIndex    );
   }
+}
+
+// Propagate parameters of gen particle with index idx to the point of
+// closest approach to the beam spot
+FreeTrajectoryState GenBranches::PropagateToBeamSpot(
+		      unsigned int idx,
+		      const reco::BeamSpot& beamspot,
+		      const edm::ESHandle<Propagator>& propagator,
+		      const edm::ESHandle<MagneticField>& magfield)
+{
+  // Create the free trajectory state
+  FreeTrajectoryState fts(GlobalPoint( gen_x[idx],  gen_y[idx],  gen_z[idx]),
+			  GlobalVector(gen_px[idx], gen_py[idx], gen_pz[idx]),
+			  gen_charge[idx], magfield.product());
+
+  // Propagate fts to the point of closest approach to the beam spot
+  FreeTrajectoryState ftsPCABS(propagator->propagate(fts, beamspot));
+
+  return ftsPCABS;
 }

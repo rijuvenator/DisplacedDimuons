@@ -105,3 +105,96 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
 
   return cand;
 }
+
+// Extrapolate the trajectory of a track to various points -- point of
+// closest approach (PCA) to the beam spot, PCA to the CMS origin, PCA
+// to the main primary vertex -- and compare the parameters to those
+// stored in the reco::Track class (obtained at the PCA to the
+// "reference point").  The results indicate that the reference point
+// is in fact the beam spot.
+void DisplacedMuonFiller::CompareTrackParams(
+             const reco::Track& track,
+	     const edm::Handle<reco::VertexCollection> &verticesHandle,
+	     const edm::Handle<reco::BeamSpot> &beamspotHandle,
+	     const edm::ESHandle<Propagator>& propagator,
+	     const edm::ESHandle<MagneticField>& magfield)
+{
+  static bool debug = true;
+
+  // Create the free trajectory state using the track parameters.
+  // B field does not seem to matter: replacing magfield.product() by 0
+  // yields identical results.
+  FreeTrajectoryState fts(GlobalPoint( track.vx(), track.vy(), track.vz()),
+			  GlobalVector(track.px(), track.py(), track.pz()),
+			  track.charge(), magfield.product());
+
+  // Propagation to the point of closest approach to the beam spot.
+  if (beamspotHandle.failedToGet()) return;
+  const reco::BeamSpot &beamspot = *beamspotHandle;
+  FreeTrajectoryState ftsPCABS(propagator->propagate(fts, beamspot));
+
+  // Propagation to PCA to the CMS origin.
+  GlobalPoint orig(0., 0., 0.);
+  FreeTrajectoryState ftsPCAOrig(propagator->propagate(fts, orig));
+
+  // Propagation to PCA to the main orimary vertex.
+  const reco::VertexCollection &vertices = *verticesHandle;
+  reco::Vertex pv = vertices.front();
+  GlobalPoint pv_pos(pv.x(), pv.y(), pv.z());
+  FreeTrajectoryState ftsPCAPV(propagator->propagate(fts, pv_pos));
+
+  // Check that the track parameters at the RefPoint and at the PCA
+  // to the beam spot are indeed the same.
+  if (fabs(track.pt()-ftsPCABS.momentum().perp()) > 1e-3)
+    std::cout << "+++ DisplacedMuonFiller::CompareTrackParams warning: "
+	      << " track pT = " << track.pt()
+	      << " differs from pT at the PCA to the beam spot = "
+	      << ftsPCABS.momentum().perp() << std::endl;
+
+  if (fabs(track.eta()-ftsPCABS.momentum().eta()) > 1e-3)
+    std::cout << "+++ DisplacedMuonFiller::CompareTrackParams warning: "
+	      << " track eta = " << track.eta()
+	      << " differs from eta at the PCA to the beam spot = "
+	      << ftsPCABS.momentum().eta() << std::endl;
+
+  if (fabs(track.phi()-ftsPCABS.momentum().phi()) > 1e-3)
+    std::cout << "+++ DisplacedMuonFiller::CompareTrackParams warning: "
+	      << " track phi = " << track.phi()
+	      << " differs from phi at the PCA to the beam spot = "
+	      << ftsPCABS.momentum().phi() << std::endl;
+
+  if (debug) {
+    std::cout << "parameters at the reference point: " << std::setprecision(6)
+	      << "(x; y; z) = " << "(" << track.vx()
+	      << "; " << track.vy() << "; " << track.vz() << ")"
+	      << ", pT = "  << track.pt()
+	      << ", eta = " << track.eta()
+	      << ", phi = " << track.phi() << std::endl;
+
+    std::cout << "propagation to the beam spot: "
+	      << "(x; y; z) = " << "(" << ftsPCABS.position().x()
+	      << "; " << ftsPCABS.position().y()
+	      << "; " << ftsPCABS.position().z() << ")"
+	      << ", pT = "  << ftsPCABS.momentum().perp()
+	      << ", eta = " << ftsPCABS.momentum().eta()
+	      << ", phi = " << ftsPCABS.momentum().phi() << std::endl;
+
+    std::cout << "propagation to the primary vertex: "
+	      << "(x; y; z) = " << "(" << ftsPCAPV.position().x()
+	      << "; " << ftsPCAPV.position().y()
+	      << "; " << ftsPCAPV.position().z() << ")"
+	      << ", pT = "  << ftsPCAPV.momentum().perp()
+	      << ", eta = " << ftsPCAPV.momentum().eta()
+	      << ", phi = " << ftsPCAPV.momentum().phi() << std::endl;
+
+    std::cout << "propagation to the origin: "
+	      << "(x; y; z) = " << "(" << ftsPCAOrig.position().x()
+	      << "; " << ftsPCAOrig.position().y()
+	      << "; " << ftsPCAOrig.position().z() << ")"
+	      << ", pT = "  << ftsPCAOrig.momentum().perp()
+	      << ", eta = " << ftsPCAOrig.momentum().eta()
+	      << ", phi = " << ftsPCAOrig.momentum().phi()
+	      << std::setprecision(4) << std::endl;
+    std::setprecision(4);
+  }
+}

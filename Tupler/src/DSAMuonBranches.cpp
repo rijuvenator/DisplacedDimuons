@@ -5,7 +5,9 @@ bool DSAMuonBranches::alreadyPrinted_ = false;
 void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			   const edm::ESHandle<TransientTrackBuilder>& ttB,
 			   const edm::Handle<reco::VertexCollection> &verticesHandle,
-			   const edm::Handle<reco::BeamSpot> &beamspotHandle)
+			   const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			   const edm::ESHandle<Propagator>& propagator,
+			   const edm::ESHandle<MagneticField>& magfield)
 {
         static bool debug = false;
 	Reset();
@@ -23,6 +25,8 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	DisplacedMuonFiller muf;
 	for (const auto &mu : muons)
 	  {
+	    if (debug)
+	      muf.CompareTrackParams(mu, verticesHandle, beamspotHandle, propagator, magfield);
 	    DisplacedMuon muon_cand = muf.Fill(mu, ttB, verticesHandle, beamspotHandle);
 	    muon_cand.idx = idx++;
 	    if (debug)
