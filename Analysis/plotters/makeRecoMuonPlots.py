@@ -59,7 +59,7 @@ def makeStackPlots(DataMC=False, logy=False):
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
-        if 'VS' in key: continue
+        if 'VS' in hkey: continue
 
         h = {
             'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),

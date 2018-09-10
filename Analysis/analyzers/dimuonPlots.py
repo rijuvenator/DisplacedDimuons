@@ -106,6 +106,7 @@ def analyze(self, E, PARAMS=None):
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
     BLIND = True if 'Blind' in self.CUTS else False
     CS = True if 'CS' in self.CUTS else False
+    ALL = True if 'All' in self.CUTS else False
 
     # modify this to determine what type of selections to apply, if any
     SelectDimuons    = False
@@ -130,6 +131,12 @@ def analyze(self, E, PARAMS=None):
         DSASelections    = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    elif ALL:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
+        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
+        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
     # don't require dimuons to pass all selections, and don't require DSA muons to pass all selections, either
     elif not SelectDimuons and not SelectMuons:

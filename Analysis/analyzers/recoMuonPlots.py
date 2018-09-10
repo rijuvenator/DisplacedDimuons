@@ -106,6 +106,10 @@ def analyze(self, E, PARAMS=None):
     
     # fill histograms for every reco muon
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
+        if BLIND:
+            self.HISTS[MUON+'_nMuon'].Fill(len([mu for mu in recoMuons if mu.d0Sig() <= 3.]), eventWeight)
+        else:
+            self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
         for muon in recoMuons:
             # data blinding!
             if BLIND:
@@ -116,7 +120,6 @@ def analyze(self, E, PARAMS=None):
                 F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
                 F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
                 self.HISTS[MUON+'_'+KEY].Fill(F1(muon), F2(muon), eventWeight)
-        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
