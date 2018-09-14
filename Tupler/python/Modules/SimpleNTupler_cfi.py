@@ -49,8 +49,11 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
     )
 )
 
-# add transient track builder
-from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import *
+# Standard configuration
 from Configuration.Geometry.GeometryRecoDB_cff import *
 from Configuration.StandardSequences.MagneticField_cff import *
 from Configuration.StandardSequences.FrontierConditions_GlobalTag_cff import *
+
+# Tracking tools
+from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import *
+from TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi import *

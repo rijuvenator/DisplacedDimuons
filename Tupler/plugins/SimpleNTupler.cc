@@ -227,6 +227,14 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     vertexData.Fill(vertices);
   }
 
+  // Stepping helix propagator
+  edm::ESHandle<Propagator> propagator;
+  iSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAny", propagator);
+
+  // B field
+  edm::ESHandle<MagneticField> magfield;
+  iSetup.get<IdealMagneticFieldRecord>().get(magfield);
+
   // ****************
   // *** GEN DATA ***
   // ****************
@@ -238,7 +246,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     iEvent.getByToken(genToken, gens);
     iEvent.getByToken(GEIPToken, GEIP);
     iEvent.getByToken(pileupToken, pileupInfo);
-    genData.Fill(gens, GEIP, pileupInfo, isSignal, finalState);
+    genData.Fill(gens, GEIP, pileupInfo, isSignal, finalState, beamspot, propagator, magfield);
   }
 
 
@@ -264,7 +272,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   {
     iEvent.getByToken(dsaMuonToken, dsaMuons);
     if (vertexData.isValid())
-      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot);
+      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield);
   }
 
   // *********************
