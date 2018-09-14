@@ -97,6 +97,71 @@ def makeResPlotsSingle(quantity, fs, MUON):
 
         canvas.cleanup(fname)
 
+# copy of above, with overlay (for 14 September talk), two specific signal points
+def makeResPlotsSingleOverlaid():
+    quantity = 'Lxy'
+    MUON     = 'DSA'
+    fs       = '2Mu2J'
+    SPLIST   = ((1000, 350, 3500), (1000, 20, 200))
+
+    h = {
+        SPLIST[0] : HISTS[(fs, SPLIST[0])][MUON+'_'+quantity+'Res'].Clone(),
+        SPLIST[1] : HISTS[(fs, SPLIST[1])][MUON+'_'+quantity+'Res'].Clone()
+    }
+    p = {}
+    for TAG in h:
+        NB = h[TAG].GetNbinsX()
+        print h[TAG].GetEntries(), h[TAG].Integral(0, NB+1)
+        if h[TAG].Integral(0, NB+1) != 0:
+            h[TAG].Scale(1./h[TAG].Integral(0, NB+1))
+        RT.addFlows(h[TAG])
+        h[TAG].Rebin(10)
+        p[TAG] = Plotter.Plot(h[TAG], '{}, {}, {}, {}'.format(fs, *TAG), 'l', 'hist')
+    fname = 'SMR_{}_{}_{}HTo2XTo{}_Overlaid.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs)
+
+    funcs = {}
+    fplots = {}
+    for TAG in h:
+        funcs[TAG] = R.TF1('f'+str(TAG), 'gaus', -15., 15.)
+        h[TAG].Fit('f'+str(TAG), 'R')
+        fplots[TAG] = Plotter.Plot(funcs[TAG], 'Gaussian fit ({}, {}, {}, {})'.format(fs, *TAG), 'l', '')
+
+    canvas = Plotter.Canvas()
+    canvas.addMainPlot(p[SPLIST[0]])
+    canvas.addMainPlot(p[SPLIST[1]], addS=True)
+
+    canvas.firstPlot.setTitles(X=                canvas.firstPlot.GetXaxis().GetTitle() + ' [cm]')
+    canvas.firstPlot.setTitles(Y='Normalized ' + canvas.firstPlot.GetYaxis().GetTitle()          )
+
+    canvas.addMainPlot(fplots[SPLIST[0]])
+    canvas.addMainPlot(fplots[SPLIST[1]])
+
+    canvas.makeLegend(lWidth=.25, pos='tl')
+    canvas.legend.resizeHeight()
+
+    p[SPLIST[0]].SetLineColor(R.kBlue)
+    p[SPLIST[1]].SetLineColor(R.kRed)
+    RT.addBinWidth(canvas.firstPlot)
+
+    canvas.drawText('#color[4]{' + '#bar{{x}} = {:.4f}'   .format(h[SPLIST[0]].GetMean())   + '}', (.75, .85    ))
+    canvas.drawText('#color[4]{' + 's = {:.4f}'           .format(h[SPLIST[0]].GetStdDev()) + '}', (.75, .85-.04))
+    canvas.drawText('#color[2]{' + '#bar{{x}} = {:.4f}'   .format(h[SPLIST[1]].GetMean())   + '}', (.75, .85-.08))
+    canvas.drawText('#color[2]{' + 's = {:.4f}'           .format(h[SPLIST[1]].GetStdDev()) + '}', (.75, .85-.12))
+
+    fplots[SPLIST[0]].SetLineColor(R.kBlue+1)
+    fplots[SPLIST[1]].SetLineColor(R.kRed+1)
+
+    canvas.setFitBoxStyle(h[SPLIST[0]], lWidth=0.275, pos='tr')
+    canvas.setFitBoxStyle(h[SPLIST[1]], lWidth=0.275, pos='tr')
+
+    p[SPLIST[0]].FindObject('stats').SetTextColor(R.kBlue+1)
+    Plotter.MOVE_OBJECT(p[SPLIST[0]].FindObject('stats'), Y=-.15, NDC=True)
+
+    p[SPLIST[1]].FindObject('stats').SetTextColor(R.kRed+1)
+    Plotter.MOVE_OBJECT(p[SPLIST[1]].FindObject('stats'), Y=-.3, NDC=True)
+
+    canvas.cleanup(fname)
+
 # make 3D color plots
 def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     if q2 is None:
@@ -128,7 +193,7 @@ def getBinningValues(q2):
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
-        legName   = '{V1} #leq {Q2} #leq {V2}'
+        legName   = '{V1} #leq {Q2} #leq {V2} GeV'
     elif q2 == 'Lxy':
         pretty    = 'L_{xy}'
         binranges = ((0,214), (215,424), (425,1000))
@@ -136,7 +201,7 @@ def getBinningValues(q2):
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
-        legName   = '{V1} #leq {Q2} #leq {V2}'
+        legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'd0':
         pretty    = 'd_{0}'
         binranges = ((0,199), (200,599), (600,1000))
@@ -144,7 +209,7 @@ def getBinningValues(q2):
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
-        legName   = '{V1} #leq {Q2} #leq {V2}'
+        legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'qm':
         pretty    = 'charge matched'
         binranges = ((1, 1), (2, 2))
@@ -328,3 +393,6 @@ for fs in (FS,):
     makeRefittedResPlot(fs)
     for sp in SIGNALPOINTS:
         makeBinnedResPlotsBinwise(('RefitBefore', 'RefitAfter'), 'RefitBA', 'pT', 'Lxy', fs, sp)
+
+# special purpose overlaid plot
+#makeResPlotsSingleOverlaid()

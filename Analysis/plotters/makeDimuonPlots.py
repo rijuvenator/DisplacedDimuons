@@ -350,6 +350,37 @@ def makeSplitDeltaPhiStackPlots(logy=False):
             fname = 'pdfs/Dim_{}{}{}_Both{}_StackMC{}.pdf'.format(yAxis, other, CUTSTRING, '' if not makeRatio else 'Rat', '-Log' if logy else '')
             canvas.cleanup(fname)
 
+def makeOverlaidPlot():
+    REFLIST = (('2Mu2J', (1000, 20, 2)), ('2Mu2J', (200, 50, 200)))
+    key = 'Dim_deltaPhi_Matched'
+
+    h = {
+        REFLIST[0] : HISTS[REFLIST[0]][key].Clone(),
+        REFLIST[1] : HISTS[REFLIST[1]][key].Clone(),
+    }
+
+    p = {}
+    for ref in h:
+        RT.addFlows(h[ref])
+        if h[ref].GetNbinsX() > 100: h[ref].Rebin(10)
+        p[ref] = Plotter.Plot(h[ref], '2#mu2j ({}, {}, {})'.format(*ref[1]), 'l', 'hist')
+
+    fname = 'pdfs/{}{}_Overlaid.pdf'.format(key, CUTSTRING)
+
+    canvas = Plotter.Canvas()
+    canvas.addMainPlot(p[REFLIST[1]])
+    canvas.addMainPlot(p[REFLIST[0]])
+    canvas.makeLegend(lWidth=.25, pos='tl')
+    #canvas.legend.moveLegend(Y=-.3)
+    canvas.legend.resizeHeight()
+    p[REFLIST[1]].SetLineColor(R.kBlue)
+    p[REFLIST[0]].SetLineColor(R.kRed )
+    RT.addBinWidth(canvas.firstPlot)
+
+    pave1 = canvas.makeStatsBox(p[REFLIST[1]], color=R.kBlue)
+    pave2 = canvas.makeStatsBox(p[REFLIST[0]], color=R.kRed )
+    Plotter.MOVE_OBJECT(pave2, Y=-.22, NDC=False)
+    canvas.cleanup(fname)
 
 if PRINTINTEGRALS:
     makeStackPlots(False)
@@ -369,3 +400,6 @@ for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
         makeColorPlots(key)
         makeColorPlots(key+'_Matched')
 makeSplitDeltaPhiPlots()
+
+# special purpose overlaid plot
+#makeOverlaidPlot()

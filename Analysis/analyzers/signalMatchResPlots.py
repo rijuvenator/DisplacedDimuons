@@ -26,7 +26,9 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
-        DenString = '' if CONFIG[KEY]['DIF'] else ' / gen {P}'
+        # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
+        # change it if this is not the case at some point!!
+        DenString = ' [cm]' if CONFIG[KEY]['DIF'] else ' / gen {P}'
         if MODE == 'Res':
             # X = <q> Resolution/Dif
             fstring = ';{M} {P} #minus gen {P}'+DenString+';Counts'

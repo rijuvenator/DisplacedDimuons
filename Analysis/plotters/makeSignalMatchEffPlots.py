@@ -48,12 +48,18 @@ def makeEffPlots(quantity, fs, SP=None):
 
     for key in HKeys:
         RT.addFlows(h[key])
-        h[key].Rebin(10)
+        if quantity != 'dR':
+            h[key].Rebin(10)
+        else:
+            h[key].Rebin(5)
+
+# Extra is commented out, same with FIRST SECOND
+# so they don't appear on SME plots by default now
 
     NumDens = (
         ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kBlue   ),
         ('RSA_Eff'      , 'Den'          , 'RSA'       , R.kRed    ),
-        ('Extra'        , 'Den'          , 'Extra'     , R.kMagenta),
+#       ('Extra'        , 'Den'          , 'Extra'     , R.kMagenta),
         ('DSA_ChargeEff', 'DSA_ChargeDen', 'DSA:Charge', R.kBlue   ),
         ('RSA_ChargeEff', 'RSA_ChargeDen', 'RSA:Charge', R.kRed    ),
     )
@@ -63,8 +69,10 @@ def makeEffPlots(quantity, fs, SP=None):
         g[num].SetNameTitle('g_'+num, ';'+h[num].GetXaxis().GetTitle()+';Match Efficiency')
         p[num] = Plotter.Plot(g[num], leg, 'elp', 'pe')
 
-    FIRST  = (0, 3)
-    SECOND = (3, 5)
+#   FIRST  = (0, 3)
+#   SECOND = (3, 5)
+    FIRST  = (0, 2)
+    SECOND = (2, 4)
     CHARGE = ''
     for SECTION in (FIRST, SECOND):
         canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({} GeV, {} GeV, {} mm)'.format(fs, *SP))
@@ -74,12 +82,20 @@ def makeEffPlots(quantity, fs, SP=None):
             canvas.addMainPlot(p[key])
             p[key].SetMarkerColor(col)
             p[key].SetLineColor(col)
-        canvas.makeLegend(pos='bl')
-        canvas.legend.moveLegend(Y=0.25)
+        # aesthetic change
+        if quantity == 'Lxy' or (quantity == 'd0' and CHARGE == ''):
+            canvas.makeLegend(pos='bl')
+        else:
+            canvas.makeLegend(pos='br')
+            canvas.legend.moveLegend(Y=0.25)
+            canvas.legend.moveLegend(X=-.1)
         canvas.legend.resizeHeight()
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
-        RT.addBinWidth(canvas.firstPlot)
+        #RT.addBinWidth(canvas.firstPlot)
+        # aesthetic change
+        if quantity == 'dR':
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 1.)
         canvas.cleanup('pdfs/SME_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 
