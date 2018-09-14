@@ -66,7 +66,7 @@ def makeEffPlots(quantity, fs, SP=None):
 
     for num, den, leg, col in NumDens:
         g[num] = R.TGraphAsymmErrors(h[num], h[den], 'cp')
-        g[num].SetNameTitle('g_'+num, ';'+h[num].GetXaxis().GetTitle()+';Match Efficiency')
+        g[num].SetNameTitle('g_'+num, ';'+h[num].GetXaxis().GetTitle()+';Reconstruction Efficiency')
         p[num] = Plotter.Plot(g[num], leg, 'elp', 'pe')
 
 #   FIRST  = (0, 3)

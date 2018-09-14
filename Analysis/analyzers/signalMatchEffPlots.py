@@ -31,9 +31,9 @@ def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
         # one Eff, ChargeEff, and ChargeDen plot for each of DSA and RSA
         for MUON in ('DSA', 'RSA'):
-            TITLE = ';'+CONFIG[KEY]['XTITLE']+';'+MUON+' Match Efficiency'
+            TITLE = ';'+CONFIG[KEY]['XTITLE']+';'+MUON+' Reconstruction Efficiency'
             self.HistInit(MUON+'_'+KEY+'Eff'      , TITLE, *CONFIG[KEY]['AXES'])
-            TITLE = TITLE.replace('Match', 'Charge Match')
+            TITLE = TITLE.replace('Reconstruction', 'Charge Reconstruction')
             self.HistInit(MUON+'_'+KEY+'ChargeEff', TITLE, *CONFIG[KEY]['AXES'])
             self.HistInit(MUON+'_'+KEY+'ChargeDen', ''   , *CONFIG[KEY]['AXES'])
 
