@@ -105,14 +105,16 @@ for i, d0_1_t in enumerate(d0Types):
     
     d0_1_str = d0_1_t[2]
     makePlots('Gen-%s'%d0_1_str)
+
     for j, d0_2_t in enumerate(d0Types):
         if j <= i: continue
             
-        d0_1_str = d0_1_t[2]
         d0_2_str = d0_2_t[2]
+
 
         var = '%s-%s'%(d0_1_str, d0_2_str)
         makePlots(var)
+
 
 
 
@@ -129,5 +131,4 @@ for i, d0_1_t in enumerate(d0Types):
         #h1.Fill(0)
         #h1.Draw("axis")
  #       r.gPad.RedrawAxis()
-    
     
