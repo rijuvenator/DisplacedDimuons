@@ -212,7 +212,8 @@ def makeSplitDeltaPhiPlots():
 
             p = {}
             for key in h:
-                h[key]['hist'].Scale(1./h[key]['hist'].Integral())
+                if h[key]['hist'].Integral() != 0:
+                    h[key]['hist'].Scale(1./h[key]['hist'].Integral())
                 if nBins > 100: h[key]['hist'].Rebin(10)
                 p[key] = Plotter.Plot(h[key]['hist'], h[key]['legName'], 'l', 'hist')
 

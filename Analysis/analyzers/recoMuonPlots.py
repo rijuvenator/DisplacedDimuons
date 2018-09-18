@@ -7,14 +7,16 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda muon: muon.pt                                     , 'PRETTY':'p_{T} [GeV]'      },
-    'eta'      : {'AXES':(1000,-3., 3.  ), 'LAMBDA': lambda muon: muon.eta                                    , 'PRETTY':None               },
-    'd0'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.d0()                                   , 'PRETTY':'d_{0} [cm]'       },
-    'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                , 'PRETTY':None               },
-    'normChi2' : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, 'PRETTY':None               },
-    'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              , 'PRETTY':None               },
-    'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        , 'PRETTY':None               },
-    'pTSig'    : {'AXES':(1000, 0.,  3. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
+    'pT'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda muon: muon.pt                                     , 'PRETTY':'p_{T} [GeV]'           },
+    'eta'      : {'AXES':(1000,-3., 3.  ), 'LAMBDA': lambda muon: muon.eta                                    , 'PRETTY':'#eta'                  },
+    'd0'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.d0()                                   , 'PRETTY':'d_{0} [cm]'            },
+    'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
+    'dz'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.dz()                                   , 'PRETTY':'d_{z} [cm]'            },
+    'dzSig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.dzSig()                                , 'PRETTY':'|d_{z}|/#sigma_{d_{z}}'},
+    'normChi2' : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, 'PRETTY':'#mu #chi^{2}/dof'      },
+    'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              , 'PRETTY':'N(Hits)'               },
+    'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        , 'PRETTY':'N(Stations)'           },
+    'pTSig'    : {'AXES':(1000, 0.,  3. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'     },
 }
 
 EXTRACONFIG = {
@@ -36,10 +38,7 @@ EXTRACONFIG['fRVSfZ']['LAMBDA'] = (lambda muon: muon.fhit.Z(), lambda muon: muon
 def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
 
-        # the pretty strings are mostly in the cut dictionary
-        # so use it if it's None
-        # but use the string given if not
-        XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
+        XTIT = CONFIG[KEY]['PRETTY']
 
         for MUON in ('DSA', 'RSA'):
             if True:
@@ -81,21 +80,12 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if 'Blind' in self.CUTS else False
+    ALL = True if 'All' in self.CUTS else False
 
-    SelectMuons = False
-    SelectMuons_pT30 = True if 'pT30' in self.CUTS else False
-    # require reco muons to pass all selections
-    if SelectMuons:
-        DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
-        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-        selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
-
-    # require reco muons to pass only the pT cut
-    elif SelectMuons_pT30:
-        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
+    # require muons to pass all selections
+    if ALL:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        RSASelections    = [Selections.MuonSelection(muon) for muon in RSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
 
@@ -106,14 +96,8 @@ def analyze(self, E, PARAMS=None):
     
     # fill histograms for every reco muon
     for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-        if BLIND:
-            self.HISTS[MUON+'_nMuon'].Fill(len([mu for mu in recoMuons if mu.d0Sig() <= 3.]), eventWeight)
-        else:
-            self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
+        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
         for muon in recoMuons:
-            # data blinding!
-            if BLIND:
-                if muon.d0Sig() > 3.: continue
             for KEY in CONFIG:
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
             for KEY in EXTRACONFIG:

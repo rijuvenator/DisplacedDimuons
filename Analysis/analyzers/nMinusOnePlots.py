@@ -54,17 +54,10 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if 'Blind' in self.CUTS else False
-
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
     DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons]
 
     for dimSel, dimuon in zip(DimuonSelections, Dimuons):
-        # data blinding!
-        if BLIND:
-            if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
-                continue
         DeltaPhiRegion = 'Less' if dimSel['deltaPhi'] else 'More'
         mu1, mu2 = DSAmuons[dimuon.idx1], DSAmuons[dimuon.idx2]
         mu1Sel, mu2Sel = DSASelections[dimuon.idx1], DSASelections[dimuon.idx2]

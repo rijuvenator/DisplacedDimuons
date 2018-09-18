@@ -26,18 +26,20 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
+        # PString and DenString are for conditionally controlling () and / in eff. title
         # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
         # change it if this is not the case at some point!!
-        DenString = ' [cm]' if CONFIG[KEY]['DIF'] else ' / gen {P}'
+        PString   = '' if CONFIG[KEY]['DIF'] else '('
+        DenString = ' [cm]' if CONFIG[KEY]['DIF'] else ') / gen {P}'
         if MODE == 'Res':
             # X = <q> Resolution/Dif
-            fstring = ';{M} {P} #minus gen {P}'+DenString+';Counts'
+            fstring = ';'+PString+'{M} {P} #minus gen {P}'+DenString+';Counts'
         elif MODE == 'VS':
             # X = gen <q> ; Y = reco <q>
             fstring = ';gen {X};{M} {X};Counts'
         elif MODE== 'VSRes':
             # X = gen <q2> ; Y = <q> Resolution/Dif
-            fstring = ';gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
+            fstring = ';'+PString+'gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
         return fstring.format(
             X =CONFIG[KEY]['XTITLE'],
             M =MUON,
