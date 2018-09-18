@@ -9,8 +9,8 @@ import HistogramGetter
 TRIGGER = False
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalMatchEffPlots.root')
-f = R.TFile.Open('../analyzers/roots/Main/SignalMatchEffPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalRecoEffPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/SignalRecoEffPlots.root')
 
 # make overlaid plots that combine all signal points
 def makeEffPlots(quantity, fs, SP=None):
@@ -54,7 +54,7 @@ def makeEffPlots(quantity, fs, SP=None):
             h[key].Rebin(5)
 
 # Extra is commented out, same with FIRST SECOND
-# so they don't appear on SME plots by default now
+# so they don't appear on SRE plots by default now
 
     NumDens = (
         ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kBlue   ),
@@ -96,7 +96,7 @@ def makeEffPlots(quantity, fs, SP=None):
         # aesthetic change
         if quantity == 'dR':
             canvas.firstPlot.GetXaxis().SetRangeUser(0., 1.)
-        canvas.cleanup('pdfs/SME_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
+        canvas.cleanup('pdfs/SRE_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'):

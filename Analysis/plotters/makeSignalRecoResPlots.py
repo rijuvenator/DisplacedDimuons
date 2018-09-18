@@ -10,8 +10,8 @@ import sys
 TRIGGER = False
 
 # get histograms
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalMatchResPlots.root')
-f = R.TFile.Open('../analyzers/roots/Main/SignalMatchResPlots.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalRecoResPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/SignalRecoResPlots.root')
 
 # DSA RSA overlaid, per signal
 def makeResPlots(quantity, fs):
@@ -26,7 +26,7 @@ def makeResPlots(quantity, fs):
             RT.addFlows(h[MUON])
             h[MUON].Rebin(10)
             p[MUON] = Plotter.Plot(h[MUON], 'Signal MC ({})'.format(MUON), 'l', 'hist')
-        fname = 'pdfs/SMR_{}_{}HTo2XTo{}_{}.pdf'.format(quantity+'Res', 'Trig-' if TRIGGER else '', fs, SPStr(sp))
+        fname = 'pdfs/SRR_{}_{}HTo2XTo{}_{}.pdf'.format(quantity+'Res', 'Trig-' if TRIGGER else '', fs, SPStr(sp))
 
         if DOFIT:
             funcs = {}
@@ -80,7 +80,7 @@ def makeResPlotsSingle(quantity, fs, MUON):
         RT.addFlows(h)
         h.Rebin(10)
         p = Plotter.Plot(h, 'Signal MC ({})'.format(MUON), 'l', 'hist')
-        fname = 'pdfs/SMR_{}_{}_{}HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs, SPStr(sp))
+        fname = 'pdfs/SRR_{}_{}_{}HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs, SPStr(sp))
 
         canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
         canvas.addMainPlot(p)
@@ -117,7 +117,7 @@ def makeResPlotsSingleOverlaid():
         RT.addFlows(h[TAG])
         h[TAG].Rebin(10)
         p[TAG] = Plotter.Plot(h[TAG], '{}, {}, {}, {}'.format(fs, *TAG), 'l', 'hist')
-    fname = 'SMR_{}_{}_{}HTo2XTo{}_Overlaid.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs)
+    fname = 'SRR_{}_{}_{}HTo2XTo{}_Overlaid.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs)
 
     funcs = {}
     fplots = {}
@@ -183,7 +183,7 @@ def makeColorPlot(MUON, quantity, fs='4Mu', q2=None):
     canvas.addMainPlot(p)
     canvas.scaleMargins(1.75, edges='R')
     canvas.scaleMargins(0.8, edges='L')
-    canvas.cleanup('pdfs/SMR_{}_{}HTo2XTo{}_Global.pdf'.format(fstring, 'Trig-' if TRIGGER else '', fs))
+    canvas.cleanup('pdfs/SRR_{}_{}HTo2XTo{}_Global.pdf'.format(fstring, 'Trig-' if TRIGGER else '', fs))
 
 def getBinningValues(q2):
     if q2 == 'pT':
@@ -224,7 +224,7 @@ def getBinningValues(q2):
 def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     h = HISTS[(fs, sp)]['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=quantity, Q2=q2)].Clone()
 
-    fname = 'pdfs/SMR_{}_{}_{}-Binned_{}HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
+    fname = 'pdfs/SRR_{}_{}_{}-Binned_{}HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', q2, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
 
     pretty, binranges, values, colors, colors2, legName = getBinningValues(q2)
 
@@ -315,7 +315,7 @@ def makeRefittedResPlot(fs):
             Plotter.MOVE_OBJECT(sboxes['After'], Y=-firstHeight-.01, NDC=True)
 
 
-        fname = 'pdfs/SMR_RefitBA_pTRes_{}HTo2XTo{}_{}.pdf'.format('Trig-' if TRIGGER else '', fs, SPStr(sp))
+        fname = 'pdfs/SRR_RefitBA_pTRes_{}HTo2XTo{}_{}.pdf'.format('Trig-' if TRIGGER else '', fs, SPStr(sp))
         canvas.cleanup(fname)
 
 # make res plot binned by other quantities, separated by bin
@@ -330,7 +330,7 @@ def makeBinnedResPlotsBinwise(TAGS, outputTag, quantity, q2, fs, sp):
         h[tag] = HISTS[(fs, sp)]['{T}_{Q}ResVS{Q2}'.format(T=tag, Q=quantity, Q2=q2)].Clone()
 
     # leaving space for the bin number
-    fname = 'pdfs/SMR_{}_{}_{}-Binned-Bin-{{}}_{}HTo2XTo{}_{}.pdf'.format(outputTag, quantity+'Res', q2, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
+    fname = 'pdfs/SRR_{}_{}_{}-Binned-Bin-{{}}_{}HTo2XTo{}_{}.pdf'.format(outputTag, quantity+'Res', q2, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
 
     pretty, binranges, values, colors, colors2, legName = getBinningValues(q2)
 

@@ -187,4 +187,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalMatchEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/SignalRecoEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

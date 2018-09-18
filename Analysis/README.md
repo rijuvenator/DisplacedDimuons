@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **17 August 2018**
+Last updated: **18 September 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -128,8 +128,8 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
   * **nMinusOneEffPlots.py** produces N-1 efficiency plots as a function of various variables.
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
-  * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
-  * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
+  * **signalRecoEffPlots.py** produces plots parametrizing the reco-gen efficiency as a function of various quantities, for signal samples.
+  * **signalRecoResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
 
@@ -143,10 +143,10 @@ The `--samples` parameter is a string subset of `S2BD`, controlling whether this
   * **B**ackground, or
   * **D**ata.
 
-For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
+For example, at the moment, `signalRecoEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
-python runAll.py signalResEffPlots.py --samples S2
+python runAll.py signalRecoEffPlots.py --samples S2
 ```
 
 while `nMinusOnePlots.py` runs on all types of samples, so one could accept the default value for this script: explicitly,
@@ -180,8 +180,8 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOnePlots.py**
   * **makeNMinusOneEffPlots.py** makes plots from ROOT files produced by **nMinusOneEffPlots.py**
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
-  * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
-  * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
+  * **makeSignalRecoEffPlots.py** makes plots from ROOT files produced by **signalRecoEffPlots.py**
+  * **makeSignalRecoResPlots.py** makes plots from ROOT files produced by **signalRecoResPlots.py**
   * **makeSignalVertexFitEffPlots.py** makes plots from ROOT files produced by **signalVertexFitEffPlots.py**
   * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 

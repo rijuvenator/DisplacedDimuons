@@ -25,7 +25,7 @@ do
 done
 
 # these scripts run on S
-for s in signalMatchEffPlots signalMatchResPlots signalVertexFitEffPlots genPlots
+for s in signalRecoEffPlots signalRecoResPlots signalVertexFitEffPlots genPlots
 do
     printf "$pstring" $s "... "
     python ${s}.py --name HTo2XTo4Mu --test >/dev/null 2>&1

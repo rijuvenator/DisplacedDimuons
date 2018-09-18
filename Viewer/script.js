@@ -517,11 +517,11 @@ var SAMPLEVALS   = [].concat(SIGNALLIST).concat(BGLIST);
 var SAMPLELABELS = [].concat(SIGNALLABS).concat(BGLABS);
 
 // plot category names and labels
-var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SME', 'SMR', 'SVFE'];
+var SIGNALVALS = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable', 'Gen', 'SRE', 'SRR', 'SVFE'];
 var BGVALS     = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 var DATAVALS   = ['Dim', 'DSA', 'RSA', 'NM1', 'NM1E', 'TCUM', 'CutTable'];
 
-var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table', 'gen', 'sig. m. eff.', 'sig. m. res.', 'sig. v. f. eff.'];
+var SIGNALLABELS = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table', 'gen', 'sig. eff.', 'sig. res.', 'sig. v. f. eff.'];
 var BGLABELS     = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 var DATALABELS   = ['dimuon', 'DSA', 'RSA', 'N&minus;1', 'N&minus;1 eff.', 'tail cum.', 'cut table'];
 
@@ -539,8 +539,8 @@ var PLOTTYPEVALS = {
     NM1E     : [['LxySig', 'cosAlpha', 'deltaPhi', 'deltaR', 'mass', 'vtxChi2', 'pT', 'eta', 'nMuonHits', 'nStations', 'normChi2', 'd0Sig'], ['EffVSpT', 'EffVSeta', 'EffVSd0', 'EffVSLxy']],
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'dPhiCol', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
-    SME      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'], ['Eff', 'ChargeEff']],
-    SMR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
+    SRE      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'], ['Eff', 'ChargeEff']],
+    SRR      : [['', 'DSA_', 'RSA_', 'RefitBA_'], [['pTRes', 'd0Res', 'LxyRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
 var PT   = 'p<sub>T</sub>'
@@ -559,8 +559,8 @@ var PLOTTYPELABELS = {
     TCUM     : [LXY+'/&sigma;<sub>Lxy</sub>', '|'+D0+'|/&sigma;<sub>d0</sub>'],
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&phi;(&mu;&mu;)', '&Delta;&phi;(&mu;X)', '|'+DPHI+'|', 'cos(&alpha;)', LXY, D0, DR+'(&mu;&mu;)', LXY+' VS L<sub>z</sub>'],
-    SME      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)', '&Delta;&phi;(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SMR      : [['Both', 'DSA', 'RSA', 'Refit'], [[PT+' Res.', D0+' Dif.', LXY+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
+    SRE      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)', '&Delta;&phi;(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
+    SRR      : [['Both', 'DSA', 'RSA', 'Refit'], [[PT+' Res.', D0+' Dif.', LXY+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
     SVFE     : [[PT, '&eta;', '&phi;', LXY], ['v. f. &epsilon;']],
 }
 
