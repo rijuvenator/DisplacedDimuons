@@ -63,6 +63,8 @@ class GenBranches : public BranchCollection
   std::vector<float > gen_x_bs     ;
   std::vector<float > gen_y_bs     ;
   std::vector<float > gen_z_bs     ;
+  std::vector<float > gen_d0_bs    ;
+  std::vector<float > gen_dz_bs    ;
 
   std::vector<float > gen_cosAlpha ;
   std::vector<float > gen_Lxy      ;
@@ -103,6 +105,8 @@ class GenBranches : public BranchCollection
     Declare("gen_x_bs"     , gen_x_bs       );
     Declare("gen_y_bs"     , gen_y_bs       );
     Declare("gen_z_bs"     , gen_z_bs       );
+    Declare("gen_d0_bs"    , gen_d0_bs      );
+    Declare("gen_dz_bs"    , gen_dz_bs      );
 
     Declare("gen_cosAlpha" , gen_cosAlpha   );
     Declare("gen_Lxy"      , gen_Lxy        );
@@ -143,6 +147,8 @@ class GenBranches : public BranchCollection
     gen_x_bs     .clear();
     gen_y_bs     .clear();
     gen_z_bs     .clear();
+    gen_d0_bs    .clear();
+    gen_dz_bs    .clear();
 
     gen_cosAlpha .clear();
     gen_Lxy      .clear();
