@@ -445,6 +445,11 @@ class Particle(Primitive):
     def __init__(self, E, i, prefix):
         Primitive.__init__(self)
 
+        # fill px py pz if available
+        for attr in ('px', 'py', 'pz', 'p'):
+            if hasattr(E, prefix+attr):
+                self.set(attr, E, prefix+attr, i)
+
         # set basic particle variables; see getMissingValues below
         missing = self.getMissingValues(E, i, prefix)
         for attr in ('pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
@@ -462,7 +467,8 @@ class Particle(Primitive):
 
         # this is an XYZ 3-vector!
         self.p3 = R.TVector3(*self.p4.Vect())
-        self.p  = self.p3.Mag()
+        if not hasattr(self, 'p'):
+            self.p = self.p3.Mag()
 
     # Since the nTuples are no longer guaranteed to have all of the
     # 9 basic particle variables above

@@ -51,6 +51,8 @@ class GenBranches : public BranchCollection
   std::vector<float > gen_x        ;
   std::vector<float > gen_y        ;
   std::vector<float > gen_z        ;
+  std::vector<float > gen_d0       ;
+  std::vector<float > gen_dz       ;
   std::vector<int   > gen_mother   ;
 
   std::vector<float > gen_px_bs    ;
@@ -68,8 +70,6 @@ class GenBranches : public BranchCollection
 
   std::vector<float > gen_cosAlpha ;
   std::vector<float > gen_Lxy      ;
-  std::vector<float > gen_d0       ;
-  std::vector<float > gen_dz       ;
   std::vector<float > gen_deltaR   ;
 
   // methods
@@ -93,6 +93,8 @@ class GenBranches : public BranchCollection
     Declare("gen_x"        , gen_x          );
     Declare("gen_y"        , gen_y          );
     Declare("gen_z"        , gen_z          );
+    Declare("gen_d0"       , gen_d0         );
+    Declare("gen_dz"       , gen_dz         );
     Declare("gen_mother"   , gen_mother     );
 
     Declare("gen_px_bs"    , gen_px_bs      );
@@ -110,8 +112,6 @@ class GenBranches : public BranchCollection
 
     Declare("gen_cosAlpha" , gen_cosAlpha   );
     Declare("gen_Lxy"      , gen_Lxy        );
-    Declare("gen_d0"       , gen_d0         );
-    Declare("gen_dz"       , gen_dz         );
     Declare("gen_deltaR"   , gen_deltaR     );
   }
 
@@ -135,6 +135,8 @@ class GenBranches : public BranchCollection
     gen_x        .clear();
     gen_y        .clear();
     gen_z        .clear();
+    gen_d0       .clear();
+    gen_dz       .clear();
     gen_mother   .clear();
 
     gen_px_bs    .clear();
@@ -152,8 +154,6 @@ class GenBranches : public BranchCollection
 
     gen_cosAlpha .clear();
     gen_Lxy      .clear();
-    gen_d0       .clear();
-    gen_dz       .clear();
     gen_deltaR   .clear();
   }
 

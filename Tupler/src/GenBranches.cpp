@@ -67,20 +67,25 @@ void GenBranches::Fill(
   // pileup reweighting if PileupSummaryInfo collection exists.  See
   // https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3592/1/2/1/1/1/1.html
   // for more details.
-  if (pileupInfo.failedToGet()) {
-    if (!alreadyPrinted_pileup) {
+  if (pileupInfo.failedToGet())
+  {
+    if (!alreadyPrinted_pileup)
+    {
       edm::LogWarning("SimpleNTupler")
         << "+++ Warning: PileupSummaryInfo is not found +++";
       alreadyPrinted_pileup = true;
     }
   }
-  else {
+  else
+  {
     std::vector<PileupSummaryInfo>::const_iterator pi;
-    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++) {
+    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++)
+    {
       int bx = pi->getBunchCrossing();
-      if (bx == 0) { 
-	gen_tnpv = pi->getTrueNumInteractions();
-	continue;
+      if (bx == 0)
+      {
+	      gen_tnpv = pi->getTrueNumInteractions();
+	      continue;
       }
     }
   }
@@ -95,50 +100,54 @@ void GenBranches::Fill(
   //    beam spot (assuming a line)
   //  - a bunch of parameters of gen muons extrapolated to the PCA
   //    to the beam spot, for comparison with reco muons
-  for (unsigned int ipart = 0; ipart < gen_status.size(); ipart++) {
+  for (unsigned int ipart = 0; ipart < gen_status.size(); ipart++)
+  {
     float d0_lin = -999., dz_lin = -999.;
     float px = -999., py = -999., pz = -999., pt = -999., ene = -999.;
     float vx = -999., vy = -999., vz = -999., eta = -999., phi = -999.;
     float d0 = -999., dz = -999.;
-    if (gen_status[ipart] == 1) {
-      if (gen_charge[ipart] != 0) {
-	if (!beamspotHandle.failedToGet()) {
-	  const reco::BeamSpot &beamspot = *beamspotHandle;
-	  float x_bs = beamspot.x0();
-	  float y_bs = beamspot.y0();
-	  float z_bs = beamspot.z0();
+    if (gen_status[ipart] == 1)
+    {
+      if (gen_charge[ipart] != 0)
+      {
+	      if (!beamspotHandle.failedToGet())
+        {
+          const reco::BeamSpot &beamspot = *beamspotHandle;
+          float x_bs = beamspot.x0();
+          float y_bs = beamspot.y0();
+          float z_bs = beamspot.z0();
 
-	  // d0/dz w.r.t. the PCA to the beam spot; linear extrapolation.
-	  // Use |(Point-RefPoint) x Momentum| / |Momentum| convention
-	  // to get the sign of d0 consistent with that in the rest of
-	  // CMSSW (see TrackBase.h)
-	  TVector3 zero(x_bs-gen_x[ipart], y_bs-gen_y[ipart], 0.);
-	  TVector3 p3zz(gen_px[ipart], gen_py[ipart], 0.);
-	  d0_lin = zero.Cross(p3zz).Z()/p3zz.Mag();
-	  dz_lin = (gen_z[ipart]-z_bs) +
-	    zero.Dot(p3zz)/gen_pt[ipart]*gen_pz[ipart]/gen_pt[ipart];
+          // d0/dz w.r.t. the PCA to the beam spot; linear extrapolation.
+          // Use |(Point-RefPoint) x Momentum| / |Momentum| convention
+          // to get the sign of d0 consistent with that in the rest of
+          // CMSSW (see TrackBase.h)
+          TVector3 zero(x_bs-gen_x[ipart], y_bs-gen_y[ipart], 0.);
+          TVector3 p3zz(gen_px[ipart], gen_py[ipart], 0.);
+          d0_lin = zero.Cross(p3zz).Z()/p3zz.Mag();
+          dz_lin = (gen_z[ipart]-z_bs) +
+            zero.Dot(p3zz)/gen_pt[ipart]*gen_pz[ipart]/gen_pt[ipart];
 
-	  // Propagate parameters to the point of closest approach to
-	  // the beam spot and store the propagated parameters in the
-	  // tree for comparison with parameters of the reconstructed
-	  // tracks.
-	  FreeTrajectoryState fts =
-	    PropagateToBeamSpot(ipart, beamspot, propagator, magfield);
+          // Propagate parameters to the point of closest approach to
+          // the beam spot and store the propagated parameters in the
+          // tree for comparison with parameters of the reconstructed
+          // tracks.
+          FreeTrajectoryState fts =
+            PropagateToBeamSpot(ipart, beamspot, propagator, magfield);
 
-	  px  = fts.momentum().x();
-	  py  = fts.momentum().y();
-	  pz  = fts.momentum().z();
-	  pt  = fts.momentum().perp();
-	  eta = fts.momentum().eta();
-	  phi = fts.momentum().phi();
-	  ene = sqrt(pow(fts.momentum().mag(),2) + pow(gen_mass[ipart],2));
-	  vx  = fts.position().x();
-	  vy  = fts.position().y();
-	  vz  = fts.position().z();
+          px  = fts.momentum().x();
+          py  = fts.momentum().y();
+          pz  = fts.momentum().z();
+          pt  = fts.momentum().perp();
+          eta = fts.momentum().eta();
+          phi = fts.momentum().phi();
+          ene = sqrt(pow(fts.momentum().mag(),2) + pow(gen_mass[ipart],2));
+          vx  = fts.position().x();
+          vy  = fts.position().y();
+          vz  = fts.position().z();
 
-	  d0  = ((x_bs-vx)*py - (y_bs-vy)*px)/pt;
-	  dz  = (vz-z_bs) - ((vx-x_bs)*px + (vy-y_bs)*py) / pt * pz / pt;
-	}
+          d0  = ((x_bs-vx)*py - (y_bs-vy)*px)/pt;
+          dz  = (vz-z_bs) - ((vx-x_bs)*px + (vy-y_bs)*py) / pt * pz / pt;
+        }
       }
     }
 
@@ -159,14 +168,16 @@ void GenBranches::Fill(
     gen_dz_bs    .push_back(dz );
   }
  
-  if (debug) {
+  if (debug)
+  {
     std::cout << "Gen info: weight = " << gen_weight
 	      << " true number of primary vertices = " << gen_tnpv
 	      << "; gen particles: \n";
     std::cout << " idx |   id  | stat| moth|   pt  |    eta   |   phi  |    M    |    E   | q |        (x;y;z)        |   d0  |   dz  |";
     std:: cout << " pt@bs | eta@bs | phi@bs |       (x;y;z)@bs      | d0@bs | dz@bs |\n";
     unsigned int nparts = gen_status.size();
-    for (unsigned int i = 0; i < nparts; i++) {
+    for (unsigned int i = 0; i < nparts; i++)
+    {
       std::cout << std::setw(5) << i << "|" << std::setw(7) << gen_pdgID[i]
 		<< "|" << std::setw(5)  << gen_status[i]
 		<< "|" << std::setw(5)  << gen_mother[i] << std::setprecision(4)
@@ -193,9 +204,11 @@ void GenBranches::Fill(
       std::cout << "|" << std::endl;
     }
     unsigned int npairs = gen_Lxy.size();
-    if (npairs > 0) {
+    if (npairs > 0)
+    {
       std::cout << " idi |   Lxy   |   cosA  |    dR   | \n";
-      for (unsigned int i = 0; i < npairs; i++) {
+      for (unsigned int i = 0; i < npairs; i++)
+      {
 	std::cout << std::setw(5) << i << std::setprecision(4)
 		  << "|" << std::setw(9) << gen_Lxy[i] 
 		  << "|" << std::setw(9) << gen_cosAlpha[i]
@@ -317,7 +330,11 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
-    for (const auto &mu : muonPair)
+    // this loop no longer uses muon information
+    // therefore it no longer needs to be over muonPairs
+    // replacing it with a loop over 0, 1
+    // this suppresses the unused variable/error 
+    for (int j=0; j<2; ++j)
     {
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);
@@ -454,7 +471,11 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
-    for (const auto &part : PPair)
+    // this loop no longer uses muon information
+    // therefore it no longer needs to be over muonPairs
+    // replacing it with a loop over 0, 1;
+    // this suppresses the unused variable/error 
+    for (int j=0; j<2; ++j)
     {
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);

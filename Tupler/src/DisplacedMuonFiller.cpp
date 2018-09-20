@@ -16,24 +16,25 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
   const reco::VertexCollection &vertices = *verticesHandle;
   reco::Vertex pv = vertices.front();
 
-  cand.px     = track.px     ();
-  cand.py     = track.py     ();
-  cand.pz     = track.pz     ();
-  cand.ptError= track.ptError();
-  cand.eta    = track.eta    ();
-  cand.phi    = track.phi    ();
-  cand.charge = track.charge ();
-  cand.chi2   = track.chi2   ();
-  cand.ndof   = track.ndof   ();
+  cand.px      = track.px     ();
+  cand.py      = track.py     ();
+  cand.pz      = track.pz     ();
+  cand.ptError = track.ptError();
+  cand.eta     = track.eta    ();
+  cand.phi     = track.phi    ();
+  cand.charge  = track.charge ();
+  cand.chi2    = track.chi2   ();
+  cand.ndof    = track.ndof   ();
 
   // Position of the reference point.
-  cand.x      = track.vx     ();
-  cand.y      = track.vy     ();
-  cand.z      = track.vz     ();
+  cand.x       = track.vx     ();
+  cand.y       = track.vy     ();
+  cand.z       = track.vz     ();
 
   // Position of the innermost hit.  As it is stored in TrackExtra, we
   // need to make sure that TrackExtra exists.
-  if (!track.extra().isNull() && track.innerOk()) {
+  if (!track.extra().isNull() && track.innerOk())
+  {
     cand.x_fhit = track.innerPosition().x();
     cand.y_fhit = track.innerPosition().y();
     cand.z_fhit = track.innerPosition().z();
@@ -59,7 +60,8 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
   // double d0err_pv = ttrack.trajectoryStateClosestToPoint(pv_pos).perigeeError().transverseImpactParameterError();
   GlobalVector track_dir(track.px(), track.py(), track.pz());
   std::pair<bool, Measurement1D> ip2d = IPTools::signedTransverseImpactParameter(ttrack, track_dir, pv);
-  if (ip2d.first) {
+  if (ip2d.first)
+  {
     cand.d0_pv      = ip2d.second.value();
     double d0err_pv = ip2d.second.error();
     cand.d0sig_pv   = fabs(cand.d0_pv)/d0err_pv;
@@ -69,7 +71,8 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
   cand.dzsig_pv   = fabs(cand.dz_pv)/dzerr_pv;
 
   // d0 and dz w.r.t. the beam spot, again using extrapolation
-  if (!beamspotHandle.failedToGet()) {
+  if (!beamspotHandle.failedToGet())
+  {
     const reco::BeamSpot &beamspot = *beamspotHandle;
     GlobalPoint bs_pos(beamspot.x0(), beamspot.y0(), beamspot.z0());
     cand.d0_bs      = ttrack.trajectoryStateClosestToPoint(bs_pos).perigeeParameters().transverseImpactParameter();
@@ -95,7 +98,8 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
 
   // d0 and dz w.r.t. the beam spot assuming that the trajectory is a
   // straight line
-  if (!beamspotHandle.failedToGet()) {
+  if (!beamspotHandle.failedToGet())
+  {
     const reco::BeamSpot &beamspot = *beamspotHandle;
     cand.d0_bs_lin    = track.dxy(beamspot);
     cand.d0sig_bs_lin = fabs(cand.d0_bs_lin)/track.d0Error();
@@ -137,7 +141,7 @@ void DisplacedMuonFiller::CompareTrackParams(
   GlobalPoint orig(0., 0., 0.);
   FreeTrajectoryState ftsPCAOrig(propagator->propagate(fts, orig));
 
-  // Propagation to PCA to the main orimary vertex.
+  // Propagation to PCA to the main primary vertex.
   const reco::VertexCollection &vertices = *verticesHandle;
   reco::Vertex pv = vertices.front();
   GlobalPoint pv_pos(pv.x(), pv.y(), pv.z());
@@ -163,7 +167,8 @@ void DisplacedMuonFiller::CompareTrackParams(
 	      << " differs from phi at the PCA to the beam spot = "
 	      << ftsPCABS.momentum().phi() << std::endl;
 
-  if (debug) {
+  if (debug)
+  {
     std::cout << "parameters at the reference point: " << std::setprecision(6)
 	      << "(x; y; z) = " << "(" << track.vx()
 	      << "; " << track.vy() << "; " << track.vz() << ")"
