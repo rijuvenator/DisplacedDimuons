@@ -8,6 +8,10 @@ import DisplacedDimuons.Analysis.Primitives as Primitives
 
 sample = 'HTo2XTo4Mu'
 
+# TODO:
+# could put many pdfs on a single pad
+#
+
 def makePlots(var):
     c = r.TCanvas()
     c.cd()
@@ -27,7 +31,7 @@ def makePlots(var):
             
         h = f.Get(var + '_' + sample + '_' + mH + '_' + mX + '_' + ct)
         
-        c.SetLogy()
+        #c.SetLogy()
         
         if mH == '125':
             h.SetLineColor(r.kGreen + 1)        
@@ -48,7 +52,8 @@ def makePlots(var):
             # h.Draw("sames")
         if k == 0:
             if re.search(r'Gen*', var):
-                h.SetMaximum(1e4)
+                h.SetMaximum(6000)
+                h.SetMinimum(1)
             #h.GetXaxis().SetLimits(-0.015, 0.015)
                 # h.SetMinimum(-0.015)
                 # h.SetMaximum(0.015)
@@ -91,20 +96,19 @@ def makePlots(var):
 d0Types = []
 for ex in Primitives.ImpactParameter.extrapolationDictionary:
     for vert in Primitives.ImpactParameter.vertexDictionary:
-        d0_str = vert + "-" 
+        d0_str ="["+ vert + " " 
         if ex == None:
             d0_str += "FULL"
         else:
             d0_str += ex
+        d0_str += "]"
         d0Types.append([vert, ex, d0_str])
-
-
 
 
 for i, d0_1_t in enumerate(d0Types):
     
     d0_1_str = d0_1_t[2]
-    makePlots('Gen-%s'%d0_1_str)
+    makePlots('d0 [Gen] - %s'%d0_1_str)
 
     for j, d0_2_t in enumerate(d0Types):
         if j <= i: continue
@@ -112,7 +116,7 @@ for i, d0_1_t in enumerate(d0Types):
         d0_2_str = d0_2_t[2]
 
 
-        var = '%s-%s'%(d0_1_str, d0_2_str)
+        var = 'd0 %s-%s'%(d0_1_str, d0_2_str)
         makePlots(var)
 
 
