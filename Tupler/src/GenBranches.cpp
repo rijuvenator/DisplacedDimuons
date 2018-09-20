@@ -90,17 +90,38 @@ void GenBranches::Fill(
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
 
-  // Propagate parameters of stable charged particles to the point of
-  // closest approach to the beam spot and store the propagated
-  // parameters in the tree for comparison with parameters of the
-  // reconstructed tracks.
+  // Calculate/save some more info for final-state muons:
+  //  - d0 and dz w.r.t. the point of closest approach (PCA) to the
+  //    beam spot (assuming a line)
+  //  - a bunch of parameters of gen muons extrapolated to the PCA
+  //    to the beam spot, for comparison with reco muons
   for (unsigned int ipart = 0; ipart < gen_status.size(); ipart++) {
+    float d0_lin = -999., dz_lin = -999.;
     float px = -999., py = -999., pz = -999., pt = -999., ene = -999.;
     float vx = -999., vy = -999., vz = -999., eta = -999., phi = -999.;
+    float d0 = -999., dz = -999.;
     if (gen_status[ipart] == 1) {
       if (gen_charge[ipart] != 0) {
 	if (!beamspotHandle.failedToGet()) {
 	  const reco::BeamSpot &beamspot = *beamspotHandle;
+	  float x_bs = beamspot.x0();
+	  float y_bs = beamspot.y0();
+	  float z_bs = beamspot.z0();
+
+	  // d0/dz w.r.t. the PCA to the beam spot; linear extrapolation.
+	  // Use |(Point-RefPoint) x Momentum| / |Momentum| convention
+	  // to get the sign of d0 consistent with that in the rest of
+	  // CMSSW (see TrackBase.h)
+	  TVector3 zero(x_bs-gen_x[ipart], y_bs-gen_y[ipart], 0.);
+	  TVector3 p3zz(gen_px[ipart], gen_py[ipart], 0.);
+	  d0_lin = zero.Cross(p3zz).Z()/p3zz.Mag();
+	  dz_lin = (gen_z[ipart]-z_bs) +
+	    zero.Dot(p3zz)/gen_pt[ipart]*gen_pz[ipart]/gen_pt[ipart];
+
+	  // Propagate parameters to the point of closest approach to
+	  // the beam spot and store the propagated parameters in the
+	  // tree for comparison with parameters of the reconstructed
+	  // tracks.
 	  FreeTrajectoryState fts =
 	    PropagateToBeamSpot(ipart, beamspot, propagator, magfield);
 
@@ -114,9 +135,16 @@ void GenBranches::Fill(
 	  vx  = fts.position().x();
 	  vy  = fts.position().y();
 	  vz  = fts.position().z();
+
+	  d0  = ((x_bs-vx)*py - (y_bs-vy)*px)/pt;
+	  dz  = (vz-z_bs) - ((vx-x_bs)*px + (vy-y_bs)*py) / pt * pz / pt;
 	}
       }
     }
+
+    gen_d0       .push_back(d0_lin);
+    gen_dz       .push_back(dz_lin);
+
     gen_px_bs    .push_back(px );
     gen_py_bs    .push_back(py );
     gen_pz_bs    .push_back(pz );
@@ -127,14 +155,16 @@ void GenBranches::Fill(
     gen_x_bs     .push_back(vx );
     gen_y_bs     .push_back(vy );
     gen_z_bs     .push_back(vz );
+    gen_d0_bs    .push_back(d0 );
+    gen_dz_bs    .push_back(dz );
   }
  
   if (debug) {
     std::cout << "Gen info: weight = " << gen_weight
 	      << " true number of primary vertices = " << gen_tnpv
 	      << "; gen particles: \n";
-    std::cout << " idx |   id  | stat| moth|   pt  |    eta   |   phi  |    M    |    E   | q |        (x;y;z)        |";
-    std:: cout << " pt@bs | eta@bs | phi@bs |       (x;y;z)@bs      |\n";
+    std::cout << " idx |   id  | stat| moth|   pt  |    eta   |   phi  |    M    |    E   | q |        (x;y;z)        |   d0  |   dz  |";
+    std:: cout << " pt@bs | eta@bs | phi@bs |       (x;y;z)@bs      | d0@bs | dz@bs |\n";
     unsigned int nparts = gen_status.size();
     for (unsigned int i = 0; i < nparts; i++) {
       std::cout << std::setw(5) << i << "|" << std::setw(7) << gen_pdgID[i]
@@ -150,23 +180,25 @@ void GenBranches::Fill(
 		<< " " << std::setw(7)  << gen_y[i]
 		<< " " << std::setw(7)  << gen_z[i];
       if (gen_pt_bs[i] > 0.) 
-	std::cout      << "|" << std::setw(7) << gen_pt_bs[i] 
+	std::cout      << "|" << std::setw(7) << gen_d0[i]
+		       << "|" << std::setw(7) << gen_dz[i]
+		       << "|" << std::setw(7) << gen_pt_bs[i]
 		       << "|" << std::setw(8) << gen_eta_bs[i]
 		       << "|" << std::setw(8) << gen_phi_bs[i]
 		       << "|" << std::setw(7) << gen_x_bs[i]
 		       << " " << std::setw(7) << gen_y_bs[i]
-		       << " " << std::setw(7) << gen_z_bs[i];
+		       << " " << std::setw(7) << gen_z_bs[i]
+		       << "|" << std::setw(7) << gen_d0_bs[i]
+		       << "|" << std::setw(7) << gen_dz_bs[i];
       std::cout << "|" << std::endl;
     }
     unsigned int npairs = gen_Lxy.size();
     if (npairs > 0) {
-      std::cout << " idi |   Lxy   |   cosA  |    d0   |    dz   |    dR   | \n";
+      std::cout << " idi |   Lxy   |   cosA  |    dR   | \n";
       for (unsigned int i = 0; i < npairs; i++) {
 	std::cout << std::setw(5) << i << std::setprecision(4)
 		  << "|" << std::setw(9) << gen_Lxy[i] 
 		  << "|" << std::setw(9) << gen_cosAlpha[i]
-		  << "|" << std::setw(9) << gen_d0[i]
-		  << "|" << std::setw(9) << gen_dz[i]
 		  << "|" << std::setw(9) << gen_deltaR[i] << "|" << std::endl;
       }
     }
@@ -270,7 +302,7 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     gen_mother.push_back(-1         ); // not yet implemented
   }
 
-  // fill d0, dz, Lxy, cosAlpha, and deltaR
+  // fill Lxy, cosAlpha, and deltaR
   std::vector<std::vector<const reco::GenParticle*>> muonPairs = {{mu11, mu12}, {mu21, mu22}};
   for (size_t i=0; i<2; ++i)
   {
@@ -287,13 +319,6 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
 
     for (const auto &mu : muonPair)
     {
-      TVector3 zero(mu->vx(), mu->vy(), 0.);
-      TVector3 p3zz(mu->px(), mu->py(), 0.);
-      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
-      float dz = mu->vz() - zero.Dot(p3zz)/mu->pt()*mu->pz()/mu->pt();
-
-      gen_d0      .push_back(d0      );
-      gen_dz      .push_back(dz      );
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);
       gen_deltaR  .push_back(dR      );
@@ -414,7 +439,7 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     gen_mother.push_back(-1         ); // not yet implemented
   }
 
-  // fill d0, Lxy, cosAlpha, and deltaR
+  // fill Lxy, cosAlpha, and deltaR
   std::vector<std::vector<const reco::Candidate*>> PPairs = {{mup, mum}, {q1, q2}};
   for (size_t i=0; i<2; ++i)
   {
@@ -431,17 +456,6 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
 
     for (const auto &part : PPair)
     {
-      TVector3 zero(part->vx(), part->vy(), 0.);
-      TVector3 p3zz(part->px(), part->py(), 0.);
-      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
-      float dz = part->vz() - zero.Dot(p3zz)/part->pt()*part->pz()/part->pt();
-
-      // explicit formula for checks
-      //float dxy = (-part->vx()*part->py() + part->vy()*part->px())/part->pt();
-      //float dz  = part->vz() - (part->vx()*part->px() + part->vy()*part->py())/part->pt()*part->pz()/part->pt();
-
-      gen_d0      .push_back(d0      );
-      gen_dz      .push_back(dz      );
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);
       gen_deltaR  .push_back(dR      );
