@@ -154,18 +154,18 @@ void GenBranches::Fill(
     gen_d0       .push_back(d0_lin);
     gen_dz       .push_back(dz_lin);
 
-    gen_px_bs    .push_back(px );
-    gen_py_bs    .push_back(py );
-    gen_pz_bs    .push_back(pz );
-    gen_pt_bs    .push_back(pt );
-    gen_eta_bs   .push_back(eta);
-    gen_phi_bs   .push_back(phi);
-    gen_energy_bs.push_back(ene);
-    gen_x_bs     .push_back(vx );
-    gen_y_bs     .push_back(vy );
-    gen_z_bs     .push_back(vz );
-    gen_d0_bs    .push_back(d0 );
-    gen_dz_bs    .push_back(dz );
+    gen_bs_px    .push_back(px );
+    gen_bs_py    .push_back(py );
+    gen_bs_pz    .push_back(pz );
+    gen_bs_pt    .push_back(pt );
+    gen_bs_eta   .push_back(eta);
+    gen_bs_phi   .push_back(phi);
+    gen_bs_energy.push_back(ene);
+    gen_bs_x     .push_back(vx );
+    gen_bs_y     .push_back(vy );
+    gen_bs_z     .push_back(vz );
+    gen_bs_d0    .push_back(d0 );
+    gen_bs_dz    .push_back(dz );
   }
  
   if (debug)
@@ -190,17 +190,17 @@ void GenBranches::Fill(
 		<< "|" << std::setw(7)  << gen_x[i]
 		<< " " << std::setw(7)  << gen_y[i]
 		<< " " << std::setw(7)  << gen_z[i];
-      if (gen_pt_bs[i] > 0.) 
+      if (gen_bs_pt[i] > 0.) 
 	std::cout      << "|" << std::setw(7) << gen_d0[i]
 		       << "|" << std::setw(7) << gen_dz[i]
-		       << "|" << std::setw(7) << gen_pt_bs[i]
-		       << "|" << std::setw(8) << gen_eta_bs[i]
-		       << "|" << std::setw(8) << gen_phi_bs[i]
-		       << "|" << std::setw(7) << gen_x_bs[i]
-		       << " " << std::setw(7) << gen_y_bs[i]
-		       << " " << std::setw(7) << gen_z_bs[i]
-		       << "|" << std::setw(7) << gen_d0_bs[i]
-		       << "|" << std::setw(7) << gen_dz_bs[i];
+		       << "|" << std::setw(7) << gen_bs_pt[i]
+		       << "|" << std::setw(8) << gen_bs_eta[i]
+		       << "|" << std::setw(8) << gen_bs_phi[i]
+		       << "|" << std::setw(7) << gen_bs_x[i]
+		       << " " << std::setw(7) << gen_bs_y[i]
+		       << " " << std::setw(7) << gen_bs_z[i]
+		       << "|" << std::setw(7) << gen_bs_d0[i]
+		       << "|" << std::setw(7) << gen_bs_dz[i];
       std::cout << "|" << std::endl;
     }
     unsigned int npairs = gen_Lxy.size();

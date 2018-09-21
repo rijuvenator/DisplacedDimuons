@@ -55,18 +55,18 @@ class GenBranches : public BranchCollection
   std::vector<float > gen_dz       ;
   std::vector<int   > gen_mother   ;
 
-  std::vector<float > gen_px_bs    ;
-  std::vector<float > gen_py_bs    ;
-  std::vector<float > gen_pz_bs    ;
-  std::vector<float > gen_pt_bs    ;
-  std::vector<float > gen_eta_bs   ;
-  std::vector<float > gen_phi_bs   ;
-  std::vector<float > gen_energy_bs;
-  std::vector<float > gen_x_bs     ;
-  std::vector<float > gen_y_bs     ;
-  std::vector<float > gen_z_bs     ;
-  std::vector<float > gen_d0_bs    ;
-  std::vector<float > gen_dz_bs    ;
+  std::vector<float > gen_bs_px    ;
+  std::vector<float > gen_bs_py    ;
+  std::vector<float > gen_bs_pz    ;
+  std::vector<float > gen_bs_pt    ;
+  std::vector<float > gen_bs_eta   ;
+  std::vector<float > gen_bs_phi   ;
+  std::vector<float > gen_bs_energy;
+  std::vector<float > gen_bs_x     ;
+  std::vector<float > gen_bs_y     ;
+  std::vector<float > gen_bs_z     ;
+  std::vector<float > gen_bs_d0    ;
+  std::vector<float > gen_bs_dz    ;
 
   std::vector<float > gen_cosAlpha ;
   std::vector<float > gen_Lxy      ;
@@ -97,18 +97,18 @@ class GenBranches : public BranchCollection
     Declare("gen_dz"       , gen_dz         );
     Declare("gen_mother"   , gen_mother     );
 
-    Declare("gen_px_bs"    , gen_px_bs      );
-    Declare("gen_py_bs"    , gen_py_bs      );
-    Declare("gen_pz_bs"    , gen_pz_bs      );
-    Declare("gen_pt_bs"    , gen_pt_bs      );
-    Declare("gen_eta_bs"   , gen_eta_bs     );
-    Declare("gen_phi_bs"   , gen_phi_bs     );
-    Declare("gen_energy_bs", gen_energy_bs  );
-    Declare("gen_x_bs"     , gen_x_bs       );
-    Declare("gen_y_bs"     , gen_y_bs       );
-    Declare("gen_z_bs"     , gen_z_bs       );
-    Declare("gen_d0_bs"    , gen_d0_bs      );
-    Declare("gen_dz_bs"    , gen_dz_bs      );
+    Declare("gen_bs_px"    , gen_bs_px      );
+    Declare("gen_bs_py"    , gen_bs_py      );
+    Declare("gen_bs_pz"    , gen_bs_pz      );
+    Declare("gen_bs_pt"    , gen_bs_pt      );
+    Declare("gen_bs_eta"   , gen_bs_eta     );
+    Declare("gen_bs_phi"   , gen_bs_phi     );
+    Declare("gen_bs_energy", gen_bs_energy  );
+    Declare("gen_bs_x"     , gen_bs_x       );
+    Declare("gen_bs_y"     , gen_bs_y       );
+    Declare("gen_bs_z"     , gen_bs_z       );
+    Declare("gen_bs_d0"    , gen_bs_d0      );
+    Declare("gen_bs_dz"    , gen_bs_dz      );
 
     Declare("gen_cosAlpha" , gen_cosAlpha   );
     Declare("gen_Lxy"      , gen_Lxy        );
@@ -139,18 +139,18 @@ class GenBranches : public BranchCollection
     gen_dz       .clear();
     gen_mother   .clear();
 
-    gen_px_bs    .clear();
-    gen_py_bs    .clear();
-    gen_pz_bs    .clear();
-    gen_pt_bs    .clear();
-    gen_eta_bs   .clear();
-    gen_phi_bs   .clear();
-    gen_energy_bs.clear();
-    gen_x_bs     .clear();
-    gen_y_bs     .clear();
-    gen_z_bs     .clear();
-    gen_d0_bs    .clear();
-    gen_dz_bs    .clear();
+    gen_bs_px    .clear();
+    gen_bs_py    .clear();
+    gen_bs_pz    .clear();
+    gen_bs_pt    .clear();
+    gen_bs_eta   .clear();
+    gen_bs_phi   .clear();
+    gen_bs_energy.clear();
+    gen_bs_x     .clear();
+    gen_bs_y     .clear();
+    gen_bs_z     .clear();
+    gen_bs_d0    .clear();
+    gen_bs_dz    .clear();
 
     gen_cosAlpha .clear();
     gen_Lxy      .clear();

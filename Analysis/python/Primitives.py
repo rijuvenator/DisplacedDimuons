@@ -115,20 +115,20 @@ class ETree(object):
             if Constants.LLX_PDGID in self.gen_pdgID:
                 # 2Mu2J
                 if abs(self.gen_pdgID[2]) != Constants.ABS_MUON_PDGID:
-                    muons   =         [GenMuon    (self, i        )        for i in range(2)                       ]
+                    muons   =         [GenMuon    (self, i, True  )        for i in range(2)                       ]
                     jets    =         [GenMuon    (self, i        )        for i in range(2, 4)                    ]
                     mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
                     extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenMuon    (self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + jets + mothers + [extramu]
                 # 4Mu
                 else:
-                    muons   =         [GenMuon    (self, i        )        for i in range(4)                       ]
+                    muons   =         [GenMuon    (self, i, True  )        for i in range(4)                       ]
                     mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
                     extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenMuon    (self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + mothers + [extramu]
             # Background
             else:
@@ -375,7 +375,7 @@ class TriggerMuon(Primitive):
         for attr in ('idx', 'px', 'py', 'pz', 'eta', 'phi'):
             self.set(attr, E, prefix+attr, i)
 
-        triggerMuonEnergy = math.sqrt(sum([x*x for x in (self.px, self.py, self.pz)]) + 0.105658375*0.105658375)
+        triggerMuonEnergy = math.sqrt(sum([x**2. for x in (self.px, self.py, self.pz)]) + 0.105658375**2.)
         self.p4 = R.TLorentzVector()
         self.p4.SetPxPyPzE(self.px, self.py, self.pz, triggerMuonEnergy) 
 
@@ -484,6 +484,8 @@ class Particle(Primitive):
         if not hasattr(E, prefix+'mass'):
             if 'mu' in prefix:
                 missing['mass'] = .105658375
+            elif 'gen_bs' in prefix:
+                missing['mass'] = E.get('gen_mass', i)
             else:
                 raise Exception('Mass for prefix '+prefix+' unavailable.')
         if not hasattr(E, prefix+'energy'):
@@ -502,6 +504,8 @@ class Particle(Primitive):
         if not hasattr(E, prefix+'charge'):
             if 'dim' in prefix:
                 missing['charge'] = 0.
+            elif 'gen_bs' in prefix:
+                missing['charge'] = E.get('gen_charge', i)
             else:
                 raise Exception('Charge for prefix '+prefix+' unavailable.')
         if not hasattr(E, prefix+'x'):
@@ -581,25 +585,46 @@ class PATMuon(Muon):
 
 # GenMuon: see above
 class GenMuon(Muon, GenParticle):
-    def __init__(self, E, i):
+    def __init__(self, E, i, isSignal=False):
         Muon.__init__(self, E, i, 'gen_')
         GenParticle.__init__(self, E, i)
-        for attr in ('cosAlpha', 'deltaR'):
-            self.set(attr, E, 'gen_'+attr, i)
 
-        # genMuons and dimuons get Lxy with Lxy()
         # genMuons and reco muons get d0 with d0()
         # so make sure that the name doesn't collide
-        self.set('Lxy_', E, 'gen_Lxy', i)
         self.set('d0_' , E, 'gen_d0' , i)
         self.set('dz_' , E, 'gen_dz' , i)
 
+        # get the gen quantities with respect to beamspot
+        self.BS = Particle(E, i, 'gen_bs_')
+        setattr(self.BS, 'd0_' , E.get('gen_bs_d0', i))
+        setattr(self.BS, 'dz_' , E.get('gen_bs_dz', i))
+
+        # these three quantities are specific to signal gen muons
+        if isSignal:
+            for attr in ('cosAlpha', 'deltaR'):
+                self.set(attr, E, 'gen_'+attr, i)
+
+            # genMuons and dimuons get Lxy with Lxy()
+            # so make sure that the name doesn't collide
+            self.set('Lxy_', E, 'gen_Lxy', i)
+        # other gen muons don't have them, so set them to a dummy value
+        else:
+            for attr in ('cosAlpha', 'deltaR', 'Lxy_'):
+                setattr(self, attr, -999.)
+
+    # access functions
     def Lxy(self):
         return self.Lxy_
-    def d0(self):
-        return self.d0_
-    def dz(self):
-        return self.dz_
+    def d0(self, vertex='BS', extrap='LIN'):
+        if extrap == 'LIN':
+            return self.d0_
+        else:
+            return self.BS.d0_
+    def dz(self, vertex='BS', extrap='LIN'):
+        if extrap == 'LIN':
+            return self.dz_
+        else:
+            return self.BS.dz_
 
     # Lxy, cosAlpha, d0, dz, dR
     headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
@@ -727,10 +752,10 @@ class ImpactParameter(Primitive):
             raise Exception('"extrap" argument should be either None or LIN')
         return getattr(self, axis+val+vertex+extrap)
 
-    def d0   (self, vertex='PV', extrap=None): return self.getValue('d0', None , vertex, extrap)
-    def dz   (self, vertex='PV', extrap=None): return self.getValue('dz', None , vertex, extrap)
-    def d0Sig(self, vertex='PV', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
-    def dzSig(self, vertex='PV', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
+    def d0   (self, vertex='BS', extrap=None): return self.getValue('d0', None , vertex, extrap)
+    def dz   (self, vertex='BS', extrap=None): return self.getValue('dz', None , vertex, extrap)
+    def d0Sig(self, vertex='BS', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
+    def dzSig(self, vertex='BS', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
 
 
     headerVertexFormat        = '|{:^63s}'
