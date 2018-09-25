@@ -7,12 +7,19 @@ import ROOT as R
 # oidx is the 'original' idx of the ORIGINAL list of muons (the idx that the dimuon stores)
 # this is so to break as little of existing code as possible; I often get the closestRecoMuon
 # by doing closestRecoMuon = recoMuons[matches[0]['idx']], which will not work unless idx is the LIST index
-def matchedMuons(genMuon, recoMuons):
+def matchedMuons(genMuon, recoMuons, vertex='BS'):
     matches = []
     if len(recoMuons) == 0:
         return matches
     for i,muon in enumerate(recoMuons):
-        deltaR = muon.p4.DeltaR(genMuon.p4)
+        if vertex != 'BS':
+            deltaR = muon.p4.DeltaR(genMuon.p4)
+        else:
+            try:
+                deltaR = muon.p4.DeltaR(genMuon.BS.p4)
+            except:
+                print '[ANALYSISTOOLS ERROR]: maybe gen muon has no BS member?'
+                exit()
         #if deltaR < min(0.3,genMuon.deltaR) and Selections.CUTS['pT'].apply(muon) and muon.charge == genMuon.charge:
         if deltaR < 0.2:
             try:
@@ -24,12 +31,19 @@ def matchedMuons(genMuon, recoMuons):
 
 # defines a match between a genMuonPair (Primitives.GenMuon) and a dimuon (Primitives.Dimuon)
 # returns list of dictionaries sorted by deltaR of the index of the list, the deltaR gen-reco, and the reco pt
-def matchedDimuons(genMuonPair, dimuons):
+def matchedDimuons(genMuonPair, dimuons, vertex='BS'):
     matches = []
-    genP4 = genMuonPair[0].p4 + genMuonPair[1].p4
+    if vertex != 'BS':
+        genP4 = genMuonPair[0].p4 + genMuonPair[1].p4
+    else:
+        try:
+            genP4 = genMuonPair[0].BS.p4 + genMuonPair[1].BS.p4
+        except:
+            print '[ANALYSISTOOLS ERROR]: maybe gen muon has no BS member?'
+            exit()
     for i, dimuon in enumerate(dimuons):
         deltaR = dimuon.p4.DeltaR(genP4)
-        if deltaR < 0.3:
+        if deltaR < 0.2:
             matches.append({'idx':i, 'deltaR':deltaR, 'pt':dimuon.pt})
     return sorted(matches, key=lambda dic:dic['deltaR'])
 
@@ -42,13 +56,13 @@ def matchedDimuons(genMuonPair, dimuons):
 # exitcode 3 means the dimuon list was empty and nothing was matched
 # muonMatches are the "list" indices of the matching reco muons
 # oMuonMatches are the "original" indices of the matching reco muons
-def findDimuon(genMuonPair, recoMuons, dimuons):
+def findDimuon(genMuonPair, recoMuons, dimuons, vertex='BS'):
     muonMatches = [None, None]
     oMuonMatches = [None, None]
     if len(dimuons) == 0: return None, 3, muonMatches, oMuonMatches
 
     for i, genMuon in enumerate(genMuonPair):
-        matches = matchedMuons(genMuon, recoMuons)
+        matches = matchedMuons(genMuon, recoMuons, vertex=vertex)
         if len(matches) > 0:
             muonMatches[i] = matches[0]['idx']
             oMuonMatches[i] = matches[0]['oidx']
