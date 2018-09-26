@@ -110,7 +110,7 @@ void GenBranches::Fill(
     {
       if (gen_charge[ipart] != 0)
       {
-	      if (!beamspotHandle.failedToGet())
+	if (!beamspotHandle.failedToGet())
         {
           const reco::BeamSpot &beamspot = *beamspotHandle;
           float x_bs = beamspot.x0();
@@ -283,6 +283,10 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     return;
   }
 
+  // Since BSM H is always produced in the hard interaction, take its
+  // vertex position as the position of the hard-interaction vertex
+  TVector3 gen_pv(H->vx(), H->vy(), H->vz());
+
   // fill the branches: mu11, mu12, mu21, mu22, X1, X2, H, and P
   // and any additional muons
   std::vector<const reco::Candidate*> particles = {mu11, mu12, mu21, mu22, X1, X2, H, P};
@@ -326,7 +330,10 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     TVector3 p1(mu1->px(), mu1->py(), mu1->pz());
     TVector3 p2(mu2->px(), mu2->py(), mu2->pz());
 
-    float Lxy      = mu1->vertex().Rho();
+    // Transverse displacement w.r.t. the hard-interaction vertex
+    float Lxy      =
+      sqrt(pow((mu1->vx()-gen_pv.x()),2) + pow((mu1->vy()-gen_pv.y()),2));
+
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
@@ -425,6 +432,10 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     return;
   }
 
+  // Since BSM H is always produced in the hard interaction, take its
+  // vertex position as the position of the hard-interaction vertex
+  TVector3 gen_pv(H->vx(), H->vy(), H->vz());
+
   // fill the branches: mu+, mu-, q, qbar, X, X', H, and P
   std::vector<const reco::Candidate*> particles = {mup, mum, q1, q2, X, XP, H, P};
   if (muAll.size() > 2)
@@ -467,7 +478,10 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     TVector3 p1(part1->px(), part1->py(), part1->pz());
     TVector3 p2(part2->px(), part2->py(), part2->pz());
 
-    float Lxy      = part1->vertex().Rho();
+    // Transverse displacement w.r.t. the hard-interaction vertex
+    float Lxy      =
+      sqrt(pow((part1->vx()-gen_pv.x()),2) + pow((part1->vy()-gen_pv.y()),2));
+
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
