@@ -2,6 +2,7 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
+import DisplacedDimuons.Analysis.Selections as Selections
 
 #
 # voms-proxy-init --voms cms
@@ -62,14 +63,14 @@ def declareImpactHists(self, str):
 
 
 def declareHistograms(self, Params=None):
+    self.HistInit('d0Diff vs radial position', 'd0diffVsRadius; Radius [cm]; d0 [cm]', 100, 0, 400, 100, 0, 20)
     declareImpactHists(self,'0') #make d0 hists
     declareImpactHists(self,'z') #make identical dz hists
     
 #str = '0' or 'z' for d0 or dz  
-def fillImpactHists(self, mu,genMuons, str):
+def fillImpactHists(self, mu,closestGen, str):
     for i, d_1_t in enumerate(d0Types):
         d_1_str = d_1_t[2]
-        closestGen = findClosestGenMuon(mu, genMuons)
         mu_d = 0
         gen_d = 0
         if str == 'z':
@@ -94,12 +95,63 @@ def fillImpactHists(self, mu,genMuons, str):
             else: return
             d_2_str = d_2_t[2]
             self.HISTS['d%s %s-%s'%(str, d_1_str, d_2_str)].Fill(mu_d-mu_d2)
+            
+
+
+def findBestMatches(genReco):
+    #thereturn = []
+    min_dR = 0.2
+    min_reco = None
+    min_gen = None
+    for gen in genReco:
+        for i, reco in enumerate(genReco[gen]):
+            dR = reco.p4.DeltaR(gen.p4)
+            if dR < min_dR:
+                min_dR = dR
+                min_reco = reco
+                min_gen = gen
+    
+                
+    #didn't find any that match       
+    if min_dR == 0.2:
+        return []
+    #if we did, remove it from the list
+    del genReco[min_gen]
+    for gen in genReco:
+        for i,reco in enumerate(genReco[gen]):
+            if reco == min_reco:
+                genReco[gen].pop(i)
+                break
+            
+            
+    # look in remaining list 
+    remainingPairs = findBestMatches(genReco)
+    remainingPairs.insert(0, [min_gen,min_reco])
+    return remainingPairs
+        
+            
+def matchGenReco(genMuons, recoMuons):
+    #make a dictionary of all the differences
+    genReco = {}
+    for gen in genMuons:
+        genReco[gen] = [] # make an array for each dR
+        for reco in recoMuons:
+            #genReco_dRs[gen].append(reco.p4.DeltaR(gen.p4))
+            genReco[gen].append(reco)
+            
+    #print genReco
+    return findBestMatches(genReco)
+    
                 
             
       
 def analyze(self, E, PARAMS=None):
     
-    Muons = E.getPrimitives('DSAMUON')
+    #selections
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
+    
+    recoMuons = E.getPrimitives('DSAMUON')
     #Muons = E.getPrimitives('RSAMUON')
     
     #Dimuons = E.getPrimitives("DIMUON")
@@ -110,19 +162,14 @@ def analyze(self, E, PARAMS=None):
     else:
         print "Haven't implemented non-4mu samples"
         return
+       
     
-    #selections
-    #if self.TRIGGER:
-    #    if not Selections.passTrigger(E): return
-    
-    #for dim in Dimuons:
-    #    for mu in [dim.mu1, dim.mu2]:
-    #        fillImpactHists(self,mu,genMuons, 'z')
-    #        fillImpactHists(self,mu,genMuons, '0')
-    
-    for mu in Muons:    
-        fillImpactHists(self, mu, genMuons,'z')
-        fillImpactHists(self, mu, genMuons, '0')
+    matches = matchGenReco(genMuons, recoMuons)
+    for [gen, reco] in matches:
+        fillImpactHists(self, reco, gen,'z')
+        fillImpactHists(self, reco, gen,'0')
+        
+
 
 
 #### RUN ANALYSIS ####
@@ -133,6 +180,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT','GEN', 'DSAMUON', 'RSAMUON','DIMUON'),
+        BRANCHKEYS  = ('EVENT','GEN', 'DSAMUON', 'TRIGGER','DIMUON'),
     )
     analyzer.writeHistograms('roots/d0ComparisonPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
