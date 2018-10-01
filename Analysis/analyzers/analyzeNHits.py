@@ -25,13 +25,11 @@ def declareResolutionHists(self,name, maxHits=4):
     
     for i in range(1, maxHits+1):
         self.HistInit('%s_%ihit'%(name, i), '%s_%ihit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%(name,i), 50, -1, 5)
+        self.HistInit('%s_%ihit_gauss'%(name, i), '%s_%ihit_gauss; (DSA(q/p_{T}) - Gen(q/p_{T}))/Gen(q/p_{T}); Count'%(name,i), 50, -5, 5)
     if maxHits > 4:
-        self.HistInit('%s_5+hit'%name, '%s_4+hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
-        
-    #self.HistInit('%s_1hit'%name, '%s_1hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
-    #self.HistInit('%s_2hit'%name, '%s_2hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
-    #self.HistInit('%s_3hit'%name, '%s_3hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
-    #self.HistInit('%s_4hit'%name, '%s_4hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
+        self.HistInit('%s_4+hit'%name, '%s_4+hit; (DSA P_{T} - Gen P_{T})/Gen P_{T}; Count'%name, 50, -1, 5)
+        self.HistInit('%s_4+hit_gauss'%name, '%s_4+hit_gauss; (DSA(q/p_{T}) - Gen(q/p_{T}))/Gen(q/p_{T}); Count'%name, 50, -5, 5)
+     
     self.HistInit('chi2/ndf vs n%sStats'%name,'chi2/ndf vs n%sStats; Stations; #Chi^{2} / ndf'%name, 4, 1,5, 50, 0,3)
     self.HistInit('dPt/Pt vs n%sStats'%name, 'dPt/Pt vs n%sStats; Stations; #sigma_{Pt}/Pt'%name, 4,1,5, 50, 0, 1)
 
@@ -46,15 +44,17 @@ def declareHistograms(self, Params=None):
     self.HistInit('dtStations', 'dtStations; Stations; DSA Muons', 9, 0, 9)
     self.HistInit('csc&dtStations', 'csc&dtStations; Stations; DSA Muons', 9, 0, 9)
     
+    self.HistInit('test','test;#delta p_{T}; Reco Muons', 100, -5,5)
+    
+    
     
 
 def findBestMatches(genReco):
-    #thereturn = []
     min_dR = 0.2
     min_reco = None
     min_gen = None
     for gen in genReco:
-        for i, reco in enumerate(genReco[gen]):
+        for reco in genReco[gen]:
             dR = reco.p4.DeltaR(gen.p4)
             if dR < min_dR:
                 min_dR = dR
@@ -66,7 +66,7 @@ def findBestMatches(genReco):
     if min_dR == 0.2:
         return []
     #if we did, remove it from the list
-    del genReco[min_gen]
+    genReco.pop(min_gen)
     for gen in genReco:
         for i,reco in enumerate(genReco[gen]):
             if reco == min_reco:
@@ -86,7 +86,6 @@ def matchGenReco(genMuons, recoMuons):
     for gen in genMuons:
         genReco[gen] = [] # make an array for each dR
         for reco in recoMuons:
-            #genReco_dRs[gen].append(reco.p4.DeltaR(gen.p4))
             genReco[gen].append(reco)
             
     #print genReco
@@ -136,10 +135,10 @@ def analyze(self, E, PARAMS=None):
     if self.TRIGGER:
         if not Selections.passedTrigger(E): return
         
-    noStationCount = 0
         
     matches = matchGenReco(genMuons, recoMuons)
     for [gen, reco] in matches:  
+        self.HISTS['test'].Fill(reco.pt-dimuToDsa[reco].pt)
         ndt = dimuToDsa[reco].nDTStations
         ncsc = dimuToDsa[reco].nCSCStations
         self.HISTS['cscStations'].Fill(ncsc)
@@ -150,22 +149,24 @@ def analyze(self, E, PARAMS=None):
                 if dimuToDsa[reco].ndof != 0: self.HISTS['chi2/ndf vs ndtStats'].Fill(ndt, dimuToDsa[reco].chi2/dimuToDsa[reco].ndof)
                 if reco.pt != 0: self.HISTS['dPt/Pt vs ndtStats'].Fill(ndt, reco.ptError/reco.pt)
                 if gen.pt != 0: self.HISTS['dt_%ihit'%ndt].Fill((reco.pt - gen.pt)/gen.pt)
-            else:
-                noStationCount +=1
+                if gen.pt != 0: self.HISTS['dt_%ihit_gauss'%ndt].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
         else:
             if ndt == 0:
                 if dimuToDsa[reco].ndof != 0: self.HISTS['chi2/ndf vs ncscStats'].Fill(ncsc, dimuToDsa[reco].chi2/dimuToDsa[reco].ndof)
                 if reco.pt != 0: self.HISTS['dPt/Pt vs ncscStats'].Fill(ncsc, reco.ptError/reco.pt)
                 if gen.pt != 0: self.HISTS['csc_%ihit'%ncsc].Fill((reco.pt - gen.pt)/gen.pt)
+                if gen.pt != 0: self.HISTS['csc_%ihit_gauss'%ncsc].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
             else: # csc !=0 & dt !=0
                 if gen.pt != 0: 
                     nstat = ndt+ncsc
                     if nstat > 4:
-                        self.HISTS['csc&dt_5+hit'].Fill((reco.pt - gen.pt)/gen.pt)
+                        self.HISTS['csc&dt_4+hit'].Fill((reco.pt - gen.pt)/gen.pt)
+                        self.HISTS['csc&dt_4+hit_gauss'].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
                     else:
                         self.HISTS['csc&dt_%ihit'%(ncsc+ndt)].Fill((reco.pt - gen.pt)/gen.pt)
+                        self.HISTS['csc&dt_%ihit_gauss'%(ncsc+ndt)].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
                     
-                if gen.pt != 0: self.HISTS['csc&dt_%ihit'%(ncsc+ndt)].Fill((reco.pt - gen.pt)/gen.pt)
+                #if gen.pt != 0: self.HISTS['csc&dt_%ihit'%(ncsc+ndt)].Fill((reco.pt - gen.pt)/gen.pt)
                     
     
 

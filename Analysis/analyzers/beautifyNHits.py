@@ -15,7 +15,7 @@ sample = 'HTo2XTo4Mu'
 
 colors = [r.kRed, r.kOrange+2, r.kBlue+2,r.kBlack, r.kGreen+2, r.kMagenta+1, r.kYellow-2, r.kViolet+2]
 
-def makePlot(chamberType, f, mH, mX, ct):
+def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     arr = filename.split('_')
         
     ct = arr[-1].split('.')[0]
@@ -39,13 +39,16 @@ def makePlot(chamberType, f, mH, mX, ct):
         stations = [1,2,3,4,5]
     else:
         stations = [1,2,3,4]
+        
+    if len(plotType) != 0:
+        plotType +='_'
     
     for i in stations:
         if i == 5:
-            h = f.Get('%s_%i+hit_%s'%(chamberType,i, sampleName))
+            h = f.Get('%s_%i+hit_%s%s'%(chamberType,i, plotType, sampleName))
             h.SetName("%i+ %s Stat(s)"%(i,chamberType.upper()))
         else:
-            h = f.Get('%s_%ihit_%s'%(chamberType,i, sampleName))
+            h = f.Get('%s_%ihit_%s%s'%(chamberType,i, plotType,sampleName))
             h.SetName("%i %s Stat(s)"%(i,chamberType.upper()))
         h.SetLineColor(colors[i-1])
                 
@@ -92,10 +95,11 @@ for k, filename in enumerate(glob.glob('roots/nStationsComparisonPlots_Trig_' + 
     print id
     f = r.TFile(filename)
     #cscC = makePlot('csc', f, mH, mX, ct)
-    makePlot('csc', f, mH, mX, ct)
-    #dtC  = makePlot('dt', f, mH, mX, ct)
-    makePlot('dt', f, mH, mX, ct)
-    makePlot('csc&dt', f, mH, mX, ct)
+    for plotType in ['', 'gauss']:
+        makePlot('csc', f, mH, mX, ct,plotType)
+        #dtC  = makePlot('dt', f, mH, mX, ct)
+        makePlot('dt', f, mH, mX, ct, plotType)
+        makePlot('csc&dt', f, mH, mX, ct,plotType)
     
 #     c = r.TCanvas()
 #     c.cd()
