@@ -29,7 +29,10 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     c = r.TCanvas()
     c.cd()
     c.SetLogy()
-    r.gStyle.SetOptStat(101111)
+    if len(plotType) == 0:
+        r.gStyle.SetOptStat(101111)
+    else:
+        r.gStyle.SetOptStat(111111)
     r.gStyle.SetOptFit()
     
     sampleName = sample + '_' + mH + '_' + mX + '_' + ct
@@ -57,7 +60,7 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
         if i == 1:
             h.SetTitle("mH=%s mX=%s ct=%3.1f [cm]" % (mH, mX, float(ct) / 10))
             h.Draw()
-            h.SetMaximum(5000)
+            h.SetMaximum(10000)
             h.SetMinimum(0.5)
         else:
             h.Draw('sames')
@@ -80,7 +83,7 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
             
         c.Update()
         
-    c.Print('%sHits_%s.pdf'%(chamberType,sampleName))
+    c.Print('%sHits_%s%s.pdf'%(chamberType,sampleName,plotType))
     #return c
     
 
