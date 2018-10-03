@@ -96,8 +96,11 @@ def analyze(self, E, PARAMS=None):
         mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu11, mu12, mu21, mu22)
         genMuonPairs = ((mu11, mu12), (mu21, mu22))
+    elif '2Mu2J' in self.NAME:
+        mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
+        genMuons = (mu1, mu2)
     else:
-        print "Haven't implemented non-4mu samples"
+        print "Haven't implemented these samples"
         return
     
     #selections

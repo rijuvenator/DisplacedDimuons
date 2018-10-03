@@ -6,7 +6,8 @@ import re
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
 
-sample = 'HTo2XTo4Mu'
+#sample = 'HTo2XTo4Mu'
+sample = 'HTo2XTo2Mu2J'
 
 # TODO:
 # could put many pdfs on a single pad
@@ -83,11 +84,11 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
             
         c.Update()
         
-    c.Print('%sHits_%s%s.pdf'%(chamberType,sampleName,plotType))
+    c.Print('pdf/%sHits_%s%s.pdf'%(chamberType,sampleName,plotType))
     #return c
     
 
-for k, filename in enumerate(glob.glob('roots/nStationsComparisonPlots_Trig_' + sample + '*.root')):
+for k, filename in enumerate(glob.glob('../analyzers/roots/nStationsComparisonPlots_Trig_' + sample + '*.root')):
     arr = filename.split('_')
         
     ct = arr[-1].split('.')[0]
