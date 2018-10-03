@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 def begin(self, PARAMS=None):
@@ -44,7 +44,8 @@ def analyze(self, E, PARAMS=None):
     # loop over genMuonPairs, find dimuon, and do something based on result
     for genMuonPair in genMuonPairs:
         if len(dimuons) > 0:
-            savedDimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, muons, dimuons)
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, dimuons, muons)
+            savedDimuon = dimuonMatches[0]['dim'] if len(dimuonMatches) > 0 else None
             if savedDimuon is not None:
                 for dimuon in dimuons:
                     if dimuon.idx1 == savedDimuon.idx1 and dimuon.idx2 == savedDimuon.idx2:
@@ -57,7 +58,8 @@ def analyze(self, E, PARAMS=None):
 
     #for genMuonPair in genMuonPairs:
     #    if len(dimuons) > 0:
-    #        savedDimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, muons, dimuons)
+    #        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, dimuons, muons)
+    #        savedDimuon = dimuonMatches[0]['dim'] if len(dimuonMatches) > 0 else None
     #        if savedDimuon is not None:
     #            for dimuon in dimuons:
     #                dR, chi2, sigLxy = dimuon.deltaR, dimuon.normChi2, dimuon.Lxy()/dimuon.LxySig()

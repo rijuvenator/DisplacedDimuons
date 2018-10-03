@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -81,11 +81,12 @@ def analyze(self, E, PARAMS=None):
         for key in muonSelections:
             if len(selectedDimuons[key]) > 0:
                 self.COUNTERS[key]['nDimuons'] += 1
-                dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedMuons[key], selectedDimuons[key])
-                if dimuon is not None:
+                dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons[key], selectedMuons[key])
+                if len(dimuonMatches) > 0:
                     self.COUNTERS[key]['nMatches'] += 1
                     sortedDimuons = sorted(selectedDimuons[key], key=lambda dim: dim.normChi2)
                     bestDimuon = sortedDimuons[0]
+                    dimuon = dimuonMatches[0]['idx']
                     if bestDimuon.idx1 == dimuon.idx1 and bestDimuon.idx2 == dimuon.idx2:
                         self.COUNTERS[key]['nCorrect'] += 1
                         if key == 'loose':

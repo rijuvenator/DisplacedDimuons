@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
@@ -142,32 +142,30 @@ def analyze(self, E, PARAMS=None):
         #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         #if not genMuonSelection: continue
 
-        # find closest matched dimuon
-        matches = matchedDimuons(genMuonPair, selectedDimuons)
-        if len(matches) != 0:
-            closestDimuon = selectedDimuons[matches[0]['idx']]
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons)
+        if len(dimuonMatches) > 0:
+            dimuon = dimuonMatches[0]['dim']
             for KEY in ('Lxy',):
                 F = CONFIG[KEY]['LAMBDA']
                 RF = CONFIG[KEY]['RESFUNC']
                 if KEY in ('Lxy',):
                     for x in (0,):
-                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RF(F(closestDimuon),F(genMuonPair[0])))
-                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(F(genMuonPair[0]), F(closestDimuon))
+                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RF(F(dimuon),F(genMuonPair[0])))
+                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(F(genMuonPair[0]), F(dimuon))
                     for KEY2 in CONFIG:
                         if KEY2 == 'qm': continue
                         F2 = CONFIG[KEY2]['LAMBDA']
-                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
+                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(dimuon),F(genMuonPair[0])))
 
-        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
-        if dimuon is not None:
             F = CONFIG['pT']['LAMBDA']
             RF = CONFIG['pT']['RESFUNC']
             F2 = CONFIG['Lxy']['LAMBDA']
-            # be very careful with the indices in muonMatches vs. oMuonMatches
-            # the muonMatches indices are the index of the selectedDSAmuons LIST
-            # the oMuonMatches indices are the index of the DSAmuons list, the "original" indices
+            # be very careful with the indices in muonMatches
+            # the muonMatches idx are the index of the selectedDSAmuons LIST
+            # the muonMatches oidx are the index of the DSAmuons list, the "original" indices
             # a dimuon.idx can only be compared to an oIndex!
-            for which, (index, oIndex) in enumerate(zip(muonMatches, oMuonMatches)):
+            for which, matchList in enumerate(muonMatches):
+                index, oIndex = matchList[0]['idx'], matchList[0]['oidx']
                 self.HISTS['RefitBefore_pTRes'     ].Fill(RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
                 self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
 

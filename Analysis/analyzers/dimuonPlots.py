@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
@@ -131,9 +131,10 @@ def analyze(self, E, PARAMS=None):
             #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
 
             # find the matching dimuon, if any, and fill
-            dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons)
 
-            if dimuon is not None:
+            if len(dimuonMatches) > 0:
+                dimuon = dimuonMatches[0]['dim']
                 for KEY in CONFIG:
                     self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
                 for KEY in EXTRACONFIG:

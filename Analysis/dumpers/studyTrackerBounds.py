@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # internal loop function for Analyzer class
@@ -29,15 +29,16 @@ def analyze(self, E, PARAMS=None):
         if not genMuonSelection: continue
 
         # check if any DSA muons match a genMuon
-        dimuon, exitcode, muonMatches = findDimuon(genMuonPair, DSAmuons, Dimuons)
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, Dimuons, DSAmuons)
 
         # print if exitcode 2: gen muons matched, but no dimuon found, and Lxy>340
-        if dimuon is None and exitcode == 2 and genMuonPair[0].Lxy() > 340.:
+        if len(dimuonMatches) > 0 and exitcode == 2 and genMuonPair[0].Lxy() > 340.:
             dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS)
 
 # dump info
 def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
+    muonMatchIndices = [muonMatches[0]['idx'], muonMatches[1]['idx']]
     for genMuon in genMuonPair:
         print 'Gen Muon Pair: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f} {:11.4f} {:9.4f}'.format(
                 '',
@@ -67,7 +68,7 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS
             muon.nCSCHits,
             muon.nMuonHits
         )
-        if i in muonMatches:
+        if i in muonMatchIndices:
             if PARAMS.COLOR:
                 fstring = '\033[31m' + fstring + '\033[m'
             else:
