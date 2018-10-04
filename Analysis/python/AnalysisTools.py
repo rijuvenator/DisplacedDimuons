@@ -66,20 +66,45 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
     if len(dimuons) == 0:
         return [], [[], []], 3
 
+    # return matched based on refitted tracks
     if recoMuons is None:
         dimuonMatches = []
         muonMatches = [[], []]
         for idx,dimuon in enumerate(dimuons):
             deltaR_Align = [proximityMatch(genMuonPair[0], dimuon.mu1, vertex=vertex), proximityMatch(genMuonPair[1], dimuon.mu2, vertex=vertex)]
             deltaR_Cross = [proximityMatch(genMuonPair[0], dimuon.mu2, vertex=vertex), proximityMatch(genMuonPair[1], dimuon.mu1, vertex=vertex)]
-            if (deltaR_Align[0] is not None and deltaR_Align[1] is not None) or (deltaR_Cross[0] is not None and deltaR_Cross[1]):
-                dimuonMatches.append({'idx':idx, 'dim':dimuon})
-            if deltaR_Align[0] is not None and deltaR_Align[1] is not None:
-                muonMatches[0].append({'idx':dimuon.idx1, 'deltaR':deltaR_Align[0], 'oidx':dimuon.idx1, 'didx':idx})
-                muonMatches[1].append({'idx':dimuon.idx2, 'deltaR':deltaR_Align[1], 'oidx':dimuon.idx2, 'didx':idx})
-            if deltaR_Cross[0] is not None and deltaR_Cross[1] is not None:
-                muonMatches[0].append({'idx':dimuon.idx2, 'deltaR':deltaR_Cross[0], 'oidx':dimuon.idx2, 'didx':idx})
-                muonMatches[1].append({'idx':dimuon.idx1, 'deltaR':deltaR_Cross[1], 'oidx':dimuon.idx1, 'didx':idx})
+
+            # figure out which pairing resulted in both muons being matched
+            alignMatched = deltaR_Align[0] is not None and deltaR_Align[1] is not None
+            crossMatched = deltaR_Cross[0] is not None and deltaR_Cross[1] is not None
+
+            # fill in either case
+            # if BOTH cases matched, first check if there's an "obvious" answer: both Align < or both Cross <
+            # if there is, pick that one. if not, keep both and fill twice -- this is ambiguous
+            # the "align" decision is (1, 2); the "cross" decision is (2, 1)
+            if alignMatched or crossMatched:
+                if alignMatched and crossMatched:
+                    if deltaR_Align[0] < deltaR_Cross[0] and deltaR_Align[1] < deltaR_Cross[1]:
+                        decisions = ((1, 2),)
+                    elif deltaR_Align[0] > deltaR_Cross[0] and deltaR_Align[1] > deltaR_Cross[1]:
+                        decisions = ((2, 1),)
+                    else:
+                        decisions = ((1, 2), (2, 1))
+                else:
+                    if alignMatched:
+                        decisions = ((1, 2),)
+                    elif crossMatched:
+                        decisions = ((2, 1),)
+
+                for decision in decisions:
+                    if decision == (1, 2):
+                        deltaR_Vals = deltaR_Align
+                    else:
+                        deltaR_Vals = deltaR_Cross
+                    dimuonMatches.append({'idx':idx, 'dim':dimuon})
+                    for genIdx in (0, 1):
+                        muIdx = getattr(dimuon, 'idx'+str(decision[genIdx]))
+                        muonMatches[genIdx].append({'idx':muIdx, 'deltaR':deltaR_Vals[genIdx], 'oidx':muIdx, 'didx':idx, 'ambiguous':len(decisions)>1})
 
         # some exploitation of zip being its own inverse
         # first zip: put all the lists into a single table so each "row" can be sorted
@@ -91,6 +116,8 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
             sortTable = zip(dimuonMatches, muonMatches[0], muonMatches[1])
             sortTable.sort(key=lambda row:(row[1]['deltaR'],row[2]['deltaR']))
             dimuonMatches, muonMatches[0], muonMatches[1] = zip(*sortTable)
+
+    # return matched based on original tracks
     else:
         muonMatches = []
         for genMuon in genMuonPair:
@@ -111,7 +138,6 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
                     except:
                         pass
 
-    # NOT FINISHED YET
     if len(dimuonMatches) > 0:
         return dimuonMatches, muonMatches, 0
     elif len(muonMatches[0]) > 0 and len(muonMatches[1]) > 0:
