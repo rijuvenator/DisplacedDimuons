@@ -29,7 +29,7 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     
     c = r.TCanvas()
     c.cd()
-    #c.SetLogy()
+    c.SetLogy()
     if len(plotType) == 0:
         r.gStyle.SetOptStat(101111)
     else:
@@ -49,10 +49,10 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     
     for i in stations:
         if i == 5:
-            h = f.Get('%s_%i+stat_%s%s'%(chamberType,i, plotType, sampleName))
+            h = f.Get('%s_%i+hit_%s%s'%(chamberType,i, plotType, sampleName))
             h.SetName("%i+ %s Stat(s)"%(i,chamberType.upper()))
         else:
-            h = f.Get('%s_%istat_%s%s'%(chamberType,i, plotType,sampleName))
+            h = f.Get('%s_%ihit_%s%s'%(chamberType,i, plotType,sampleName))
             h.SetName("%i %s Stat(s)"%(i,chamberType.upper()))
         h.SetLineColor(colors[i-1])
                 
@@ -61,11 +61,8 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
         if i == 1:
             h.SetTitle("mH=%s mX=%s ct=%3.1f [cm]" % (mH, mX, float(ct) / 10))
             h.Draw()
-            if chamberType == 'csc&dt':
-                h.SetMaximum(1000)
-            else:
-                h.SetMaximum(2500)
-            h.SetMinimum(0)
+            h.SetMaximum(10000)
+            h.SetMinimum(0.5)
         else:
             h.Draw('sames')
         
@@ -91,7 +88,7 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     #return c
     
 
-for k, filename in enumerate(glob.glob('../analyzers/roots/nHitsComparisonPlots_Trig_' + sample + '*.root')):
+for k, filename in enumerate(glob.glob('../analyzers/roots/nStationsComparisonPlots_Trig_' + sample + '*.root')):
     arr = filename.split('_')
         
     ct = arr[-1].split('.')[0]
@@ -102,7 +99,7 @@ for k, filename in enumerate(glob.glob('../analyzers/roots/nHitsComparisonPlots_
     print id
     f = r.TFile(filename)
     #cscC = makePlot('csc', f, mH, mX, ct)
-    for plotType in ['']:
+    for plotType in ['', 'gauss']:
         makePlot('csc', f, mH, mX, ct,plotType)
         #dtC  = makePlot('dt', f, mH, mX, ct)
         makePlot('dt', f, mH, mX, ct, plotType)
