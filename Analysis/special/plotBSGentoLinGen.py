@@ -3,15 +3,18 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr
 
+# first 3 plots are from ResTest
+# last 2 plots are from RefPointTest
 config = (
-    ('pT'    , ('RG', 'BS'), ('normal'  , 'beamspot'), 'tr', -.1),
-    ('d0'    , ('RG', 'BS'), ('normal'  , 'beamspot'), 'tl',   0),
-    ('deltaR', ('RG', 'BS'), ('normal'  , 'beamspot'), 'tr', -.1),
-#   ('Lxy'   , ('OT', 'RF'), ('original', 'refitted'), 'tl',   0),
-#   ('d0G'   , ('OT', 'RF'), ('original', 'refitted'), 'tl',   0),
+    ('pT'    , ('RG', 'BS'), ('normal' , 'beamspot'), 'tr', -.1),
+    ('d0'    , ('RG', 'BS'), ('normal' , 'beamspot'), 'tl',   0),
+    ('deltaR', ('RG', 'BS'), ('normal' , 'beamspot'), 'tr', -.1),
+    ('Lxy'   , ('ZZ', 'BS'), ('(0,0,0)', 'beamspot'), 'tl',   0),
+    ('d0G'   , ('ZZ', 'BS'), ('(0,0,0)', 'beamspot'), 'tl',   0),
 )
 
 f = R.TFile.Open('roots/ResTest.root')
+f = R.TFile.Open('roots/RefPointTest.root')
 for fs in ('2Mu2J', '4Mu'):
     for sp in SIGNALPOINTS:
         for quantity, names, legends, lpos, movement in config:

@@ -5,15 +5,15 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 CONFIG = {
-    'pT': ('pT' , 'p_{T}', (100,  -1.,  5.), lambda rmu: rmu.pt   , lambda gmu, extrap: gmu.pt if extrap == 'LIN' else gmu.BS.pt , lambda rq, gq: (rq-gq)/gq),
-    'd0': ('d0' , 'd_{0}', (100, -50., 50.), lambda rmu: rmu.d0() , lambda gmu, extrap: gmu.d0(extrap)                           , lambda rq, gq:  rq-gq    ),
+    'pT': ('p_{T}', (100,  -1.,  5.), lambda rmu: rmu.pt   , lambda gmu, extrap: gmu.pt if extrap == 'LIN' else gmu.BS.pt , lambda rq, gq: (rq-gq)/gq),
+    'd0': ('d_{0}', (100, -50., 50.), lambda rmu: rmu.d0() , lambda gmu, extrap: gmu.d0(extrap=extrap)                    , lambda rq, gq:  rq-gq    ),
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    for KEY in ('pT', 'd0'):
-        QUANTITY, PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[KEY]
+    for QUANTITY in ('pT', 'd0'):
+        PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
         self.HistInit(QUANTITY+'ResRG', ';'+PRETTY+' Res;Counts', *AXES)
         self.HistInit(QUANTITY+'ResBS', ';'+PRETTY+' Res;Counts', *AXES)
     self.HistInit('deltaRRG', ';#DeltaR(#mu#mu);Counts', 50, 0., .2)
@@ -42,14 +42,14 @@ def analyze(self, E, PARAMS=None):
         matchesBS = matchedMuons(genMuon, DSAmuons             )
         if len(matchesRG) > 0:
             recoMuon = DSAmuons[matchesRG[0]['idx']]
-            for KEY in ('pT', 'd0'):
-                QUANTITY, PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[KEY]
+            for QUANTITY in ('pT', 'd0'):
+                PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
                 self.HISTS[QUANTITY+'ResRG'].Fill(RESFUNC(RFUNC(recoMuon), GFUNC(genMuon, 'LIN')))
             self.HISTS['deltaRRG'].Fill(matchesRG[0]['deltaR'])
         if len(matchesBS) > 0:
             recoMuon = DSAmuons[matchesBS[0]['idx']]
-            for KEY in ('pT', 'd0'):
-                QUANTITY, PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[KEY]
+            for QUANTITY in ('pT', 'd0'):
+                PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
                 self.HISTS[QUANTITY+'ResBS'].Fill(RESFUNC(RFUNC(recoMuon), GFUNC(genMuon, 'FULL')))
             self.HISTS['deltaRBS'].Fill(matchesBS[0]['deltaR'])
 

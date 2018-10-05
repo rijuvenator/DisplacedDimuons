@@ -80,7 +80,8 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
 
             # fill in either case
             # if BOTH cases matched, first check if there's an "obvious" answer: both Align < or both Cross <
-            # if there is, pick that one. if not, keep both and fill twice -- this is ambiguous
+            # if there is, pick that one.
+            # if not, this is ambiguous. In this case, we will randomly keep (1, 2).
             # the "align" decision is (1, 2); the "cross" decision is (2, 1)
             if alignMatched or crossMatched:
                 if alignMatched and crossMatched:
@@ -89,7 +90,8 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
                     elif deltaR_Align[0] > deltaR_Cross[0] and deltaR_Align[1] > deltaR_Cross[1]:
                         decisions = ((2, 1),)
                     else:
-                        decisions = ((1, 2), (2, 1))
+                        # this is ambiguous, but we will make a decision now
+                        decisions = ((1, 2),)
                 else:
                     if alignMatched:
                         decisions = ((1, 2),)
@@ -104,7 +106,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
                     dimuonMatches.append({'idx':idx, 'dim':dimuon})
                     for genIdx in (0, 1):
                         muIdx = getattr(dimuon, 'idx'+str(decision[genIdx]))
-                        muonMatches[genIdx].append({'idx':muIdx, 'deltaR':deltaR_Vals[genIdx], 'oidx':muIdx, 'didx':idx, 'ambiguous':len(decisions)>1})
+                        muonMatches[genIdx].append({'idx':muIdx, 'deltaR':deltaR_Vals[genIdx], 'oidx':muIdx, 'didx':idx})
 
         # some exploitation of zip being its own inverse
         # first zip: put all the lists into a single table so each "row" can be sorted
