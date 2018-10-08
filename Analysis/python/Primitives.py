@@ -477,6 +477,7 @@ class Particle(Primitive):
     #  - dsamu, rsamu, dim_mu* do not have pt, mass, energy, but have px, py, pz
     #  - dim does not have energy, charge, but has mass and p
     #  - dim_mu* do not have x, y, z, but they are the same as dim_x, dim_y, dim_z
+    #  - gen_bs does not have mass, charge, but they are the same as gen_mass, gen_charge
     def getMissingValues(self, E, i, prefix):
         missing = {}
         if not hasattr(E, prefix+'pt'):
@@ -881,8 +882,8 @@ class TransverseDecayLength(Primitive):
             raise Exception('"vertex" argument should be either PV or BS')
         return getattr(self, 'Lxy'+val+vertex)
 
-    def Lxy   (self, vertex='PV'): return self.getValue(None , vertex)
-    def LxySig(self, vertex='PV'): return self.getValue('SIG', vertex)
+    def Lxy   (self, vertex='BS'): return self.getValue(None , vertex)
+    def LxySig(self, vertex='BS'): return self.getValue('SIG', vertex)
 
 
     headerVertexFormat = '|{:^15s}'

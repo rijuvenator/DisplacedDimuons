@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
@@ -62,7 +62,7 @@ def analyze(self, E, PARAMS=None):
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons)
 
         # both gen muons matched, but no dimuon: fill den only
         if exitcode == 2:
