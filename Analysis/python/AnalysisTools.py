@@ -3,6 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
 # defines a proximity match between a genMuon and a recoMuon (Primitives.GenMuon and Primitives.RecoMuon/Primitives.TriggerMuon), in either order
+# if deltaR < 0.2, return deltaR; otherwise, return None
 def proximityMatch(muon1, muon2, vertex=None):
     # make sure that genMuons and recoMuons are assigned correctly
     class1 = muon1.__class__.__name__
@@ -20,6 +21,12 @@ def proximityMatch(muon1, muon2, vertex=None):
     if vertex != 'BS':
         deltaR = recoMuon.p4.DeltaR(genMuon.p4)
     else:
+        # deal with refitted tracks with 0 pT -- pretend deltaR is very large
+        # gen 0 pT occurs only when the BS extrapolated gen track doesn't work properly
+        # this happens when gen eta is very large, so they would probably be outside acceptance anyway
+        # to prevent stderr warning lines, return None immediately
+        if genMuon.BS.pt < 1.e-10:
+            return None
         deltaR = recoMuon.p4.DeltaR(genMuon.BS.p4)
 
     # define proximity match
@@ -48,7 +55,7 @@ def matchedMuons(baseMuon, muonList, vertex=None):
                 oidx = muon.idx
             except AttributeError:
                 oidx = None # if muonList is genMuons, which don't have the idx attribute
-            matches.append({'idx':i, 'deltaR':deltaR, 'oidx':oidx})
+            matches.append({'idx':i, 'deltaR':deltaR, 'oidx':oidx, 'muon':muon})
     return sorted(matches, key=lambda dic:dic['deltaR'])
 
 # given a genMuonPair, a list of dimuons, and a list of recoMuons:
@@ -105,8 +112,9 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
                         deltaR_Vals = deltaR_Cross
                     dimuonMatches.append({'idx':idx, 'dim':dimuon})
                     for genIdx in (0, 1):
-                        muIdx = getattr(dimuon, 'idx'+str(decision[genIdx]))
-                        muonMatches[genIdx].append({'idx':muIdx, 'deltaR':deltaR_Vals[genIdx], 'oidx':muIdx, 'didx':idx})
+                        oIdx = getattr(dimuon, 'idx'+str(decision[genIdx]))
+                        muon = getattr(dimuon, 'mu' +str(decision[genIdx]))
+                        muonMatches[genIdx].append({'idx':None, 'deltaR':deltaR_Vals[genIdx], 'oidx':oIdx, 'didx':idx, 'muon':muon})
 
         # some exploitation of zip being its own inverse
         # first zip: put all the lists into a single table so each "row" can be sorted
@@ -132,11 +140,11 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
                 if match1['oidx'] == match2['oidx']: continue
                 try:
                     oIdx = (match1['oidx'], match2['oidx'])
-                    dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0]})
+                    dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0], 'matches':(match1, match2)})
                 except:
                     try:
                         oIdx = (match2['oidx'], match1['oidx'])
-                        dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0]})
+                        dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0], 'matches':(match1, match2)})
                     except:
                         pass
 

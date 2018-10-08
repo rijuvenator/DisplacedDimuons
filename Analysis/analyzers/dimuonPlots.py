@@ -13,7 +13,7 @@ CONFIG = {
     'eta'     : {'AXES':(1000,     -3., 3.     ), 'LAMBDA': lambda dim: dim.eta                           , 'PRETTY':'#eta'                  },
     'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
     'LxySig'  : {'AXES':(5000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
-    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': None                                          , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
+    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
     'vtxChi2' : {'AXES':(1000,      0., 20.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
     'deltaR'  : {'AXES':(1000,      0., 5.     ), 'LAMBDA': lambda dim: dim.deltaR                        , 'PRETTY':'#DeltaR(#mu#mu)'       },
     'deltaEta': {'AXES':(1000,     -5., 5.     ), 'LAMBDA': lambda dim: dim.mu1.eta-dim.mu2.eta           , 'PRETTY':'#Delta#eta(#mu#mu)'    },
@@ -22,13 +22,6 @@ CONFIG = {
     'deltaPhi': {'AXES':(1000,      0., math.pi), 'LAMBDA': lambda dim: dim.deltaPhi                      , 'PRETTY':'#Delta#Phi'            },
     'cosAlpha': {'AXES':(1000,     -1., 1.     ), 'LAMBDA': lambda dim: dim.cosAlpha                      , 'PRETTY':'cos(#alpha)'           },
 }
-
-# define some additional functions
-def getLxyErr(dimuon):
-    return CONFIG['Lxy']['LAMBDA'](dimuon)/CONFIG['LxySig']['LAMBDA'](dimuon)
-
-# actually set the lambda for the keys that were set to None (since the function was not yet defined)
-CONFIG['LxyErr'  ]['LAMBDA'] = getLxyErr
 
 # EXTRACONFIG stores some information about additional histograms
 EXTRACONFIG = {
@@ -131,7 +124,9 @@ def analyze(self, E, PARAMS=None):
             #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
 
             # find the matching dimuon, if any, and fill
-            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons)
+            # old style matching to reco muons
+            #dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
 
             if len(dimuonMatches) > 0:
                 dimuon = dimuonMatches[0]['dim']

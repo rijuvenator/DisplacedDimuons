@@ -670,7 +670,7 @@ class RecoMuon(Muon):
             self.fhit = R.TVector3(self.x_fhit, self.y_fhit, self.z_fhit)
 
     def __getattr__(self, name):
-        if name in ('d0', 'dz', 'd0Sig', 'dzSig'):
+        if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
 
@@ -757,6 +757,8 @@ class ImpactParameter(Primitive):
     def dz   (self, vertex='BS', extrap=None): return self.getValue('dz', None , vertex, extrap)
     def d0Sig(self, vertex='BS', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
     def dzSig(self, vertex='BS', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
+    def d0Err(self, vertex='BS', extrap=None): return self.d0(vertex, extrap)/self.d0Sig(vertex, extrap)
+    def dzErr(self, vertex='BS', extrap=None): return self.dz(vertex, extrap)/self.dzSig(vertex, extrap)
 
 
     headerVertexFormat        = '|{:^63s}'
@@ -817,7 +819,7 @@ class Dimuon(Particle):
         self.idx2 = self.mu2.idx
 
     def __getattr__(self, name):
-        if name in ('Lxy', 'LxySig'):
+        if name in ('Lxy', 'LxySig', 'LxyErr'):
             return getattr(self.Lxy_, name)
         raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
 
@@ -884,6 +886,7 @@ class TransverseDecayLength(Primitive):
 
     def Lxy   (self, vertex='BS'): return self.getValue(None , vertex)
     def LxySig(self, vertex='BS'): return self.getValue('SIG', vertex)
+    def LxyErr(self, vertex='BS'): return self.Lxy(vertex)/self.LxySig(vertex)
 
 
     headerVertexFormat = '|{:^15s}'
