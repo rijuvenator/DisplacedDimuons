@@ -2,15 +2,15 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
-# defines a proximity match between a genMuon and a recoMuon (Primitives.GenMuon and Primitives.RecoMuon), in either order
-def proximityMatch(muon1, muon2, vertex='BS'):
+# defines a proximity match between a genMuon and a recoMuon (Primitives.GenMuon and Primitives.RecoMuon/Primitives.TriggerMuon), in either order
+def proximityMatch(muon1, muon2, vertex=None):
     # make sure that genMuons and recoMuons are assigned correctly
     class1 = muon1.__class__.__name__
     class2 = muon2.__class__.__name__
-    if class1 == Primitives.GenMuon.__name__ and class2 == Primitives.RecoMuon.__name__:
+    if class1 == Primitives.GenMuon.__name__ and (class2 == Primitives.RecoMuon.__name__ or class2 == Primitives.TriggerMuon.__name__):
         genMuon = muon1
         recoMuon = muon2
-    elif class2 == Primitives.GenMuon.__name__ and class1 == Primitives.RecoMuon.__name__:
+    elif class2 == Primitives.GenMuon.__name__ and (class1 == Primitives.RecoMuon.__name__ or class1 == Primitives.TriggerMuon.__name__):
         genMuon = muon2
         recoMuon = muon1
     else:
@@ -37,7 +37,7 @@ def proximityMatch(muon1, muon2, vertex='BS'):
 # Note: this function was originally designed with baseMuon = genMuon and muonList = list(recoMuons)
 # but it is sometimes useful to have baseMuon = recoMuon and muonList = list(genMuons)
 # so the functions are treated symmetrically
-def matchedMuons(baseMuon, muonList, vertex='BS'):
+def matchedMuons(baseMuon, muonList, vertex=None):
     matches = []
     if len(muonList) == 0:
         return matches
@@ -62,7 +62,7 @@ def matchedMuons(baseMuon, muonList, vertex='BS'):
 # exitcode 1 means both gen muons did not match
 # exitcode 2 means both gen muons matched, but a suitable dimuon was not found -- this can only happen if recoMuons is provided
 # exitcode 3 means the dimuon list was empty and nothing was matched
-def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex='BS'):
+def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
     if len(dimuons) == 0:
         return [], [[], []], 3
 
