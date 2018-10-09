@@ -884,9 +884,9 @@ class TransverseDecayLength(Primitive):
             raise Exception('"vertex" argument should be either PV or BS')
         return getattr(self, 'Lxy'+val+vertex)
 
-    def Lxy   (self, vertex='BS'): return self.getValue(None , vertex)
-    def LxySig(self, vertex='BS'): return self.getValue('SIG', vertex)
-    def LxyErr(self, vertex='BS'): return self.Lxy(vertex)/self.LxySig(vertex)
+    def Lxy   (self, vertex='PV'): return self.getValue(None , vertex)
+    def LxySig(self, vertex='PV'): return self.getValue('SIG', vertex)
+    def LxyErr(self, vertex='PV'): return self.Lxy(vertex)/self.LxySig(vertex)
 
 
     headerVertexFormat = '|{:^15s}'

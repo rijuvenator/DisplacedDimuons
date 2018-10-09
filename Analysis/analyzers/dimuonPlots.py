@@ -8,7 +8,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
     'pT'      : {'AXES':(1000,      0., 500.   ), 'LAMBDA': lambda dim: dim.pt                            , 'PRETTY':'p_{T} [GeV]'           },
-    'pTPhi'   : {'AXES':(1000,      0., 1000.  ), 'LAMBDA': lambda dim: dim.deltaPhi*dim.pt               , 'PRETTY':'p_{T}#Phi [GeV]'       },
+    'pTCosPhi': {'AXES':(1000,      0., 1000.  ), 'LAMBDA': lambda dim: math.cos(dim.deltaPhi)*dim.pt     , 'PRETTY':'p_{T}cos(#Phi) [GeV]'  },
     'pTOverM' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.pt/dim.mass                   , 'PRETTY':'p_{T}/M(#mu#mu)'       },
     'eta'     : {'AXES':(1000,     -3., 3.     ), 'LAMBDA': lambda dim: dim.eta                           , 'PRETTY':'#eta'                  },
     'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
@@ -61,7 +61,7 @@ def declareHistograms(self, PARAMS=None):
         TITLE = EXTRACONFIG[KEY]['TITLE']
         AXES  = EXTRACONFIG[KEY]['AXES']
         self.HistInit('Dim_'+KEY, TITLE, *AXES)
-        if self.SP is not None and KEY != 'nDimuon':
+        if self.SP is not None:
             self.HistInit('Dim_'+KEY+'_Matched', TITLE, *AXES)
 
 # internal loop function for Analyzer class
@@ -129,14 +129,16 @@ def analyze(self, E, PARAMS=None):
             dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
 
             if len(dimuonMatches) > 0:
-                dimuon = dimuonMatches[0]['dim']
-                for KEY in CONFIG:
-                    self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
-                for KEY in EXTRACONFIG:
-                    if EXTRACONFIG[KEY]['LAMBDA'] is None: continue
-                    F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
-                    F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
-                    self.HISTS['Dim_'+KEY+'_Matched'].Fill(F1(dimuon), F2(dimuon), eventWeight)
+                for match in dimuonMatches:
+                    dimuon = match['dim']
+                    for KEY in CONFIG:
+                        self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
+                    for KEY in EXTRACONFIG:
+                        if EXTRACONFIG[KEY]['LAMBDA'] is None: continue
+                        F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
+                        F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
+                        self.HISTS['Dim_'+KEY+'_Matched'].Fill(F1(dimuon), F2(dimuon), eventWeight)
+            self.HISTS['Dim_nDimuon_Matched'].Fill(len(dimuonMatches))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
