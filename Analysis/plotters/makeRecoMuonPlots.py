@@ -2,7 +2,7 @@ import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -29,7 +29,7 @@ def makePerSamplePlots():
                 if TRIGGER:
                     name = 'Trig-'+name
                 name += SPStr(ref[1])
-                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+                lumi = SPLumiStr(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 if '_Matched' in key: continue
@@ -160,12 +160,12 @@ def makeGenRecoPlots():
         if TRIGGER:
             name = 'Trig-'+name
         name += SPStr(ref[1])
-        lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+        lumi = SPLumiStr(ref[0], *ref[1])
 
         colors = {'Matched':R.kRed, 'Closest':R.kBlue}
         KEYS = ('Matched', 'Closest')
 
-        for MUON in ('DSA', 'RSA'):
+        for MUON in ('DSA', 'RSA', 'REF'):
             h, p = {}, {}
             for key in KEYS:
                 h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()
@@ -206,7 +206,7 @@ def makeColorPlots(key):
             if TRIGGER:
                 name = 'Trig-'+name
             name += SPStr(ref[1])
-            lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+            lumi = SPLumiStr(ref[0], *ref[1])
         else:
             name = ref
             lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
@@ -228,11 +228,11 @@ if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
 
-makePerSamplePlots()
-makeStackPlots(False)
-makeStackPlots(True, True)
+#makePerSamplePlots()
+#makeStackPlots(False)
+#makeStackPlots(True, True)
 makeGenRecoPlots()
-makeColorPlots('DSA_fYVSfX')
-makeColorPlots('DSA_fRVSfZ')
-makeColorPlots('DSA_fYVSfX_Matched')
-makeColorPlots('DSA_fRVSfZ_Matched')
+#makeColorPlots('DSA_fYVSfX')
+#makeColorPlots('DSA_fRVSfZ')
+#makeColorPlots('DSA_fYVSfX_Matched')
+#makeColorPlots('DSA_fRVSfZ_Matched')

@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 import sys
 
@@ -36,7 +36,7 @@ def makeResPlots(quantity, fs):
                 h[MUON].Fit('f'+MUON, 'R')
                 fplots[MUON] = Plotter.Plot(funcs[MUON], 'Gaussian fit ({})'.format(MUON), 'l', '')
 
-        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
         canvas.addMainPlot(p['DSA'])
         canvas.addMainPlot(p['RSA'], addS=True)
 
@@ -82,7 +82,7 @@ def makeResPlotsSingle(quantity, fs, MUON):
         p = Plotter.Plot(h, 'Signal MC ({})'.format(MUON), 'l', 'hist')
         fname = 'pdfs/SRR_{}_{}_{}HTo2XTo{}_{}.pdf'.format(MUON, quantity+'Res', 'Trig-' if TRIGGER else '', fs, SPStr(sp))
 
-        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
         canvas.addMainPlot(p)
 
         canvas.makeLegend(lWidth=.25, pos='tr' if quantity == 'pT' else 'tl')
@@ -231,7 +231,7 @@ def makeBinnedResPlot(MUON, quantity, q2, fs, sp):
     projections = {key:h.ProjectionY('_'+str(i), key[0], key[1]) for i,key in enumerate(binranges)}
     plots       = {key:Plotter.Plot(projections[key], legName.format(Q2=pretty, V1=values[key][0], V2=values[key][1]), 'l', 'hist') for key in binranges}
 
-    canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
     for key in binranges:
         RT.addFlows(plots[key])
         plots[key].Rebin(10)
@@ -262,7 +262,7 @@ def makeRefittedResPlot(fs):
         p = {}
         funcs = {}
         fplots = {}
-        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
         for TAG in ('Before', 'After'):
             h[TAG] = HISTS[(fs, sp)]['Refit'+TAG+'_pTRes'].Clone()
             RT.addFlows(h[TAG])
@@ -335,7 +335,7 @@ def makeBinnedResPlotsBinwise(TAGS, outputTag, quantity, q2, fs, sp):
     pretty, binranges, values, colors, colors2, legName = getBinningValues(q2)
 
     for i, key in enumerate(binranges):
-        canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+        canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
         projections, plots = {}, {}
         for j, tag in enumerate(TAGS):
             projections[tag] = h[tag].ProjectionY('_'+str(i)+'_'+str(j), key[0], key[1])

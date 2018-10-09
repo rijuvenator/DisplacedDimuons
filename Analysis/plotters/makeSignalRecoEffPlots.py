@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -75,7 +75,7 @@ def makeEffPlots(quantity, fs, SP=None):
     SECOND = (2, 4)
     CHARGE = ''
     for SECTION in (FIRST, SECOND):
-        canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({} GeV, {} GeV, {} mm)'.format(fs, *SP))
+        canvas = Plotter.Canvas(lumi = fs if SP is None else SPLumiStr(fs, *SP))
         for i in range(SECTION[0], SECTION[1]):
             key = NumDens[i][0]
             col = NumDens[i][3]

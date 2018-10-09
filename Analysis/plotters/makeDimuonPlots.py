@@ -2,7 +2,7 @@ import re
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -29,7 +29,7 @@ def makePerSamplePlots():
                 if TRIGGER:
                     name = 'Trig-'+name
                 name += SPStr(ref[1])
-                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+                lumi = SPLumiStr(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 if '_Matched' in key: continue
@@ -162,7 +162,7 @@ def makeColorPlots(key):
             if TRIGGER:
                 name = 'Trig-'+name
             name += SPStr(ref[1])
-            lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+            lumi = SPLumiStr(ref[0], *ref[1])
         else:
             name = ref
             lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
@@ -196,7 +196,7 @@ def makeSplitDeltaPhiPlots():
                 if TRIGGER:
                     name = 'Trig-'+name
                 name += SPStr(ref[1])
-                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+                lumi = SPLumiStr(ref[0], *ref[1])
             else:
                 name = ref
                 lumi = HistogramGetter.PLOTCONFIG[ref]['LATEX']
@@ -387,19 +387,19 @@ if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
 
-makePerSamplePlots()
-makeStackPlots(False)
-makeStackPlots(False, True)
-makeStackPlots(True, True)
-makeSplitDeltaPhiStackPlots()
-makeSplitDeltaPhiStackPlots(True)
-for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
-    for q2 in ('Lxy', 'deltaPhi'):
-        if q1 == q2: continue
-        if q1 == 'mass' and q2 == 'Lxy': continue
-        key = q1 + 'VS' + q2
-        makeColorPlots(key)
-        makeColorPlots(key+'_Matched')
+#makePerSamplePlots()
+#makeStackPlots(False)
+#makeStackPlots(False, True)
+#makeStackPlots(True, True)
+#makeSplitDeltaPhiStackPlots()
+#makeSplitDeltaPhiStackPlots(True)
+#for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
+#    for q2 in ('Lxy', 'deltaPhi'):
+#        if q1 == q2: continue
+#        if q1 == 'mass' and q2 == 'Lxy': continue
+#        key = q1 + 'VS' + q2
+#        makeColorPlots(key)
+#        makeColorPlots(key+'_Matched')
 makeSplitDeltaPhiPlots()
 
 # special purpose overlaid plot
