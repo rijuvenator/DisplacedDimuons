@@ -82,14 +82,21 @@ def matchGenReco(genMuons, recoMuons):
 
 def analyze(self, E, PARAMS=None):
     
-    dsaMuons = E.getPrimitives('DSAMUON')
+    #selections
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
     
+    dsaMuons = E.getPrimitives('DSAMUON')
+    #print "new event"
     recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
     for dimuon in diMuons:
-        if(dimuon.Lxy() < 330):
-            recoMuons.append(dimuon.mu1)
-            recoMuons.append(dimuon.mu2)
+        recoMuons.append(dimuon.mu1)
+        recoMuons.append(dimuon.mu2)
+        #print dimuon.Lxy()
+        #if(dimuon.Lxy() < 330):
+        #    recoMuons.append(dimuon.mu1)
+        #    recoMuons.append(dimuon.mu2)
     #recoMuons = dsaMuons # to look at un-vertex-fit muons
     
     if(len(recoMuons) == 0): return
@@ -106,9 +113,7 @@ def analyze(self, E, PARAMS=None):
         print "Haven't implemented these samples"
         return
     
-    #selections
-    if self.TRIGGER:
-        if not Selections.passedTrigger(E): return
+
         
         
     matches = matchGenReco(genMuons, recoMuons)

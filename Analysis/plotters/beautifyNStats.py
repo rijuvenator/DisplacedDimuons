@@ -49,10 +49,10 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
     
     for i in stations:
         if i == 5:
-            h = f.Get('%s_%i+hit_%s%s'%(chamberType,i, plotType, sampleName))
+            h = f.Get('%s_%i+stat_%s%s'%(chamberType,i, plotType, sampleName))
             h.SetName("%i+ %s Stat(s)"%(i,chamberType.upper()))
         else:
-            h = f.Get('%s_%ihit_%s%s'%(chamberType,i, plotType,sampleName))
+            h = f.Get('%s_%istat_%s%s'%(chamberType,i, plotType,sampleName))
             h.SetName("%i %s Stat(s)"%(i,chamberType.upper()))
         h.SetLineColor(colors[i-1])
                 

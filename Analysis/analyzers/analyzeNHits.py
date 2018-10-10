@@ -74,6 +74,7 @@ def analyze(self, E, PARAMS=None):
     recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
     for dimuon in diMuons:
+        print dimuon.Lxy()
         if(dimuon.Lxy() < 330):
             recoMuons.append(dimuon.mu1)
             recoMuons.append(dimuon.mu2)
