@@ -5,7 +5,7 @@ do
     python runAll.py ${script}Plots.py --samples S2B
 done
 
-for script in signalMatchEff signalMatchRes signalVertexFitEff
+for script in signalRecoEff signalRecoRes signalVertexFitEff
 do
     python runAll.py ${script}Plots.py --samples S2
 done

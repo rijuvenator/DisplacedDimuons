@@ -166,7 +166,9 @@ class DSAMuonBranches : public BranchCollection
 		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			  const edm::ESHandle<TransientTrackBuilder>& ttB,
 			  const edm::Handle<reco::VertexCollection> &verticesHandle,
-			  const edm::Handle<reco::BeamSpot> &beamspotHandle);
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			  const edm::ESHandle<Propagator>& propagator,
+			  const edm::ESHandle<MagneticField>& magfield);
 
 		virtual bool alreadyPrinted() { return alreadyPrinted_; }
 		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }

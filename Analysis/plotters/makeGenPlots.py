@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -18,7 +18,7 @@ def makePerSignalPlots(fs):
             h = HISTS[(fs, sp)][key]
             RT.addFlows(h)
             p = Plotter.Plot(h, '', 'p', 'hist')
-            canvas = Plotter.Canvas(lumi='{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp))
+            canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
             canvas.addMainPlot(p)
             p.SetLineColor(R.kBlue)
             RT.addBinWidth(p)

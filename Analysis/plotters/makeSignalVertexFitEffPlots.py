@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -48,7 +48,7 @@ def makeEffPlots(quantity, fs, SP=None):
     g['Eff'].SetNameTitle('g_Eff', ';'+h['Eff'].GetXaxis().GetTitle()+';Vertex Fit Efficiency')
     p['Eff'] = Plotter.Plot(g['Eff'], '', 'elp', 'pe')
 
-    canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({} GeV, {} GeV, {} mm)'.format(fs, *SP))
+    canvas = Plotter.Canvas(lumi = fs if SP is None else SPLumiStr(fs, *SP))
     canvas.addMainPlot(p['Eff'])
     p['Eff'].SetMarkerColor(R.kBlue)
     p['Eff'].SetLineColor(R.kBlue)

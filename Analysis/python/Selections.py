@@ -39,25 +39,32 @@ class Cut(object):
 CUTS = {
 
 ### RECO MUON CUTS ###
-    'pT'        : Cut('pT'       , lambda muon: muon.pt                             , operator.gt,  30.      ),
-    'eta'       : Cut('eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
-    'normChi2'  : Cut('normChi2' , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
-    'nMuonHits' : Cut('nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,  17       ),
-    'nStations' : Cut('nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   3       ),
-    'd0Sig'     : Cut('d0Sig'    , lambda muon: muon.d0Sig()                        , operator.gt,   4.      ),
+    'pT'         : Cut('pT'         , lambda muon: muon.pt                             , operator.gt,  30.      ),
+    'eta'        : Cut('eta'        , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
+    'normChi2'   : Cut('normChi2'   , lambda muon: muon.normChi2                       , operator.lt,   2.      ),
+    'nMuonHits'  : Cut('nMuonHits'  , lambda muon: muon.nMuonHits                      , operator.ge,  17       ),
+    'nStations'  : Cut('nStations'  , lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   3       ),
+    'd0Sig'      : Cut('d0Sig'      , lambda muon: muon.d0Sig()                        , operator.gt,   4.      ),
 
 ### DIMUON CUTS ###
-    'vtxChi2'   : Cut('vtxChi2'  , lambda dimuon: dimuon.normChi2                   , operator.lt,  4.       ),
-    'deltaR'    : Cut('deltaR'   , lambda dimuon: dimuon.deltaR                     , operator.gt,  0.2      ),
-    'mass'      : Cut('mass'     , lambda dimuon: dimuon.mass                       , operator.gt, 15.       ),
-    'deltaPhi'  : Cut('deltaPhi' , lambda dimuon: dimuon.deltaPhi                   , operator.lt, math.pi/2.),
-    'cosAlpha'  : Cut('cosAlpha' , lambda dimuon: dimuon.cosAlpha                   , operator.gt, -0.75     ),
-    'LxySig'    : Cut('LxySig'   , lambda dimuon: dimuon.LxySig()                   , operator.gt, 12.       ),
+    'vtxChi2'    : Cut('vtxChi2'    , lambda dimuon: dimuon.normChi2                   , operator.lt,  4.       ),
+    'deltaR'     : Cut('deltaR'     , lambda dimuon: dimuon.deltaR                     , operator.gt,  0.2      ),
+    'mass'       : Cut('mass'       , lambda dimuon: dimuon.mass                       , operator.gt, 15.       ),
+    'deltaPhi'   : Cut('deltaPhi'   , lambda dimuon: dimuon.deltaPhi                   , operator.lt, math.pi/2.),
+    'cosAlpha'   : Cut('cosAlpha'   , lambda dimuon: dimuon.cosAlpha                   , operator.gt, -0.75     ),
+    'LxySig'     : Cut('LxySig'     , lambda dimuon: dimuon.LxySig()                   , operator.gt, 12.       ),
 
 ### ACCEPTANCE CUTS ###
-    'a_pT'      : Cut('a_pT'      , lambda muon: muon.pt                            , operator.gt,  25.      ),
-    'a_eta'     : Cut('a_eta'     , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
-    'a_Lxy'     : Cut('a_Lxy'     , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
+    'a_pT'       : Cut('a_pT'       , lambda muon: muon.pt                            , operator.gt,  25.      ),
+    'a_eta'      : Cut('a_eta'      , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
+    'a_Lxy'      : Cut('a_Lxy'      , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
+
+### TEST RECO MUON CUTS ###
+    't_pT'       : Cut('t_pT'       , lambda muon: muon.pt                             , operator.gt,  15.      ),
+    't_eta'      : Cut('t_eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.4     ),
+    't_nMuonHits': Cut('t_nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,   1       ),
+    't_nStations': Cut('t_nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   1       ),
+
 }
 
 # CutLists for access convenience (and ordering)
@@ -65,6 +72,7 @@ CutLists = {
     'MuonCutList'      : ('pT', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
     'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList': ('a_pT', 'a_eta', 'a_Lxy'),
+    'TestMuonCutList'  : ('t_pT', 't_eta', 't_nMuonHits', 't_nStations'),
 }
 for prefix in ('Muon', 'Dimuon'):
     CutLists[prefix+'CutListPlusAll' ] =             CutLists[prefix+'CutList'] + ('all',)

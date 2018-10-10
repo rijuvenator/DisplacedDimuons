@@ -3,20 +3,22 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
-HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'LAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
+HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
 VALUES  = (
-    ('pT' , 'p_{T} [GeV]' , (1000, 0., 500.), (1000, -1. , 1. ), lambda muon: muon.pt              , 'p_{T}' , lambda rq, gq: (rq-gq)/gq, False),
-    ('Lxy', 'L_{xy} [cm]' , (1000, 0., 800.), (1000, -50., 50.), lambda dim : dim.Lxy()            , 'L_{xy}', lambda rq, gq: (rq-gq)   , True ),
-    ('d0' , 'd_{0} [cm]'  , (1000, 0., 200.), (1000, -50., 50.), lambda muon: muon.d0()            , 'd_{0}' , lambda rq, gq: (rq-gq)   , True ),
-    ('qm' , 'charge match', (2   , 0.,   2.), None             , lambda r, g: r.charge == g.charge , None    , None                     , None ),
+    ('pT'   , 'p_{T} [GeV]'   , (1000, 0., 500.), (1200, -1.  , 5.  ), lambda gm: gm.BS.pt           , lambda muon: muon.pt              , 'p_{T}'     , lambda rq, gq: (rq-gq)/gq, False),
+    ('Lxy'  , 'L_{xy} [cm]'   , (1000, 0., 800.), (1000, -100., 100.), lambda gm: gm.Lxy()           , lambda dim : dim.Lxy()            , 'L_{xy}'    , lambda rq, gq: (rq-gq)   , True ),
+    ('d0'   , 'd_{0} [cm]'    , (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.d0(extrap=None) , lambda muon: muon.d0()            , 'd_{0}'     , lambda rq, gq: (rq-gq)   , True ),
+    ('dz'   , 'd_{z} [cm]'    , (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.dz(extrap=None) , lambda muon: muon.dz()            , 'd_{z}'     , lambda rq, gq: (rq-gq)   , True ),
+    ('d0Lin', 'lin d_{0} [cm]', (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.d0()            , lambda muon: muon.d0(extrap='LIN'), 'lin d_{0}' , lambda rq, gq: (rq-gq)   , True ),
+    ('dzLin', 'lin d_{z} [cm]', (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.dz()            , lambda muon: muon.dz(extrap='LIN'), 'lin d_{z}' , lambda rq, gq: (rq-gq)   , True ),
+    ('qm'   , 'charge match'  , (2   , 0.,   2.), None               , None                          , lambda r, g: r.charge == g.charge , None        , None                     , None ),
 )
 CONFIG = {}
 for VAL in VALUES:
-    KEY, VALS = VAL[0], VAL[1:]
-    CONFIG[KEY] = dict(zip(HEADERS, VALS))
+    CONFIG[VAL[0]] = dict(zip(HEADERS, VAL[1:]))
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -26,16 +28,20 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     def HTitle(KEY, MUON, MODE, KEY2=None):
-        DenString = '' if CONFIG[KEY]['DIF'] else ' / gen {P}'
+        # PString and DenString are for conditionally controlling () and / in eff. title
+        # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
+        # change it if this is not the case at some point!!
+        PString   = '' if CONFIG[KEY]['DIF'] else '('
+        DenString = ' [cm]' if CONFIG[KEY]['DIF'] else ') / gen {P}'
         if MODE == 'Res':
             # X = <q> Resolution/Dif
-            fstring = ';{M} {P} #minus gen {P}'+DenString+';Counts'
+            fstring = ';'+PString+'{M} {P} #minus gen {P}'+DenString+';Counts'
         elif MODE == 'VS':
             # X = gen <q> ; Y = reco <q>
             fstring = ';gen {X};{M} {X};Counts'
         elif MODE== 'VSRes':
             # X = gen <q2> ; Y = <q> Resolution/Dif
-            fstring = ';gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
+            fstring = ';'+PString+'gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
         return fstring.format(
             X =CONFIG[KEY]['XTITLE'],
             M =MUON,
@@ -44,7 +50,7 @@ def declareHistograms(self, PARAMS=None):
         )
     for KEY in CONFIG:
         if KEY == 'qm': continue
-        for MUON in ('DSA', 'RSA'):
+        for MUON in ('DSA', 'RSA', 'REF'):
             if KEY == 'Lxy' and MUON == 'RSA': continue # can't compute Lxy for RSA muons
             for x in (0,):
                 self.HistInit(MUON+'_'+KEY+'Res'          , HTitle(KEY, MUON, 'Res'        ), *CONFIG[KEY]['RESAXES']                       )
@@ -78,7 +84,7 @@ def analyze(self, E, PARAMS=None):
 
     SelectDimuons    = False
     SelectMuons      = False
-    SelectMuons_pT30 = True
+    SelectMuons_pT30 = False
     # require dimuons and muons to pass all selections
     if SelectDimuons and SelectMuons:
         DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
@@ -114,22 +120,24 @@ def analyze(self, E, PARAMS=None):
         # find closest matched reco muon for DSA and RSA
         foundDSA = False
         for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-            matches = matchedMuons(genMuon, recoMuons)
+            matches = matchedMuons(genMuon, recoMuons, vertex='BS')
             if len(matches) != 0:
                 # take the closest match
-                closestRecoMuon = recoMuons[matches[0]['idx']]
-                for KEY in ('pT', 'd0'):
-                    F = CONFIG[KEY]['LAMBDA']
-                    RF = CONFIG[KEY]['RESFUNC']
+                closestRecoMuon = matches[0]['muon']
+                for KEY in ('pT', 'd0', 'dz', 'd0Lin', 'dzLin'):
+                    GF = CONFIG[KEY]['GENLAMBDA']
+                    RF = CONFIG[KEY]['RECOLAMBDA']
+                    RESF = CONFIG[KEY]['RESFUNC']
                     for x in (0,):
-                        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill(RF(F(closestRecoMuon), F(genMuon)))
-                        self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(F(genMuon), F(closestRecoMuon))
+                        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill(RESF(RF(closestRecoMuon), GF(genMuon)))
+                        self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(GF(genMuon), RF(closestRecoMuon))
                     for KEY2 in CONFIG:
-                        F2 = CONFIG[KEY2]['LAMBDA']
                         if KEY2 != 'qm':
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), RF(F(closestRecoMuon), F(genMuon)))
+                            F2 = CONFIG[KEY2]['GENLAMBDA']
+                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), RESF(RF(closestRecoMuon), GF(genMuon)))
                         else:
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(closestRecoMuon, genMuon), RF(F(closestRecoMuon), F(genMuon)))
+                            F2 = CONFIG[KEY2]['RECOLAMBDA']
+                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(closestRecoMuon, genMuon), RESF(RF(closestRecoMuon), GF(genMuon)))
 
     # loop over genMuonPairs and fill histograms based on matches
     for genMuonPair in genMuonPairs:
@@ -138,44 +146,48 @@ def analyze(self, E, PARAMS=None):
         #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         #if not genMuonSelection: continue
 
-        # find closest matched dimuon
-        matches = matchedDimuons(genMuonPair, selectedDimuons)
-        if len(matches) != 0:
-            closestDimuon = selectedDimuons[matches[0]['idx']]
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
+        if len(dimuonMatches) > 0:
+            dimuon = dimuonMatches[0]['dim']
             for KEY in ('Lxy',):
-                F = CONFIG[KEY]['LAMBDA']
-                RF = CONFIG[KEY]['RESFUNC']
+                GF = CONFIG[KEY]['GENLAMBDA']
+                RF = CONFIG[KEY]['RECOLAMBDA']
+                RESF = CONFIG[KEY]['RESFUNC']
                 if KEY in ('Lxy',):
                     for x in (0,):
-                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RF(F(closestDimuon),F(genMuonPair[0])))
-                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(F(genMuonPair[0]), F(closestDimuon))
+                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RESF(RF(dimuon),GF(genMuonPair[0])))
+                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(GF(genMuonPair[0]), RF(dimuon))
                     for KEY2 in CONFIG:
                         if KEY2 == 'qm': continue
-                        F2 = CONFIG[KEY2]['LAMBDA']
-                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RF(F(closestDimuon),F(genMuonPair[0])))
+                        F2 = CONFIG[KEY2]['GENLAMBDA']
+                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RESF(RF(dimuon),GF(genMuonPair[0])))
 
-        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
-        if dimuon is not None:
-            F = CONFIG['pT']['LAMBDA']
-            RF = CONFIG['pT']['RESFUNC']
-            F2 = CONFIG['Lxy']['LAMBDA']
-            # be very careful with the indices in muonMatches vs. oMuonMatches
-            # the muonMatches indices are the index of the selectedDSAmuons LIST
-            # the oMuonMatches indices are the index of the DSAmuons list, the "original" indices
-            # a dimuon.idx can only be compared to an oIndex!
-            for which, (index, oIndex) in enumerate(zip(muonMatches, oMuonMatches)):
-                self.HISTS['RefitBefore_pTRes'     ].Fill(RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
-                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RF(F(selectedDSAmuons[index]), F(genMuonPair[which])))
+        # old style matching to reco muons
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
+        GF = CONFIG['pT']['GENLAMBDA']
+        RF = CONFIG['pT']['RECOLAMBDA']
+        RESF = CONFIG['pT']['RESFUNC']
+        F2 = CONFIG['Lxy']['GENLAMBDA']
+        # be very careful with the indices in muonMatches
+        # the muonMatches idx are the index of the selectedDSAmuons LIST
+        # the muonMatches oidx are the index of the DSAmuons list, the "original" indices
+        # a dimuon.idx can only be compared to an oIndex!
+        for match in dimuonMatches:
+            dimuon = match['dim']
+            for which, muonMatch in enumerate(match['matches']):
+                originalMuon = muonMatch['muon']
+                self.HISTS['RefitBefore_pTRes'     ].Fill(RESF(RF(originalMuon), GF(genMuonPair[which])))
+                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RESF(RF(originalMuon), GF(genMuonPair[which])))
 
                 self.COUNTERS['Before']['Total'] += 1
-                if genMuonPair[which].charge == selectedDSAmuons[index].charge:
+                if genMuonPair[which].charge == originalMuon.charge:
                     self.COUNTERS['Before']['QM'] += 1
                 else:
                     self.COUNTERS['Before']['Not'] += 1
 
-                refittedMuon = dimuon.mu1 if dimuon.idx1 == oIndex else dimuon.mu2
-                self.HISTS['RefitAfter_pTRes'      ].Fill(RF(F(refittedMuon), F(genMuonPair[which])))
-                self.HISTS['RefitAfter_pTResVSLxy' ].Fill(F2(genMuonPair[which]), RF(F(refittedMuon), F(genMuonPair[which])))
+                refittedMuon = dimuon.mu1 if dimuon.idx1 == muonMatch['oidx'] else dimuon.mu2
+                self.HISTS['RefitAfter_pTRes'      ].Fill(RESF(RF(refittedMuon), GF(genMuonPair[which])))
+                self.HISTS['RefitAfter_pTResVSLxy' ].Fill(F2(genMuonPair[which]), RESF(RF(refittedMuon), GF(genMuonPair[which])))
 
                 self.COUNTERS['After']['Total'] += 1
                 if genMuonPair[which].charge == refittedMuon.charge:
@@ -210,4 +222,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalMatchResPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/SignalRecoResPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

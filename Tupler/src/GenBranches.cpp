@@ -42,11 +42,14 @@ bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &ge
   return false;
 }
 
-void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandle,
+void GenBranches::Fill(
+    const edm::Handle<reco::GenParticleCollection> &gensHandle,
     const edm::Handle<GenEventInfoProduct> &GEIPHandle,
     const edm::Handle<std::vector<PileupSummaryInfo> > &pileupInfo,
-    const bool isSignal,
-    const std::string finalState)
+    const bool isSignal, const std::string finalState,
+    const edm::Handle<reco::BeamSpot> &beamspotHandle,
+    const edm::ESHandle<Propagator>& propagator,
+    const edm::ESHandle<MagneticField>& magfield)
 {
   static bool alreadyPrinted_pileup = false;
   static bool debug = false;
@@ -64,20 +67,25 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   // pileup reweighting if PileupSummaryInfo collection exists.  See
   // https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3592/1/2/1/1/1/1.html
   // for more details.
-  if (pileupInfo.failedToGet()) {
-    if (!alreadyPrinted_pileup) {
+  if (pileupInfo.failedToGet())
+  {
+    if (!alreadyPrinted_pileup)
+    {
       edm::LogWarning("SimpleNTupler")
         << "+++ Warning: PileupSummaryInfo is not found +++";
       alreadyPrinted_pileup = true;
     }
   }
-  else {
+  else
+  {
     std::vector<PileupSummaryInfo>::const_iterator pi;
-    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++) {
+    for (pi = pileupInfo->begin(); pi != pileupInfo->end(); pi++)
+    {
       int bx = pi->getBunchCrossing();
-      if (bx == 0) { 
-	gen_tnpv = pi->getTrueNumInteractions();
-	continue;
+      if (bx == 0)
+      {
+	      gen_tnpv = pi->getTrueNumInteractions();
+	      continue;
       }
     }
   }
@@ -86,36 +94,124 @@ void GenBranches::Fill(const edm::Handle<reco::GenParticleCollection> &gensHandl
   if      (isSignal && finalState == "4Mu"  ) Fill4Mu  (gens);
   else if (isSignal && finalState == "2Mu2J") Fill2Mu2J(gens);
   else                                        FillOther(gens);
+
+  // Calculate/save some more info for final-state muons:
+  //  - d0 and dz w.r.t. the point of closest approach (PCA) to the
+  //    beam spot (assuming a line)
+  //  - a bunch of parameters of gen muons extrapolated to the PCA
+  //    to the beam spot, for comparison with reco muons
+  for (unsigned int ipart = 0; ipart < gen_status.size(); ipart++)
+  {
+    float d0_lin = -999., dz_lin = -999.;
+    float px = -999., py = -999., pz = -999., pt = -999., ene = -999.;
+    float vx = -999., vy = -999., vz = -999., eta = -999., phi = -999.;
+    float d0 = -999., dz = -999.;
+    if (gen_status[ipart] == 1)
+    {
+      if (gen_charge[ipart] != 0)
+      {
+	if (!beamspotHandle.failedToGet())
+        {
+          const reco::BeamSpot &beamspot = *beamspotHandle;
+          float x_bs = beamspot.x0();
+          float y_bs = beamspot.y0();
+          float z_bs = beamspot.z0();
+
+          // d0/dz w.r.t. the PCA to the beam spot; linear extrapolation.
+          // Use |(Point-RefPoint) x Momentum| / |Momentum| convention
+          // to get the sign of d0 consistent with that in the rest of
+          // CMSSW (see TrackBase.h)
+          TVector3 zero(x_bs-gen_x[ipart], y_bs-gen_y[ipart], 0.);
+          TVector3 p3zz(gen_px[ipart], gen_py[ipart], 0.);
+          d0_lin = zero.Cross(p3zz).Z()/p3zz.Mag();
+          dz_lin = (gen_z[ipart]-z_bs) +
+            zero.Dot(p3zz)/gen_pt[ipart]*gen_pz[ipart]/gen_pt[ipart];
+
+          // Propagate parameters to the point of closest approach to
+          // the beam spot and store the propagated parameters in the
+          // tree for comparison with parameters of the reconstructed
+          // tracks.
+          FreeTrajectoryState fts =
+            PropagateToBeamSpot(ipart, beamspot, propagator, magfield);
+
+          px  = fts.momentum().x();
+          py  = fts.momentum().y();
+          pz  = fts.momentum().z();
+          pt  = fts.momentum().perp();
+          eta = fts.momentum().eta();
+          phi = fts.momentum().phi();
+          ene = sqrt(pow(fts.momentum().mag(),2) + pow(gen_mass[ipart],2));
+          vx  = fts.position().x();
+          vy  = fts.position().y();
+          vz  = fts.position().z();
+
+          d0  = ((x_bs-vx)*py - (y_bs-vy)*px)/pt;
+          dz  = (vz-z_bs) - ((vx-x_bs)*px + (vy-y_bs)*py) / pt * pz / pt;
+        }
+      }
+    }
+
+    gen_d0       .push_back(d0_lin);
+    gen_dz       .push_back(dz_lin);
+
+    gen_bs_px    .push_back(px );
+    gen_bs_py    .push_back(py );
+    gen_bs_pz    .push_back(pz );
+    gen_bs_pt    .push_back(pt );
+    gen_bs_eta   .push_back(eta);
+    gen_bs_phi   .push_back(phi);
+    gen_bs_energy.push_back(ene);
+    gen_bs_x     .push_back(vx );
+    gen_bs_y     .push_back(vy );
+    gen_bs_z     .push_back(vz );
+    gen_bs_d0    .push_back(d0 );
+    gen_bs_dz    .push_back(dz );
+  }
  
-  if (debug) {
+  if (debug)
+  {
     std::cout << "Gen info: weight = " << gen_weight
 	      << " true number of primary vertices = " << gen_tnpv
 	      << "; gen particles: \n";
-    std::cout << " idx |   id  | stat| moth|    pt   |    eta   |   phi   |    M    |    E   | q |        (x;y;z)        | \n";
+    std::cout << " idx |   id  | stat| moth|   pt  |    eta   |   phi  |    M    |    E   | q |        (x;y;z)        |   d0  |   dz  |";
+    std:: cout << " pt@bs | eta@bs | phi@bs |       (x;y;z)@bs      | d0@bs | dz@bs |\n";
     unsigned int nparts = gen_status.size();
-    for (unsigned int i = 0; i < nparts; i++) {
+    for (unsigned int i = 0; i < nparts; i++)
+    {
       std::cout << std::setw(5) << i << "|" << std::setw(7) << gen_pdgID[i]
 		<< "|" << std::setw(5)  << gen_status[i]
 		<< "|" << std::setw(5)  << gen_mother[i] << std::setprecision(4)
-		<< "|" << std::setw(9)  << gen_pt[i] 
+		<< "|" << std::setw(7)  << gen_pt[i] 
 		<< "|" << std::setw(10) << gen_eta[i]
-		<< "|" << std::setw(9)  << gen_phi[i]
+		<< "|" << std::setw(8)  << gen_phi[i]
 		<< "|" << std::setw(9)  << gen_mass[i]
 		<< "|" << std::setw(8)  << gen_energy[i]
 		<< "|" << std::setw(3)  << gen_charge[i]
 		<< "|" << std::setw(7)  << gen_x[i]
 		<< " " << std::setw(7)  << gen_y[i]
-		<< " " << std::setw(7)  << gen_z[i] << "|" << std::endl;
+		<< " " << std::setw(7)  << gen_z[i];
+      if (gen_bs_pt[i] > 0.) 
+	std::cout      << "|" << std::setw(7) << gen_d0[i]
+		       << "|" << std::setw(7) << gen_dz[i]
+		       << "|" << std::setw(7) << gen_bs_pt[i]
+		       << "|" << std::setw(8) << gen_bs_eta[i]
+		       << "|" << std::setw(8) << gen_bs_phi[i]
+		       << "|" << std::setw(7) << gen_bs_x[i]
+		       << " " << std::setw(7) << gen_bs_y[i]
+		       << " " << std::setw(7) << gen_bs_z[i]
+		       << "|" << std::setw(7) << gen_bs_d0[i]
+		       << "|" << std::setw(7) << gen_bs_dz[i];
+      std::cout << "|" << std::endl;
     }
     unsigned int npairs = gen_Lxy.size();
-    if (npairs > 0) {
-      std::cout << " idi |   Lxy   |   cosA  |    d0   |    dz   |    dR   | \n";
-      for (unsigned int i = 0; i < npairs; i++) {
+    if (npairs > 0)
+    {
+      std::cout << " idi |   Lxy   |   cosA  |    dR   | \n";
+      for (unsigned int i = 0; i < npairs; i++)
+      {
 	std::cout << std::setw(5) << i << std::setprecision(4)
 		  << "|" << std::setw(9) << gen_Lxy[i] 
 		  << "|" << std::setw(9) << gen_cosAlpha[i]
-		  << "|" << std::setw(9) << gen_d0[i]
-		  << "|" << std::setw(9) << gen_dz[i]
 		  << "|" << std::setw(9) << gen_deltaR[i] << "|" << std::endl;
       }
     }
@@ -187,6 +283,10 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     return;
   }
 
+  // Since BSM H is always produced in the hard interaction, take its
+  // vertex position as the position of the hard-interaction vertex
+  TVector3 gen_pv(H->vx(), H->vy(), H->vz());
+
   // fill the branches: mu11, mu12, mu21, mu22, X1, X2, H, and P
   // and any additional muons
   std::vector<const reco::Candidate*> particles = {mu11, mu12, mu21, mu22, X1, X2, H, P};
@@ -204,6 +304,9 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
     gen_phi   .push_back(p->phi   ());
@@ -216,7 +319,7 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     gen_mother.push_back(-1         ); // not yet implemented
   }
 
-  // fill d0, dz, Lxy, cosAlpha, and deltaR
+  // fill Lxy, cosAlpha, and deltaR
   std::vector<std::vector<const reco::GenParticle*>> muonPairs = {{mu11, mu12}, {mu21, mu22}};
   for (size_t i=0; i<2; ++i)
   {
@@ -227,19 +330,19 @@ void GenBranches::Fill4Mu(const reco::GenParticleCollection &gens)
     TVector3 p1(mu1->px(), mu1->py(), mu1->pz());
     TVector3 p2(mu2->px(), mu2->py(), mu2->pz());
 
-    float Lxy      = mu1->vertex().Rho();
+    // Transverse displacement w.r.t. the hard-interaction vertex
+    float Lxy      =
+      sqrt(pow((mu1->vx()-gen_pv.x()),2) + pow((mu1->vy()-gen_pv.y()),2));
+
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
-    for (const auto &mu : muonPair)
+    // this loop no longer uses muon information
+    // therefore it no longer needs to be over muonPairs
+    // replacing it with a loop over 0, 1
+    // this suppresses the unused variable/error 
+    for (int j=0; j<2; ++j)
     {
-      TVector3 zero(mu->vx(), mu->vy(), 0.);
-      TVector3 p3zz(mu->px(), mu->py(), 0.);
-      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
-      float dz = mu->vz() - zero.Dot(p3zz)/mu->pt()*mu->pz()/mu->pt();
-
-      gen_d0      .push_back(d0      );
-      gen_dz      .push_back(dz      );
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);
       gen_deltaR  .push_back(dR      );
@@ -329,6 +432,10 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     return;
   }
 
+  // Since BSM H is always produced in the hard interaction, take its
+  // vertex position as the position of the hard-interaction vertex
+  TVector3 gen_pv(H->vx(), H->vy(), H->vz());
+
   // fill the branches: mu+, mu-, q, qbar, X, X', H, and P
   std::vector<const reco::Candidate*> particles = {mup, mum, q1, q2, X, XP, H, P};
   if (muAll.size() > 2)
@@ -345,6 +452,9 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p->status());
     gen_pdgID .push_back(p->pdgId ());
+    gen_px    .push_back(p->px    ());
+    gen_py    .push_back(p->py    ());
+    gen_pz    .push_back(p->pz    ());
     gen_pt    .push_back(p->pt    ());
     gen_eta   .push_back(p->eta   ());
     gen_phi   .push_back(p->phi   ());
@@ -357,7 +467,7 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     gen_mother.push_back(-1         ); // not yet implemented
   }
 
-  // fill d0, Lxy, cosAlpha, and deltaR
+  // fill Lxy, cosAlpha, and deltaR
   std::vector<std::vector<const reco::Candidate*>> PPairs = {{mup, mum}, {q1, q2}};
   for (size_t i=0; i<2; ++i)
   {
@@ -368,23 +478,19 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
     TVector3 p1(part1->px(), part1->py(), part1->pz());
     TVector3 p2(part2->px(), part2->py(), part2->pz());
 
-    float Lxy      = part1->vertex().Rho();
+    // Transverse displacement w.r.t. the hard-interaction vertex
+    float Lxy      =
+      sqrt(pow((part1->vx()-gen_pv.x()),2) + pow((part1->vy()-gen_pv.y()),2));
+
     float cosAlpha = p1.Dot(p2)/p1.Mag()/p2.Mag();
     float dR       = p1.DeltaR(p2);
 
-    for (const auto &part : PPair)
+    // this loop no longer uses muon information
+    // therefore it no longer needs to be over muonPairs
+    // replacing it with a loop over 0, 1;
+    // this suppresses the unused variable/error 
+    for (int j=0; j<2; ++j)
     {
-      TVector3 zero(part->vx(), part->vy(), 0.);
-      TVector3 p3zz(part->px(), part->py(), 0.);
-      float d0 = zero.Cross(p3zz).Mag()/p3zz.Mag();
-      float dz = part->vz() - zero.Dot(p3zz)/part->pt()*part->pz()/part->pt();
-
-      // explicit formula for checks
-      //float dxy = (-part->vx()*part->py() + part->vy()*part->px())/part->pt();
-      //float dz  = part->vz() - (part->vx()*part->px() + part->vy()*part->py())/part->pt()*part->pz()/part->pt();
-
-      gen_d0      .push_back(d0      );
-      gen_dz      .push_back(dz      );
       gen_Lxy     .push_back(Lxy     );
       gen_cosAlpha.push_back(cosAlpha);
       gen_deltaR  .push_back(dR      );
@@ -399,6 +505,9 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
   {
     gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
+    gen_px    .push_back(p.px    ());
+    gen_py    .push_back(p.py    ());
+    gen_pz    .push_back(p.pz    ());
     gen_pt    .push_back(p.pt    ());
     gen_eta   .push_back(p.eta   ());
     gen_phi   .push_back(p.phi   ());
@@ -414,4 +523,23 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 
     gen_mother.push_back(mIndex    );
   }
+}
+
+// Propagate parameters of gen particle with index idx to the point of
+// closest approach to the beam spot
+FreeTrajectoryState GenBranches::PropagateToBeamSpot(
+		      unsigned int idx,
+		      const reco::BeamSpot& beamspot,
+		      const edm::ESHandle<Propagator>& propagator,
+		      const edm::ESHandle<MagneticField>& magfield)
+{
+  // Create the free trajectory state
+  FreeTrajectoryState fts(GlobalPoint( gen_x[idx],  gen_y[idx],  gen_z[idx]),
+			  GlobalVector(gen_px[idx], gen_py[idx], gen_pz[idx]),
+			  gen_charge[idx], magfield.product());
+
+  // Propagate fts to the point of closest approach to the beam spot
+  FreeTrajectoryState ftsPCABS(propagator->propagate(fts, beamspot));
+
+  return ftsPCABS;
 }

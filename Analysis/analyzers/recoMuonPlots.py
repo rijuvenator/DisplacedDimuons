@@ -3,23 +3,33 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
-CONFIG = {
-    'pT'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda muon: muon.pt                                     , 'PRETTY':'p_{T} [GeV]'      },
-    'eta'      : {'AXES':(1000,-3., 3.  ), 'LAMBDA': lambda muon: muon.eta                                    , 'PRETTY':None               },
-    'd0'       : {'AXES':(1000, 0., 200.), 'LAMBDA': lambda muon: muon.d0()                                   , 'PRETTY':'d_{0} [cm]'       },
-    'd0Sig'    : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.d0Sig()                                , 'PRETTY':None               },
-    'normChi2' : {'AXES':(1000, 0., 20. ), 'LAMBDA': lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, 'PRETTY':None               },
-    'nMuonHits': {'AXES':(50  , 0., 50. ), 'LAMBDA': lambda muon: muon.nMuonHits                              , 'PRETTY':None               },
-    'nStations': {'AXES':(15  , 0., 15. ), 'LAMBDA': lambda muon: muon.nDTStations + muon.nCSCStations        , 'PRETTY':None               },
-    'pTSig'    : {'AXES':(1000, 0.,  3. ), 'LAMBDA': lambda muon: muon.ptError/muon.pt                        , 'PRETTY':'#sigma_{pT}/p_{T}'},
-}
+HEADERS = ('AXES', 'LAMBDA', 'PRETTY', 'REFHAS')
+VALUES = (
+    ('pT'       , (1000, 0., 500.), lambda muon: muon.pt                                     , 'p_{T} [GeV]'               , True ),
+    ('eta'      , (1000,-3., 3.  ), lambda muon: muon.eta                                    , '#eta'                      , True ),
+    ('d0'       , (1000, 0., 200.), lambda muon: muon.d0()                                   , 'd_{0} [cm]'                , True ),
+    ('d0Sig'    , (1000, 0., 20. ), lambda muon: muon.d0Sig()                                , '|d_{0}|/#sigma_{d_{0}}'    , True ),
+    ('dz'       , (1000, 0., 200.), lambda muon: muon.dz()                                   , 'd_{z} [cm]'                , True ),
+    ('dzSig'    , (1000, 0., 20. ), lambda muon: muon.dzSig()                                , '|d_{z}|/#sigma_{d_{z}}'    , True ),
+    ('d0Lin'    , (1000, 0., 200.), lambda muon: muon.d0(extrap='LIN')                       , 'lin d_{0} [cm]'            , True ),
+    ('d0SigLin' , (1000, 0., 20. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}', True ),
+    ('dzLin'    , (1000, 0., 200.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            , True ),
+    ('dzSigLin' , (1000, 0., 20. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}', True ),
+    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          , False),
+    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   , False),
+    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               , False),
+    ('pTSig'    , (1000, 0.,  3. ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         , True ),
+)
+CONFIG = {}
+for VAL in VALUES:
+    CONFIG[VAL[0]] = dict(zip(HEADERS, VAL[1:]))
 
 EXTRACONFIG = {
-    'fYVSfX' : {},
-    'fRVSfZ' : {}
+    'fYVSfX' : {'REFHAS':False},
+    'fRVSfZ' : {'REFHAS':False}
 }
 
 EXTRACONFIG['fYVSfX']['TITLE' ] = ';x_{f} [cm];y_{f} [cm];Counts'
@@ -31,17 +41,18 @@ EXTRACONFIG['fRVSfZ']['AXES'  ] = (1100, -1100., 1100., 800,    0., 800.)
 EXTRACONFIG['fYVSfX']['LAMBDA'] = (lambda muon: muon.fhit.X(), lambda muon: muon.fhit.Y()   )
 EXTRACONFIG['fRVSfZ']['LAMBDA'] = (lambda muon: muon.fhit.Z(), lambda muon: muon.fhit.Perp())
 
+EXTRACONFIG['fYVSfX']['LAMBDA'] = (lambda muon: muon.fhit.X(), lambda muon: muon.fhit.Y()   )
+EXTRACONFIG['fRVSfZ']['LAMBDA'] = (lambda muon: muon.fhit.Z(), lambda muon: muon.fhit.Perp())
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
 
-        # the pretty strings are mostly in the cut dictionary
-        # so use it if it's None
-        # but use the string given if not
-        XTIT = Selections.PrettyTitles[KEY] if CONFIG[KEY]['PRETTY'] is None else CONFIG[KEY]['PRETTY']
+        XTIT = CONFIG[KEY]['PRETTY']
 
-        for MUON in ('DSA', 'RSA'):
+        for MUON in ('DSA', 'RSA', 'REF'):
+            if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
             if True:
                 self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
@@ -49,7 +60,8 @@ def declareHistograms(self, PARAMS=None):
                 self.HistInit(MUON+'_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
     for KEY in EXTRACONFIG:
-        for MUON in ('DSA', 'RSA'):
+        for MUON in ('DSA', 'RSA', 'REF'):
+            if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
             if True:
                 self.HistInit(MUON+'_'+KEY           , EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
 
@@ -57,7 +69,7 @@ def declareHistograms(self, PARAMS=None):
                 self.HistInit(MUON+'_'+KEY+'_Matched', EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
 
 
-    for MUON in ('DSA', 'RSA'):
+    for MUON in ('DSA', 'RSA', 'REF'):
         if True:
             self.HistInit(MUON+'_nMuon'           , ';Muon Multiplicity;Counts', 15  , 0., 15.)
 
@@ -68,9 +80,12 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
+    if self.TRIGGER and self.SP is not None:
+        if not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
+    Dimuons  = E.getPrimitives('DIMUON' )
 
     eventWeight = 1.
     try:
@@ -79,75 +94,87 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if 'Blind' in self.CUTS else False
+    ALL = True if 'All' in self.CUTS else False
 
-    SelectMuons = False
-    SelectMuons_pT30 = True if 'pT30' in self.CUTS else False
-    # require reco muons to pass all selections
-    if SelectMuons:
-        DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
+    # require muons to pass all selections
+    if ALL:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
+        RSASelections    = [Selections.MuonSelection(muon) for muon in RSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
-
-    # require reco muons to pass only the pT cut
-    elif SelectMuons_pT30:
-        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
-        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-        selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
+        selectedDimuons  = Dimuons
 
     # don't require reco muons to pass all selections
     else:
         selectedDSAmuons = DSAmuons
         selectedRSAmuons = RSAmuons
+        selectedDimuons  = Dimuons
     
+    # all refitted muons
+    allRefittedMuons = []
+    for dimuon in selectedDimuons:
+        allRefittedMuons.append(dimuon.mu1)
+        allRefittedMuons.append(dimuon.mu2)
+
     # fill histograms for every reco muon
-    for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
+    for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons), ('REF', allRefittedMuons)):
+        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
         for muon in recoMuons:
-            # data blinding!
-            if BLIND:
-                if muon.d0Sig() > 3.: continue
             for KEY in CONFIG:
+                if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
             for KEY in EXTRACONFIG:
+                if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
                 F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
                 F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
                 self.HISTS[MUON+'_'+KEY].Fill(F1(muon), F2(muon), eventWeight)
-        self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
-        if self.TRIGGER:
-            if not Selections.passedTrigger(E): return
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu11, mu12, mu21, mu22)
+            genMuonPairs = ((mu11, mu12), (mu21, mu22))
         elif '2Mu2J' in self.NAME:
             mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
             genMuons = (mu1, mu2)
+            genMuonPairs = ((mu1, mu2),)
 
-        # fill histograms only for matched reco muons
+        MuonMatches = {'DSA':[], 'RSA':[], 'REF':[]}
+        # get matched reco muons
         for genMuon in genMuons:
             # cut genMuons outside the detector acceptance
             # don't do it for now
             #genMuonSelection = Selections.AcceptanceSelection(genMuon)
 
             for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-                matches = matchedMuons(genMuon, recoMuons)
+                MuonMatches[MUON].append(matchedMuons(genMuon, recoMuons, vertex='BS'))
+
+        # and for refitted muons for matched dimuons
+        for genMuonPair in genMuonPairs:
+            for MUON in ('REF',):
+                dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
+                MuonMatches[MUON].append(muonMatches[0])
+                MuonMatches[MUON].append(muonMatches[1])
+
+        # fill histograms
+        for MUON in ('DSA', 'RSA', 'REF'):
+            for matches in MuonMatches[MUON]:
                 for match in matches:
-                    muon = recoMuons[match['idx']]
+                    muon = match['muon']
+                    deltaR = match['deltaR']
                     for KEY in CONFIG:
+                        if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
                     for KEY in EXTRACONFIG:
+                        if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
                         F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
                         F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(F1(muon), F2(muon), eventWeight)
-                    self.HISTS[MUON+'_deltaRGR_Matched'].Fill(genMuon.p4.DeltaR(muon.p4), eventWeight)
+                    self.HISTS[MUON+'_deltaRGR_Matched'].Fill(deltaR, eventWeight)
                 self.HISTS[MUON+'_nMuon_Matched'].Fill(len(matches), eventWeight)
                 if len(matches) > 0:
-                    closestMuon = recoMuons[matches[0]['idx']]
-                    self.HISTS[MUON+'_deltaRGR_Closest'].Fill(genMuon.p4.DeltaR(closestMuon.p4), eventWeight)
+                    self.HISTS[MUON+'_deltaRGR_Closest'].Fill(matches[0]['deltaR'], eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -157,6 +184,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'RSAMUON', 'GEN', 'TRIGGER'),
+        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'RSAMUON', 'GEN', 'TRIGGER', 'DIMUON'),
     )
     analyzer.writeHistograms('roots/RecoMuonPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

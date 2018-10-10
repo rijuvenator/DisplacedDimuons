@@ -11,7 +11,7 @@ body {
 .page {
     background-color: white;
     margin: auto;
-    width: 75%;
+    width: 90%;
     height: 100%;
     min-height: 100%;
 }
@@ -24,9 +24,9 @@ body {
 /* FIGURE STYLES */
 div.figure {
     display: block;
-    width:  65%;
+    width:  55%;
     padding: 10px;
-	padding-top: 50px;
+	padding-top: 10px;
     margin: auto;
 }
 img.figure {

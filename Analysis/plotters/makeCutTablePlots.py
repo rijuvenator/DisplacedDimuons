@@ -1,7 +1,7 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import HistogramGetter
 import re
@@ -80,7 +80,7 @@ for obj in DATA:
 def makeIndividualPlots(obj, dtype, key):
     if type(key) == tuple:
         fs, sp = key
-        lumi = '{} ({} GeV, {} GeV, {} mm)'.format(fs, *sp)
+        lumi = SPLumiStr(fs, *sp)
         fname = 'pdfs/CutTable_{}-{}_{}HTo2XTo{}_{}.pdf'.format(obj, dtype, 'Trig-' if TRIGGER else '', fs, SPStr(sp))
     else:
         sample = key
