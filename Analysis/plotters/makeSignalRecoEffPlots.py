@@ -17,12 +17,15 @@ def makeEffPlots(quantity, fs, SP=None):
     HKeys = {
         'DSA_Eff'       : 'DSA_{}Eff'      ,
         'RSA_Eff'       : 'RSA_{}Eff'      ,
+        'REF_Eff'       : 'REF_{}Eff'      ,
         'Den'           : '{}Den'          ,
         'Extra'         : '{}Extra'        ,
         'DSA_ChargeEff' : 'DSA_{}ChargeEff',
         'RSA_ChargeEff' : 'RSA_{}ChargeEff',
+        'REF_ChargeEff' : 'REF_{}ChargeEff',
         'DSA_ChargeDen' : 'DSA_{}ChargeDen',
         'RSA_ChargeDen' : 'RSA_{}ChargeDen',
+        'REF_ChargeDen' : 'REF_{}ChargeDen',
     }
     for key in HKeys:
         HKeys[key] = HKeys[key].format(quantity)
@@ -59,9 +62,11 @@ def makeEffPlots(quantity, fs, SP=None):
     NumDens = (
         ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kBlue   ),
         ('RSA_Eff'      , 'Den'          , 'RSA'       , R.kRed    ),
+        ('REF_Eff'      , 'Den'          , 'REF'       , R.kGreen  ),
 #       ('Extra'        , 'Den'          , 'Extra'     , R.kMagenta),
         ('DSA_ChargeEff', 'DSA_ChargeDen', 'DSA:Charge', R.kBlue   ),
         ('RSA_ChargeEff', 'RSA_ChargeDen', 'RSA:Charge', R.kRed    ),
+        ('REF_ChargeEff', 'REF_ChargeDen', 'REF:Charge', R.kGreen  ),
     )
 
     for num, den, leg, col in NumDens:
@@ -71,8 +76,10 @@ def makeEffPlots(quantity, fs, SP=None):
 
 #   FIRST  = (0, 3)
 #   SECOND = (3, 5)
-    FIRST  = (0, 2)
-    SECOND = (2, 4)
+#   FIRST  = (0, 2)
+#   SECOND = (2, 4)
+    FIRST  = (0, 3)
+    SECOND = (3, 6)
     CHARGE = ''
     for SECTION in (FIRST, SECOND):
         canvas = Plotter.Canvas(lumi = fs if SP is None else SPLumiStr(fs, *SP))

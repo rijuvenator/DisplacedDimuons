@@ -387,20 +387,26 @@ if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
 
-#makePerSamplePlots()
-#makeStackPlots(False)
-#makeStackPlots(False, True)
-#makeStackPlots(True, True)
-#makeSplitDeltaPhiStackPlots()
-#makeSplitDeltaPhiStackPlots(True)
-#for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
-#    for q2 in ('Lxy', 'deltaPhi'):
-#        if q1 == q2: continue
-#        if q1 == 'mass' and q2 == 'Lxy': continue
-#        key = q1 + 'VS' + q2
-#        makeColorPlots(key)
-#        makeColorPlots(key+'_Matched')
-makeSplitDeltaPhiPlots()
+# This is now a heavy process that gets killed if everything runs at once
+# So run in pieces
+if True:
+    makePerSamplePlots()
+if True:
+    makeStackPlots(False)
+    makeStackPlots(False, True)
+    makeStackPlots(True, True)
+    makeSplitDeltaPhiStackPlots()
+    makeSplitDeltaPhiStackPlots(True)
+if True:
+    for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
+        for q2 in ('Lxy', 'deltaPhi'):
+            if q1 == q2: continue
+            if q1 == 'mass' and q2 == 'Lxy': continue
+            key = q1 + 'VS' + q2
+            makeColorPlots(key)
+            makeColorPlots(key+'_Matched')
+if True:
+    makeSplitDeltaPhiPlots()
 
 # special purpose overlaid plot
 #makeOverlaidPlot()
