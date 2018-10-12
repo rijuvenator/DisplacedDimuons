@@ -7,30 +7,30 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
-HEADERS = ('AXES', 'LAMBDA', 'PRETTY', 'REFHAS')
+HEADERS = ('AXES', 'LAMBDA', 'PRETTY')
 VALUES = (
-    ('pT'       , (1000, 0., 500.), lambda muon: muon.pt                                     , 'p_{T} [GeV]'               , True ),
-    ('eta'      , (1000,-3., 3.  ), lambda muon: muon.eta                                    , '#eta'                      , True ),
-    ('d0'       , (1000, 0., 200.), lambda muon: muon.d0()                                   , 'd_{0} [cm]'                , True ),
-    ('d0Sig'    , (1000, 0., 20. ), lambda muon: muon.d0Sig()                                , '|d_{0}|/#sigma_{d_{0}}'    , True ),
-    ('dz'       , (1000, 0., 200.), lambda muon: muon.dz()                                   , 'd_{z} [cm]'                , True ),
-    ('dzSig'    , (1000, 0., 20. ), lambda muon: muon.dzSig()                                , '|d_{z}|/#sigma_{d_{z}}'    , True ),
-    ('d0Lin'    , (1000, 0., 200.), lambda muon: muon.d0(extrap='LIN')                       , 'lin d_{0} [cm]'            , True ),
-    ('d0SigLin' , (1000, 0., 20. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}', True ),
-    ('dzLin'    , (1000, 0., 200.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            , True ),
-    ('dzSigLin' , (1000, 0., 20. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}', True ),
-    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          , True ),
-    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   , True ),
-    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               , True ),
-    ('pTSig'    , (1000, 0.,  3. ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         , True ),
+    ('pT'       , (1000, 0., 500.), lambda muon: muon.pt                                     , 'p_{T} [GeV]'               ),
+    ('eta'      , (1000,-3., 3.  ), lambda muon: muon.eta                                    , '#eta'                      ),
+    ('d0'       , (1000, 0., 200.), lambda muon: muon.d0()                                   , 'd_{0} [cm]'                ),
+    ('d0Sig'    , (1000, 0., 20. ), lambda muon: muon.d0Sig()                                , '|d_{0}|/#sigma_{d_{0}}'    ),
+    ('dz'       , (1000, 0., 200.), lambda muon: muon.dz()                                   , 'd_{z} [cm]'                ),
+    ('dzSig'    , (1000, 0., 20. ), lambda muon: muon.dzSig()                                , '|d_{z}|/#sigma_{d_{z}}'    ),
+    ('d0Lin'    , (1000, 0., 200.), lambda muon: muon.d0(extrap='LIN')                       , 'lin d_{0} [cm]'            ),
+    ('d0SigLin' , (1000, 0., 20. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}'),
+    ('dzLin'    , (1000, 0., 200.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            ),
+    ('dzSigLin' , (1000, 0., 20. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}'),
+    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          ),
+    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   ),
+    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               ),
+    ('pTSig'    , (1000, 0.,  3. ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         ),
 )
 CONFIG = {}
 for VAL in VALUES:
     CONFIG[VAL[0]] = dict(zip(HEADERS, VAL[1:]))
 
 EXTRACONFIG = {
-    'fYVSfX' : {'REFHAS':False},
-    'fRVSfZ' : {'REFHAS':False}
+    'fYVSfX' : {},
+    'fRVSfZ' : {}
 }
 
 EXTRACONFIG['fYVSfX']['TITLE' ] = ';x_{f} [cm];y_{f} [cm];Counts'
@@ -53,7 +53,6 @@ def declareHistograms(self, PARAMS=None):
         XTIT = CONFIG[KEY]['PRETTY']
 
         for MUON in ('DSA', 'RSA', 'REF'):
-            if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
             if True:
                 self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
@@ -62,7 +61,6 @@ def declareHistograms(self, PARAMS=None):
 
     for KEY in EXTRACONFIG:
         for MUON in ('DSA', 'RSA', 'REF'):
-            if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
             if True:
                 self.HistInit(MUON+'_'+KEY           , EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
 
@@ -124,10 +122,8 @@ def analyze(self, E, PARAMS=None):
         self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
         for muon in recoMuons:
             for KEY in CONFIG:
-                if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
                 self.HISTS[MUON+'_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
             for KEY in EXTRACONFIG:
-                if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
                 F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
                 F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
                 self.HISTS[MUON+'_'+KEY].Fill(F1(muon), F2(muon), eventWeight)
@@ -170,10 +166,8 @@ def analyze(self, E, PARAMS=None):
                     muon = match['muon']
                     deltaR = match['deltaR']
                     for KEY in CONFIG:
-                        if MUON == 'REF' and not CONFIG[KEY]['REFHAS']: continue
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](muon), eventWeight)
                     for KEY in EXTRACONFIG:
-                        if MUON == 'REF' and not EXTRACONFIG[KEY]['REFHAS']: continue
                         F1 = EXTRACONFIG[KEY]['LAMBDA'][0]
                         F2 = EXTRACONFIG[KEY]['LAMBDA'][1]
                         self.HISTS[MUON+'_'+KEY+'_Matched'].Fill(F1(muon), F2(muon), eventWeight)

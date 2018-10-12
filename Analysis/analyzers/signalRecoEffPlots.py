@@ -55,20 +55,11 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectMuons = False
-    SelectMuons_pT30 = False
+    ALL = True if 'All' in self.CUTS else False
     # require reco muons to pass all selections
-    if SelectMuons:
+    if ALL:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
         RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
-        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
-        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
-        selectedDimuons  = Dimuons
-
-    # require DSA muons to pass only the pT cut
-    elif SelectMuons_pT30:
-        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
         selectedDimuons  = Dimuons

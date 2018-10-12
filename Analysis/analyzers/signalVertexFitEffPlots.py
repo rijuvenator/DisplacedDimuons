@@ -43,12 +43,11 @@ def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectMuons_pT30 = True
-    SelectDimuons = False
+    ALL = True if 'All' in self.CUTS else False
 
-    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
-    if not SelectDimuons and SelectMuons_pT30:
-        DSASelections    = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+    # require dimuons to pass all selections, and require DSA muons to pass all selections
+    if ALL:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
@@ -62,7 +61,7 @@ def analyze(self, E, PARAMS=None):
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons)
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
 
         # both gen muons matched, but no dimuon: fill den only
         if exitcode == 2:

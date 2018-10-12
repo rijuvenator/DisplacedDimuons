@@ -224,6 +224,7 @@ def makeSplitDeltaPhiPlots():
             canvas.makeLegend(pos='tl')
             canvas.legend.resizeHeight()
             canvas.setMaximum(recompute=True)
+            canvas.firstPlot.setTitles(Y='Normalized Counts')
 
             pave = []
             for key in h:

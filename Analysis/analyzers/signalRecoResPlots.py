@@ -82,11 +82,9 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectDimuons    = False
-    SelectMuons      = False
-    SelectMuons_pT30 = False
+    ALL = True if 'All' in self.CUTS else False
     # require dimuons and muons to pass all selections
-    if SelectDimuons and SelectMuons:
+    if ALL:
         DSASelections    = [Selections.MuonSelection  (muon)   for muon   in DSAmuons]
         RSASelections    = [Selections.MuonSelection  (muon)   for muon   in RSAmuons]
         DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
@@ -94,15 +92,6 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DimuonSelections[idx] and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
-
-    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
-    elif not SelectDimuons and SelectMuons_pT30:
-        DSASelections    = [Selections.MuonSelection  (muon, cutList=('pT',))   for muon   in DSAmuons]
-        RSASelections    = [Selections.MuonSelection  (muon, cutList=('pT',))   for muon   in RSAmuons]
-        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
-        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
-        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons ) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
-
 
     # don't require dimuons and muons to pass all selections
     else:
