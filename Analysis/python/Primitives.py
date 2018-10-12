@@ -600,6 +600,13 @@ class GenMuon(Muon, GenParticle):
         setattr(self.BS, 'd0_' , E.get('gen_bs_d0', i))
         setattr(self.BS, 'dz_' , E.get('gen_bs_dz', i))
 
+        # explicit set d0 to positive for now until
+        # we can figure out what to do with the sign
+        self.d0_    = abs(self.d0_)
+        self.dz_    = abs(self.dz_)
+        self.BS.d0_ = abs(self.BS.d0_)
+        self.BS.dz_ = abs(self.BS.dz_)
+
         # these three quantities are specific to signal gen muons
         if isSignal:
             for attr in ('cosAlpha', 'deltaR'):
@@ -913,3 +920,21 @@ class TransverseDecayLength(Primitive):
             outstr += TransverseDecayLength.dataValuesFormat.format(self.Lxy(vertex), self.LxySig(vertex))
         outstr += '|\n'
         return outstr
+
+# function for copying nHits, chi2, first hit x, y, z, etc. from DSAmuons to refitted muons
+# This could have been done in the Dimuon class, but would require some sort of juggling to
+# ensure that DSAMUON BranchKey is declared, otherwise the ETree will not have the branches
+# It would also happen every time, whether it was needed or not
+# So, this function takes fully instantiated Primitives lists and MODIFIES them
+# It's inherently dangerous, of course
+# I guarantee that this function does not modify the DSAmuons argument, but DOES modify the
+# passed Dimuons list, namely, copies information to the embedded mu1 and mu2 objects
+# After declaring Dimuons and DSAmuons, call Primitives.CopyExtraRecoMuonInfo(Dimuons, DSAmuons)
+# The original Dimuons list will be modified
+def CopyExtraRecoMuonInfo(Dimuons, DSAmuons):
+    for dimuon in Dimuons:
+        for muNum in ('1', '2'):
+            thisMu = getattr(dimuon, 'mu'+muNum)
+            recoMu = DSAmuons[thisMu.idx]
+            for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit', 'normChi2', 'fhit'):
+                setattr(thisMu, attr, getattr(recoMu, attr))

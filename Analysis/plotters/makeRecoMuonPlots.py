@@ -228,11 +228,14 @@ if PRINTINTEGRALS:
     makeStackPlots(False)
     exit()
 
-#makePerSamplePlots()
-#makeStackPlots(False)
-#makeStackPlots(True, True)
-makeGenRecoPlots()
-#makeColorPlots('DSA_fYVSfX')
-#makeColorPlots('DSA_fRVSfZ')
-#makeColorPlots('DSA_fYVSfX_Matched')
-#makeColorPlots('DSA_fRVSfZ_Matched')
+if True:
+    makePerSamplePlots()
+if True:
+    makeStackPlots(False)
+    makeStackPlots(True, True)
+if True:
+    makeGenRecoPlots()
+    makeColorPlots('DSA_fYVSfX')
+    makeColorPlots('DSA_fRVSfZ')
+    makeColorPlots('DSA_fYVSfX_Matched')
+    makeColorPlots('DSA_fRVSfZ_Matched')

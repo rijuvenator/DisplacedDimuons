@@ -1,3 +1,4 @@
+import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
@@ -16,8 +17,13 @@ def declareHistograms(self, PARAMS=None):
         PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
         self.HistInit(QUANTITY+'ResRG', ';'+PRETTY+' Res;Counts', *AXES)
         self.HistInit(QUANTITY+'ResBS', ';'+PRETTY+' Res;Counts', *AXES)
-    self.HistInit('deltaRRG', ';#DeltaR(#mu#mu);Counts', 50, 0., .2)
-    self.HistInit('deltaRBS', ';#DeltaR(#mu#mu);Counts', 50, 0., .2)
+    self.HistInit('deltaRRG'   , ';#DeltaR(gen-reco);Counts'             , 50,  0., .2)
+    self.HistInit('deltaRBS'   , ';#DeltaR(gen-reco);Counts'             , 50,  0., .2)
+    self.HistInit('deltaphiRG' , ';#Delta#phi(gen-reco);Counts'          , 50, -.2, .2)
+    self.HistInit('deltaphiBS' , ';#Delta#phi(gen-reco);Counts'          , 50, -.2, .2)
+    self.HistInit('deltaEtaRG' , ';#Delta#eta(gen-reco);Counts'          , 50, -.2, .2)
+    self.HistInit('deltaEtaBS' , ';#Delta#eta(gen-reco);Counts'          , 50, -.2, .2)
+    self.HistInit('deltaDeltaR', ';#DeltaR^{BS}#minus#DeltaR^{SV};Counts', 50, -.4, .4)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -39,19 +45,32 @@ def analyze(self, E, PARAMS=None):
     for genMuon in genMuons:
         #print '{:9.4f} {:7.4f} {:7.4f} : {:9.4f} {:7.4f} {:7.4f}'.format(genMuon.pt, genMuon.eta, genMuon.phi, genMuon.BS.pt, genMuon.BS.eta, genMuon.BS.phi)
         matchesRG = matchedMuons(genMuon, DSAmuons, vertex=None)
-        matchesBS = matchedMuons(genMuon, DSAmuons             )
+        matchesBS = matchedMuons(genMuon, DSAmuons, vertex='BS')
         if len(matchesRG) > 0:
             recoMuon = DSAmuons[matchesRG[0]['idx']]
             for QUANTITY in ('pT', 'd0'):
                 PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
                 self.HISTS[QUANTITY+'ResRG'].Fill(RESFUNC(RFUNC(recoMuon), GFUNC(genMuon, 'LIN')))
             self.HISTS['deltaRRG'].Fill(matchesRG[0]['deltaR'])
+            self.HISTS['deltaphiRG'].Fill(recoMuon.p4.DeltaPhi(genMuon.p4))
+            self.HISTS['deltaEtaRG'].Fill(recoMuon.eta-genMuon.eta        )
         if len(matchesBS) > 0:
             recoMuon = DSAmuons[matchesBS[0]['idx']]
             for QUANTITY in ('pT', 'd0'):
                 PRETTY, AXES, RFUNC, GFUNC, RESFUNC = CONFIG[QUANTITY]
                 self.HISTS[QUANTITY+'ResBS'].Fill(RESFUNC(RFUNC(recoMuon), GFUNC(genMuon, 'FULL')))
             self.HISTS['deltaRBS'].Fill(matchesBS[0]['deltaR'])
+            self.HISTS['deltaphiBS'].Fill(recoMuon.p4.DeltaPhi(genMuon.BS.p4))
+            self.HISTS['deltaEtaBS'].Fill(recoMuon.eta-genMuon.BS.eta        )
+
+        if len(matchesRG) > 0 and len(matchesBS) > 0:
+            dRRG = matchesRG[0]['deltaR']
+            dRBS = matchesBS[0]['deltaR']
+            self.HISTS['deltaDeltaR'].Fill(dRRG-dRBS)
+        elif len(matchesRG) > 0:
+            self.HISTS['deltaDeltaR'].Fill(.4)
+        elif len(matchesBS) > 0:
+            self.HISTS['deltaDeltaR'].Fill(-.4)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
