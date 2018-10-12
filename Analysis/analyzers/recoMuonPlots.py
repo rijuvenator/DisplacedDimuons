@@ -96,6 +96,8 @@ def analyze(self, E, PARAMS=None):
 
     # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
     ALL = True if 'All' in self.CUTS else False
+    PROMPT = True if '_Prompt' in self.CUTS else False
+    NOPROMPT = True if '_NoPrompt' in self.CUTS else False
 
     # require muons to pass all selections
     if ALL:
@@ -103,6 +105,32 @@ def analyze(self, E, PARAMS=None):
         RSASelections    = [Selections.MuonSelection(muon) for muon in RSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
+        selectedDimuons  = Dimuons
+
+    # return if there are LxySig > 3
+    elif PROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if highLxySigExists:
+            return
+        selectedDSAmuons = DSAmuons
+        selectedRSAmuons = RSAmuons
+        selectedDimuons  = Dimuons
+
+    # return if there are NO LxySig > 3 -- that's category 1
+    elif NOPROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if not highLxySigExists:
+            return
+        selectedDSAmuons = DSAmuons
+        selectedRSAmuons = RSAmuons
         selectedDimuons  = Dimuons
 
     # don't require reco muons to pass all selections

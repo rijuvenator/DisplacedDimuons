@@ -81,6 +81,8 @@ def analyze(self, E, PARAMS=None):
 
     # decide what set of cuts to apply based on self.CUTS cut string
     ALL = True if 'All' in self.CUTS else False
+    PROMPT = True if '_Prompt' in self.CUTS else False
+    NOPROMPT = True if '_NoPrompt' in self.CUTS else False
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
     if ALL:
@@ -88,6 +90,30 @@ def analyze(self, E, PARAMS=None):
         DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    # return if there are LxySig > 3
+    elif PROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if highLxySigExists:
+            return
+        selectedDSAmuons = DSAmuons
+        selectedDimuons  = Dimuons
+
+    # return if there are NO LxySig > 3 -- that's category 1
+    elif NOPROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if not highLxySigExists:
+            return
+        selectedDSAmuons = DSAmuons
+        selectedDimuons  = Dimuons
 
     # no cuts
     else:
