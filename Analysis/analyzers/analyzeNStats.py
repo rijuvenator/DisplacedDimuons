@@ -3,6 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
+import DisplacedDimuons.Analysis.AnalysisTools as AT
 
 #
 # voms-proxy-init --voms cms
@@ -90,16 +91,16 @@ def analyze(self, E, PARAMS=None):
     #print "new event"
     recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
-    for dimuon in diMuons:
-        recoMuons.append(dimuon.mu1)
-        recoMuons.append(dimuon.mu2)
+    #for dimuon in diMuons:
+    #    recoMuons.append(dimuon.mu1)
+    #    recoMuons.append(dimuon.mu2)
         #print dimuon.Lxy()
         #if(dimuon.Lxy() < 330):
         #    recoMuons.append(dimuon.mu1)
         #    recoMuons.append(dimuon.mu2)
     #recoMuons = dsaMuons # to look at un-vertex-fit muons
     
-    if(len(recoMuons) == 0): return
+    #if(len(recoMuons) == 0): return
     
     
     if '4Mu' in self.NAME:
@@ -109,14 +110,28 @@ def analyze(self, E, PARAMS=None):
     elif '2Mu2J' in self.NAME:
         mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu1, mu2)
+        genMuonPairs = ((mu1, mu2),)
     else:
         print "Haven't implemented these samples"
         return
     
+    selectedDimuons = [dim for dim in diMuons if dim.Lxy() < 330]
+    print "-- printing selected muons:"
+    print selectedDimuons
+    
+    for genMuonPair in genMuonPairs:
+        dimuonMatches, muonMatches, exitcode = AT.matchedDimuons(genMuonPair, selectedDimuons)
+        print dimuonMatches
+        
+    return
+    
+    print "-- printing dimuonMatches:"
+    print dimuonMatches
+    return
 
-        
-        
-    matches = matchGenReco(genMuons, recoMuons)
+
+
+    #matches = matchGenReco(genMuons, recoMuons)
     for [gen, reco] in matches:  
         self.HISTS['test'].Fill(reco.pt-dsaMuons[reco.idx].pt)
         ndt = dsaMuons[reco.idx].nDTStations
