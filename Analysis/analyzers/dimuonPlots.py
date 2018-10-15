@@ -83,6 +83,7 @@ def analyze(self, E, PARAMS=None):
     ALL = True if 'All' in self.CUTS else False
     PROMPT = True if '_Prompt' in self.CUTS else False
     NOPROMPT = True if '_NoPrompt' in self.CUTS else False
+    NSTATIONS = True if '_NS' in self.CUTS else False
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
     if ALL:
@@ -100,8 +101,13 @@ def analyze(self, E, PARAMS=None):
                 break
         if highLxySigExists:
             return
-        selectedDSAmuons = DSAmuons
-        selectedDimuons  = Dimuons
+        if NSTATIONS:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        else:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
 
     # return if there are NO LxySig > 3 -- that's category 1
     elif NOPROMPT:
@@ -112,8 +118,13 @@ def analyze(self, E, PARAMS=None):
                 break
         if not highLxySigExists:
             return
-        selectedDSAmuons = DSAmuons
-        selectedDimuons  = Dimuons
+        if NSTATIONS:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        else:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
 
     # no cuts
     else:
