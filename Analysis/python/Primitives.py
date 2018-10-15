@@ -290,7 +290,9 @@ class Event(Primitive):
             else:
                 data = str(data)
 
-            outstr += '{ATTR:{W}s}: {DATA} \n'.format(ATTR=attr, W=maxAttrLen, DATA=data)
+            outstr += '{ATTR:{W}s}: {DATA} '.format(ATTR=attr, W=maxAttrLen, DATA=data)
+
+        outstr += '\n'
         return outstr
 
 # MET class
