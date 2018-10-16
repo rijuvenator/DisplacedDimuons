@@ -2,6 +2,7 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
+import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
@@ -18,9 +19,9 @@ VALUES = (
     ('d0SigLin' , (1000, 0., 20. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}', True ),
     ('dzLin'    , (1000, 0., 200.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            , True ),
     ('dzSigLin' , (1000, 0., 20. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}', True ),
-    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          , False),
-    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   , False),
-    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               , False),
+    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          , True ),
+    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   , True ),
+    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               , True ),
     ('pTSig'    , (1000, 0.,  3. ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         , True ),
 )
 CONFIG = {}
@@ -86,6 +87,8 @@ def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
+
+    Primitives.CopyExtraRecoMuonInfo(Dimuons, DSAmuons)
 
     eventWeight = 1.
     try:
@@ -158,6 +161,9 @@ def analyze(self, E, PARAMS=None):
                 MuonMatches[MUON].append(muonMatches[1])
 
         # fill histograms
+        # for each major muon type,
+        # MuonMatches contains 2 lists of matches corresponding to each gen muon
+        # Each match in each of those 2 lists is a list of individual muon matches
         for MUON in ('DSA', 'RSA', 'REF'):
             for matches in MuonMatches[MUON]:
                 for match in matches:
