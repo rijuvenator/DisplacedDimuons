@@ -79,6 +79,37 @@ def matchGenReco(genMuons, recoMuons):
             genReco[gen].append(reco)
             
     return reversed(findBestMatches(genReco))
+
+
+def fillStats(self, gen, reco):
+    ndt = reco.nDTStations
+    ncsc = reco.nCSCStations
+    self.HISTS['cscStations'].Fill(ncsc)
+    self.HISTS['dtStations'].Fill(ndt)
+    self.HISTS['csc&dtStations'].Fill(ncsc + ndt)  
+    if ncsc == 0:
+        if ndt != 0:
+            if reco.ndof != 0: self.HISTS['chi2/ndf vs ndtStats'].Fill(ndt, reco.chi2 / reco.ndof)
+            if reco.pt != 0: self.HISTS['dPt/Pt vs ndtStats'].Fill(ndt, reco.ptError / reco.pt)
+            if gen.pt != 0: self.HISTS['dt_%istat' % ndt].Fill((reco.pt - gen.pt) / gen.pt)
+            if gen.pt != 0: self.HISTS['dt_%istat_gauss' % ndt].Fill((1.*reco.charge / reco.pt - 1.*gen.charge / gen.pt) / (1.*gen.charge / gen.pt))
+    else:
+        if ndt == 0:
+            if reco.ndof != 0: self.HISTS['chi2/ndf vs ncscStats'].Fill(ncsc, reco.chi2 / reco.ndof)
+            if reco.pt != 0: self.HISTS['dPt/Pt vs ncscStats'].Fill(ncsc, reco.ptError / reco.pt)
+            if gen.pt != 0: self.HISTS['csc_%istat' % ncsc].Fill((reco.pt - gen.pt) / gen.pt)
+            if gen.pt != 0: self.HISTS['csc_%istat_gauss' % ncsc].Fill((1.*reco.charge / reco.pt - 1.*gen.charge / gen.pt) / (1.*gen.charge / gen.pt))
+        else:  # csc !=0 & dt !=0
+            if gen.pt != 0: 
+                nstat = ndt + ncsc
+                if nstat > 4:
+                    self.HISTS['csc&dt_5+stat'].Fill((reco.pt - gen.pt) / gen.pt)
+                    self.HISTS['csc&dt_5+stat_gauss'].Fill((1.*reco.charge / reco.pt - 1.*gen.charge / gen.pt) / (1.*gen.charge / gen.pt))
+                else:
+                    self.HISTS['csc&dt_%istat' % (ncsc + ndt)].Fill((reco.pt - gen.pt) / gen.pt)
+                    self.HISTS['csc&dt_%istat_gauss' % (ncsc + ndt)].Fill((1.*reco.charge / reco.pt - 1.*gen.charge / gen.pt) / (1.*gen.charge / gen.pt))
+    
+
     
 
 def analyze(self, E, PARAMS=None):
@@ -91,6 +122,8 @@ def analyze(self, E, PARAMS=None):
     #print "new event"
     recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
+    
+    Primitives.CopyExtraRecoMuonInfo(diMuons, dsaMuons)
     #for dimuon in diMuons:
     #    recoMuons.append(dimuon.mu1)
     #    recoMuons.append(dimuon.mu2)
@@ -116,53 +149,21 @@ def analyze(self, E, PARAMS=None):
         return
     
     selectedDimuons = [dim for dim in diMuons if dim.Lxy() < 330]
-    print "-- printing selected muons:"
-    print selectedDimuons
+    #selectedDimuons = [dim for dim in diMuons if dim.Lxy() <10]
+    #selectedDimuons = diMuons
+    #print "-- printing selected muons:"
+    #print selectedDimuons
     
     for genMuonPair in genMuonPairs:
         dimuonMatches, muonMatches, exitcode = AT.matchedDimuons(genMuonPair, selectedDimuons)
-        print dimuonMatches
         
+        if len(muonMatches[0]):
+            fillStats(self,genMuonPair[0],muonMatches[0][0]['muon'])
+        if len(muonMatches[1]):
+            fillStats(self,genMuonPair[1],muonMatches[1][0]['muon'])
+            
     return
-    
-    print "-- printing dimuonMatches:"
-    print dimuonMatches
-    return
 
-
-
-    #matches = matchGenReco(genMuons, recoMuons)
-    for [gen, reco] in matches:  
-        self.HISTS['test'].Fill(reco.pt-dsaMuons[reco.idx].pt)
-        ndt = dsaMuons[reco.idx].nDTStations
-        ncsc = dsaMuons[reco.idx].nCSCStations
-        self.HISTS['cscStations'].Fill(ncsc)
-        self.HISTS['dtStations'].Fill(ndt)
-        self.HISTS['csc&dtStations'].Fill(ncsc+ndt)  
-        if ncsc == 0:
-            if ndt != 0:
-                if dsaMuons[reco.idx].ndof != 0: self.HISTS['chi2/ndf vs ndtStats'].Fill(ndt, dsaMuons[reco.idx].chi2/dsaMuons[reco.idx].ndof)
-                if reco.pt != 0: self.HISTS['dPt/Pt vs ndtStats'].Fill(ndt, reco.ptError/reco.pt)
-                if gen.pt != 0: self.HISTS['dt_%istat'%ndt].Fill((reco.pt - gen.pt)/gen.pt)
-                if gen.pt != 0: self.HISTS['dt_%istat_gauss'%ndt].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
-        else:
-            if ndt == 0:
-                if dsaMuons[reco.idx].ndof != 0: self.HISTS['chi2/ndf vs ncscStats'].Fill(ncsc, dsaMuons[reco.idx].chi2/dsaMuons[reco.idx].ndof)
-                if reco.pt != 0: self.HISTS['dPt/Pt vs ncscStats'].Fill(ncsc, reco.ptError/reco.pt)
-                if gen.pt != 0: self.HISTS['csc_%istat'%ncsc].Fill((reco.pt - gen.pt)/gen.pt)
-                if gen.pt != 0: self.HISTS['csc_%istat_gauss'%ncsc].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
-            else: # csc !=0 & dt !=0
-                if gen.pt != 0: 
-                    nstat = ndt+ncsc
-                    if nstat > 4:
-                        self.HISTS['csc&dt_5+stat'].Fill((reco.pt - gen.pt)/gen.pt)
-                        self.HISTS['csc&dt_5+stat_gauss'].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
-                    else:
-                        self.HISTS['csc&dt_%istat'%(ncsc+ndt)].Fill((reco.pt - gen.pt)/gen.pt)
-                        self.HISTS['csc&dt_%istat_gauss'%(ncsc+ndt)].Fill((1.*reco.charge/reco.pt - 1.*gen.charge/gen.pt)/(1.*gen.charge/gen.pt))
-                    
-                    
-    
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
