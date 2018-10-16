@@ -4,7 +4,8 @@ import ROOT as R
 import DisplacedDimuons.Analysis.RootTools
 import DisplacedDimuons.Common.Constants as Constants
 
-COLORON = True
+#COLORON = True
+COLORON = False
 
 ##########
 # This file defines the Primitives classes for ease of access and idiomatic analysis code.
