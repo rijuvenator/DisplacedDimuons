@@ -73,55 +73,53 @@ def analyze(self, E, PARAMS=None):
     # loop over genMuons and fill histograms based on matches
     for genMuonPair in genMuonPairs:
         # first make lists of matches
-        genMuonMatches = [{'DSA':None, 'RSA':None, 'REF':None}, {'DSA':None, 'RSA':None, 'REF':None}]
-        for idx, genMuon in enumerate(genMuonPair):
-            for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-                genMuonMatches[idx][MUON] = matchedMuons(genMuon, recoMuons, vertex='BS')
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
-        genMuonMatches[0]['REF'] = muonMatches[0]
-        genMuonMatches[1]['REF'] = muonMatches[1]
+        genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
 
-        # now determine if both genMuons matched, accounting for multiple matches
-        genMuonMatch   = [{'DSA':None, 'RSA':None, 'REF':None}, {'DSA':None, 'RSA':None, 'REF':None}]
+        # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
+        # exitcode information is still preserved; see AnalysisTools
+        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
+            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex=None)
+        for MUON in ('REF',):
+            genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
+
+        # now figure out the closest match, or None if they overlap
+        genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
+
+        # exitcode helps to make sure that both gen muons never match the same reco muon
+        # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
+        # sorted by deltaR, so [0] is the closest, etc.
         for MUON in ('DSA', 'RSA'):
-            lens = [len(genMuonMatches[0][MUON]), len(genMuonMatches[1][MUON])]
-            # both gen muons matched
-            if   lens[0] >  0 and lens[1] >  0:
-                matches = [genMuonMatches[0][MUON], genMuonMatches[1][MUON]]
-                # but to different reco muons
-                if matches[0][0]['idx'] != matches[1][0]['idx']:
-                    genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-                    genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-                # to the SAME reco muon
-                else:
-                    # which one wins the deltaR competition?
-                    # 0 won. 1 gets second best or None.
-                    if matches[0][0]['deltaR'] < matches[1][0]['deltaR']:
-                        genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-                        if lens[1] > 1:
-                            genMuonMatch[1][MUON] = genMuonMatches[1][MUON][1]
-                        else:
-                            genMuonMatch[1][MUON] = None
-                    # 1 won. 0 gets second best or None.
-                    else:
-                        genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-                        if lens[0] > 1:
-                            genMuonMatch[0][MUON] = genMuonMatches[0][MUON][1]
-                        else:
-                            genMuonMatch[0][MUON] = None
-            # second gen muon didn't match
-            elif lens[0] >  0 and lens[1] == 0:
-                genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-            # first gen muon didn't match
-            elif lens[0] == 0 and lens[1] >  0:
-                genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-            # neither gen muon matched
-            elif lens[0] == 0 and lens[1] == 0:
-                pass
+            dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
+            if   exitcode == 1:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 2:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = muonMatches[1][1]
+            elif exitcode == 3:
+                genMuonMatch[0][MUON] = muonMatches[0][1]
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 4:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = None
+            elif exitcode == 5:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 6:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = None
+            elif exitcode == 7:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 8:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = None
 
-        if len(dimuonMatches) > 0:
-            genMuonMatch[0]['REF'] = genMuonMatches[0]['REF'][0]
-            genMuonMatch[1]['REF'] = genMuonMatches[1]['REF'][0]
+        for MUON in ('REF',):
+            dimuonMatches, muonMatches, exitcode = genMuonMatches['REF']
+            if len(dimuonMatches) > 0:
+                genMuonMatch[0]['REF'] = muonMatches[0][0]
+                genMuonMatch[1]['REF'] = muonMatches[1][0]
 
         # now loop over the quantities and fill. split by whether it's a mu plot or a mumu plot.
         for KEY in CONFIG:
@@ -185,4 +183,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER', 'DIMUON'),
     )
-    analyzer.writeHistograms('roots/SignalRecoEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/SignalRecoEffPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

@@ -29,16 +29,21 @@ def analyze(self, E, PARAMS=None):
         if not genMuonSelection: continue
 
         # check if any DSA muons match a genMuon
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, Dimuons, DSAmuons)
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, Dimuons, DSAmuons, vertex='BS')
 
-        # print if exitcode 2: gen muons matched, but no dimuon found, and Lxy>340
-        if len(dimuonMatches) > 0 and exitcode == 2 and genMuonPair[0].Lxy() > 340.:
-            dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS)
+        # print if exitcode 1, 2, 3: gen muons matched (or exists next best), but no dimuon found, and Lxy>340
+        if exitcode in (1, 2, 3) and genMuonPair[0].Lxy() > 340.:
+            dumpInfo(Event, genMuonPair, muonMatches, exitcode, DSAmuons, Dimuons, extramu, PARAMS)
 
 # dump info
-def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS):
+def dumpInfo(Event, genMuonPair, muonMatches, exitcode, DSAmuons, Dimuons, extramu, PARAMS):
     print '=== Run LS Event : {} {} {} ==='.format(Event.run, Event.lumi, Event.event)
-    muonMatchIndices = [muonMatches[0]['idx'], muonMatches[1]['idx']]
+    if exitcode == 1:
+        muonMatchIndices = [muonMatches[0][0]['idx'], muonMatches[1][0]['idx']]
+    elif exitcode == 2:
+        muonMatchIndices = [muonMatches[0][0]['idx'], muonMatches[1][1]['idx']]
+    elif exitcode == 3:
+        muonMatchIndices = [muonMatches[0][1]['idx'], muonMatches[1][0]['idx']]
     for genMuon in genMuonPair:
         print 'Gen Muon Pair: {:7s} {:10.4f} {:12s} {:7.4f} {:7.4f} {:11.4f} {:9.4f}'.format(
                 '',
@@ -60,8 +65,8 @@ def dumpInfo(Event, genMuonPair, muonMatches, DSAmuons, Dimuons, extramu, PARAMS
             '',
             '',
             '',
-            muon.p4.DeltaR(genMuonPair[0].p4),
-            muon.p4.DeltaR(genMuonPair[1].p4),
+            muon.p4.DeltaR(genMuonPair[0].BS.p4),
+            muon.p4.DeltaR(genMuonPair[1].BS.p4),
             muon.nDTStations,
             muon.nCSCStations,
             muon.nDTHits,

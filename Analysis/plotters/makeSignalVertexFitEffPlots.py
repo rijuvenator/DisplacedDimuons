@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
-CUTSTRING = '_OldMatching2'
+CUTSTRING = ''
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalVertexFitEffPlots.root')

@@ -64,7 +64,7 @@ def analyze(self, E, PARAMS=None):
         dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
 
         # both gen muons matched, but no dimuon: fill den only
-        if exitcode == 2:
+        if exitcode in (1, 2, 3):
             for KEY in CONFIG:
                 F = CONFIG[KEY]['LAMBDA']
                 self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))

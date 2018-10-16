@@ -63,18 +63,41 @@ def matchedMuons(baseMuon, muonList, vertex=None):
 # - find all possible dimuons with those matched indices
 # given a genMuonPair and a list of dimuons:
 # - find all dimuons whose constituent refitted muons proximity match gen muons
+# given a genMuonPair, a dummy tuple ('DUMMY',), and a list of recoMuons:
+# - use the matchedMuons function to find lists of matched muons to gen muons
+# - this is for the exitcode information but without the need for dimuons
+#
 # return syntax: dimuonMatches, muonMatches, exitcode
-# len(dimuonMatches) > 0 means a dimuon was found for this genMuonPair
+# len(dimuonMatches) > 0 or exitcode 0 means a dimuon was found for this genMuonPair
+#
 # exitcode 0 means dimuons were found
-# exitcode 1 means both gen muons did not match
-# exitcode 2 means both gen muons matched, but a suitable dimuon was not found -- this can only happen if recoMuons is provided
-# exitcode 3 means the dimuon list was empty and nothing was matched
-def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
-    if len(dimuons) == 0:
-        return [], [[], []], 3
+# exitcode 1 means no dimuons were found + gen muons individually matched different reco muons
+# exitcode 2 means no dimuons were found + gen muons individually matched the same  reco muon  + g0 is better and g1 has a next best
+# exitcode 3 means no dimuons were found + gen muons individually matched the same  reco muon  + g1 is better and g0 has a next best
+# exitcode 4 means no dimuons were found + gen muons individually matched the same  reco muon  + g0 is better and g1 has no next best
+# exitcode 5 means no dimuons were found + gen muons individually matched the same  reco muon  + g1 is better and g0 has no next best
+# exitcode 6 means no dimuons were found + both gen muons did not match + g0 matched and g1 did not
+# exitcode 7 means no dimuons were found + both gen muons did not match + g1 matched and g0 did not
+# exitcode 8 means no dimuons were found + both gen muons did not match + neither g0 nor g1 matched
+# exitcode 9 means the dimuon list was empty and nothing was matched
+#
+# Note about DUMMY:
+# much of this function depends on a) whether or not recoMuons was provided, and b) whether or not dimuons is empty
+# if recoMuons is not provided, use the refitted muons embedded in dimuons to match to gen
+# if recoMuons IS provided, use the given list of recoMuons instead to match to gen
+# however, it turns out that the exitcode logic -- which uniquely partitions the possible states by which muons matched, etc.
+# can be and is useful without the context of dimuons. You can always match a gen muon to a list of reco muons.
+# But the way I have it, exitcode 0 is immediate when dimuons were found. So what if I want to provide recoMuons, and get
+# the exitcode information too? I'll never get exitcode 1 if a dimuon was found. What I actually want in such a case is
+# to not look for dimuons at all. But I can't pass an empty list, because that's exitcode 9 -- otherwise, yes, I would never
+# match a dimuon. So my current solution is: pass dimuons = ('DUMMY',). This will not flag exitcode 9 because len() is not 0,
+# and it won't flag exitcode 0 because you can't match to a string. dimuonMatches will be [], and the usual exitcode process
+# will proceed. Of course, this only makes sense if recoMuons is not None! But that's when I would want to use it anyway.
+# If dimuons = ('DUMMY',) is passed and recoMuons is None, the "else" condition triggers and you cleanly get exitcode 9.
 
+def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
     # return matched based on refitted tracks
-    if recoMuons is None:
+    if recoMuons is None and len(dimuons) != 0 and dimuons[0] != 'DUMMY':
         dimuonMatches = []
         muonMatches = [[], []]
         for idx,dimuon in enumerate(dimuons):
@@ -128,32 +151,72 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
             dimuonMatches, muonMatches[0], muonMatches[1] = zip(*sortTable)
 
     # return matched based on original tracks
-    else:
+    elif recoMuons is not None and len(dimuons) != 0:
         muonMatches = []
         for genMuon in genMuonPair:
             muonMatches.append(matchedMuons(genMuon, recoMuons, vertex=vertex))
 
-        dimuonLookup = {(dim.idx1, dim.idx2):(dim, didx) for didx,dim in enumerate(dimuons)}
-        dimuonMatches = []
-        for match1 in muonMatches[0]:
-            for match2 in muonMatches[1]:
-                if match1['oidx'] == match2['oidx']: continue
-                try:
-                    oIdx = (match1['oidx'], match2['oidx'])
-                    dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0], 'matches':(match1, match2)})
-                except:
+        if dimuons[0] != 'DUMMY':
+            dimuonLookup = {(dim.idx1, dim.idx2):(dim, didx) for didx,dim in enumerate(dimuons)}
+            dimuonMatches = []
+            for match1 in muonMatches[0]:
+                for match2 in muonMatches[1]:
+                    if match1['oidx'] == match2['oidx']: continue
                     try:
-                        oIdx = (match2['oidx'], match1['oidx'])
+                        oIdx = (match1['oidx'], match2['oidx'])
                         dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0], 'matches':(match1, match2)})
                     except:
-                        pass
+                        try:
+                            oIdx = (match2['oidx'], match1['oidx'])
+                            dimuonMatches.append({'idx':dimuonLookup[oIdx][1], 'dim':dimuonLookup[oIdx][0], 'matches':(match1, match2)})
+                        except:
+                            pass
+        else:
+            dimuonMatches = []
 
-    if len(dimuonMatches) > 0:
-        return dimuonMatches, muonMatches, 0
-    elif len(muonMatches[0]) > 0 and len(muonMatches[1]) > 0:
-        return dimuonMatches, muonMatches, 2
+    # len(dimuons) == 0
     else:
-        return dimuonMatches, muonMatches, 1
+        dimuonMatches, muonMatches = [], [[], []]
+
+
+    # exitcode 9: dimuon list was empty
+    if len(dimuons) == 0:
+        exitcode = 9
+    # exitcode 0: a dimuon was found
+    elif len(dimuonMatches) > 0:
+        exitcode = 0
+    elif len(muonMatches[0]) > 0 and len(muonMatches[1]) > 0:
+        # exitcode 1: no dimuon was found, but each gen muon individually matched different reco muons
+        if muonMatches[0][0]['oidx'] != muonMatches[1][0]['oidx']:
+            exitcode = 1
+        # exitcode 2, 3: no dimuon was found, each gen muon individually matched the same reco muon,
+        # if we keep the gen muon that's closer to the reco muon, the other gen muon has a second best option
+        elif muonMatches[0][0]['oidx'] == muonMatches[1][0]['oidx']:
+            # exitcode 2: muon 0 won, muon 1 lost, take muonMatches[1][1]
+            if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR'] and len(muonMatches[1]) > 1:
+                exitcode = 2
+            # exitcode 3: muon 1 won, muon 0 lost, take muonMatches[0][1]
+            elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR'] and len(muonMatches[0]) > 1:
+                exitcode = 3
+            # exitcode 4, 5: no dimuon was found, each gen muon individually matched the same reco muon,
+            # and the "losing" gen muon has no second best option
+            else:
+                # exitcode 4: muon 0 won, muon 1 has no next best
+                if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR']:
+                    exitcode = 4
+                # exitcode 5: muon 1 won, muon 0 has no next best
+                elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR']:
+                    exitcode = 5
+    # exitcode 6, 7, 8: no dimuon was found, and both gen muons didn't match
+    else:
+        if len(muonMatches[0]) > 0 and len(muonMatches[1]) == 0:
+            exitcode = 6
+        elif len(muonMatches[1]) > 0 and len(muonMatches[0]) == 0:
+            exitcode = 7
+        else:
+            exitcode = 8
+    # final return
+    return dimuonMatches, muonMatches, exitcode
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

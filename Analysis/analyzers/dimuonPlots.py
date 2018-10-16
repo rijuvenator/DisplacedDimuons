@@ -161,8 +161,6 @@ def analyze(self, E, PARAMS=None):
             #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
 
             # find the matching dimuon, if any, and fill
-            # old style matching to reco muons
-            #dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
             dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
 
             if len(dimuonMatches) > 0:
