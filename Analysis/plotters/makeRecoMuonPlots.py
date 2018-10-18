@@ -7,6 +7,8 @@ import HistogramGetter
 
 TRIGGER = False
 PRINTINTEGRALS = False
+CUTSTRING = ''
+MCONLY = False
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/RecoMuonPlots.root')
@@ -15,10 +17,10 @@ f = R.TFile.Open('../analyzers/roots/Main/RecoMuonPlots.root')
 # make plots that are per sample
 def makePerSamplePlots():
     for ref in HISTS:
+        if not type(ref) == tuple: continue
         for key in HISTS[ref]:
             if 'deltaRGR' in key: continue
             if 'VS' in key: continue
-            if 'DoubleMuon' in ref: continue
             if type(ref) == tuple:
                 if ref[0] == '4Mu':
                     name = 'HTo2XTo4Mu_'
@@ -41,7 +43,7 @@ def makePerSamplePlots():
             RT.addFlows(h)
             if h.GetNbinsX() > 100: h.Rebin(10)
             p = Plotter.Plot(h, legName, 'l', 'hist')
-            fname = 'pdfs/{}_{}.pdf'.format(key, name)
+            fname = 'pdfs/{}{}_{}.pdf'.format(key, CUTSTRING, name)
 
             canvas = Plotter.Canvas(lumi=lumi)
             canvas.addMainPlot(p)
@@ -61,17 +63,19 @@ def makeStackPlots(DataMC=False, logy=False):
         if 'Matched' in hkey: continue
         if 'VS' in hkey: continue
 
-        h = {
-            'Data'       : HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone(),
-#           'Signal'     : HISTS[('4Mu', (125, 20, 13))         ][hkey].Clone(),
-            'BG'         : R.THStack('hBG', '')
-        }
+        h = {}
+        if not MCONLY:
+            h      ['Data'  ] = HISTS['DoubleMuonRun2016B-07Aug17-v2'][hkey].Clone()
+        if True:
+#           h      ['Signal'] = HISTS[('4Mu', (125, 20, 13))         ][hkey].Clone()
+            h      ['BG'    ] = R.THStack('hBG', '')
 
-        PConfig = {
-            'Data'       : ('DoubleMuon2016'               , 'pe', 'pe'  ),
-#           'Signal'     : ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist'),
-            'BG'         : (''                             , ''  , 'hist'),
-        }
+        PConfig = {}
+        if not MCONLY:
+            PConfig['Data'  ] = ('DoubleMuon2016'               , 'pe', 'pe'  )
+        if True:
+#           PConfig['Signal'] = ('H#rightarrow2X#rightarrow4#mu', 'l' , 'hist')
+            PConfig['BG'    ] = (''                             , ''  , 'hist')
 
         PC = HistogramGetter.PLOTCONFIG
 
@@ -84,29 +88,33 @@ def makeStackPlots(DataMC=False, logy=False):
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
 
-        for era in ('C', 'D', 'E', 'F', 'G', 'H'):
-            h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
-        if not PRINTINTEGRALS:
-            RT.addFlows(h['Data'])
-            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
+        if not MCONLY:
+            for era in ('C', 'D', 'E', 'F', 'G', 'H'):
+                h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
+            if not PRINTINTEGRALS:
+                RT.addFlows(h['Data'])
+                if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/{}_Stack{}{}.pdf'.format(hkey, '-Log' if logy else '', '-Rat' if DataMC else '')
+        fname = 'pdfs/{}{}_Stack{}{}{}.pdf'.format(hkey, CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
             p[key].SetLineColor(PC[key]['COLOR'])
             p[key].SetFillColor(PC[key]['COLOR'])
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
-        canvas.addMainPlot(p['BG'])
-        canvas.addMainPlot(p['Data'])
+        if True:
+            canvas.addMainPlot(p['BG'])
+        if not MCONLY:
+            canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
 
         canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DataMC else 1.)
-        canvas.addLegendEntry(p['Data'     ])
+        if not MCONLY:
+            canvas.addLegendEntry(p['Data'     ])
         for key in reversed(BGORDER):
             canvas.addLegendEntry(p[key])
 #       canvas.addLegendEntry(p['Signal'])
@@ -172,7 +180,7 @@ def makeGenRecoPlots():
                 RT.addFlows(h[key])
                 if h[key].GetNbinsX() > 100: h.Rebin(10)
                 p[key] = Plotter.Plot(h[key], key, 'l', 'hist')
-            fname = 'pdfs/{}_{}_{}_{}.pdf'.format(MUON, 'deltaRGR', 'Matched', name)
+            fname = 'pdfs/{}{}_{}_{}_{}.pdf'.format(MUON, CUTSTRING, 'deltaRGR', 'Matched', name)
 
             canvas = Plotter.Canvas(lumi=lumi)
             for key in KEYS:
@@ -195,7 +203,7 @@ def makeGenRecoPlots():
 # make 3D color plots
 def makeColorPlots(key):
     for ref in HISTS:
-        if 'DoubleMuon' in ref: continue
+        if not type(ref) == tuple: continue
         if type(ref) == tuple:
             if ref[0] == '4Mu':
                 name = 'HTo2XTo4Mu_'
@@ -221,18 +229,21 @@ def makeColorPlots(key):
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')
 
-        fname = 'pdfs/{}_{}.pdf'.format(key, name)
+        fname = 'pdfs/{}{}_{}.pdf'.format(key, CUTSTRING, name)
         canvas.cleanup(fname)
 
 if PRINTINTEGRALS:
-    makeStackPlots(False)
+    makeStackPlots(False, False)
     exit()
 
 if True:
     makePerSamplePlots()
 if True:
-    makeStackPlots(False)
-    makeStackPlots(True, True)
+    makeStackPlots(False, False)
+    if not MCONLY:
+        makeStackPlots(True, True)
+    else:
+        makeStackPlots(False, True)
 if True:
     makeGenRecoPlots()
     makeColorPlots('DSA_fYVSfX')

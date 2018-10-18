@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **18 September 2018**
+Last updated: **18 October 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -123,7 +123,7 @@ The following analyzers do not use the full _Primitives_ and _Analyzer_ machiner
 
 The following analyzers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`.
 
-  * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
+  * **recoMuonPlots.py** produces plots related to DSA, RSA, and refitted (REF) muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
   * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
   * **nMinusOneEffPlots.py** produces N-1 efficiency plots as a function of various variables.
@@ -131,11 +131,17 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **signalRecoEffPlots.py** produces plots parametrizing the reco-gen efficiency as a function of various quantities, for signal samples.
   * **signalRecoResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
-  * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
+  * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples.
 
 <a name="runall"></a>
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default), locally with GNU `parallel` (given the optional parameter `--local`), or to the HEPHY batch system (given the optional parameter `--hephy`).
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either
+
+  * to the LXPLUS batch system, LXBATCH (default)
+  * locally with GNU `parallel` (given the optional parameter `--local`)
+  * to the HEPHY batch system (given the optional parameter `--hephy`)
+
+There is a `--condor` parameter for submitting to CONDOR, but the functionality doesn't seem to be working just yet.
 
 The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
@@ -205,12 +211,27 @@ For the purposes of the Javascript-based _Viewer_, I have a script, **convertone
 parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 ```
 
+or for a list of files:
+
+```bash
+parallel -a FILE ./convertone.sh
+```
+
+*convertone.sh* takes three possible options, which are slight tweaks to the PNG output based on what the input PDF is:
+  * `--normal` (or nothing): for normal 800&times;600 plots
+  * `--ratioSquash`: for plots with a ratio plot that are 800&times;600 (it cuts off otherwise)
+  * `--ratioFull`: for plots with a ratio plot that are 800&times;800
+
 <a name="special"></a>
 ## Special
 
 `special/` is where I keep some very special-purpose analyzers. They were written for one-time checks, using specific files.
 
   * **comparePATtoAOD.py** takes 2 nTuples, for two signal points, one produced from a PAT Tuple and the other produced directly from AOD, and produces a few histograms, comparing the contents bin by bin, and printing to the screen if anything is different. This script served as a proof that _PATFilter_ did not change anything significant from AOD.
+
+  * **compareBSGentoLinGen.py** takes new (September 2018) nTuples and compares the effect of using the old (SV-reference point) gen quantities to the new (BS-reference point) quantities when matching to reco. The behavior is understood, and the effects have been observed and documented. Its plotter is also used for the next script.
+
+  * **compareRefPoints.py** takes 2 nTuples, old and new, and compares the effect of changing the d<sub>0</sub> and L<sub>xy</sub> reference points from (0, 0, 0) to the beamspot. The effect is very small.
 
 The following script is deprecated and has been removed, having been replaced by other analyzers and dumpers.
 
