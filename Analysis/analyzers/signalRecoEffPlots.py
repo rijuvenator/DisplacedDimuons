@@ -78,7 +78,7 @@ def analyze(self, E, PARAMS=None):
         # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
         # exitcode information is still preserved; see AnalysisTools
         for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex=None)
+            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
         for MUON in ('REF',):
             genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
 
