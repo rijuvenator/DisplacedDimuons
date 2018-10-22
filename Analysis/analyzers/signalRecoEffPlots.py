@@ -33,9 +33,11 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit(MUON+'_'+KEY+'ChargeEff', TITLE, *CONFIG[KEY]['AXES'])
             self.HistInit(MUON+'_'+KEY+'ChargeDen', ''   , *CONFIG[KEY]['AXES'])
 
-        # "extra" and gen denominator plots, can reuse the axes
+        # gen denominator plots, can reuse the axes
         self.HistInit(KEY+'Den'        , '', *CONFIG[KEY]['AXES'])
-        self.HistInit(KEY+'Extra'      , '', *CONFIG[KEY]['AXES'])
+        self.HistInit('REF_'+KEY+'Den' , '', *CONFIG[KEY]['AXES'])
+
+        # descoping extra; not really needed anymore
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -115,69 +117,77 @@ def analyze(self, E, PARAMS=None):
                 genMuonMatch[0][MUON] = None
                 genMuonMatch[1][MUON] = None
 
+        # matched refitted muons if there was at least one dimuon
         for MUON in ('REF',):
             dimuonMatches, muonMatches, exitcode = genMuonMatches['REF']
             if len(dimuonMatches) > 0:
                 genMuonMatch[0]['REF'] = muonMatches[0][0]
                 genMuonMatch[1]['REF'] = muonMatches[1][0]
 
-        # now loop over the quantities and fill. split by whether it's a mu plot or a mumu plot.
+        # now loop over the quantities and fill. split by whether it's a mu plot or a mumu plot
+        genMuonPairSelection = Selections.AcceptanceSelection(genMuonPair)
+        genMuonSelections    = [Selections.AcceptanceSelection(genMuonPair[0]), Selections.AcceptanceSelection(genMuonPair[1])]
         for KEY in CONFIG:
             F = CONFIG[KEY]['LAMBDA']
             AF = CONFIG[KEY]['ACC_LAMBDA']
-            # mu mu plot
-            if KEY == 'dphi' or KEY == 'dR':
-                # cut genMuons outside the detector acceptance
-                genMuonPairSelection = Selections.AcceptanceSelection(genMuonPair)
-                if AF(genMuonPairSelection):
-                    self.HISTS[KEY+'Den'].Fill(F(genMuonPair))
 
-                    foundDSA = False
+            # mumu plots: check if pair in acceptance, fill den, fill num if both match
+            if KEY == 'dphi' or KEY == 'dR':
+                if AF(genMuonPairSelection):
+                    self.HISTS[       KEY+'Den'].Fill(F(genMuonPair))
+                    self.HISTS['REF_'+KEY+'Den'].Fill(F(genMuonPair))
+
                     for MUON in ('DSA', 'RSA', 'REF'):
                         if genMuonMatch[0][MUON] is not None and genMuonMatch[1][MUON] is not None:
-                            self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuonPair))
-                            self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuonPair))
+                            self.EffPairFill(MUON, KEY, genMuonPair, genMuonMatch, F)
 
-                            # THEN if the charges are the same, fill. Should be flat and close to 1.
-                            closestRecoMuons = [genMuonMatch[0][MUON]['muon'], genMuonMatch[1][MUON]['muon']]
-                            if genMuonPair[0].charge == closestRecoMuons[0].charge and genMuonPair[1].charge == closestRecoMuons[1].charge:
-                                self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuonPair))
-
-                            if MUON == 'DSA':
-                                foundDSA = True
-
-                            if MUON == 'RSA' and not foundDSA:
-                                self.HISTS[KEY+'Extra'].Fill(F(genMuonPair))
-            # mu plot
+            # mu plots: for DSA and RSA, check if gen muon in acceptance, fill den, fill num if match
+            # for REF, check if pair in acceptance, fill den, full num if both match
             else:
                 for idx, genMuon in enumerate(genMuonPair):
-                    # cut genMuons outside the detector acceptance
-                    genMuonSelection = Selections.AcceptanceSelection(genMuon)
-                    if AF(genMuonSelection):
+                    if AF(genMuonSelections[idx]):
                         self.HISTS[KEY+'Den'].Fill(F(genMuon))
 
-                        foundDSA = False
-                        for MUON in ('DSA', 'RSA', 'REF'):
+                        for MUON in ('DSA', 'RSA'):
                             if genMuonMatch[idx][MUON] is not None:
-                                self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuon))
-                                self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuon))
+                                self.EffSingleFill(MUON, KEY, genMuon, genMuonMatch, F, idx)
 
-                                # THEN if the charges are the same, fill. Should be flat and close to 1.
-                                closestRecoMuon = genMuonMatch[idx][MUON]['muon']
-                                if genMuon.charge == closestRecoMuon.charge:
-                                    self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuon))
+                    if AF(genMuonPairSelection):
+                        self.HISTS['REF_'+KEY+'Den'].Fill(F(genMuon))
 
-                                if MUON == 'DSA':
-                                    foundDSA = True
+                        for MUON in ('REF',):
+                            if genMuonMatch[0][MUON] is not None and genMuonMatch[1][MUON] is not None:
+                                self.EffSingleFill(MUON, KEY, genMuon, genMuonMatch, F, idx)
 
-                                if MUON == 'RSA' and not foundDSA:
-                                    self.HISTS[KEY+'Extra'].Fill(F(genMuon))
+# modular fill functions for use above: gen muon pair
+def EffPairFill(self, MUON, KEY, genMuonPair, genMuonMatch, F):
+
+    # first fill the eff plot; the numerator is the denominator for charge
+    self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuonPair))
+    self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuonPair))
+
+    # THEN if the charges are the same, fill. Should be flat and close to 1.
+    closestRecoMuons = [genMuonMatch[0][MUON]['muon'], genMuonMatch[1][MUON]['muon']]
+    if genMuonPair[0].charge == closestRecoMuons[0].charge and genMuonPair[1].charge == closestRecoMuons[1].charge:
+        self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuonPair))
+
+# modular fill functions for use above: individual gen muon
+def EffSingleFill(self, MUON, KEY, genMuon, genMuonMatch, F, idx):
+
+    # first fill the eff plot; the numerator is the denominator for charge
+    self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuon))
+    self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuon))
+
+    # THEN if the charges are the same, fill. Should be flat and close to 1.
+    closestRecoMuon = genMuonMatch[idx][MUON]['muon']
+    if genMuon.charge == closestRecoMuon.charge:
+        self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuon))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
-    for METHOD in ('declareHistograms', 'analyze'):
+    for METHOD in ('declareHistograms', 'analyze', 'EffPairFill', 'EffSingleFill'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
