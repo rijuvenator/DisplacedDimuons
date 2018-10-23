@@ -147,7 +147,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
         # then just catch them
         if len(dimuonMatches) > 1:
             sortTable = zip(dimuonMatches, muonMatches[0], muonMatches[1])
-            sortTable.sort(key=lambda row:(row[1]['deltaR'],row[2]['deltaR']))
+            sortTable.sort(key=lambda row:row[1]['deltaR']**2.+row[2]['deltaR']**2.)
             dimuonMatches, muonMatches[0], muonMatches[1] = zip(*sortTable)
 
     # return matched based on original tracks

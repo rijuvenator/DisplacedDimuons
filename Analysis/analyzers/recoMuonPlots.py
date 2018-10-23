@@ -99,6 +99,8 @@ def analyze(self, E, PARAMS=None):
     PROMPT = True if '_Prompt' in self.CUTS else False
     NOPROMPT = True if '_NoPrompt' in self.CUTS else False
     NSTATIONS = True if '_NS' in self.CUTS else False
+    NMUONHITS = True if '_NH' in self.CUTS else False
+    FPTERR = True if '_FPTE' in self.CUTS else False
 
     # require muons to pass all selections
     if ALL:
@@ -117,9 +119,19 @@ def analyze(self, E, PARAMS=None):
                 break
         if highLxySigExists:
             return
-        if NSTATIONS:
+        if NSTATIONS and not NMUONHITS:
             selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
             selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
         else:
@@ -136,9 +148,19 @@ def analyze(self, E, PARAMS=None):
                 break
         if not highLxySigExists:
             return
-        if NSTATIONS:
+        if NSTATIONS and not NMUONHITS:
             selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
             selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
         else:
@@ -151,6 +173,10 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = DSAmuons
         selectedRSAmuons = RSAmuons
         selectedDimuons  = Dimuons
+
+    # for the MC/Data events, skip events with no dimuons
+    if PROMPT or NOPROMPT:
+        if len(selectedDimuons) == 0: return
     
     # all refitted muons
     allRefittedMuons = []

@@ -5,64 +5,68 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
-# CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
-HEADERS = ('XTITLE', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'PRETTY', 'RESFUNC', 'DIF')
+HEADERS = ('PRETTY', 'EXTRA', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'RESLAMBDA', 'ISDIF')
 VALUES  = (
-    ('pT'   , 'p_{T} [GeV]'   , (1000, 0., 500.), (1200, -1.  , 5.  ), lambda gm: gm.BS.pt           , lambda muon: muon.pt              , 'p_{T}'     , lambda rq, gq: (rq-gq)/gq, False),
-    ('Lxy'  , 'L_{xy} [cm]'   , (1000, 0., 800.), (1000, -100., 100.), lambda gm: gm.Lxy()           , lambda dim : dim.Lxy()            , 'L_{xy}'    , lambda rq, gq: (rq-gq)   , True ),
-    ('d0'   , 'd_{0} [cm]'    , (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.d0(extrap=None) , lambda muon: muon.d0()            , 'd_{0}'     , lambda rq, gq: (rq-gq)   , True ),
-    ('dz'   , 'd_{z} [cm]'    , (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.dz(extrap=None) , lambda muon: muon.dz()            , 'd_{z}'     , lambda rq, gq: (rq-gq)   , True ),
-    ('d0Lin', 'lin d_{0} [cm]', (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.d0()            , lambda muon: muon.d0(extrap='LIN'), 'lin d_{0}' , lambda rq, gq: (rq-gq)   , True ),
-    ('dzLin', 'lin d_{z} [cm]', (1000, 0., 200.), (1000, -50. , 50. ), lambda gm: gm.dz()            , lambda muon: muon.dz(extrap='LIN'), 'lin d_{z}' , lambda rq, gq: (rq-gq)   , True ),
-    ('qm'   , 'charge match'  , (2   , 0.,   2.), None               , None                          , lambda r, g: r.charge == g.charge , None        , None                     , None ),
+    ('pT'   , 'p_{T}'       , ' [GeV]', (1000,0.,500.), (1200,-1.  ,5.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
+    ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000,0.,800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0'   , 'd_{0}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
+    ('dz'   , 'd_{z}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0Lin', 'lin d_{0}'   , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.d0()                , lambda muon:muon.d0(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('dzLin', 'lin d_{z}'   , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.dz()                , lambda muon:muon.dz(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('qm'   , 'charge match', ''      , (2   ,0.,  2.), None             , lambda r, g: r.charge == g.charge, None                             , None                    , None ),
 )
-CONFIG = {}
+QUANTITIES = {}
 for VAL in VALUES:
-    CONFIG[VAL[0]] = dict(zip(HEADERS, VAL[1:]))
+    QUANTITIES[VAL[0]] = dict(zip(HEADERS, VAL[1:]))
+
+FULLMUONLIST      = ('DSA', 'RSA', 'REF', 'DSADim')
+RECOMUONLIST      = ('DSA', 'RSA', 'DSADim')
+SHORTRECOMUONLIST = ('DSA', 'RSA')
+REFMUONLIST       = ('REF',)
+
+def HTITLE(Q, MUON, MODE, Q2=None):
+    # PString and DenString are for conditionally controlling () and / in eff. title
+    # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
+    # change it if this is not the case at some point!!
+    PString   = '' if QUANTITIES[Q]['ISDIF'] else '('
+    DenString = ' [cm]' if QUANTITIES[Q]['ISDIF'] else ') / gen {P}'
+    ResString = PString+'{M} {P} #minus gen {P}'+DenString
+    if MODE == 'Res':
+        # X = <q> Resolution/Dif
+        fstring = ';'+ResString+';Counts'
+    elif MODE == 'VS':
+        # X = gen <q> ; Y = reco <q>
+        fstring = ';gen {X};{M} {X};Counts'
+    elif MODE== 'VSRes':
+        # X = gen <q2> ; Y = <q> Resolution/Dif
+        fstring = ';gen {X2};'+ResString+';Counts'
+    return fstring.format(
+        X =QUANTITIES[Q]['PRETTY']+QUANTITIES[Q]['EXTRA'],
+        M =MUON,
+        P =QUANTITIES[Q]['PRETTY'],
+        X2=None if Q2 is None else QUANTITIES[Q2]['PRETTY']+QUANTITIES[Q2]['EXTRA']
+    )
+
+# every Q gets a Q Res plot and a reco Q vs gen Q plot except:
+#  - any QM (because QM is not a real number)
+#  - DSA, RSA Lxy (because Lxy is undefined for individual muons)
+# every Q gets paired with every other Q (Q2) for a Q Res vs gen Q2 plot
+HCONFIG = {}
+for MUON in FULLMUONLIST:
+    for Q in QUANTITIES:
+        if Q == 'qm': continue
+        if Q == 'Lxy' and MUON in RECOMUONLIST: continue
+        if True:
+            HCONFIG['{M}_{Q}Res'      .format(M=MUON, Q=Q       )] = {'TITLE':HTITLE(Q, MUON, 'Res'      ), 'AXES':QUANTITIES[Q] ['RESAXES']                         }
+            HCONFIG['{M}_{Q}VS{Q}'    .format(M=MUON, Q=Q       )] = {'TITLE':HTITLE(Q, MUON, 'VS'       ), 'AXES':QUANTITIES[Q] ['AXES'   ]+QUANTITIES[Q]['AXES'   ]}
+        for Q2 in QUANTITIES:
+            HCONFIG['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=Q, Q2=Q2)] = {'TITLE':HTITLE(Q, MUON, 'VSRes', Q2), 'AXES':QUANTITIES[Q2]['AXES'   ]+QUANTITIES[Q]['RESAXES']}
 
 #### CLASS AND FUNCTION DEFINITIONS ####
-# setup function for Analyzer class
-def begin(self, PARAMS=None):
-    self.COUNTERS = {'Before' : {'Total':0, 'QM':0, 'Not':0}, 'After' : {'Total':0, 'QM':0, 'Not':0}}
-
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    def HTitle(KEY, MUON, MODE, KEY2=None):
-        # PString and DenString are for conditionally controlling () and / in eff. title
-        # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
-        # change it if this is not the case at some point!!
-        PString   = '' if CONFIG[KEY]['DIF'] else '('
-        DenString = ' [cm]' if CONFIG[KEY]['DIF'] else ') / gen {P}'
-        if MODE == 'Res':
-            # X = <q> Resolution/Dif
-            fstring = ';'+PString+'{M} {P} #minus gen {P}'+DenString+';Counts'
-        elif MODE == 'VS':
-            # X = gen <q> ; Y = reco <q>
-            fstring = ';gen {X};{M} {X};Counts'
-        elif MODE== 'VSRes':
-            # X = gen <q2> ; Y = <q> Resolution/Dif
-            fstring = ';'+PString+'gen {X2};{M} {P} #minus gen {P}'+DenString+';Counts'
-        return fstring.format(
-            X =CONFIG[KEY]['XTITLE'],
-            M =MUON,
-            P =CONFIG[KEY]['PRETTY'],
-            X2=None if KEY2 is None else CONFIG[KEY2]['XTITLE']
-        )
-    for KEY in CONFIG:
-        if KEY == 'qm': continue
-        for MUON in ('DSA', 'RSA', 'REF'):
-            if KEY == 'Lxy' and MUON == 'RSA': continue # can't compute Lxy for RSA muons
-            for x in (0,):
-                self.HistInit(MUON+'_'+KEY+'Res'          , HTitle(KEY, MUON, 'Res'        ), *CONFIG[KEY]['RESAXES']                       )
-                self.HistInit(MUON+'_'+KEY+'VS'+KEY       , HTitle(KEY, MUON, 'VS'         ), *(CONFIG[KEY]['AXES']+CONFIG[KEY]['AXES']    ))
-            for KEY2 in CONFIG:
-                if KEY == 'Lxy' and KEY2 == 'qm': continue
-                self.HistInit(MUON+'_'+KEY+'Res'+'VS'+KEY2, HTitle(KEY, MUON, 'VSRes', KEY2), *(CONFIG[KEY2]['AXES']+CONFIG[KEY]['RESAXES']))
-
-    for TAG in ('Before', 'After'):
-        XAXIS = 'Reco p_{T} #minus gen p_{T} / gen p_{T}'
-        self.HistInit('Refit'+TAG+'_pTRes'     , ';'+XAXIS+';Counts'                , *CONFIG['pT']['RESAXES']                        )
-        self.HistInit('Refit'+TAG+'_pTResVSLxy', ';gen L_{xy} [cm];'+XAXIS+';Counts', *(CONFIG['Lxy']['AXES']+CONFIG['pT']['RESAXES']))
+    for KEY in HCONFIG:
+        self.HistInit(KEY, HCONFIG[KEY]['TITLE'], *HCONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -99,113 +103,159 @@ def analyze(self, E, PARAMS=None):
         selectedRSAmuons = RSAmuons
         selectedDimuons  = Dimuons
 
-    # loop over genMuons and fill histograms based on matches
-    for genMuon in genMuons:
-        # cut genMuons outside the detector acceptance
-        # no selection for now
-        #genMuonSelection = Selections.AcceptanceSelection(genMuon)
-        #if not genMuonSelection: continue
-
-        # find closest matched reco muon for DSA and RSA
-        foundDSA = False
-        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-            matches = matchedMuons(genMuon, recoMuons, vertex='BS')
-            if len(matches) != 0:
-                # take the closest match
-                closestRecoMuon = matches[0]['muon']
-                for KEY in ('pT', 'd0', 'dz', 'd0Lin', 'dzLin'):
-                    GF = CONFIG[KEY]['GENLAMBDA']
-                    RF = CONFIG[KEY]['RECOLAMBDA']
-                    RESF = CONFIG[KEY]['RESFUNC']
-                    for x in (0,):
-                        self.HISTS[MUON+'_'+KEY+'Res'          ].Fill(RESF(RF(closestRecoMuon), GF(genMuon)))
-                        self.HISTS[MUON+'_'+KEY+'VS'+KEY       ].Fill(GF(genMuon), RF(closestRecoMuon))
-                    for KEY2 in CONFIG:
-                        if KEY2 != 'qm':
-                            F2 = CONFIG[KEY2]['GENLAMBDA']
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuon), RESF(RF(closestRecoMuon), GF(genMuon)))
-                        else:
-                            F2 = CONFIG[KEY2]['RECOLAMBDA']
-                            self.HISTS[MUON+'_'+KEY+'Res'+'VS'+KEY2].Fill(F2(closestRecoMuon, genMuon), RESF(RF(closestRecoMuon), GF(genMuon)))
-
-    # loop over genMuonPairs and fill histograms based on matches
     for genMuonPair in genMuonPairs:
-        # cut genMuons outside the detector acceptance
-        # no selection for now
-        #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
-        #if not genMuonSelection: continue
+        # no acceptance selection for now
+        # genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
+        # if not genMuonSelection: continue
 
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
-        if len(dimuonMatches) > 0:
-            dimuon = dimuonMatches[0]['dim']
-            for KEY in ('Lxy',):
-                GF = CONFIG[KEY]['GENLAMBDA']
-                RF = CONFIG[KEY]['RECOLAMBDA']
-                RESF = CONFIG[KEY]['RESFUNC']
-                if KEY in ('Lxy',):
-                    for x in (0,):
-                        self.HISTS['DSA_'+KEY+'Res'          ].Fill(RESF(RF(dimuon),GF(genMuonPair[0])))
-                        self.HISTS['DSA_'+KEY+'VS'+KEY       ].Fill(GF(genMuonPair[0]), RF(dimuon))
-                    for KEY2 in CONFIG:
-                        if KEY2 == 'qm': continue
-                        F2 = CONFIG[KEY2]['GENLAMBDA']
-                        self.HISTS['DSA_'+KEY+'Res'+'VS'+KEY2].Fill(F2(genMuonPair[0]), RESF(RF(dimuon),GF(genMuonPair[0])))
+        # genMuonMatches are a dictionary of the return tuple of length 3
+        # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
+        # exitcode information is still preserved; see AnalysisTools
+        genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
+        for MUON, recoMuons in zip(SHORTRECOMUONLIST, (selectedDSAmuons, selectedRSAmuons)):
+            genMuonMatches[MUON] = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
+        for MUON in REFMUONLIST:
+            genMuonMatches[MUON] = matchedDimuons(genMuonPair, selectedDimuons)
 
-        # old style matching to reco muons
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
-        GF = CONFIG['pT']['GENLAMBDA']
-        RF = CONFIG['pT']['RECOLAMBDA']
-        RESF = CONFIG['pT']['RESFUNC']
-        F2 = CONFIG['Lxy']['GENLAMBDA']
-        # be very careful with the indices in muonMatches
-        # the muonMatches idx are the index of the selectedDSAmuons LIST
-        # the muonMatches oidx are the index of the DSAmuons list, the "original" indices
-        # a dimuon.idx can only be compared to an oIndex!
-        for match in dimuonMatches:
-            dimuon = match['dim']
-            for which, muonMatch in enumerate(match['matches']):
-                originalMuon = muonMatch['muon']
-                self.HISTS['RefitBefore_pTRes'     ].Fill(RESF(RF(originalMuon), GF(genMuonPair[which])))
-                self.HISTS['RefitBefore_pTResVSLxy'].Fill(F2(genMuonPair[which]), RESF(RF(originalMuon), GF(genMuonPair[which])))
+        # now figure out the closest match, or None if they overlap
+        # exitcode helps to make sure that both gen muons never match the same reco muon
+        # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
+        # sorted by deltaR, so [0] is the closest, etc.
+        genMuonMatch = [{MUON:None for MUON in FULLMUONLIST}, {MUON:None for MUON in FULLMUONLIST}]
+        for MUON in SHORTRECOMUONLIST:
+            dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
+            if   exitcode == 1:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 2:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = muonMatches[1][1]
+            elif exitcode == 3:
+                genMuonMatch[0][MUON] = muonMatches[0][1]
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 4:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = None
+            elif exitcode == 5:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 6:
+                genMuonMatch[0][MUON] = muonMatches[0][0]
+                genMuonMatch[1][MUON] = None
+            elif exitcode == 7:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = muonMatches[1][0]
+            elif exitcode == 8:
+                genMuonMatch[0][MUON] = None
+                genMuonMatch[1][MUON] = None
 
-                self.COUNTERS['Before']['Total'] += 1
-                if genMuonPair[which].charge == originalMuon.charge:
-                    self.COUNTERS['Before']['QM'] += 1
-                else:
-                    self.COUNTERS['Before']['Not'] += 1
+        fillDSADim = False
 
-                refittedMuon = dimuon.mu1 if dimuon.idx1 == muonMatch['oidx'] else dimuon.mu2
-                self.HISTS['RefitAfter_pTRes'      ].Fill(RESF(RF(refittedMuon), GF(genMuonPair[which])))
-                self.HISTS['RefitAfter_pTResVSLxy' ].Fill(F2(genMuonPair[which]), RESF(RF(refittedMuon), GF(genMuonPair[which])))
+        # matched refitted muons if there was at least one dimuon
+        for MUON in REFMUONLIST:
+            dimuonMatches, muonMatches, exitcode = genMuonMatches['REF']
+            if len(dimuonMatches) > 0:
+                genMuonMatch[0]['REF'] = muonMatches[0][0]
+                genMuonMatch[1]['REF'] = muonMatches[1][0]
 
-                self.COUNTERS['After']['Total'] += 1
-                if genMuonPair[which].charge == refittedMuon.charge:
-                    self.COUNTERS['After']['QM'] += 1
-                else:
-                    self.COUNTERS['After']['Not'] += 1
+                # when there's a dimuon match, pick out the original DSA muons
+                # muonMatches[whichGenMuon][0=closest] is a dictionary with oidx as a field
+                # This is the position in DSAmuons (NOT selectedDSAmuons!), so we can get the original DSA muon from that
+                fillDSADim = True
+                genMuonMatch[0]['DSADim'] = {'muon':DSAmuons[muonMatches[0][0]['oidx']]}
+                genMuonMatch[1]['DSADim'] = {'muon':DSAmuons[muonMatches[1][0]['oidx']]}
 
-# cleanup function for Analyzer class
-def end(self, PARAMS=None):
-    FS = '4Mu' if '4Mu' in self.NAME else '2Mu2J'
+        # loop over muon types, over quantities, compute the quantities, fill
+        for MUON in FULLMUONLIST:
+            # DSADim is only filled when REF is
+            if MUON == 'DSADim' and not fillDSADim: continue
+            for Q in QUANTITIES:
+                if Q == 'qm': continue
+                if Q == 'Lxy' and MUON in RECOMUONLIST: continue
 
-    if False:
-        for TAG in ('Before', 'After'):
-            print 'DATA: {FS:<5s} {mH:<4d} {mX:<3d} {cTau:<4d} {BA:1s} {tot:<6d} {qm:<6d} {nm:<6d}'.format(
-                    FS=FS,
-                    mH=self.SP.mH,
-                    mX=self.SP.mX,
-                    cTau=self.SP.cTau,
-                    BA=TAG[0],
-                    tot=self.COUNTERS[TAG]['Total'],
-                    qm=self.COUNTERS[TAG]['QM'],
-                    nm=self.COUNTERS[TAG]['Not']
-            )
+                # gen, reco, and res functions
+                GF   = QUANTITIES[Q]['GENLAMBDA' ]
+                RF   = QUANTITIES[Q]['RECOLAMBDA']
+                RESF = QUANTITIES[Q]['RESLAMBDA' ]
+
+                # gen, reco, res, and gen2 quantities
+                # if the code below succeeds, these should all be lists of length 2
+                # corresponding to g0 and g1 exactly
+                # gq2[0] will additionally be a dictionary storing the q2 values
+                GQ   = []
+                RQ   = []
+                RESQ = []
+                GQ2  = [{}, {}]
+
+                # loop over gen muons individually
+                # if there was a match
+                # if this is a muon quantity use the closest muon
+                # if this is a dimuon quantity (e.g. Lxy) use the dimuon
+                # compute the gen, reco, and res quantities
+                # loop over Q2, get the function, apply it
+                # if Q2 is QM, need recoMuon to be passed to it
+                for which, genMuon in enumerate(genMuonPair):
+                    # in case we decide later that Lxy should only be filled once
+                    # make sure the logic for QM below this loop is changed as well
+                    # if Q == 'Lxy' and which == 1: continue
+
+                    # handle gen pT quantity in a somewhat unnatural way
+                    if Q == 'pT' and MUON in RECOMUONLIST:
+                        genObj = genMuon.BS
+                    else:
+                        genObj = genMuon
+
+                    if genMuonMatch[which][MUON] is not None:
+                        # 'dim' does not exist for DSADim, but this shouldn't matter
+                        # because Lxy is skipped for DSADim anyway
+                        if Q == 'Lxy':
+                            recoObj  = genMuonMatches[MUON][0][0]['dim']
+                            recoMuon = genMuonMatch[which][MUON]['muon']
+                        else:
+                            recoObj  = genMuonMatch[which][MUON]['muon']
+                            recoMuon = genMuonMatch[which][MUON]['muon']
+                        GQ  .append(GF(genObj                   ))
+                        RQ  .append(RF(recoObj                  ))
+                        RESQ.append(RESF(RF(recoObj), GF(genObj)))
+                        for Q2 in QUANTITIES:
+                            G2F = QUANTITIES[Q2]['GENLAMBDA']
+                            if Q2 != 'qm':
+                                # again, handle gen pT quantity in a somewhat unnatural way
+                                if Q2 == 'pT' and MUON in RECOMUONLIST:
+                                    GQ2[which][Q2] = G2F(genMuon.BS)
+                                else:
+                                    GQ2[which][Q2] = G2F(genMuon)
+                            else:
+                                GQ2[which][Q2] = G2F(recoMuon, genMuon)
+                    else:
+                        GQ  .append(None)
+                        RQ  .append(None)
+                        RESQ.append(None)
+                        for Q2 in QUANTITIES:
+                            GQ2[which][Q2] = None
+
+                # for QM, define for Lxy as the && of the two. This will result in either True, False, or None
+                if Q == 'Lxy':
+                    realChargeMatchBool = GQ2[0]['qm'] and GQ2[1]['qm']
+                    GQ2[0]['qm'], GQ2[1]['qm'] = realChargeMatchBool, realChargeMatchBool
+
+                # now all the quantities are computed (or are None). this loop of is length 2, one for each gen muon
+                for which, (gq, rq, resq, gq2) in enumerate(zip(GQ, RQ, RESQ, GQ2)):
+                    if True:
+                        if resq is not None:
+                            self.HISTS['{M}_{Q}Res'      .format(M=MUON, Q=Q       )].Fill(resq        )
+                        if gq is not None and rq is not None:
+                            self.HISTS['{M}_{Q}VS{Q}'    .format(M=MUON, Q=Q       )].Fill(gq, rq      )
+                    for Q2 in gq2:
+                        gq2val = gq2[Q2]
+                        if gq2val is not None:
+                            self.HISTS['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=Q, Q2=Q2)].Fill(gq2val, resq)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
-    for METHOD in ('begin', 'declareHistograms', 'analyze', 'end'):
+    for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,

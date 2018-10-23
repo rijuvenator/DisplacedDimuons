@@ -74,22 +74,20 @@ def analyze(self, E, PARAMS=None):
 
     # loop over genMuons and fill histograms based on matches
     for genMuonPair in genMuonPairs:
-        # first make lists of matches
-        genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
-
+        # genMuonMatches are a dictionary of the return tuple of length 3
         # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
         # exitcode information is still preserved; see AnalysisTools
+        genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
         for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
             genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
         for MUON in ('REF',):
             genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
 
         # now figure out the closest match, or None if they overlap
-        genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
-
         # exitcode helps to make sure that both gen muons never match the same reco muon
         # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
         # sorted by deltaR, so [0] is the closest, etc.
+        genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
         for MUON in ('DSA', 'RSA'):
             dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
             if   exitcode == 1:

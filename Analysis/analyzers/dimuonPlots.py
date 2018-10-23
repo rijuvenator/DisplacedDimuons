@@ -84,6 +84,8 @@ def analyze(self, E, PARAMS=None):
     PROMPT = True if '_Prompt' in self.CUTS else False
     NOPROMPT = True if '_NoPrompt' in self.CUTS else False
     NSTATIONS = True if '_NS' in self.CUTS else False
+    NMUONHITS = True if '_NH' in self.CUTS else False
+    FPTERR = True if '_FPTE' in self.CUTS else False
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
     if ALL:
@@ -101,8 +103,16 @@ def analyze(self, E, PARAMS=None):
                 break
         if highLxySigExists:
             return
-        if NSTATIONS:
+        if NSTATIONS and not NMUONHITS:
             selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
         else:
@@ -118,8 +128,16 @@ def analyze(self, E, PARAMS=None):
                 break
         if not highLxySigExists:
             return
-        if NSTATIONS:
+        if NSTATIONS and not NMUONHITS:
             selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
         else:
@@ -130,6 +148,10 @@ def analyze(self, E, PARAMS=None):
     else:
         selectedDSAmuons = DSAmuons
         selectedDimuons  = Dimuons
+
+    # for the MC/Data events, skip events with no dimuons
+    if PROMPT or NOPROMPT:
+        if len(selectedDimuons) == 0: return
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
