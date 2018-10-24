@@ -543,9 +543,10 @@ class Canvas(R.TCanvas):
         pave.SetTextSize(self.fontsize*.9)
         pave.SetMargin(0)
         pave.SetFillStyle(0)
-        pave.SetFillColor(4000)
+        pave.SetFillColor(0)
         pave.SetLineStyle(0)
-        pave.SetLineColor(4000)
+        pave.SetLineColor(0)
+        pave.SetBorderSize(0)
 
         # add all the entries and draw, then move the pave
         for i, (entry, text, name) in enumerate(zip(entries, texts, names)):

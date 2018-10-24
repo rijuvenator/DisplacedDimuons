@@ -80,6 +80,14 @@ def getHistograms(FILE):
                     HISTS[sample][key].SetDirectory(0)
     return HISTS
 
+# get histograms one at a time
+def getHistogram(FILE, ref, key):
+    if type(ref) == tuple:
+        hkey = '{}_HTo2XTo{}_{}_{}_{}'.format(key, ref[0], *ref[1])
+    else:
+        hkey = '{}_{}'.format(key, ref)
+    return FILE.Get(hkey)
+
 ############################
 #### PLOT CONFIGURATION ####
 ############################

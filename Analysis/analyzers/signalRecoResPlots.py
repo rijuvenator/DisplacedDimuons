@@ -7,7 +7,7 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 HEADERS = ('PRETTY', 'EXTRA', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'RESLAMBDA', 'ISDIF')
 VALUES  = (
-    ('pT'   , 'p_{T}'       , ' [GeV]', (1000,0.,500.), (1200,-1.  ,5.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
+    ('pT'   , 'p_{T}'       , ' [GeV]', (1000,0.,500.), (1000,-1.  ,9.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
     ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000,0.,800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
     ('d0'   , 'd_{0}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
     ('dz'   , 'd_{z}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
@@ -82,6 +82,7 @@ def analyze(self, E, PARAMS=None):
         mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu1, mu2)
         genMuonPairs = ((mu1, mu2),)
+    Event    = E.getPrimitives('EVENT'  )
     DSAmuons = E.getPrimitives('DSAMUON')
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
@@ -214,9 +215,16 @@ def analyze(self, E, PARAMS=None):
                         else:
                             recoObj  = genMuonMatch[which][MUON]['muon']
                             recoMuon = genMuonMatch[which][MUON]['muon']
-                        GQ  .append(GF(genObj                   ))
-                        RQ  .append(RF(recoObj                  ))
-                        RESQ.append(RESF(RF(recoObj), GF(genObj)))
+                        GQ.append(GF(genObj ))
+                        RQ.append(RF(recoObj))
+                        # in a few pathological cases, REF matches to genSV, but
+                        # when we try to compute the res for the corresponding DSA wrt genBS
+                        # the genBS quantity is 0. Set the res to inf in these cases.
+                        try:
+                            RESQ.append(RESF(RF(recoObj), GF(genObj)))
+                        except:
+                            print 'Haha {} {} {} in {} {} {} {}, you\'re not crashing me! {} = inf'.format(Event.run, Event.lumi, Event.event, '4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, GF(genObj))
+                            RESQ.append(float('inf'                 ))
                         for Q2 in QUANTITIES:
                             G2F = QUANTITIES[Q2]['GENLAMBDA']
                             if Q2 != 'qm':
@@ -259,6 +267,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON', 'TRIGGER'),
+        BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'DIMUON', 'TRIGGER', 'EVENT'),
     )
     analyzer.writeHistograms('roots/SignalRecoResPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
