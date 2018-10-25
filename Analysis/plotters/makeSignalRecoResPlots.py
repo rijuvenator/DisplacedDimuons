@@ -219,7 +219,7 @@ def makeBinnedResPlot(MUON, fs, sp, quantity, q2):
     for i, key in enumerate(binranges):
         plots[key].SetLineColor(colors[key])
         plots[key].setTitles(X=plots[key].GetXaxis().GetTitle(), Y='Normalized Counts')
-        canvas.drawText('#color[{}]{{'.format(colors2[key]) + '#sigma = {:.4f}'.format(plots[key].GetStdDev()) + '}',
+        canvas.drawText('#color[{}]{{'.format(colors2[key]) + 'RMS = {:.4f}'.format(plots[key].GetStdDev()) + '}',
                         (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-(i*0.04)-.04)
         )
 
@@ -265,7 +265,7 @@ def makeBinnedResPlotBinwise(MUONS, outputTag, quantity, q2, fs, sp):
         for j, MUON in enumerate(MUONS):
             plots[MUON].SetLineColor(defaultColorOrder[j])
             plots[MUON].setTitles(X=plots[MUON].GetXaxis().GetTitle(), Y='Normalized Counts')
-            canvas.drawText('#color[{}]{{'.format(defaultColorOrder[j]) + '#sigma = {:.4f}'.format(plots[MUON].GetStdDev()) + '}',
+            canvas.drawText('#color[{}]{{'.format(defaultColorOrder[j]) + 'RMS = {:.4f}'.format(plots[MUON].GetStdDev()) + '}',
                 (canvas.legend.GetX1NDC()+.01, canvas.legend.GetY1NDC()-(j*0.04)-.08)
             )
 

@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **22 October 2018**
+Last updated: **25 October 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -222,6 +222,19 @@ parallel -a FILE ./convertone.sh
   * `--normal` (or nothing): for normal 800&times;600 plots
   * `--ratioSquash`: for plots with a ratio plot that are 800&times;600 (it cuts off otherwise)
   * `--ratioFull`: for plots with a ratio plot that are 800&times;800
+
+<a name="printintegrals"></a>
+### printIntegrals.py
+
+`printIntegrals.py` is a dedicated script for printing histogram integrals. It assumes a structure, i.e. where the ROOT files are located and named.
+
+This formalizes some functionality previously in a few scripts, but which was handled somewhat clunkily since certain visual functions needed to be turned off, requiring a special flag.
+
+Generally the usage is something like
+
+```bash
+python printIntegrals.py -c D -s Prompt_NoSignal -k Dim_pT -b1 0 -b2 N
+```
 
 <a name="special"></a>
 ## Special

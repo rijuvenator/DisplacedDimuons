@@ -82,9 +82,8 @@ def makeStackPlots(DataMC=False, logy=False):
 
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
-            if not PRINTINTEGRALS:
-                RT.addFlows(h[key])
-                if h[key].GetNbinsX() > 100: h[key].Rebin(10)
+            RT.addFlows(h[key])
+            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -92,9 +91,8 @@ def makeStackPlots(DataMC=False, logy=False):
         if not MCONLY:
             for era in ('C', 'D', 'E', 'F', 'G', 'H'):
                 h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
-            if not PRINTINTEGRALS:
-                RT.addFlows(h['Data'])
-                if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
+            RT.addFlows(h['Data'])
+            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
@@ -135,24 +133,8 @@ def makeStackPlots(DataMC=False, logy=False):
 #       p['Signal'    ].SetLineStyle(2)
 #       p['Signal'    ].SetLineColor(R.kRed)
 
-        if PRINTINTEGRALS and 'LxySig' in hkey:
-            print hkey
-            for key in h:
-                if key == 'Data': continue
-                if key == 'BG': continue
-                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, p[key].GetNbinsX(), int(p[key].GetEntries()), p[key].Integral(0, p[key].GetNbinsX()+1))
-            for era in ('B', 'C', 'D', 'E', 'F', 'G', 'H'):
-                thisH = HISTS['DoubleMuonRun2016{}-07Aug17{}'.format(era, '-v2' if era=='B' else '')][hkey].Clone()
-                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(era, thisH .GetNbinsX(), int(thisH .GetEntries()), thisH .Integral(0, thisH .GetNbinsX()+1))
-            for key in ('Data',):
-                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, p[key].GetNbinsX(), int(p[key].GetEntries()), p[key].Integral(0, p[key].GetNbinsX()+1))
-            for key in ('BG',):
-                meh = p[key].GetStack().Last()
-                print '  {:9s} {:3d} {:11d} {:11.2f}'.format(key, meh   .GetNbinsX(), int(meh   .GetEntries()), meh   .Integral(0, meh   .GetNbinsX()+1))
-
-        if not PRINTINTEGRALS:
-            canvas.finishCanvas(extrascale=1. if not DataMC else 1.+1./3.)
-            canvas.save(fname)
+        canvas.finishCanvas(extrascale=1. if not DataMC else 1.+1./3.)
+        canvas.save(fname)
         canvas.deleteCanvas()
 
 # make 3D color plots
@@ -392,10 +374,6 @@ def makeOverlaidPlot():
     pave2 = canvas.makeStatsBox(p[REFLIST[0]], color=R.kRed )
     Plotter.MOVE_OBJECT(pave2, Y=-.22, NDC=False)
     canvas.cleanup(fname)
-
-if PRINTINTEGRALS:
-    makeStackPlots(False)
-    exit()
 
 # This is now a heavy process that gets killed if everything runs at once
 # So run in pieces
