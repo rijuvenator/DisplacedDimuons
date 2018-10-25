@@ -1,6 +1,6 @@
 # Using the plotting scripts in `plotters/`
 
-Last updated: **18 October 2018**
+Last updated: **25 October 2018**
 
 This documents, not how to use _Plotter_ (see `PlotterDoc.md` for that), but rather some notes on specifics of the particular scripts in `plotters/`.
 
@@ -42,8 +42,8 @@ The functions are then called at the bottom of the script.
 
 Note that usually, I do not change the file name. It's different for each plotter, but I don't laboriously change the names. Instead, I keep separate versions of ROOT files and symbolically link to the "main" file. So I need to do this in between runs of the plotter, and change the `TRIGGER` and `CUTSTRING` and etc. as appropriate; see below.
 
-### Booleans
-There are starting to be several configuration parameters at the top.
+### Parameters
+There were starting to be several configuration parameters at the top. I've kept the explanation below for the other scripts.
 
   * `TRIGGER`: whether or not a signal sample was run with the trigger event selection. Setting this to true automatically adds `Trig-` to the beginning of the `HTo2XTo...` name that is usually used, and so the file name will have `Trig-HTo2XTo...` in it, as well.
   * `CUTSTRING`: similar to `TRIGGER`, it's the `--cuts` string from the analyzer, which is probably what the real ROOT file name is called, as well. This is usually automatically propagated to the file name. Don't forget the underscore -- it's usually at the beginning, so that you can do things like
@@ -52,5 +52,10 @@ There are starting to be several configuration parameters at the top.
 fname = 'Dim_{}{}_{}{}.pdf'.format(plotName, CUTSTRING, 'Trig-' if TRIGGER else '', sampleName)
 ```
 
-  * `PRINTINTEGRALS` is a specific flag that I use sometimes to just get the integrals, without making any plots, say, from stack plots.
   * `MCONLY`: I find myself needing to make MC stack plots with and without data. This is a global flag that tells everything in the file that the ROOT file has no data, or at least to ignore if it does. In the stack plot code, it does not add data histograms, and the resulting "sample name", instead of being something like _Stack_ or _Stack-Log-Rat_, is _StackMC_ or _StackMC-Log_. This is accounted for in the viewer as well.
+
+_PlotterParser_ is an argument parser that a couple scripts (possibly more, soon) use to handle the parameters. Respectively,
+
+  * `--trigger` sets `TRIGGER` to `True`
+  * `--cutstring _XXX` sets `CUTSTRING` to `_XXX`
+  * `--mconly` sets `MCONLY` to `True`

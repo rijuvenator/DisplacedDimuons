@@ -40,8 +40,9 @@ h4.option {
 }
 
 label.option {
+    display:inline-block;
     padding-left: 7px;
-    padding-bottom: 5px;
+    vertical-align: top;
 }
 
 /* CONTAINER STYLES */

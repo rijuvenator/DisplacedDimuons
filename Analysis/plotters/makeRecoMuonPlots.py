@@ -4,11 +4,14 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
+import PlotterParser
 
-TRIGGER = False
+ARGS = PlotterParser.PARSER.parse_args()
+
+TRIGGER   = ARGS.TRIGGER
+CUTSTRING = ARGS.CUTSTRING
+MCONLY    = ARGS.MCONLY
 PRINTINTEGRALS = False
-CUTSTRING = ''
-MCONLY = False
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/RecoMuonPlots.root')
