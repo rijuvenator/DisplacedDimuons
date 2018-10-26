@@ -133,11 +133,12 @@ def makeColorPlot(MUON, fs, quantity, sp=None, q2=None):
 # colors defines colors; colors2 is for text (this might not be needed since R.kRed is a number)
 # legname is the format for what will be written on the plot: value1, 2, between quantity, etc.
 # qm uses a few tricks to get these formats to work out
+# to get binranges from an interval [x1, x2], do (... binwidth*x1-1) (binwidth*x1, binwidth*x2-1) (binwidth*x2 ...)
 def getBinningValues(q2):
     if q2 == 'pT':
         pretty    = 'p_{T}'
-        binranges = ((0,199), (200,599), (600,1000))
-        binwidth  = 500./1000.
+        binranges = ((0,99), (100,299), (300,1500))
+        binwidth  = 1500./1500.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
@@ -152,32 +153,32 @@ def getBinningValues(q2):
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'd0':
         pretty    = 'd_{0}'
-        binranges = ((0,199), (200,599), (600,1000))
-        binwidth  = 200./1000.
+        binranges = ((0,39), (40,119), (120,499), (500, 1000))
+        binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'dz':
         pretty    = 'd_{z}'
-        binranges = ((0,199), (200,599), (600,1000))
-        binwidth  = 200./1000.
+        binranges = ((0,39), (40,119), (120,499), (500, 1000))
+        binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'd0Lin':
         pretty    = 'lin d_{0}'
-        binranges = ((0,199), (200,599), (600,1000))
-        binwidth  = 200./1000.
+        binranges = ((0,39), (40,119), (120,499), (500, 1000))
+        binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'dzLin':
         pretty    = 'lin d_{z}'
-        binranges = ((0,199), (200,599), (600,1000))
-        binwidth  = 200./1000.
+        binranges = ((0,39), (40,119), (120,499), (500, 1000))
+        binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       )))

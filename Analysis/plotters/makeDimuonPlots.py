@@ -124,6 +124,8 @@ def makeStackPlots(DataMC=False, logy=False):
 
         canvas.firstPlot.SetMaximum(h['BG'].GetStack().Last().GetMaximum() * 1.05)
         #canvas.firstPlot.SetMaximum(1.e-4)
+        if logy:
+            canvas.firstPlot.SetMinimum(1.)
 
         if DataMC:
             canvas.makeRatioPlot(p['Data'].plot, p['BG'].plot.GetStack().Last())

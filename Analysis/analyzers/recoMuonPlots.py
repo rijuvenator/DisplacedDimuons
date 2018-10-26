@@ -9,20 +9,21 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 HEADERS = ('AXES', 'LAMBDA', 'PRETTY')
 VALUES = (
-    ('pT'       , (1000, 0., 500.), lambda muon: muon.pt                                     , 'p_{T} [GeV]'               ),
-    ('eta'      , (1000,-3., 3.  ), lambda muon: muon.eta                                    , '#eta'                      ),
-    ('d0'       , (1000, 0., 200.), lambda muon: muon.d0()                                   , 'd_{0} [cm]'                ),
-    ('d0Sig'    , (1000, 0., 20. ), lambda muon: muon.d0Sig()                                , '|d_{0}|/#sigma_{d_{0}}'    ),
-    ('dz'       , (1000, 0., 200.), lambda muon: muon.dz()                                   , 'd_{z} [cm]'                ),
-    ('dzSig'    , (1000, 0., 20. ), lambda muon: muon.dzSig()                                , '|d_{z}|/#sigma_{d_{z}}'    ),
-    ('d0Lin'    , (1000, 0., 200.), lambda muon: muon.d0(extrap='LIN')                       , 'lin d_{0} [cm]'            ),
-    ('d0SigLin' , (1000, 0., 20. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}'),
-    ('dzLin'    , (1000, 0., 200.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            ),
-    ('dzSigLin' , (1000, 0., 20. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}'),
-    ('normChi2' , (1000, 0., 20. ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          ),
-    ('nMuonHits', (50  , 0., 50. ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   ),
-    ('nStations', (15  , 0., 15. ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               ),
-    ('pTSig'    , (1000, 0.,  3. ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         ),
+    ('pT'        , (1500, 0., 1500.), lambda muon: muon.pt                                     , 'p_{T} [GeV]'               ),
+    ('eta'       , (1000,-3., 3.   ), lambda muon: muon.eta                                    , '#eta'                      ),
+    ('d0'        , (1000, 0., 2000.), lambda muon: muon.d0()                                   , 'd_{0} [cm]'                ),
+    ('d0Sig'     , (1000, 0., 100. ), lambda muon: muon.d0Sig()                                , '|d_{0}|/#sigma_{d_{0}}'    ),
+    ('dz'        , (1000, 0., 2000.), lambda muon: muon.dz()                                   , 'd_{z} [cm]'                ),
+    ('dzSig'     , (1000, 0., 100. ), lambda muon: muon.dzSig()                                , '|d_{z}|/#sigma_{d_{z}}'    ),
+    ('d0Lin'     , (1000, 0., 2000.), lambda muon: muon.d0(extrap='LIN')                       , 'lin d_{0} [cm]'            ),
+    ('d0SigLin'  , (1000, 0., 100. ), lambda muon: muon.d0Sig(extrap='LIN')                    , 'lin |d_{0}|/#sigma_{d_{0}}'),
+    ('dzLin'     , (1000, 0., 2000.), lambda muon: muon.dz(extrap='LIN')                       , 'lin d_{z} [cm]'            ),
+    ('dzSigLin'  , (1000, 0., 100. ), lambda muon: muon.dzSig(extrap='LIN')                    , 'lin |d_{z}|/#sigma_{d_{z}}'),
+    ('normChi2'  , (1000, 0., 50.  ), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else 0, '#mu #chi^{2}/dof'          ),
+    ('nMuonHits' , (50  , 0., 50.  ), lambda muon: muon.nMuonHits                              , 'N(Hits)'                   ),
+    ('nCSCDTHits', (50  , 0., 50.  ), lambda muon: muon.nCSCHits+muon.nDTHits                  , 'N(CSC+DT Hits)'            ),
+    ('nStations' , (15  , 0., 15.  ), lambda muon: muon.nDTStations + muon.nCSCStations        , 'N(Stations)'               ),
+    ('pTSig'     , (1000, 0., 3.   ), lambda muon: muon.ptError/muon.pt                        , '#sigma_{pT}/p_{T}'         ),
 )
 CONFIG = {}
 for VAL in VALUES:

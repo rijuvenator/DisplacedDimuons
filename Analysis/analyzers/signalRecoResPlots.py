@@ -7,13 +7,13 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 HEADERS = ('PRETTY', 'EXTRA', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'RESLAMBDA', 'ISDIF')
 VALUES  = (
-    ('pT'   , 'p_{T}'       , ' [GeV]', (1000,0.,500.), (1000,-1.  ,9.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
-    ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000,0.,800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
-    ('d0'   , 'd_{0}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
-    ('dz'   , 'd_{z}'       , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
-    ('d0Lin', 'lin d_{0}'   , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.d0()                , lambda muon:muon.d0(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
-    ('dzLin', 'lin d_{z}'   , ' [cm]' , (1000,0.,200.), (1000,-50. ,50. ), lambda gm:gm.dz()                , lambda muon:muon.dz(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
-    ('qm'   , 'charge match', ''      , (2   ,0.,  2.), None             , lambda r, g: r.charge == g.charge, None                             , None                    , None ),
+    ('pT'   , 'p_{T}'       , ' [GeV]', (1500,0.,1500.), (1000,-1.  ,9.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
+    ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000,0., 800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0'   , 'd_{0}'       , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
+    ('dz'   , 'd_{z}'       , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0Lin', 'lin d_{0}'   , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0()                , lambda muon:muon.d0(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('dzLin', 'lin d_{z}'   , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz()                , lambda muon:muon.dz(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('qm'   , 'charge match', ''      , (2   ,0.,   2.), None             , lambda r, g: r.charge == g.charge, None                             , None                    , None ),
 )
 QUANTITIES = {}
 for VAL in VALUES:

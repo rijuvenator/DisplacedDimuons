@@ -8,11 +8,11 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT'  , 'p_{T} [GeV]'       , (1000,       0.,    500.), lambda gmu : gmu.pt                         , 'p_{T}'     , lambda sel: sel.allExcept('a_pT' )),
+    ('pT'  , 'p_{T} [GeV]'       , (1500,       0.,   1500.), lambda gmu : gmu.pt                         , 'p_{T}'     , lambda sel: sel.allExcept('a_pT' )),
     ('eta' , '#eta'              , (1000,      -3.,      3.), lambda gmu : gmu.eta                        , '#eta'      , lambda sel: sel.allExcept('a_eta')),
     ('phi' , '#phi'              , (1000, -math.pi, math.pi), lambda gmu : gmu.phi                        , '#phi'      , lambda sel: sel                   ),
     ('Lxy' , 'L_{xy} [cm]'       , (1000,       0.,    800.), lambda gmu : gmu.Lxy()                      , 'L_{xy}'    , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0'  , 'd_{0} [cm]'        , (1000,       0.,    200.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
+    ('d0'  , 'd_{0} [cm]'        , (2000,       0.,   1000.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
     ('dR'  , '#DeltaR(#mu#mu)'   , (1000,       0.,      5.), lambda pair: pair[0].deltaR                 , '#DeltaR'   , lambda sel: sel                   ),
     ('dphi', '#Delta#phi(#mu#mu)', (1000, -math.pi, math.pi), lambda pair: pair[0].p4.DeltaPhi(pair[1].p4), '#Delta#phi', lambda sel: sel                   ),
 )
