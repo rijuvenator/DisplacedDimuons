@@ -5,9 +5,12 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
-import sys
+import PlotterParser
 
-TRIGGER = False
+PlotterParser.PARSER.add_argument('--fs', dest='FS', default='4Mu', help='which final state to do')
+ARGS = PlotterParser.PARSER.parse_args()
+
+TRIGGER = ARGS.TRIGGER
 
 # get histograms
 #HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalRecoResPlots.root')
@@ -137,11 +140,11 @@ def makeColorPlot(MUON, fs, quantity, sp=None, q2=None):
 def getBinningValues(q2):
     if q2 == 'pT':
         pretty    = 'p_{T}'
-        binranges = ((0,99), (100,299), (300,1500))
+        binranges = ((0,99), (100,299), (300,499), (500, 1500))
         binwidth  = 1500./1500.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} GeV'
     elif q2 == 'Lxy':
         pretty    = 'L_{xy}'
@@ -156,32 +159,32 @@ def getBinningValues(q2):
         binranges = ((0,39), (40,119), (120,499), (500, 1000))
         binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'dz':
         pretty    = 'd_{z}'
         binranges = ((0,39), (40,119), (120,499), (500, 1000))
         binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'd0Lin':
         pretty    = 'lin d_{0}'
         binranges = ((0,39), (40,119), (120,499), (500, 1000))
         binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'dzLin':
         pretty    = 'lin d_{z}'
         binranges = ((0,39), (40,119), (120,499), (500, 1000))
         binwidth  = 1000./1000.
         values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       )))
+        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
+        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'qm':
         pretty    = 'charge matched'
@@ -233,7 +236,7 @@ def makeBinnedResPlot(MUON, fs, sp, quantity, q2):
 # therefore MUONS should be a list, even if of one element, e.g. ('DSA', 'RSA') or ('REF', 'DSADim')
 # outputTag should be whatever the resulting file name should be
 def makeBinnedResPlotBinwise(MUONS, outputTag, quantity, q2, fs, sp):
-    defaultColorOrder = (R.kRed, R.kBlue, R.kGreen)
+    defaultColorOrder = (R.kRed, R.kBlue, R.kGreen, R.kMagenta)
     h = {}
     for MUON in MUONS:
         h[MUON] = HistogramGetter.getHistogram(f, (fs, sp), '{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=quantity, Q2=q2)).Clone()
@@ -274,9 +277,7 @@ def makeBinnedResPlotBinwise(MUONS, outputTag, quantity, q2, fs, sp):
         canvas.cleanup(fname.format(i+1))
 
 # make plots
-if len(sys.argv) == 1: FS = '4Mu'
-else: FS = sys.argv[1]
-for fs in (FS,):
+for fs in (ARGS.FS,):
     #for quantity in ('pT', 'Lxy', 'd0', 'dz', 'd0Lin', 'dzLin'):
     #    for MUON in ('DSA', 'RSA', 'REF'):
     #        if quantity == 'Lxy' and MUON in ('DSA', 'RSA'): continue

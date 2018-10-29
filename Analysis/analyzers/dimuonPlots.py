@@ -13,7 +13,7 @@ CONFIG = {
     'eta'     : {'AXES':(1000,     -3., 3.     ), 'LAMBDA': lambda dim: dim.eta                           , 'PRETTY':'#eta'                  },
     'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
     'LxySig'  : {'AXES':(2000,      0., 200.   ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
-    'LxyErr'  : {'AXES':(1000,      0., 200.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
+    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
     'vtxChi2' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
     'deltaR'  : {'AXES':(1000,      0., 5.     ), 'LAMBDA': lambda dim: dim.deltaR                        , 'PRETTY':'#DeltaR(#mu#mu)'       },
     'deltaEta': {'AXES':(1000,     -5., 5.     ), 'LAMBDA': lambda dim: dim.mu1.eta-dim.mu2.eta           , 'PRETTY':'#Delta#eta(#mu#mu)'    },

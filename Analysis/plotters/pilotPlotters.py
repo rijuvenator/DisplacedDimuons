@@ -42,23 +42,26 @@ MCBGcutstrings = (
 
 # file name tag : plotter script name
 Signalscripts = (
-    ('SignalRecoResPlots', 'makeSignalRecoResPlots')
+    ('SignalRecoResPlots', 'makeSignalRecoResPlots'),
 )
 
 # file name cutstring : trigger flag : mconly flag : real cutstring
+# abusing the names of --mconly and/or realcutstring here: since they're just CL flags it works
 Signalcutstrings = (
-    ('Full', ''         , '', ''),
-    ('Trig', '--trigger', '', '')
+    ('Full', ''         , '--fs 2Mu2J', ''),
+    ('Full', ''         , '--fs 4Mu'  , ''),
+    ('Trig', '--trigger', '--fs 2Mu2J', ''),
+    ('Trig', '--trigger', '--fs 4Mu'  , '')
 )
 
 
 # actual for loop
-#for scripts, cutstrings in ((MCBGscripts, MCBGcutstrings), (Signalscripts, Signalcutstrings))
-for scripts, cutstrings in ((MCBGscripts, MCBGcutstrings),)
-for tag, scriptName in scripts:
-    for cutstring, trigger, mconly, realcutstring in cutstrings:
-        f = open('script.sh', 'w')
-        f.write(bashScript.format(**locals()))
-        f.close()
-        run('bash script.sh')
-        run('rm script.sh')
+#for scripts, cutstrings in ((MCBGscripts, MCBGcutstrings),):
+for scripts, cutstrings in ((Signalscripts, Signalcutstrings),):
+    for tag, scriptName in scripts:
+        for cutstring, trigger, mconly, realcutstring in cutstrings:
+            f = open('script.sh', 'w')
+            f.write(bashScript.format(**locals()))
+            f.close()
+            run('bash script.sh')
+            run('rm script.sh')
