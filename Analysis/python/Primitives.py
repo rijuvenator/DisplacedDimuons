@@ -638,17 +638,17 @@ class GenMuon(Muon, GenParticle):
             return self.BS.dz_
 
     # Lxy, cosAlpha, d0, dz, dR
-    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
-    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:6.2f}|\n'
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:6.2f}|\n'
 
     # so that we don't need an instance of the class to call this method
     @staticmethod
     def headerstr():
         # take care of the \n
-        return GenParticle.headerstr().strip('\n') + GenMuon.headerFormatPost.format('Lxy', 'cosAlpha', 'd0', 'dz', 'dR')
+        return GenParticle.headerstr().strip('\n') + GenMuon.headerFormatPost.format('Lxy', 'cosAlpha', 'd0@BS', 'dz@BS', 'd0', 'dz', 'dR')
 
     def datastr(self):
-        return GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.d0_, self.dz_, self.deltaR)
+        return GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.BS.d0_, self.BS.dz_, self.d0_, self.dz_, self.deltaR)
 
     def __str__(self):
         return GenMuon.headerstr() + self.datastr()
