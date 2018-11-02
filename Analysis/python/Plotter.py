@@ -406,7 +406,7 @@ class Canvas(R.TCanvas):
     # makes ratio plot given a top hist and a bottom hist
     # plusminus is the window around 1, i.e. 0.5 means plot from 0.5 to 1.5
     # ytit is the y axis title, xtit is the x axis title, option is the draw option
-    def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit=''):
+    def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='', drawLine=True):
         if self.ratioFactor == 0: return
         self.cd()
         self.ratPad.cd()
@@ -438,15 +438,16 @@ class Canvas(R.TCanvas):
 
         self.rat.Draw(option)
 
-        low = self.rat.GetXaxis().GetXmin()
-        up  = self.rat.GetXaxis().GetXmax()
-        x   = n.array([ low, up ])
-        y   = n.array([ 1. , 1. ])
-        self.gr = R.TGraph(2,x,y)
-        self.gr.SetLineColor(R.kRed)
-        self.gr.SetLineStyle(3)
-        self.gr.SetLineWidth(2)
-        self.gr.Draw('C same')
+        if drawLine:
+            low = self.rat.GetXaxis().GetXmin()
+            up  = self.rat.GetXaxis().GetXmax()
+            x   = n.array([ low, up ])
+            y   = n.array([ 1. , 1. ])
+            self.gr = R.TGraph(2,x,y)
+            self.gr.SetLineColor(R.kRed)
+            self.gr.SetLineStyle(3)
+            self.gr.SetLineWidth(2)
+            self.gr.Draw('C same')
 
         self.rat.Draw(option+' same')
         self.rat.SetMarkerColor(R.kBlack)

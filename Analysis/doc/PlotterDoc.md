@@ -140,7 +140,7 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas.setMaximum      (recompute=False)
   * Canvas.addLegendEntry  (Plot)
   * Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75)
-  * Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='')
+  * Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='', drawLine=True)
   * Canvas.makeTransparent ()
   * Canvas.moveExponent    ()
   * Canvas.makeExtraAxis   (xmin, xmax, Xmin=, Xmax=, Ymin=, Ymax=, Yoffset=, Yoffsetscale=0.23, title='', bMarginScale=) [returns axis]

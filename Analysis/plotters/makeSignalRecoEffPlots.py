@@ -5,8 +5,10 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
+import PlotterParser
 
-TRIGGER = False
+ARGS = PlotterParser.PARSER.parse_args()
+TRIGGER = ARGS.TRIGGER
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalRecoEffPlots.root')
@@ -104,6 +106,8 @@ def makeEffPlots(quantity, fs, SP=None):
         # aesthetic change
         if quantity == 'dR':
             canvas.firstPlot.GetXaxis().SetRangeUser(0., 1.)
+        elif quantity == 'pT':
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 800.)
         canvas.cleanup('pdfs/SRE_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 

@@ -12,7 +12,7 @@ VALUES  = (
     ('eta' , '#eta'              , (1000,      -3.,      3.), lambda gmu : gmu.eta                        , '#eta'      , lambda sel: sel.allExcept('a_eta')),
     ('phi' , '#phi'              , (1000, -math.pi, math.pi), lambda gmu : gmu.phi                        , '#phi'      , lambda sel: sel                   ),
     ('Lxy' , 'L_{xy} [cm]'       , (1000,       0.,    800.), lambda gmu : gmu.Lxy()                      , 'L_{xy}'    , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0'  , 'd_{0} [cm]'        , (2000,       0.,   1000.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
+    ('d0'  , 'd_{0} [cm]'        , (1000,       0.,    600.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
     ('dR'  , '#DeltaR(#mu#mu)'   , (1000,       0.,      5.), lambda pair: pair[0].deltaR                 , '#DeltaR'   , lambda sel: sel                   ),
     ('dphi', '#Delta#phi(#mu#mu)', (1000, -math.pi, math.pi), lambda pair: pair[0].p4.DeltaPhi(pair[1].p4), '#Delta#phi', lambda sel: sel                   ),
 )

@@ -1,67 +1,115 @@
 import subprocess as bash
 
-# wrapper for shell=True
-def run(command):
-    bash.call(command, shell=True)
+# Configuration for piloting a plotting script
+# Contains a template bash script which relinks the root file and
+# runs the plotting script with the right arguments
+# ftag = "file name tag", e.g. DimuonPlots, SignalRecoEffPlots
+# plottingScriptName: usually make + ftag
+# fcutstring: the file name "cut string", i.e. stuff at the end
+# args: the args to be passed to the plotting script
+# script: wrapper for formatting the template bash script with the parameters
+# str: summary of what will be done
+# run: writes the script, runs it, and deletes it
+class Configuration(object):
 
-# script template
-bashScript = '''
+    bashScript = '''
 MAINDIR='../analyzers/roots/Main/'
 PLOTTERDIR='../../../plotters/'
 
 cd $MAINDIR
-../relink {tag} {cutstring}
-if [ ! -e "{tag}.root" ]
+../relink {ftag} {fcutstring}
+if [ ! -e "{ftag}.root" ]
 then
     echo "Bad symlink"
     cd $PLOTTERDIR
     exit
 fi
 cd $PLOTTERDIR
-python {scriptName}.py {realcutstring} {mconly} {trigger}
+python {plottingScriptName}.py {args}
 '''
 
-# file name tag : plotter script name
-MCBGscripts = (
-    ('DimuonPlots'  , 'makeDimuonPlots'  ),
-    ('RecoMuonPlots', 'makeRecoMuonPlots'),
-)
+    def __init__(self, ftag, plottingScriptName, fcutstring, args):
+        self.ftag               = ftag
+        self.plottingScriptName = plottingScriptName
+        self.fcutstring         = fcutstring
+        self.args               = args
 
-# file name cutstring : trigger flag : mconly flag : real cutstring
-MCBGcutstrings = (
-    ('Prompt_NoSignal'            , '', ''        , '--cutstring _Prompt'             ),
-    ('Prompt_NS_NoSignal'         , '', ''        , '--cutstring _NS_Prompt'          ),
-    ('Prompt_NS_NH_NoSignal'      , '', ''        , '--cutstring _NS_NH_Prompt'       ),
-    ('Prompt_NS_NH_FPTE_NoSignal' , '', ''        , '--cutstring _NS_NH_FPTE_Prompt'  ),
+    def script(self):
+        return Configuration.bashScript.format(**self.__dict__)
 
-    ('NoPrompt_MCOnly'            , '', '--mconly', '--cutstring _NoPrompt'           ),
-    ('NoPrompt_NS_MCOnly'         , '', '--mconly', '--cutstring _NS_NoPrompt'        ),
-    ('NoPrompt_NS_NH_MCOnly'      , '', '--mconly', '--cutstring _NS_NH_NoPrompt'     ),
-    ('NoPrompt_NS_NH_FPTE_MCOnly' , '', '--mconly', '--cutstring _NS_NH_FPTE_NoPrompt'),
-)
+    def __str__(self):
+        return 'Link {ftag} with {fcutstring}, then do python {plottingScriptName}.py {args}'.format(**self.__dict__)
 
-# file name tag : plotter script name
-Signalscripts = (
-    ('SignalRecoResPlots', 'makeSignalRecoResPlots'),
-)
+    def run(self):
+        f = open('script.sh', 'w')
+        f.write(self.script())
+        f.close()
+        bash.call('bash script.sh', shell=True)
+        bash.call('rm script.sh'  , shell=True)
 
-# file name cutstring : trigger flag : mconly flag : real cutstring
-# abusing the names of --mconly and/or realcutstring here: since they're just CL flags it works
-Signalcutstrings = (
-    ('Full', ''         , '--fs 2Mu2J', ''),
-    ('Full', ''         , '--fs 4Mu'  , ''),
-    ('Trig', '--trigger', '--fs 2Mu2J', ''),
-    ('Trig', '--trigger', '--fs 4Mu'  , '')
-)
+# list of configs. All of them will be run at the bottom of the file
+CONFIGS = []
 
+# section for MC/Data type plots, e.g. dimuon, recoMuon, with
+# various sets of cuts, for prompt and not prompt, etc.
+# loops over bits of strings and puts them together in the right way
+# comment out the FTAGS, MCBGCutsets, etc. that sort of thing to run a subset
+if False:
+    FTAGS = (
+        'Dimuon',
+        'RecoMuon',
+    )
+    MCBGRegions = (
+        ('Prompt'  , '_NoSignal'),
+        ('NoPrompt', '_MCOnly'  ),
+    )
+    MCBGCutsets = (
+        ''           ,
+        '_NS'        ,
+        '_NS_NH'     ,
+        '_NS_NH_FPTE',
+    )
+    for ftagroot in FTAGS:
+        ftag   = ftagroot+'Plots'
+        psname = 'make'+ftag
+        for region, regionTag in MCBGRegions:
+            for cutset in MCBGCutsets:
+                fcutstring = region + cutset + regionTag
+                rcutstring = '--cutstring {}_{}'.format(cutset, region)
+                mconly     = '--mconly' if region == 'NoPrompt' else ''
+                args       = '{} {}'.format(mconly, rcutstring)
 
-# actual for loop
-#for scripts, cutstrings in ((MCBGscripts, MCBGcutstrings),):
-for scripts, cutstrings in ((Signalscripts, Signalcutstrings),):
-    for tag, scriptName in scripts:
-        for cutstring, trigger, mconly, realcutstring in cutstrings:
-            f = open('script.sh', 'w')
-            f.write(bashScript.format(**locals()))
-            f.close()
-            run('bash script.sh')
-            run('rm script.sh')
+                CONFIGS.append(Configuration(ftag, psname, fcutstring, args))
+
+# section for signal type plots
+# most signal plotters only care about trigger vs. not trigger
+# signal reco res splits final state over two instances
+if True:
+    ARGS = (
+        ('Full', ''         ),
+        ('Trig', '--trigger'),
+    )
+    SIGS = (
+        'Dimuon',
+        'RecoMuon',
+        'SignalRecoRes',
+        'SignalRecoEff',
+    )
+    for sig in SIGS:
+        ftag   = sig+'Plots'
+        psname = 'make'+ftag
+        for fcutstring, args in ARGS:
+            fcs = fcutstring
+            if 'Signal' not in sig:
+                fcs += '_SignalOnly'
+            if sig == 'SignalRecoRes':
+                for fs in ('2Mu2J', '4Mu'):
+                    margs = args + ' --fs ' + fs
+                    CONFIGS.append(Configuration(ftag, psname, fcs, margs))
+            else:
+                CONFIGS.append(Configuration(ftag, psname, fcs, args))
+
+# run everything
+for c in CONFIGS:
+    print c
+    c.run()
