@@ -84,7 +84,7 @@ if False:
 # section for signal type plots
 # most signal plotters only care about trigger vs. not trigger
 # signal reco res splits final state over two instances
-if True:
+if False:
     ARGS = (
         ('Full', ''         ),
         ('Trig', '--trigger'),

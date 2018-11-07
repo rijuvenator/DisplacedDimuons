@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 import PlotterParser
 
-PlotterParser.PARSER.add_argument('--fs', dest='FS', default='4Mu', help='which final state to do')
+PlotterParser.PARSER.add_argument('--fs', dest='FS', default='2Mu2J', help='which final state to do')
 ARGS = PlotterParser.PARSER.parse_args()
 
 TRIGGER = ARGS.TRIGGER
@@ -51,8 +51,10 @@ def makeOverlaidResPlot(MUONS, fs, sp, quantity, outputTag=None):
     funcs = {}
     fplots = {}
     for MUON in MUONS:
-        if not ISDIF:
+        if quantity == 'pT':
             FITRANGE = (-0.4, 0.3)
+        elif quantity == 'eta':
+            FITRANGE = (-0.1, 0.1)
         else:
             FITRANGE = (-20., 20.)
         funcs[MUON] = R.TF1('f'+MUON, 'gaus', *FITRANGE)
@@ -162,30 +164,6 @@ def getBinningValues(q2):
         colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
         colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
         legName   = '{V1} #leq {Q2} #leq {V2} cm'
-    elif q2 == 'dz':
-        pretty    = 'd_{z}'
-        binranges = ((0,39), (40,119), (120,499), (500, 1000))
-        binwidth  = 1000./1000.
-        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
-        legName   = '{V1} #leq {Q2} #leq {V2} cm'
-    elif q2 == 'd0Lin':
-        pretty    = 'lin d_{0}'
-        binranges = ((0,39), (40,119), (120,499), (500, 1000))
-        binwidth  = 1000./1000.
-        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
-        legName   = '{V1} #leq {Q2} #leq {V2} cm'
-    elif q2 == 'dzLin':
-        pretty    = 'lin d_{z}'
-        binranges = ((0,39), (40,119), (120,499), (500, 1000))
-        binwidth  = 1000./1000.
-        values    = {key:(key[0]*binwidth, (key[1]+1)*binwidth) for key in binranges}
-        colors    = dict(zip(binranges, (R.kRed, R.kBlue, R.kGreen, R.kMagenta)))
-        colors2   = dict(zip(binranges, (2     , 4      , 3       , 6         )))
-        legName   = '{V1} #leq {Q2} #leq {V2} cm'
     elif q2 == 'qm':
         pretty    = 'charge matched'
         binranges = ((1, 1), (2, 2))
@@ -289,7 +267,7 @@ for fs in (ARGS.FS,):
     #            makeColorPlot(MUON, fs, quantity, sp=None, q2=q2)
 
     for sp in SIGNALPOINTS:
-        for quantity in ('pT', 'Lxy', 'd0', 'dz', 'd0Lin', 'dzLin'):
+        for quantity in ('pT', 'Lxy', 'd0', 'dz', 'd0Lin', 'dzLin', 'eta'):
             for MUON in ('DSA', 'RSA', 'REF'):
                 if quantity == 'Lxy' and MUON in ('DSA', 'RSA'): continue
                 # 1D resolution plots, per signal point

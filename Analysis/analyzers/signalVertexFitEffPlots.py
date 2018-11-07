@@ -63,17 +63,17 @@ def analyze(self, E, PARAMS=None):
 
         dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
 
-        # both gen muons matched, but no dimuon: fill den only
-        if exitcode in (1, 2, 3):
+        # fill denominator if both gen muons matched, either to different reco muons or, if the same, that there is a next best
+        fillDen = exitcode.both and ((not exitcode.same) or (exitcode.same and exitcode.nextBest))
+        fillNum = exitcode.matched
+
+        if fillDen:
             for KEY in CONFIG:
                 F = CONFIG[KEY]['LAMBDA']
-                self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
-        # both gen muons matched and a dimuon was found
-        elif exitcode == 0:
-            for KEY in CONFIG:
-                F = CONFIG[KEY]['LAMBDA']
-                self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
-                self.HISTS[KEY+'Eff'].Fill(F(genMuonPair[0]))
+                if True:
+                    self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
+                if fillNum:
+                    self.HISTS[KEY+'Eff'].Fill(F(genMuonPair[0]))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

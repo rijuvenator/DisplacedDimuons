@@ -59,27 +59,27 @@ def matchedMuons(baseMuon, muonList, vertex=None):
     return sorted(matches, key=lambda dic:dic['deltaR'])
 
 # given a genMuonPair, a list of dimuons, and a list of recoMuons:
-# - use the matchedMuons function to find lists of matched muons to gen muons
-# - find all possible dimuons with those matched indices
+#   - use the matchedMuons function to find lists of matched muons to gen muons
+#   - find all possible dimuons with those matched indices
+#   - figure out which gen muons matched, and whether there's a second best
+# given a genMuonPair, a list of dimuons, a list of recoMuons, and doDimuons=False:
+#   - use the matchedMuons function to find lists of matched muons to gen muons
+#   - figure out which gen muons matched, and whether there's a second best
 # given a genMuonPair and a list of dimuons:
-# - find all dimuons whose constituent refitted muons proximity match gen muons
-# given a genMuonPair, a dummy tuple ('DUMMY',), and a list of recoMuons:
-# - use the matchedMuons function to find lists of matched muons to gen muons
-# - this is for the exitcode information but without the need for dimuons
+#   - find all dimuons whose constituent refitted muons proximity match gen muons
 #
 # return syntax: dimuonMatches, muonMatches, exitcode
-# len(dimuonMatches) > 0 or exitcode 0 means a dimuon was found for this genMuonPair
+# exitcode.dimuons  == True  means at least one dimuon exists in the event, False if not
+# exitcode.matched  == True  means at least one dimuon was found for this genMuonPair, False if not
 #
-# exitcode 0 means dimuons were found
-# exitcode 1 means no dimuons were found + gen muons individually matched different reco muons
-# exitcode 2 means no dimuons were found + gen muons individually matched the same  reco muon  + g0 is better and g1 has a next best
-# exitcode 3 means no dimuons were found + gen muons individually matched the same  reco muon  + g1 is better and g0 has a next best
-# exitcode 4 means no dimuons were found + gen muons individually matched the same  reco muon  + g0 is better and g1 has no next best
-# exitcode 5 means no dimuons were found + gen muons individually matched the same  reco muon  + g1 is better and g0 has no next best
-# exitcode 6 means no dimuons were found + both gen muons did not match + g0 matched and g1 did not
-# exitcode 7 means no dimuons were found + both gen muons did not match + g1 matched and g0 did not
-# exitcode 8 means no dimuons were found + both gen muons did not match + neither g0 nor g1 matched
-# exitcode 9 means the dimuon list was empty and nothing was matched
+# exitcode.both     == True  means both gen muons matched reco muons
+# exitcode.same     == True  means gen muons individually matched different reco muons, False if not
+# exitcode.nextBest == True  means gen muons individually matched the same  reco muon + there is a next best
+# exitcode.winner   == 0, 1  means gen muons individually matched the same  reco muon + g0, g1 is better (check nextBest)
+#
+# exitcode.both     == False means both gen muons did not match reco muons
+# exitcode.which    == 0, 1  means both gen muons did not match reco muons + g0, g1 matched + g1, g0 did not
+# exitcode.which    == -1    means both gen muons did not match + neither g0 nor g1 matched
 #
 # Note about DUMMY:
 # much of this function depends on a) whether or not recoMuons was provided, and b) whether or not dimuons is empty
@@ -95,9 +95,47 @@ def matchedMuons(baseMuon, muonList, vertex=None):
 # will proceed. Of course, this only makes sense if recoMuons is not None! But that's when I would want to use it anyway.
 # If dimuons = ('DUMMY',) is passed and recoMuons is None, the "else" condition triggers and you cleanly get exitcode 9.
 
-def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
+class ExitCode(object):
+    def __init__(self):
+        self.dimuons  = None
+        self.matched  = None
+
+        self.both     = None
+        self.which    = None
+
+        self.same     = None
+        self.nextBest = None
+        self.winner   = None
+
+    def getBestGenMuonMatches(self, muonMatches):
+        if self.both:
+            if not self.same:
+                return         muonMatches[0][0], muonMatches[1][0]
+            else:
+                if self.nextBest:
+                    if self.winner == 0:
+                        return muonMatches[0][0], muonMatches[1][1]
+                    else:
+                        return muonMatches[0][1], muonMatches[1][0]
+                else:
+                    if self.winner == 0:
+                        return muonMatches[0][0], None
+                    else:
+                        return None             , muonMatches[1][0]
+        else:
+            if self.which == 0:
+                return         muonMatches[0][0], None
+            elif self.which == 1:
+                return         None             , muonMatches[1][0]
+            else:
+                return         None             , None
+
+
+def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, doDimuons=True):
+    exitcode = ExitCode()
     # return matched based on refitted tracks
-    if recoMuons is None and len(dimuons) != 0 and dimuons[0] != 'DUMMY':
+    if recoMuons is None:
+        doDimuons = True
         dimuonMatches = []
         muonMatches = [[], []]
         for idx,dimuon in enumerate(dimuons):
@@ -151,12 +189,12 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
             dimuonMatches, muonMatches[0], muonMatches[1] = zip(*sortTable)
 
     # return matched based on original tracks
-    elif recoMuons is not None and len(dimuons) != 0:
+    elif recoMuons is not None:
         muonMatches = []
         for genMuon in genMuonPair:
             muonMatches.append(matchedMuons(genMuon, recoMuons, vertex=vertex))
 
-        if dimuons[0] != 'DUMMY':
+        if doDimuons and len(dimuons) != 0:
             dimuonLookup = {(dim.idx1, dim.idx2):(dim, didx) for didx,dim in enumerate(dimuons)}
             dimuonMatches = []
             for match1 in muonMatches[0]:
@@ -174,47 +212,58 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None):
         else:
             dimuonMatches = []
 
-    # len(dimuons) == 0
-    else:
-        dimuonMatches, muonMatches = [], [[], []]
-
-
-    # exitcode 9: dimuon list was empty
+    # always figure out if there were dimuons and dimuon matches
+    # exitcode dimuons: whether there were dimuons in the event
+    # exitcode matched: whether there was a dimuon match
     if len(dimuons) == 0:
-        exitcode = 9
-    # exitcode 0: a dimuon was found
-    elif len(dimuonMatches) > 0:
-        exitcode = 0
-    elif len(muonMatches[0]) > 0 and len(muonMatches[1]) > 0:
-        # exitcode 1: no dimuon was found, but each gen muon individually matched different reco muons
-        if muonMatches[0][0]['oidx'] != muonMatches[1][0]['oidx']:
-            exitcode = 1
-        # exitcode 2, 3: no dimuon was found, each gen muon individually matched the same reco muon,
-        # if we keep the gen muon that's closer to the reco muon, the other gen muon has a second best option
-        elif muonMatches[0][0]['oidx'] == muonMatches[1][0]['oidx']:
-            # exitcode 2: muon 0 won, muon 1 lost, take muonMatches[1][1]
-            if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR'] and len(muonMatches[1]) > 1:
-                exitcode = 2
-            # exitcode 3: muon 1 won, muon 0 lost, take muonMatches[0][1]
-            elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR'] and len(muonMatches[0]) > 1:
-                exitcode = 3
-            # exitcode 4, 5: no dimuon was found, each gen muon individually matched the same reco muon,
-            # and the "losing" gen muon has no second best option
-            else:
-                # exitcode 4: muon 0 won, muon 1 has no next best
-                if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR']:
-                    exitcode = 4
-                # exitcode 5: muon 1 won, muon 0 has no next best
-                elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR']:
-                    exitcode = 5
-    # exitcode 6, 7, 8: no dimuon was found, and both gen muons didn't match
+        exitcode.dimuons = False
+        exitcode.matched = False
     else:
-        if len(muonMatches[0]) > 0 and len(muonMatches[1]) == 0:
-            exitcode = 6
-        elif len(muonMatches[1]) > 0 and len(muonMatches[0]) == 0:
-            exitcode = 7
+        exitcode.dimuons = True
+        exitcode.matched = (len(dimuonMatches) > 0)
+
+    # for a given list of reco muons, figure out additional information about which ones matched and next best
+    if recoMuons is not None:
+        if len(muonMatches[0]) > 0 and len(muonMatches[1]) > 0:
+            # exitcode both: True if both gen muons matched reco muons
+            exitcode.both = True
+            # exitcode same: False if each gen muon individually matched different reco muons
+            if muonMatches[0][0]['oidx'] != muonMatches[1][0]['oidx']:
+                same = False
+            # exitcode nextBest, winner, loser: each gen muon individually matched the same reco muon, but
+            # if we keep the gen muon that's closer, the "losing" gen muon has a second best option
+            elif muonMatches[0][0]['oidx'] == muonMatches[1][0]['oidx']:
+                exitcode.same = True
+                # exitcode: muon 0 won, muon 1 lost; take muonMatches[0][0] and muonMatches[1][1]
+                if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR'] and len(muonMatches[1]) > 1:
+                    exitcode.nextBest = True
+                    exitcode.winner   = 0
+                # exitcode: muon 1 won, muon 0 lost; take muonMatches[0][1] and muonMatches[1][0]
+                elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR'] and len(muonMatches[0]) > 1:
+                    exitcode.nextBest = True
+                    exitcode.winner   = 1
+                # exitcode nextBest, winner, loser: each gen muon individually matched the same reco muon,
+                # and the "losing" gen muon has no second best option
+                else:
+                    # exitcode: muon 0 won, muon 1 has no next best; take muonMatches[0][0] and None
+                    if muonMatches[0][0]['deltaR'] < muonMatches[1][0]['deltaR']:
+                        exitcode.nextBest = False
+                        exitcode.winner   = 0
+                    # exitcode: muon 1 won, muon 0 has no next best; take None and muonMatches[1][0]
+                    elif muonMatches[0][0]['deltaR'] >= muonMatches[1][0]['deltaR']:
+                        exitcode.nextBest = False
+                        exitcode.winner   = 1
+        # exitcode both: False if both gen muons didn't match reco muons
+        # exitcode which: which ones did match, if any
         else:
-            exitcode = 8
+            exitcode.both = False
+            if len(muonMatches[0]) > 0 and len(muonMatches[1]) == 0:
+                exitcode.which = 0
+            elif len(muonMatches[1]) > 0 and len(muonMatches[0]) == 0:
+                exitcode.which = 1
+            else:
+                exitcode.which = -1
+
     # final return
     return dimuonMatches, muonMatches, exitcode
 

@@ -75,45 +75,19 @@ def analyze(self, E, PARAMS=None):
     # loop over genMuons and fill histograms based on matches
     for genMuonPair in genMuonPairs:
         # genMuonMatches are a dictionary of the return tuple of length 3
-        # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
-        # exitcode information is still preserved; see AnalysisTools
+        # DSA and RSA get a doDimuons=False argument so that no dimuon matching will be done
         genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
         for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
+            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, selectedDimuons, recoMuons, vertex='BS', doDimuons=False)
         for MUON in ('REF',):
             genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
 
         # now figure out the closest match, or None if they overlap
         # exitcode helps to make sure that both gen muons never match the same reco muon
-        # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
-        # sorted by deltaR, so [0] is the closest, etc.
         genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
         for MUON in ('DSA', 'RSA'):
             dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
-            if   exitcode == 1:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 2:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][1]
-            elif exitcode == 3:
-                genMuonMatch[0][MUON] = muonMatches[0][1]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 4:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 5:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 6:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 7:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 8:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = None
+            genMuonMatch[0][MUON], genMuonMatch[1][MUON] = exitcode.getBestGenMuonMatches(muonMatches)
 
         # matched refitted muons if there was at least one dimuon
         for MUON in ('REF',):
