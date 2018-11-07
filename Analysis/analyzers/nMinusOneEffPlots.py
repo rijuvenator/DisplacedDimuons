@@ -34,17 +34,10 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    BLIND = True if 'Blind' in self.CUTS else False
-
     DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
 
     # loop over DSAmuons and select
     for muon, muonSelection in zip(DSAmuons,DSASelections):
-        # data blinding!
-        if BLIND:
-            if muon.d0Sig() > 3.: continue
-
         for CUT in Selections.CutLists['MuonCutList']:
             for Q in ('pT', 'eta', 'd0'):
                 F = CONFIG[Q]['LAMBDA']
@@ -55,10 +48,6 @@ def analyze(self, E, PARAMS=None):
 
     # loop over dimuons and select
     for dimuon in Dimuons:
-        # data blinding!
-        if BLIND:
-            if dimuon.LxySig() > 3. or dimuon.mu1.d0Sig() > 3. or dimuon.mu2.d0Sig() > 3.:
-                continue
         muon1Selection = DSASelections[dimuon.idx1]
         muon2Selection = DSASelections[dimuon.idx2]
         if muon1Selection and muon2Selection:

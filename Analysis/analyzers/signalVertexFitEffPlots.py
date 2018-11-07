@@ -3,12 +3,12 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, findDimuon
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT' , 'gen p_{T} [GeV]', (1000,       0.,    500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
+    ('pT' , 'gen p_{T} [GeV]', (1500,       0.,   1500.), lambda muon: muon.pt       , 'p_{T}'  , lambda sel: sel.allExcept('a_pT' )),
     ('eta', 'gen #eta'       , (1000,      -3.,      3.), lambda muon: muon.eta      , '#eta'   , lambda sel: sel.allExcept('a_eta')),
     ('phi', 'gen #phi'       , (1000, -math.pi, math.pi), lambda muon: muon.phi      , '#phi'   , lambda sel: sel                   ),
     ('Lxy', 'gen L_{xy} [cm]', (1000,       0.,    800.), lambda muon: muon.Lxy()    , 'L_{xy}' , lambda sel: sel.allExcept('a_Lxy')),
@@ -43,12 +43,11 @@ def analyze(self, E, PARAMS=None):
     DSAmuons = E.getPrimitives('DSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectMuons_pT30 = True
-    SelectDimuons = False
+    ALL = True if 'All' in self.CUTS else False
 
-    # don't require dimuons to pass all selections, and require DSA muons to pass only the pT cut
-    if not SelectDimuons and SelectMuons_pT30:
-        DSASelections    = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
+    # require dimuons to pass all selections, and require DSA muons to pass all selections
+    if ALL:
+        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
@@ -62,10 +61,10 @@ def analyze(self, E, PARAMS=None):
         genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
         if not genMuonSelection: continue
 
-        dimuon, exitcode, muonMatches, oMuonMatches = findDimuon(genMuonPair, selectedDSAmuons, selectedDimuons)
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
 
         # both gen muons matched, but no dimuon: fill den only
-        if exitcode == 2:
+        if exitcode in (1, 2, 3):
             for KEY in CONFIG:
                 F = CONFIG[KEY]['LAMBDA']
                 self.HISTS[KEY+'Den'].Fill(F(genMuonPair[0]))
@@ -86,4 +85,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/SignalVertexFitEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/SignalVertexFitEffPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

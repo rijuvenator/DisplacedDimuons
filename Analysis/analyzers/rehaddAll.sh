@@ -67,20 +67,20 @@ then
 
     pushd roots
     # Give an explicit list of directories
-    read -p $'Directories to look for files to hadd?\ndefault : DataBlind MCFull Signal4Mu Signal2Mu2J\nsomething else? '
+    read -p $'Directories to look for files to hadd?\ndefault : Data_Prompt MC_Prompt Signal\nsomething else? '
     if [ -z "$REPLY" ]
     then
-        DIRS='DataBlind MCFull Signal4Mu Signal2Mu2J'
+        DIRS='Data_Prompt MC_Prompt Signal'
     else
         DIRS="$REPLY"
     fi
     echo
 
     # Give an explicit list of tags
-    read -p $'Tags to rehadd?\ndefault : RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative\nsomething else? '
+    read -p $'Tags to rehadd?\ndefault : RecoMuon Dimuon nMinusOne nMinusOneEff SignalRecoEff SignalVertexFitEff SignalRecoRes TailCumulative\nsomething else? '
     if [ -z "$REPLY" ]
     then
-        TAGS='RecoMuon Dimuon nMinusOne nMinusOneEff SignalMatchEff SignalVertexFitEff SignalMatchRes TailCumulative'
+        TAGS='RecoMuon Dimuon nMinusOne nMinusOneEff SignalRecoEff SignalVertexFitEff SignalRecoRes TailCumulative'
     else
         TAGS="$REPLY"
     fi

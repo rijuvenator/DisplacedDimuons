@@ -3,10 +3,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
+CUTSTRING = ''
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalVertexFitEffPlots.root')
@@ -48,14 +49,14 @@ def makeEffPlots(quantity, fs, SP=None):
     g['Eff'].SetNameTitle('g_Eff', ';'+h['Eff'].GetXaxis().GetTitle()+';Vertex Fit Efficiency')
     p['Eff'] = Plotter.Plot(g['Eff'], '', 'elp', 'pe')
 
-    canvas = Plotter.Canvas(lumi = fs if SP is None else '{} ({} GeV, {} GeV, {} mm)'.format(fs, *SP))
+    canvas = Plotter.Canvas(lumi = fs if SP is None else SPLumiStr(fs, *SP))
     canvas.addMainPlot(p['Eff'])
     p['Eff'].SetMarkerColor(R.kBlue)
     p['Eff'].SetLineColor(R.kBlue)
     RT.addBinWidth(canvas.firstPlot)
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.)
-    canvas.cleanup('pdfs/SVFE_{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
+    canvas.cleanup('pdfs/SVFE_{}Eff{}_{}HTo2XTo{}_{}.pdf'.format(quantity, CUTSTRING, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
     for fs in ('4Mu', '2Mu2J'):

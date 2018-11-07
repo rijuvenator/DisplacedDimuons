@@ -115,20 +115,20 @@ class ETree(object):
             if Constants.LLX_PDGID in self.gen_pdgID:
                 # 2Mu2J
                 if abs(self.gen_pdgID[2]) != Constants.ABS_MUON_PDGID:
-                    muons   =         [GenMuon    (self, i        )        for i in range(2)                       ]
+                    muons   =         [GenMuon    (self, i, True  )        for i in range(2)                       ]
                     jets    =         [GenMuon    (self, i        )        for i in range(2, 4)                    ]
                     mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
                     extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenMuon    (self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + jets + mothers + [extramu]
                 # 4Mu
                 else:
-                    muons   =         [GenMuon    (self, i        )        for i in range(4)                       ]
+                    muons   =         [GenMuon    (self, i, True  )        for i in range(4)                       ]
                     mothers =         [GenParticle(self, i        )        for i in range(4, 8)                    ]
                     extramu =         []
                     if len(self.gen_eta) > 8:
-                        extramu =     [GenParticle(self, i        )        for i in range(8, len(self.gen_eta    ))]
+                        extramu =     [GenMuon    (self, i        )        for i in range(8, len(self.gen_eta    ))]
                     return muons + mothers + [extramu]
             # Background
             else:
@@ -375,7 +375,7 @@ class TriggerMuon(Primitive):
         for attr in ('idx', 'px', 'py', 'pz', 'eta', 'phi'):
             self.set(attr, E, prefix+attr, i)
 
-        triggerMuonEnergy = math.sqrt(sum([x*x for x in (self.px, self.py, self.pz)]) + 0.105658375*0.105658375)
+        triggerMuonEnergy = math.sqrt(sum([x**2. for x in (self.px, self.py, self.pz)]) + 0.105658375**2.)
         self.p4 = R.TLorentzVector()
         self.p4.SetPxPyPzE(self.px, self.py, self.pz, triggerMuonEnergy) 
 
@@ -445,6 +445,11 @@ class Particle(Primitive):
     def __init__(self, E, i, prefix):
         Primitive.__init__(self)
 
+        # fill px py pz if available
+        for attr in ('px', 'py', 'pz', 'p'):
+            if hasattr(E, prefix+attr):
+                self.set(attr, E, prefix+attr, i)
+
         # set basic particle variables; see getMissingValues below
         missing = self.getMissingValues(E, i, prefix)
         for attr in ('pt', 'eta', 'phi', 'mass', 'energy', 'charge', 'x', 'y', 'z'):
@@ -462,7 +467,8 @@ class Particle(Primitive):
 
         # this is an XYZ 3-vector!
         self.p3 = R.TVector3(*self.p4.Vect())
-        self.p  = self.p3.Mag()
+        if not hasattr(self, 'p'):
+            self.p = self.p3.Mag()
 
     # Since the nTuples are no longer guaranteed to have all of the
     # 9 basic particle variables above
@@ -471,6 +477,7 @@ class Particle(Primitive):
     #  - dsamu, rsamu, dim_mu* do not have pt, mass, energy, but have px, py, pz
     #  - dim does not have energy, charge, but has mass and p
     #  - dim_mu* do not have x, y, z, but they are the same as dim_x, dim_y, dim_z
+    #  - gen_bs does not have mass, charge, but they are the same as gen_mass, gen_charge
     def getMissingValues(self, E, i, prefix):
         missing = {}
         if not hasattr(E, prefix+'pt'):
@@ -478,6 +485,8 @@ class Particle(Primitive):
         if not hasattr(E, prefix+'mass'):
             if 'mu' in prefix:
                 missing['mass'] = .105658375
+            elif 'gen_bs' in prefix:
+                missing['mass'] = E.get('gen_mass', i)
             else:
                 raise Exception('Mass for prefix '+prefix+' unavailable.')
         if not hasattr(E, prefix+'energy'):
@@ -496,6 +505,8 @@ class Particle(Primitive):
         if not hasattr(E, prefix+'charge'):
             if 'dim' in prefix:
                 missing['charge'] = 0.
+            elif 'gen_bs' in prefix:
+                missing['charge'] = E.get('gen_charge', i)
             else:
                 raise Exception('Charge for prefix '+prefix+' unavailable.')
         if not hasattr(E, prefix+'x'):
@@ -575,25 +586,53 @@ class PATMuon(Muon):
 
 # GenMuon: see above
 class GenMuon(Muon, GenParticle):
-    def __init__(self, E, i):
+    def __init__(self, E, i, isSignal=False):
         Muon.__init__(self, E, i, 'gen_')
         GenParticle.__init__(self, E, i)
-        for attr in ('cosAlpha', 'deltaR'):
-            self.set(attr, E, 'gen_'+attr, i)
 
-        # genMuons and dimuons get Lxy with Lxy()
         # genMuons and reco muons get d0 with d0()
         # so make sure that the name doesn't collide
-        self.set('Lxy_', E, 'gen_Lxy', i)
         self.set('d0_' , E, 'gen_d0' , i)
         self.set('dz_' , E, 'gen_dz' , i)
 
+        # get the gen quantities with respect to beamspot
+        self.BS = Particle(E, i, 'gen_bs_')
+        setattr(self.BS, 'd0_' , E.get('gen_bs_d0', i))
+        setattr(self.BS, 'dz_' , E.get('gen_bs_dz', i))
+
+        # explicit set d0 to positive for now until
+        # we can figure out what to do with the sign
+        self.d0_    = abs(self.d0_)
+        self.dz_    = abs(self.dz_)
+        self.BS.d0_ = abs(self.BS.d0_)
+        self.BS.dz_ = abs(self.BS.dz_)
+
+        # these three quantities are specific to signal gen muons
+        if isSignal:
+            for attr in ('cosAlpha', 'deltaR'):
+                self.set(attr, E, 'gen_'+attr, i)
+
+            # genMuons and dimuons get Lxy with Lxy()
+            # so make sure that the name doesn't collide
+            self.set('Lxy_', E, 'gen_Lxy', i)
+        # other gen muons don't have them, so set them to a dummy value
+        else:
+            for attr in ('cosAlpha', 'deltaR', 'Lxy_'):
+                setattr(self, attr, -999.)
+
+    # access functions
     def Lxy(self):
         return self.Lxy_
-    def d0(self):
-        return self.d0_
-    def dz(self):
-        return self.dz_
+    def d0(self, vertex='BS', extrap='LIN'):
+        if extrap == 'LIN':
+            return self.d0_
+        else:
+            return self.BS.d0_
+    def dz(self, vertex='BS', extrap='LIN'):
+        if extrap == 'LIN':
+            return self.dz_
+        else:
+            return self.BS.dz_
 
     # Lxy, cosAlpha, d0, dz, dR
     headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
@@ -638,7 +677,7 @@ class RecoMuon(Muon):
             self.fhit = R.TVector3(self.x_fhit, self.y_fhit, self.z_fhit)
 
     def __getattr__(self, name):
-        if name in ('d0', 'dz', 'd0Sig', 'dzSig'):
+        if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
 
@@ -721,10 +760,12 @@ class ImpactParameter(Primitive):
             raise Exception('"extrap" argument should be either None or LIN')
         return getattr(self, axis+val+vertex+extrap)
 
-    def d0   (self, vertex='PV', extrap=None): return self.getValue('d0', None , vertex, extrap)
-    def dz   (self, vertex='PV', extrap=None): return self.getValue('dz', None , vertex, extrap)
-    def d0Sig(self, vertex='PV', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
-    def dzSig(self, vertex='PV', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
+    def d0   (self, vertex='BS', extrap=None): return self.getValue('d0', None , vertex, extrap)
+    def dz   (self, vertex='BS', extrap=None): return self.getValue('dz', None , vertex, extrap)
+    def d0Sig(self, vertex='BS', extrap=None): return self.getValue('d0', 'SIG', vertex, extrap)
+    def dzSig(self, vertex='BS', extrap=None): return self.getValue('dz', 'SIG', vertex, extrap)
+    def d0Err(self, vertex='BS', extrap=None): return self.d0(vertex, extrap)/self.d0Sig(vertex, extrap)
+    def dzErr(self, vertex='BS', extrap=None): return self.dz(vertex, extrap)/self.dzSig(vertex, extrap)
 
 
     headerVertexFormat        = '|{:^63s}'
@@ -785,7 +826,7 @@ class Dimuon(Particle):
         self.idx2 = self.mu2.idx
 
     def __getattr__(self, name):
-        if name in ('Lxy', 'LxySig'):
+        if name in ('Lxy', 'LxySig', 'LxyErr'):
             return getattr(self.Lxy_, name)
         raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
 
@@ -852,6 +893,7 @@ class TransverseDecayLength(Primitive):
 
     def Lxy   (self, vertex='PV'): return self.getValue(None , vertex)
     def LxySig(self, vertex='PV'): return self.getValue('SIG', vertex)
+    def LxyErr(self, vertex='PV'): return self.Lxy(vertex)/self.LxySig(vertex)
 
 
     headerVertexFormat = '|{:^15s}'
@@ -878,3 +920,21 @@ class TransverseDecayLength(Primitive):
             outstr += TransverseDecayLength.dataValuesFormat.format(self.Lxy(vertex), self.LxySig(vertex))
         outstr += '|\n'
         return outstr
+
+# function for copying nHits, chi2, first hit x, y, z, etc. from DSAmuons to refitted muons
+# This could have been done in the Dimuon class, but would require some sort of juggling to
+# ensure that DSAMUON BranchKey is declared, otherwise the ETree will not have the branches
+# It would also happen every time, whether it was needed or not
+# So, this function takes fully instantiated Primitives lists and MODIFIES them
+# It's inherently dangerous, of course
+# I guarantee that this function does not modify the DSAmuons argument, but DOES modify the
+# passed Dimuons list, namely, copies information to the embedded mu1 and mu2 objects
+# After declaring Dimuons and DSAmuons, call Primitives.CopyExtraRecoMuonInfo(Dimuons, DSAmuons)
+# The original Dimuons list will be modified
+def CopyExtraRecoMuonInfo(Dimuons, DSAmuons):
+    for dimuon in Dimuons:
+        for muNum in ('1', '2'):
+            thisMu = getattr(dimuon, 'mu'+muNum)
+            recoMu = DSAmuons[thisMu.idx]
+            for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit', 'normChi2', 'fhit'):
+                setattr(thisMu, attr, getattr(recoMu, attr))

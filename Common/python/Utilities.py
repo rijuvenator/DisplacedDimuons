@@ -18,3 +18,19 @@ class SignalPoint(object):
 
 	def SPStr(self):
 		return '{}_{}_{}'.format(*self.SP)
+
+# returns signal point lumi string, e.g. 4mu (125 GeV, 20 GeV, 13 mm)
+def SPLumiStr(*args):
+    if len(args) == 1:
+        # suppose args[0] is a list of 4 arguments
+        try:
+            return '{} ({} GeV, {} GeV, {} mm)'.format(*args[0])
+        # suppose args[0] is a list of 2 arguments
+        except:
+            return '{} ({} GeV, {} GeV, {} mm)'.format(args[0][0], *args[0][1])
+    # suppose args is a list of 2 arguments
+    elif len(args) == 2:
+        return '{} ({} GeV, {} GeV, {} mm)'.format(args[0], *args[1])
+    # suppose args is a list of 4 arguments
+    elif len(args) == 4:
+        return '{} ({} GeV, {} GeV, {} mm)'.format(*args)

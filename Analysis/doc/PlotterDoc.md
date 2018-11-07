@@ -1,6 +1,6 @@
 # Documentation for `Plotter.py`
 
-Last updated: **14 June 2018**
+Last updated: **20 September 2018**
 
 Documention for my Plotter classes. Should be self-explanatory from the comments in the code for the most part, but this is a handy reference.
 
@@ -120,7 +120,7 @@ Inherits from **TCanvas**.
 - _TObject_ **firstPlot**
 - _list_    **plotList**
 - _TPad_    **ratPad**
-- _TH1F_    **rat**
+- _Plot_    **rat**
 - _TGraph_  **gr**
 - _dict_    **margins**
 

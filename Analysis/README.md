@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **17 August 2018**
+Last updated: **25 October 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -111,6 +111,7 @@ The following dumpers use the full _Primitives_ and _Analyzer_ machinery, using 
   * **studyTrackerBounds.py** produces event dumps for studying the effects of changing the tracker bounds; see also _signalVertexFitEff_.
   * **studyDeltaR.py** produces event dumps for studying the effects of the proximity matching cut between gen and reco.
   * **studyPairingCriteria.py** produces output related to selecting a reconstructed dimuon pair.
+  * **studyRefEfficiency.py** produces output related to a study of refitted muon reconstruction efficiency.
 
 <a name="analyzers"></a>
 ## Analyzers
@@ -123,19 +124,25 @@ The following analyzers do not use the full _Primitives_ and _Analyzer_ machiner
 
 The following analyzers use the full _Primitives_ and _Analyzer_ machinery, using the _Selections_ library. They are derived from _Analyzer_ and work with `runAll.py`.
 
-  * **recoMuonPlots.py** produces plots related to DSA and RSA muon quantities.
+  * **recoMuonPlots.py** produces plots related to DSA, RSA, and refitted (REF) muon quantities.
   * **dimuonPlots.py** produces plots related to dimuon quantities.
   * **nMinusOnePlots.py** produces N-1 plots, distributions of the cut parameters.
   * **nMinusOneEffPlots.py** produces N-1 efficiency plots as a function of various variables.
   * **tailCumulativePlots.py** produces tail cumulative plots based on the histograms produced by **nMinusOnePlots.py**.
-  * **signalMatchEffPlots.py** produces plots parametrizing the reco-gen match efficiency as a function of various quantities, for signal samples.
-  * **signalMatchResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
+  * **signalRecoEffPlots.py** produces plots parametrizing the reco-gen efficiency as a function of various quantities, for signal samples.
+  * **signalRecoResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
-  * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples. This script is a work in progress.
+  * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples.
 
 <a name="runall"></a>
 ### runAll.py
-**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either to LXBATCH (default), locally with GNU `parallel` (given the optional parameter `--local`), or to the HEPHY batch system (given the optional parameter `--hephy`).
+**runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either
+
+  * to the LXPLUS batch system, LXBATCH (default)
+  * locally with GNU `parallel` (given the optional parameter `--local`)
+  * to the HEPHY batch system (given the optional parameter `--hephy`)
+
+There is a `--condor` parameter for submitting to CONDOR, but the functionality doesn't seem to be working just yet.
 
 The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
@@ -143,10 +150,10 @@ The `--samples` parameter is a string subset of `S2BD`, controlling whether this
   * **B**ackground, or
   * **D**ata.
 
-For example, at the moment, `signalResEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
+For example, at the moment, `signalRecoEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python
-python runAll.py signalResEffPlots.py --samples S2
+python runAll.py signalRecoEffPlots.py --samples S2
 ```
 
 while `nMinusOnePlots.py` runs on all types of samples, so one could accept the default value for this script: explicitly,
@@ -180,8 +187,8 @@ The following plotters open the `hadd`-ed ROOT files produced by their respectiv
   * **makeNMinusOnePlots.py** makes plots from ROOT files produced by **nMinusOnePlots.py**
   * **makeNMinusOneEffPlots.py** makes plots from ROOT files produced by **nMinusOneEffPlots.py**
   * **makeTailCumulativePlots.py** makes plots from ROOT files produced by **tailCumulativePlots.py**
-  * **makeSignalMatchEffPlots.py** makes plots from ROOT files produced by **signalMatchEffPlots.py**
-  * **makeSignalMatchResPlots.py** makes plots from ROOT files produced by **signalMatchResPlots.py**
+  * **makeSignalRecoEffPlots.py** makes plots from ROOT files produced by **signalRecoEffPlots.py**
+  * **makeSignalRecoResPlots.py** makes plots from ROOT files produced by **signalRecoResPlots.py**
   * **makeSignalVertexFitEffPlots.py** makes plots from ROOT files produced by **signalVertexFitEffPlots.py**
   * **makeSignalTriggerEffPlots.py** makes plots from ROOT files produced by **signalTriggerEffPlots.py**
 
@@ -205,12 +212,40 @@ For the purposes of the Javascript-based _Viewer_, I have a script, **convertone
 parallel ./convertone.sh ::: $(ls pdfs/*.pdf)
 ```
 
+or for a list of files:
+
+```bash
+parallel -a FILE ./convertone.sh
+```
+
+*convertone.sh* takes three possible options, which are slight tweaks to the PNG output based on what the input PDF is:
+  * `--normal` (or nothing): for normal 800&times;600 plots
+  * `--ratioSquash`: for plots with a ratio plot that are 800&times;600 (it cuts off otherwise)
+  * `--ratioFull`: for plots with a ratio plot that are 800&times;800
+
+<a name="printintegrals"></a>
+### printIntegrals.py
+
+`printIntegrals.py` is a dedicated script for printing histogram integrals. It assumes a structure, i.e. where the ROOT files are located and named.
+
+This formalizes some functionality previously in a few scripts, but which was handled somewhat clunkily since certain visual functions needed to be turned off, requiring a special flag.
+
+Generally the usage is something like
+
+```bash
+python printIntegrals.py -c D -s Prompt_NoSignal -k Dim_pT -b1 0 -b2 N
+```
+
 <a name="special"></a>
 ## Special
 
 `special/` is where I keep some very special-purpose analyzers. They were written for one-time checks, using specific files.
 
   * **comparePATtoAOD.py** takes 2 nTuples, for two signal points, one produced from a PAT Tuple and the other produced directly from AOD, and produces a few histograms, comparing the contents bin by bin, and printing to the screen if anything is different. This script served as a proof that _PATFilter_ did not change anything significant from AOD.
+
+  * **compareBSGentoLinGen.py** takes new (September 2018) nTuples and compares the effect of using the old (SV-reference point) gen quantities to the new (BS-reference point) quantities when matching to reco. The behavior is understood, and the effects have been observed and documented. Its plotter is also used for the next script.
+
+  * **compareRefPoints.py** takes 2 nTuples, old and new, and compares the effect of changing the d<sub>0</sub> and L<sub>xy</sub> reference points from (0, 0, 0) to the beamspot. The effect is very small.
 
 The following script is deprecated and has been removed, having been replaced by other analyzers and dumpers.
 

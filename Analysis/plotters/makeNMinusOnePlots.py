@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Selections as Selections
-from DisplacedDimuons.Common.Utilities import SPStr
+from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
 
 TRIGGER = False
@@ -22,7 +22,7 @@ def makePerSamplePlots():
                 name += SPStr(ref[1])
                 if TRIGGER:
                     name = 'Trig-'+name
-                lumi = '{} ({} GeV, {} GeV, {} mm)'.format(ref[0], *ref[1])
+                lumi = SPLumiStr(ref[0], *ref[1])
                 legName = HistogramGetter.PLOTCONFIG['HTo2XTo'+ref[0]]['LATEX']
             else:
                 name = ref
