@@ -14,6 +14,9 @@ def proximityMatch(muon1, muon2, vertex=None):
     elif class2 == Primitives.GenMuon.__name__ and (class1 == Primitives.RecoMuon.__name__ or class1 == Primitives.TriggerMuon.__name__):
         genMuon = muon2
         recoMuon = muon1
+    elif class1 in [Primitives.RecoMuon.__name__, Primitives.TriggerMuon.__name__] and class2 in [Primitives.RecoMuon.__name__, Primitives.TriggerMuon.__name__] and vertex != 'BS':
+        genMuon = muon1
+        recoMuon = muon2
     else:
         raise Exception('[ANALYSISTOOLS ERROR]: Proximity match requires one gen muon and one reco muon')
 
