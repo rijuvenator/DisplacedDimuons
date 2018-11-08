@@ -2,35 +2,40 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
-# defines a proximity match between a genMuon and a recoMuon (Primitives.GenMuon and Primitives.RecoMuon/Primitives.TriggerMuon), in either order
-# if deltaR < 0.2, return deltaR; otherwise, return None
-def proximityMatch(muon1, muon2, vertex=None):
-    # make sure that genMuons and recoMuons are assigned correctly
+# defines a proximity match between two muons, in any order
+# if deltaR < threshold, return deltaR; otherwise, return None
+def proximityMatch(muon1, muon2, vertex=None, threshold=0.2):
     class1 = muon1.__class__.__name__
     class2 = muon2.__class__.__name__
-    if class1 == Primitives.GenMuon.__name__ and (class2 == Primitives.RecoMuon.__name__ or class2 == Primitives.TriggerMuon.__name__):
-        genMuon = muon1
-        recoMuon = muon2
-    elif class2 == Primitives.GenMuon.__name__ and (class1 == Primitives.RecoMuon.__name__ or class1 == Primitives.TriggerMuon.__name__):
-        genMuon = muon2
-        recoMuon = muon1
-    else:
-        raise Exception('[ANALYSISTOOLS ERROR]: Proximity match requires one gen muon and one reco muon')
 
-    # compute deltaR, using the correct 4-vector
-    if vertex != 'BS':
-        deltaR = recoMuon.p4.DeltaR(genMuon.p4)
-    else:
-        # deal with refitted tracks with 0 pT -- pretend deltaR is very large
+    GM = Primitives.GenMuon.__name__
+
+    # if vertex = 'BS', and we have gen muons, make any gen muons use the BS version of quantities
+    # this will actually also work for two gen muons, in addition to gen + reco in any order
+    if vertex == 'BS' and class1 == GM or class2 == GM:
+        mu1 = muon1.BS if class1 == GM else muon1
+        mu2 = muon2.BS if class2 == GM else muon2
+
+        # deal with refitted gen tracks with 0 pT -- pretend deltaR is very large
         # gen 0 pT occurs only when the BS extrapolated gen track doesn't work properly
         # this happens when gen eta is very large, so they would probably be outside acceptance anyway
         # to prevent stderr warning lines, return None immediately
-        if genMuon.BS.pt < 1.e-10:
+        if mu1.pt < 1.e-10 or mu2.pt < 1.e-10:
             return None
-        deltaR = recoMuon.p4.DeltaR(genMuon.BS.p4)
+
+        mu1P4 = mu1.p4
+        mu2P4 = mu2.p4
+
+    # otherwise, just use the normal p4
+    else:
+        mu1P4 = muon1.p4
+        mu2P4 = muon2.p4
+
+    # compute deltaR
+    deltaR = muon1.p4.DeltaR(muon2.p4)
 
     # define proximity match
-    if deltaR < 0.2:
+    if deltaR < threshold:
         return deltaR
     else:
         return None
@@ -266,6 +271,76 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, doDimuons=
 
     # final return
     return dimuonMatches, muonMatches, exitcode
+
+def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
+    HLTMuonMatches = {}
+
+    # loop over unique pairs of HLT muons
+    nHLT = len(HLTMuons)
+    for i in xrange(nHLT):
+        for j in xrange(i+1,nHLT):
+            hltMuon1, hltMuon2 = HLTMuons[i], HLTMuons[j]
+
+            # for a given pair of muons, re-calculate trigger variables and trigger decision
+            hltDimuon = hltMuon1.p4 + hltMuon2.p4
+            mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
+
+            # found a pair of muons that fired; now look for closest DSA muons
+            if mass > 10. and angle < 2.5:
+                HLTMuonMatches[(i, j)] = {}
+                # find all the matching DSA muons, sort them by deltaR...
+                matches = []
+                for muon in DSAMuons:
+                    for hltIdx, hltMuon in ((i, hltMuon1), (j, hltMuon2)):
+                        if saveDeltaR:
+                            dR = proximityMatch(hltMuon, muon, threshold=float('inf'))
+                        else:
+                            dR = proximityMatch(hltMuon, muon, threshold=threshold)
+                        if dR is not None:
+                            matches.append({'hlt_idx':hltIdx, 'rec_idx':muon.idx, 'deltaR':dR})
+                matches = sorted(matches, key=lambda dic:dic['deltaR'])
+
+                # find the closest matches
+                # walk through the list of matches. the first one (0) is the best one for
+                # whatever match[0]['hlt_idx'] is. keep walking through until you hit another
+                # hlt_idx. make sure its reco muon is not the same as the one you have, and
+                # that's the other match. this accounts for multiple matches.
+                bestMatches = []
+                for match in matches:
+                    if len(bestMatches) == 0:
+                        bestMatches.append(match)
+                    elif len(bestMatches) == 1:
+                        if bestMatches[0]['hlt_idx'] != match['hlt_idx']:
+                            if bestMatches[0]['rec_idx'] != match['rec_idx']:
+                                bestMatches.append(match)
+                                break
+
+                HLTMuonMatches[(i,j)]['bestMatches'] = bestMatches
+
+                # at this point, bestMatches is either 0, 1, or 2. "matchFound" is
+                # only if both hltMuons matched different DSAmuons.
+                # if saveDeltaR, that means proximityMatch calculated deltaR, but didn't
+                # apply any cuts. so to actually decide if matchFound, check the threshold.
+                if len(bestMatches) == 2:
+                    if not saveDeltaR:
+                        HLTMuonMatches[(i,j)]['matchFound'] = True
+                    else:
+                        if bestMatches[0]['deltaR'] < threshold and bestMatches[1]['deltaR'] < threshold:
+                            HLTMuonMatches[(i,j)]['matchFound'] = True
+                        else:
+                            HLTMuonMatches[(i,j)]['matchFound'] = False
+                else:
+                    HLTMuonMatches[(i,j)]['matchFound'] = False
+
+    # return structure
+    # if no triggering pair was found, this dictionary will be empty, otherwise keys are (i,j) indices of HLTMuons
+    # HLTMuonMatches['matchFound'] is True if 2 DSA muons matched 2 HLTMuons below given threshold (default 0.3)
+    # HLTMuonMatches['bestMatches'] is a list of 0-2 match dictionaries containing hlt_idx, rec_idx (a.k.a. oIdx), and deltaR
+    # If saveDeltaR is True, this list may contain deltaR values > threshold; otherwise, it definitely won't
+    # To get the two closest deltaR's regardless of threshold, e.g., do matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=True)
+    # Then do: for match in HLTMuonMatches['bestMatches']: dR = match['deltaR'] (can fill a histogram)
+    return HLTMuonMatches
+
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
