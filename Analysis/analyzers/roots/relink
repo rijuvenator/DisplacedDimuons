@@ -11,6 +11,7 @@ fi
 if [ -z "$SUFFIX" ]
 then
     echo "Argument 2 should be suffix; exiting now"
+    exit
 fi
 
 echo "Unlinking ${PREFIX}.root, relinking to ${PREFIX}_${SUFFIX}.root"

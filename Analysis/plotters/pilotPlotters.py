@@ -94,6 +94,7 @@ if False:
         'RecoMuon',
         'SignalRecoRes',
         'SignalRecoEff',
+        'SignalVertexFitEff',
     )
     for sig in SIGS:
         ftag   = sig+'Plots'

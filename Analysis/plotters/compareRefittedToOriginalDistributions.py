@@ -11,72 +11,59 @@ import PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 TRIGGER = ARGS.TRIGGER
 
-bash.call('cd ../analyzers/roots/Main; ../relink SignalRecoResPlots {}; cd -'.format('Trig' if ARGS.TRIGGER else 'Full'), shell=True)
+bash.call('cd ../analyzers/roots/Main; ../relink RecoMuonPlots {}_SignalOnly; cd -'.format('Trig' if ARGS.TRIGGER else 'Full'), shell=True)
 
 # get histograms
-f = R.TFile.Open('../analyzers/roots/Main/SignalRecoResPlots.root')
+f = R.TFile.Open('../analyzers/roots/Main/RecoMuonPlots.root')
 
 DATA = {'2Mu2J':{}, '4Mu':{}}
 
-def computeFitParameters(MUON, fs, sp, quantity):
-
-    # whether the plot is dif or res makes a difference wrt binning, fit range, and stats box positions
-    # only pT is a res type; the others are all dif types
-    ISDIF = quantity != 'pT'
+def fillDistributionParameters(MUON, fs, sp, quantity):
 
     # get histograms and define plots
-    h = HistogramGetter.getHistogram(f, (fs, sp), MUON+'_'+quantity+'Res').Clone()
+    h = HistogramGetter.getHistogram(f, (fs, sp), MUON+'_'+quantity+'_Matched').Clone()
 
-    if not ISDIF:
-        h.Rebin(5)
-    else:
-        h.Rebin(10)
-
-    # define and fit gaussians to everything. Set FITRANGE to be something useful.
-    if quantity == 'pT':
-        FITRANGE = (-0.4, 0.3)
-    elif quantity == 'eta':
-        FITRANGE = (-0.1, 0.1)
-    else:
-        FITRANGE = (-20., 20.)
-    func = R.TF1('f'+MUON, 'gaus', *FITRANGE)
-    h.Fit('f'+MUON, 'RQ')
+    mean  = h.GetMean()
+    sigma = h.GetStdDev()
+    overflow = h.GetBinContent(h.GetNbinsX()+1)
 
     if sp not in DATA[fs]: DATA[fs][sp] = {}
     if MUON not in DATA[fs][sp]: DATA[fs][sp][MUON] = {}
     if quantity not in DATA[fs][sp][MUON]: DATA[fs][sp][MUON][quantity] = {
         'mean':0,
         'sigma':0,
+        'overflow':0,
     }
 
-    DATA[fs][sp][MUON][quantity]['mean' ] = func.GetParameter(1)
-    DATA[fs][sp][MUON][quantity]['sigma'] = func.GetParameter(2)
+    DATA[fs][sp][MUON][quantity]['mean' ] = mean
+    DATA[fs][sp][MUON][quantity]['sigma'] = sigma
+    DATA[fs][sp][MUON][quantity]['overflow'] = overflow
 
-QUANTITIES = ('pT', 'eta', 'd0', 'dz', 'd0Lin', 'dzLin')
-#QUANTITIES = ('pT',)
+QUANTITIES = ('pTSig', 'd0Sig')
 
 # make plots
 #for fs in ('2Mu2J', '4Mu'):
 for fs in ('2Mu2J',):
     for sp in SIGNALPOINTS:
         for quantity in QUANTITIES:
-            for MUON in ('DSA', 'REF', 'DSADim'):
-                computeFitParameters(MUON, fs, sp, quantity)
+            for MUON in ('DSA', 'REF'):
+                fillDistributionParameters(MUON, fs, sp, quantity)
 
 for quantity in QUANTITIES:
     #for fs in ('2Mu2J', '4Mu'):
     for fs in ('2Mu2J',):
         for sp in DATA[fs]:
             # print DSA REF and ratios
-            print '{:5s} {:4d} {:3d} {:4d} {:5s} :: {:8.4f} {:8.4f} {:8.4f} {:8.4f} {:8.4f} {:8.4f} {:6.2%} {:6.2%}'.format(fs, sp[0], sp[1], sp[2], quantity,
+            print '{:5s} {:4d} {:3d} {:4d} {:5s} :: {:8.4f} {:8.4f} {:4.0f} :: {:8.4f} {:8.4f} {:4.0f} :: {:6.2%} {:6.2%} {:6.2%}'.format(fs, sp[0], sp[1], sp[2], quantity,
                 DATA[fs][sp]['DSA'][quantity]['mean'],
                 DATA[fs][sp]['DSA'][quantity]['sigma'],
-                DATA[fs][sp]['DSADim'][quantity]['mean'],
-                DATA[fs][sp]['DSADim'][quantity]['sigma'],
+                DATA[fs][sp]['DSA'][quantity]['overflow'],
                 DATA[fs][sp]['REF'][quantity]['mean'],
                 DATA[fs][sp]['REF'][quantity]['sigma'],
-                1.-(DATA[fs][sp]['REF'][quantity]['mean']/DATA[fs][sp]['DSADim'][quantity]['mean']),
-                1.-(DATA[fs][sp]['REF'][quantity]['sigma']/DATA[fs][sp]['DSADim'][quantity]['sigma']),
+                DATA[fs][sp]['REF'][quantity]['overflow'],
+                (DATA[fs][sp]['REF'][quantity]['mean']/DATA[fs][sp]['DSA'][quantity]['mean']),
+                (DATA[fs][sp]['REF'][quantity]['sigma']/DATA[fs][sp]['DSA'][quantity]['sigma']),
+                (DATA[fs][sp]['REF'][quantity]['overflow']/DATA[fs][sp]['DSA'][quantity]['overflow']) if DATA[fs][sp]['DSA'][quantity]['overflow'] != 0. else 0.,
             )
 
 ORDER = [
@@ -115,10 +102,10 @@ ORDER = [
 	( 125,  20,   13),
 ]
 
-PRETTY = {'pT':'p_{T}', 'eta':'#eta', 'd0':'d_{0}', 'dz':'d_{z}', 'd0Lin':'lin. d_{0}', 'dzLin':'lin. d_{z}', 'mean':'Mean', 'sigma':'Sigma'}
-MUONS = ('DSA', 'DSADim', 'REF')
-PARAMETERS = ('mean', 'sigma')
-COLORS = {'DSA':R.kRed, 'DSADim':R.kRed+2, 'REF':R.kBlue}
+PRETTY = {'pTSig':'#sigma_{p_{T}}/p_{T}', 'd0Sig':'d_{0}/#sigma_{d_{0}}', 'mean':'Mean', 'sigma':'RMS', 'overflow':'Overflow'}
+MUONS = ('DSA', 'REF')
+PARAMETERS = ('mean', 'sigma', 'overflow')
+COLORS = {'DSA':R.kRed, 'REF':R.kBlue}
 LINES = [12, 21, 27]
 DASHED = [3, 6, 9, 15, 18, 24, 30]
 def makeSummaryPlot(fs, quantity):
@@ -128,7 +115,7 @@ def makeSummaryPlot(fs, quantity):
         p[MUON] = {}
         h[MUON] = {}
         for parameter in PARAMETERS:
-            h[MUON][parameter] = R.TH1F('h'+parameter+MUON+fs+quantity, ';;{} Res. {}'.format(PRETTY[quantity], PRETTY[parameter]), 33, 0., 33.)
+            h[MUON][parameter] = R.TH1F('h'+parameter+MUON+fs+quantity, ';;{} {}'.format(PRETTY[quantity], PRETTY[parameter]), 33, 0., 33.)
             for i,sp in enumerate(ORDER):
                 h[MUON][parameter].SetBinContent(i+1, DATA[fs][sp][MUON][quantity][parameter])
             p[MUON][parameter] = Plotter.Plot(h[MUON][parameter], MUON if MUON != 'DSADim' else 'DSA\'', 'l', 'hist')
@@ -141,11 +128,13 @@ def makeSummaryPlot(fs, quantity):
             p[MUON][parameter].SetLineColor(COLORS[MUON])
             p[MUON][parameter].SetFillColor(COLORS[MUON])
 
-        canvas.makeLegend(lWidth=.1, pos='tl' if not (quantity == 'pT' and parameter == 'sigma') else 'bl', fontscale=1.+1./3.)
+        canvas.makeLegend(lWidth=.1, pos='tr', fontscale=1.+1./3.)
 
         canvas.legend.SetFillStyle(1001)
         canvas.legend.SetFillColor(R.kWhite)
         canvas.legend.SetBorderSize(1)
+
+        canvas.legend.resizeHeight(scale=1.1)
 
         REVERSE = h['DSA'][parameter].GetBinContent(15) < 0
         if REVERSE:
@@ -181,7 +170,7 @@ def makeSummaryPlot(fs, quantity):
             lines[-1].SetLineStyle(2)
             lines[-1].Draw()
 
-        canvas.makeRatioPlot(p['REF'][parameter], p['DSADim'][parameter], ytit='REF/DSA\'', drawLine=False)
+        canvas.makeRatioPlot(p['REF'][parameter], p['DSA'][parameter], ytit='REF/DSA', drawLine=False)
 
         canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
         canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
@@ -190,16 +179,20 @@ def makeSummaryPlot(fs, quantity):
         canvas.rat.SetNdivisions(33)
         canvas.rat.SetFillStyle(0)
         canvas.rat.SetLineColor(R.kBlue)
-        canvas.rat.GetYaxis().SetRangeUser(0.5, 1.)
+        if parameter == 'overflow':
+            low = 0.
+        else:
+            low = 0.5
+        canvas.rat.GetYaxis().SetRangeUser(low, 1.)
         canvas.rat.GetXaxis().SetLabelSize(0)
 
         # ratPad lines
         canvas.ratPad.cd()
         for line in LINES:
-            lines.append(R.TLine(line, 0.5, line, 1.))
+            lines.append(R.TLine(line, low, line, 1.))
             lines[-1].Draw()
         for line in DASHED:
-            lines.append(R.TLine(line, 0.5, line, 1.))
+            lines.append(R.TLine(line, low, line, 1.))
             lines[-1].SetLineStyle(2)
             lines[-1].Draw()
 
