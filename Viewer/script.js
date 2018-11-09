@@ -513,8 +513,10 @@ var SIGNALS = [
 ];
 
 // background sample list
-var BGLIST = ['Stack', 'Stack-Log-Rat', 'StackMC', 'StackMC-Log', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
-var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Stack (MC)', 'Stack (MC, Log)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+//var BGLIST = ['Stack', 'Stack-Log-Rat', 'StackMC', 'StackMC-Log', 'DY10to50', 'DY50toInf', 'WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar'];
+//var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Stack (MC)', 'Stack (MC, Log)', 'Drell-Yan M(10,50)', 'Drell-Yan M(50,&infin;)', 'W+Jets', 'WW', 'WZ', 'ZZ', 'tW', '<span style="text-decoration:overline">t</span>W', 't<span style="text-decoration:overline">t</span>'];
+var BGLIST = ['Stack', 'Stack-Log-Rat', 'StackMC', 'StackMC-Log'];
+var BGLABS = ['Stack', 'Stack (Log, Ratio)', 'Stack (MC)', 'Stack (MC, Log)'];
 
 var SIGNALLIST = ['HTo2XTo4Mu'          , 'Trig-HTo2XTo4Mu'            , 'HTo2XTo2Mu2J'          , 'Trig-HTo2XTo2Mu2J'            ]
 var SIGNALLABS = ['H&rarr;2X&rarr;4&mu;', 'H&rarr;2X&rarr;4&mu; (Trig)', 'H&rarr;2X&rarr;2&mu;2j', 'H&rarr;2X&rarr;2&mu;2j (Trig)']
@@ -548,7 +550,7 @@ var PLOTTYPEVALS = {
     CutTable : [['MUO', 'DIM'], ['-IND', '-SEQ', '-NM1']],
     Gen      : ['massH', 'massX', 'cTau', 'pTH', 'pTX', 'pTmu', 'beta', 'etaMu', 'dPhiMuMu', 'dPhiMuX', 'dPhiCol', 'cosAlpha', 'Lxy', 'd0', 'dR', 'LxyVSLz'],
     SRE      : [['pT', 'eta', 'phi', 'Lxy', 'd0', 'dR', 'dphi'], ['Eff', 'ChargeEff']],
-    SRR      : [['DSA_', 'RSA_', 'REF_', 'RBA_'], [['pTRes', 'd0Res', 'dzRes', 'LxyRes', 'd0LinRes', 'dzLinRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
+    SRR      : [['DSA_', 'RSA_', 'REF_', 'RBA_'], [['pTRes', 'etaRes', 'd0Res', 'dzRes', 'LxyRes', 'd0LinRes', 'dzLinRes'], ['', '_Lxy-Binned', '_d0-Binned', '_pT-Binned', '_qm-Binned', '_Lxy-Binned-Bin-1', '_Lxy-Binned-Bin-2', '_Lxy-Binned-Bin-3']]],
     SVFE     : [['pT', 'eta', 'phi', 'Lxy'], ['Eff']],
 }
 var PT   = 'p<sub>T</sub>'
@@ -573,7 +575,7 @@ var PLOTTYPELABELS = {
     CutTable : [['Muon', 'Dimuon'], ['Ind.', 'Seq.', 'N&minus;1']],
     Gen      : ['m<sub>H</sub>', 'm<sub>X</sub>', 'c&tau;', PT+' H', PT+' X', PT+' &mu;', '&beta;', '&eta; &mu;', '&Delta;&phi;(&mu;&mu;)', '&Delta;&phi;(&mu;X)', '|'+DPHI+'|', 'cos(&alpha;)', LXY, D0, DR+'(&mu;&mu;)', LXY+' VS L<sub>z</sub>'],
     SRE      : [[PT, '&eta;', '&phi;', LXY, D0, DR+'(&mu;&mu;)', '&Delta;&phi;(&mu;&mu;)'], ['reco. &epsilon;', 'charge &epsilon;']],
-    SRR      : [['DSA', 'RSA', 'REF', 'REF+DSA'], [[PT+' Res.', D0+' Dif.', DZ+' Dif.', LXY+' Dif.', 'lin. '+D0+' Dif.', 'lin. '+DZ+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
+    SRR      : [['DSA', 'RSA', 'REF', 'REF+DSA'], [[PT+' Res.', '&eta; Dif.', D0+' Dif.', DZ+' Dif.', LXY+' Dif.', 'lin. '+D0+' Dif.', 'lin. '+DZ+' Dif.'], ['Int.', LXY+'-Binned', D0+'-Binned', PT+'-Binned', 'q.m.-Binned', LXY+' Bin 1', LXY+' Bin 2', LXY+' Bin 3']]],
     SVFE     : [[PT, '&eta;', '&phi;', LXY], ['v. f. &epsilon;']],
 }
 
