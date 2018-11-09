@@ -32,7 +32,7 @@ def proximityMatch(muon1, muon2, vertex=None, threshold=0.2):
         mu2P4 = muon2.p4
 
     # compute deltaR
-    deltaR = muon1.p4.DeltaR(muon2.p4)
+    deltaR = mu1P4.DeltaR(mu2P4)
 
     # define proximity match
     if deltaR < threshold:
