@@ -175,8 +175,8 @@ def analyze(self, E, PARAMS=None):
         selectedRSAmuons = RSAmuons
         selectedDimuons  = Dimuons
 
-    # for the MC/Data events, skip events with no dimuons
-    if PROMPT or NOPROMPT:
+    # for the MC/Data events, skip events with no dimuons, but not for "no selection"
+    if (PROMPT or NOPROMPT) and NSTATIONS:
         if len(selectedDimuons) == 0: return
     
     # all refitted muons

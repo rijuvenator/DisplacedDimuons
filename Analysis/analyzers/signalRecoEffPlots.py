@@ -12,7 +12,7 @@ VALUES  = (
     ('eta' , '#eta'              , (1000,      -3.,      3.), lambda gmu : gmu.eta                        , '#eta'      , lambda sel: sel.allExcept('a_eta')),
     ('phi' , '#phi'              , (1000, -math.pi, math.pi), lambda gmu : gmu.phi                        , '#phi'      , lambda sel: sel                   ),
     ('Lxy' , 'L_{xy} [cm]'       , (1000,       0.,    800.), lambda gmu : gmu.Lxy()                      , 'L_{xy}'    , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0'  , 'd_{0} [cm]'        , (2000,       0.,   1000.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
+    ('d0'  , 'd_{0} [cm]'        , (1000,       0.,    600.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
     ('dR'  , '#DeltaR(#mu#mu)'   , (1000,       0.,      5.), lambda pair: pair[0].deltaR                 , '#DeltaR'   , lambda sel: sel                   ),
     ('dphi', '#Delta#phi(#mu#mu)', (1000, -math.pi, math.pi), lambda pair: pair[0].p4.DeltaPhi(pair[1].p4), '#Delta#phi', lambda sel: sel                   ),
 )
@@ -75,45 +75,19 @@ def analyze(self, E, PARAMS=None):
     # loop over genMuons and fill histograms based on matches
     for genMuonPair in genMuonPairs:
         # genMuonMatches are a dictionary of the return tuple of length 3
-        # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
-        # exitcode information is still preserved; see AnalysisTools
+        # DSA and RSA get a doDimuons=False argument so that no dimuon matching will be done
         genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
         for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
+            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, selectedDimuons, recoMuons, vertex='BS', doDimuons=False)
         for MUON in ('REF',):
             genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
 
         # now figure out the closest match, or None if they overlap
         # exitcode helps to make sure that both gen muons never match the same reco muon
-        # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
-        # sorted by deltaR, so [0] is the closest, etc.
         genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
         for MUON in ('DSA', 'RSA'):
             dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
-            if   exitcode == 1:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 2:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][1]
-            elif exitcode == 3:
-                genMuonMatch[0][MUON] = muonMatches[0][1]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 4:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 5:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 6:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 7:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 8:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = None
+            genMuonMatch[0][MUON], genMuonMatch[1][MUON] = exitcode.getBestGenMuonMatches(muonMatches)
 
         # matched refitted muons if there was at least one dimuon
         for MUON in ('REF',):

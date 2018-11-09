@@ -7,13 +7,14 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 
 HEADERS = ('PRETTY', 'EXTRA', 'AXES', 'RESAXES', 'GENLAMBDA', 'RECOLAMBDA', 'RESLAMBDA', 'ISDIF')
 VALUES  = (
-    ('pT'   , 'p_{T}'       , ' [GeV]', (1500,0.,1500.), (1000,-1.  ,9.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
-    ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000,0., 800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
-    ('d0'   , 'd_{0}'       , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
-    ('dz'   , 'd_{z}'       , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
-    ('d0Lin', 'lin d_{0}'   , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0()                , lambda muon:muon.d0(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
-    ('dzLin', 'lin d_{z}'   , ' [cm]' , (2000,0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz()                , lambda muon:muon.dz(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
-    ('qm'   , 'charge match', ''      , (2   ,0.,   2.), None             , lambda r, g: r.charge == g.charge, None                             , None                    , None ),
+    ('pT'   , 'p_{T}'       , ' [GeV]', (1500, 0.,1500.), (1000,-1.  ,9.  ), lambda gm:gm.pt                  , lambda muon:muon.pt              , lambda rq, gq:(rq-gq)/gq, False),
+    ('Lxy'  , 'L_{xy}'      , ' [cm]' , (1000, 0., 800.), (1000,-100.,100.), lambda gm:gm.Lxy()               , lambda dim :dim.Lxy()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0'   , 'd_{0}'       , ' [cm]' , (2000, 0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0(extrap=None)     , lambda muon:muon.d0()            , lambda rq, gq:(rq-gq)   , True ),
+    ('dz'   , 'd_{z}'       , ' [cm]' , (2000, 0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz(extrap=None)     , lambda muon:muon.dz()            , lambda rq, gq:(rq-gq)   , True ),
+    ('d0Lin', 'lin d_{0}'   , ' [cm]' , (2000, 0.,1000.), (1000,-50. ,50. ), lambda gm:gm.d0()                , lambda muon:muon.d0(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('dzLin', 'lin d_{z}'   , ' [cm]' , (2000, 0.,1000.), (1000,-50. ,50. ), lambda gm:gm.dz()                , lambda muon:muon.dz(extrap='LIN'), lambda rq, gq:(rq-gq)   , True ),
+    ('eta'  , '#eta'        , ''      , (1000,-4.,   4.), (1000,-.2  ,.2  ), lambda gm:gm.eta                 , lambda muon:muon.eta             , lambda rq, gq:(rq-gq)   , True ),
+    ('qm'   , 'charge match', ''      , (2   , 0.,   2.), None             , lambda r, g: r.charge == g.charge, None                             , None                    , None ),
 )
 QUANTITIES = {}
 for VAL in VALUES:
@@ -24,12 +25,12 @@ RECOMUONLIST      = ('DSA', 'RSA', 'DSADim')
 SHORTRECOMUONLIST = ('DSA', 'RSA')
 REFMUONLIST       = ('REF',)
 
+Q2LIST = ('pT', 'Lxy', 'd0', 'qm')
+
 def HTITLE(Q, MUON, MODE, Q2=None):
     # PString and DenString are for conditionally controlling () and / in eff. title
-    # be very careful -- DenString is [cm] only because the DIF quantities happen to be cm
-    # change it if this is not the case at some point!!
     PString   = '' if QUANTITIES[Q]['ISDIF'] else '('
-    DenString = ' [cm]' if QUANTITIES[Q]['ISDIF'] else ') / gen {P}'
+    DenString = QUANTITIES[Q]['EXTRA'] if QUANTITIES[Q]['ISDIF'] else ') / gen {P}'
     ResString = PString+'{M} {P} #minus gen {P}'+DenString
     if MODE == 'Res':
         # X = <q> Resolution/Dif
@@ -59,7 +60,7 @@ for MUON in FULLMUONLIST:
         if True:
             HCONFIG['{M}_{Q}Res'      .format(M=MUON, Q=Q       )] = {'TITLE':HTITLE(Q, MUON, 'Res'      ), 'AXES':QUANTITIES[Q] ['RESAXES']                         }
             HCONFIG['{M}_{Q}VS{Q}'    .format(M=MUON, Q=Q       )] = {'TITLE':HTITLE(Q, MUON, 'VS'       ), 'AXES':QUANTITIES[Q] ['AXES'   ]+QUANTITIES[Q]['AXES'   ]}
-        for Q2 in QUANTITIES:
+        for Q2 in Q2LIST:
             HCONFIG['{M}_{Q}ResVS{Q2}'.format(M=MUON, Q=Q, Q2=Q2)] = {'TITLE':HTITLE(Q, MUON, 'VSRes', Q2), 'AXES':QUANTITIES[Q2]['AXES'   ]+QUANTITIES[Q]['RESAXES']}
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -110,45 +111,19 @@ def analyze(self, E, PARAMS=None):
         # if not genMuonSelection: continue
 
         # genMuonMatches are a dictionary of the return tuple of length 3
-        # DSA and RSA get a "DUMMY" dimuons argument so that no dimuon matching will be done but the relevant
-        # exitcode information is still preserved; see AnalysisTools
+        # DSA and RSA get a doDimuons=False argument so that no dimuon matching will be done
         genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
         for MUON, recoMuons in zip(SHORTRECOMUONLIST, (selectedDSAmuons, selectedRSAmuons)):
-            genMuonMatches[MUON] = matchedDimuons(genMuonPair, ('DUMMY',), recoMuons, vertex='BS')
+            genMuonMatches[MUON] = matchedDimuons(genMuonPair, selectedDimuons, recoMuons, vertex='BS', doDimuons=False)
         for MUON in REFMUONLIST:
             genMuonMatches[MUON] = matchedDimuons(genMuonPair, selectedDimuons)
 
         # now figure out the closest match, or None if they overlap
         # exitcode helps to make sure that both gen muons never match the same reco muon
-        # muonMatches is always a list of length 2, corresponding to [[list of matches to gen0], [list of matches to gen1]]
-        # sorted by deltaR, so [0] is the closest, etc.
         genMuonMatch = [{MUON:None for MUON in FULLMUONLIST}, {MUON:None for MUON in FULLMUONLIST}]
         for MUON in SHORTRECOMUONLIST:
             dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
-            if   exitcode == 1:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 2:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = muonMatches[1][1]
-            elif exitcode == 3:
-                genMuonMatch[0][MUON] = muonMatches[0][1]
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 4:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 5:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 6:
-                genMuonMatch[0][MUON] = muonMatches[0][0]
-                genMuonMatch[1][MUON] = None
-            elif exitcode == 7:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = muonMatches[1][0]
-            elif exitcode == 8:
-                genMuonMatch[0][MUON] = None
-                genMuonMatch[1][MUON] = None
+            genMuonMatch[0][MUON], genMuonMatch[1][MUON] = exitcode.getBestGenMuonMatches(muonMatches)
 
         fillDSADim = False
 
@@ -200,8 +175,8 @@ def analyze(self, E, PARAMS=None):
                     # make sure the logic for QM below this loop is changed as well
                     # if Q == 'Lxy' and which == 1: continue
 
-                    # handle gen pT quantity in a somewhat unnatural way
-                    if Q == 'pT' and MUON in RECOMUONLIST:
+                    # handle gen pT and eta quantity in a somewhat unnatural way
+                    if Q in ('pT','eta') and MUON in RECOMUONLIST:
                         genObj = genMuon.BS
                     else:
                         genObj = genMuon
@@ -225,11 +200,11 @@ def analyze(self, E, PARAMS=None):
                         except:
                             print 'Haha {} {} {} in {} {} {} {}, you\'re not crashing me! {} = inf'.format(Event.run, Event.lumi, Event.event, '4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, GF(genObj))
                             RESQ.append(float('inf'                 ))
-                        for Q2 in QUANTITIES:
+                        for Q2 in Q2LIST:
                             G2F = QUANTITIES[Q2]['GENLAMBDA']
                             if Q2 != 'qm':
-                                # again, handle gen pT quantity in a somewhat unnatural way
-                                if Q2 == 'pT' and MUON in RECOMUONLIST:
+                                # again, handle gen pT and eta quantity in a somewhat unnatural way
+                                if Q2 in ('pT','eta') and MUON in RECOMUONLIST:
                                     GQ2[which][Q2] = G2F(genMuon.BS)
                                 else:
                                     GQ2[which][Q2] = G2F(genMuon)
@@ -239,7 +214,7 @@ def analyze(self, E, PARAMS=None):
                         GQ  .append(None)
                         RQ  .append(None)
                         RESQ.append(None)
-                        for Q2 in QUANTITIES:
+                        for Q2 in Q2LIST:
                             GQ2[which][Q2] = None
 
                 # for QM, define for Lxy as the && of the two. This will result in either True, False, or None

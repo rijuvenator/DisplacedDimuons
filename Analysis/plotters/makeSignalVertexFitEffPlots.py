@@ -5,9 +5,12 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
+import PlotterParser
 
-TRIGGER = False
-CUTSTRING = ''
+ARGS = PlotterParser.PARSER.parse_args()
+
+TRIGGER   = ARGS.TRIGGER
+CUTSTRING = ARGS.CUTSTRING
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalVertexFitEffPlots.root')
