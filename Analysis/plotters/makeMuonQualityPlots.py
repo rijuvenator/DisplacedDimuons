@@ -487,7 +487,7 @@ def makePerSamplePlots():
             if ipad == 9 or ihist == htot-1:
                 canvas.Print(fname, "Title:pT res in slices of sigma(pT)/pT")
 
-        # pT resolution in slices of sigma(pT)/pT, Nstat > 1 and Nhits > 12
+        # pT resolution in slices of sigma(pT)/pT, Nhits > 12
         htot = 10
         for ihist in range(0,htot):
             ipad = ihist%10
@@ -501,7 +501,7 @@ def makePerSamplePlots():
             HISTS[ref][htit].Fit("gaus","Q")
 #            HISTS[ref][htit].Draw("hist")
             if ipad == 9 or ihist == htot-1:
-                canvas.Print(fname, "Title:pT res in slices of sigma(pT)/pT, Nstat > 1 and Nhits > 12")
+                canvas.Print(fname, "Title:pT res in slices of sigma(pT)/pT, Nhits > 12")
 
         # pT pull in slices of sigma(pT)/pT
         htot = 10
@@ -588,7 +588,7 @@ def makePerSamplePlots():
             if ipad == 9 or ihist == htot-1:
                 canvas.Print(fname, "Title:pT res in slices of chi2/ndof")
 
-        # pT resolution in slices of chi2/ndof, Nstat > 1 and Nhits > 12
+        # pT resolution in slices of chi2/ndof, Nhits > 12
         htot = 10
         for ihist in range(0,htot):
             ipad = ihist%10
@@ -602,7 +602,7 @@ def makePerSamplePlots():
             HISTS[ref][htit].Fit("gaus","Q")
 #            HISTS[ref][htit].Draw("hist")
             if ipad == 9 or ihist == htot-1:
-                canvas.Print(fname, "Title:pT res in slices of chi2/ndof, Nstat > 1 and Nhits > 12")
+                canvas.Print(fname, "Title:pT res in slices of chi2/ndof, Nhits > 12")
 
         # placeholder for future histograms
         canvas.Clear()

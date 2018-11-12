@@ -4,6 +4,9 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
+# slices of sigma(pT)/pT and chi2/ndof, for histograms
+SLICE_EDGES = [0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 3.0, 4.0, float('inf')]
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
@@ -88,7 +91,7 @@ def declareHistograms(self, PARAMS=None):
         self.HistInit('chi2_over_ndof_DTCSChits_Stat234_hist'+str(ihist), ';chi2/ndof, N(stats) > 1, hist' + str(ihist) + ';',    50, 0., 5.)
 
     # pT resolution in slices of sigma(pT)/pT and chi2/ndof
-    for ihist in range(0,10):
+    for ihist in range(len(SLICE_EDGES)):
         self.HistInit('pTres_for_dpt_over_pt_hist'+str(ihist),    ';(pT(rec)-pT(gen))/pT(gen) for sigma(pT)/pT, hist' + str(ihist) + ';', 50,  -1.,  1.)
         self.HistInit('pTres_for_chi2_over_ndof_hist'+str(ihist), ';(pT(rec)-pT(gen))/pT(gen) for chi2/ndof, hist' + str(ihist) + ';',    50,  -1.,  1.)
 
@@ -118,8 +121,6 @@ def analyze(self, E, PARAMS=None):
         mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu1, mu2)
         genMuonPairs = ((mu1, mu2),)
-    else:
-        raise Exception('[ANALYZER ERROR]: signal sample name ' + self.Name + ' is not known')
 
     # original DSA muons
     DSAMuons = E.getPrimitives('DSAMUON')
@@ -220,10 +221,10 @@ def analyze(self, E, PARAMS=None):
                     print '+++ Warning: no histo filled; N(stat) = ', nStations
 
                 # pT and 1/pT resolutions
-                pt_res    = (muon.pt - genMuon.pt)/genMuon.pt
-                invpt_res = (1./muon.pt - 1./genMuon.pt)/(1./genMuon.pt)
-                # (rec-gen) charge and d0 
-                q_dif     = muon.charge - genMuon.charge
+                pt_res    = (muon.pt - genMuon.BS.pt)/genMuon.BS.pt
+                invpt_res = (1./muon.pt - 1./genMuon.BS.pt)/(1./genMuon.BS.pt)
+                # (rec-gen) charge and d0
+                q_dif     = muon.charge - genMuon.BS.charge
                 d0_dif    = muon.d0(extrap=None) - genMuon.d0(extrap=None)
 #                print 'gen idx', gen_idx, 'muon idx = ', muon.idx, ' pT res = ', pt_res, 'd0 dif = ', d0_dif
 
@@ -281,6 +282,10 @@ def analyze(self, E, PARAMS=None):
                     self.HISTS['pTres_DTCSChits_overlap_hist%d'%ihist].Fill(pt_res)
                     self.HISTS['d0dif_DTCSChits_overlap_hist%d'%ihist].Fill(d0_dif)
 
+                # make sure that the nDTCSCHits > 12 cut supersedes the nStations > 1 one
+                if nDTCSCHits > 12 and nStations <= 1:
+                    print "+++ Mismatch between nStations and nHits: nStations = ", nStations, "nDTCSCHits = ", nDTCSCHits, "+++"
+
                 # sigma(pT)/pT and chi2/dof
                 self.HISTS['dpt_over_pt_vs_chi2_over_ndof'].Fill(chi2_over_ndof, sigmapt_over_pt)
                 if nStations >= 1 and nStations <= 4:
@@ -288,57 +293,21 @@ def analyze(self, E, PARAMS=None):
                     self.HISTS['chi2_over_ndof_%dStat'%nStations].Fill(chi2_over_ndof)
 
                 # pT resolution in slices of sigma(pT)/pT
-                if sigmapt_over_pt < 0.2:
-                    ihist = 0
-                elif sigmapt_over_pt >= 0.2 and sigmapt_over_pt < 0.4:
-                    ihist = 1
-                elif sigmapt_over_pt >= 0.4 and sigmapt_over_pt < 0.6:
-                    ihist = 2
-                elif sigmapt_over_pt >= 0.6 and sigmapt_over_pt < 0.8:
-                    ihist = 3
-                elif sigmapt_over_pt >= 0.8 and sigmapt_over_pt < 1.0:
-                    ihist = 4
-                elif sigmapt_over_pt >= 1.0 and sigmapt_over_pt < 1.5:
-                    ihist = 5
-                elif sigmapt_over_pt >= 1.5 and sigmapt_over_pt < 2.0:
-                    ihist = 6
-                elif sigmapt_over_pt >= 2.0 and sigmapt_over_pt < 3.0:
-                    ihist = 7
-                elif sigmapt_over_pt >= 3.0 and sigmapt_over_pt < 4.0:
-                    ihist = 8
-                elif sigmapt_over_pt >= 4.0:
-                    ihist = 9
+                ihist = 0
+                while sigmapt_over_pt >= SLICE_EDGES[ihist]: ihist += 1
                 self.HISTS['pTres_for_dpt_over_pt_hist%d'%ihist].Fill(pt_res)
-                if nStations > 1 and nDTCSCHits > 12:
+                if nDTCSCHits > 12:
                     self.HISTS['pTres_for_dpt_over_pt_passed_hist%d'%ihist].Fill(pt_res)
 
                 # pT pull in slices of sigma(pT)/pT
-                pt_pull = (muon.pt - genMuon.pt)/muon.ptError
+                pt_pull = (muon.pt - genMuon.BS.pt)/muon.ptError
                 self.HISTS['pTpull_for_dpt_over_pt_hist%d'%ihist].Fill(pt_pull)
 
                 # pT resolution in slices of chi2/ndof
-                if chi2_over_ndof < 0.2:
-                    ihist = 0
-                elif chi2_over_ndof >= 0.2 and chi2_over_ndof < 0.4:
-                    ihist = 1
-                elif chi2_over_ndof >= 0.4 and chi2_over_ndof < 0.6:
-                    ihist = 2
-                elif chi2_over_ndof >= 0.6 and chi2_over_ndof < 0.8:
-                    ihist = 3
-                elif chi2_over_ndof >= 0.8 and chi2_over_ndof < 1.0:
-                    ihist = 4
-                elif chi2_over_ndof >= 1.0 and chi2_over_ndof < 1.5:
-                    ihist = 5
-                elif chi2_over_ndof >= 1.5 and chi2_over_ndof < 2.0:
-                    ihist = 6
-                elif chi2_over_ndof >= 2.0 and chi2_over_ndof < 3.0:
-                    ihist = 7
-                elif chi2_over_ndof >= 3.0 and chi2_over_ndof < 4.0:
-                    ihist = 8
-                elif chi2_over_ndof >= 4.0:
-                    ihist = 9
+                ihist = 0
+                while chi2_over_ndof >= SLICE_EDGES[ihist]: ihist += 1
                 self.HISTS['pTres_for_chi2_over_ndof_hist%d'%ihist].Fill(pt_res)
-                if nStations > 1 and nDTCSCHits > 12:
+                if nDTCSCHits > 12:
                     self.HISTS['pTres_for_chi2_over_ndof_passed_hist%d'%ihist].Fill(pt_res)
 
     # get dimuons
