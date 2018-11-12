@@ -8,11 +8,11 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # CONFIG stores the title and axis tuple so that the histograms can be declared in a loop
 HEADERS = ('XTITLE', 'AXES', 'LAMBDA', 'PRETTY', 'ACC_LAMBDA')
 VALUES  = (
-    ('pT'  , 'p_{T} [GeV]'       , (1000,       0.,    500.), lambda gmu : gmu.pt                         , 'p_{T}'     , lambda sel: sel.allExcept('a_pT' )),
+    ('pT'  , 'p_{T} [GeV]'       , (1500,       0.,   1500.), lambda gmu : gmu.pt                         , 'p_{T}'     , lambda sel: sel.allExcept('a_pT' )),
     ('eta' , '#eta'              , (1000,      -3.,      3.), lambda gmu : gmu.eta                        , '#eta'      , lambda sel: sel.allExcept('a_eta')),
     ('phi' , '#phi'              , (1000, -math.pi, math.pi), lambda gmu : gmu.phi                        , '#phi'      , lambda sel: sel                   ),
     ('Lxy' , 'L_{xy} [cm]'       , (1000,       0.,    800.), lambda gmu : gmu.Lxy()                      , 'L_{xy}'    , lambda sel: sel.allExcept('a_Lxy')),
-    ('d0'  , 'd_{0} [cm]'        , (1000,       0.,    200.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
+    ('d0'  , 'd_{0} [cm]'        , (1000,       0.,    600.), lambda gmu : gmu.d0()                       , 'd_{0}'     , lambda sel: sel                   ),
     ('dR'  , '#DeltaR(#mu#mu)'   , (1000,       0.,      5.), lambda pair: pair[0].deltaR                 , '#DeltaR'   , lambda sel: sel                   ),
     ('dphi', '#Delta#phi(#mu#mu)', (1000, -math.pi, math.pi), lambda pair: pair[0].p4.DeltaPhi(pair[1].p4), '#Delta#phi', lambda sel: sel                   ),
 )
@@ -33,9 +33,11 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit(MUON+'_'+KEY+'ChargeEff', TITLE, *CONFIG[KEY]['AXES'])
             self.HistInit(MUON+'_'+KEY+'ChargeDen', ''   , *CONFIG[KEY]['AXES'])
 
-        # "extra" and gen denominator plots, can reuse the axes
+        # gen denominator plots, can reuse the axes
         self.HistInit(KEY+'Den'        , '', *CONFIG[KEY]['AXES'])
-        self.HistInit(KEY+'Extra'      , '', *CONFIG[KEY]['AXES'])
+        self.HistInit('REF_'+KEY+'Den' , '', *CONFIG[KEY]['AXES'])
+
+        # descoping extra; not really needed anymore
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -55,20 +57,11 @@ def analyze(self, E, PARAMS=None):
     RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
-    SelectMuons = False
-    SelectMuons_pT30 = False
+    ALL = True if 'All' in self.CUTS else False
     # require reco muons to pass all selections
-    if SelectMuons:
+    if ALL:
         DSASelections = [Selections.MuonSelection(muon) for muon in DSAmuons]
         RSASelections = [Selections.MuonSelection(muon) for muon in RSAmuons]
-        selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
-        selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
-        selectedDimuons  = Dimuons
-
-    # require DSA muons to pass only the pT cut
-    elif SelectMuons_pT30:
-        DSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in DSAmuons]
-        RSASelections = [Selections.MuonSelection(muon, cutList=('pT',)) for muon in RSAmuons]
         selectedDSAmuons = [mu  for idx,mu  in enumerate(DSAmuons) if DSASelections   [idx]]
         selectedRSAmuons = [mu  for idx,mu  in enumerate(RSAmuons) if RSASelections   [idx]]
         selectedDimuons  = Dimuons
@@ -81,117 +74,95 @@ def analyze(self, E, PARAMS=None):
 
     # loop over genMuons and fill histograms based on matches
     for genMuonPair in genMuonPairs:
-        # first make lists of matches
-        genMuonMatches = [{'DSA':None, 'RSA':None, 'REF':None}, {'DSA':None, 'RSA':None, 'REF':None}]
-        for idx, genMuon in enumerate(genMuonPair):
-            for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
-                genMuonMatches[idx][MUON] = matchedMuons(genMuon, recoMuons, vertex='BS')
-        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
-        genMuonMatches[0]['REF'] = muonMatches[0]
-        genMuonMatches[1]['REF'] = muonMatches[1]
+        # genMuonMatches are a dictionary of the return tuple of length 3
+        # DSA and RSA get a doDimuons=False argument so that no dimuon matching will be done
+        genMuonMatches = {'DSA':None, 'RSA':None, 'REF':None}
+        for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
+            genMuonMatches[MUON]  = matchedDimuons(genMuonPair, selectedDimuons, recoMuons, vertex='BS', doDimuons=False)
+        for MUON in ('REF',):
+            genMuonMatches['REF'] = matchedDimuons(genMuonPair, selectedDimuons)
 
-        # now determine if both genMuons matched, accounting for multiple matches
-        genMuonMatch   = [{'DSA':None, 'RSA':None, 'REF':None}, {'DSA':None, 'RSA':None, 'REF':None}]
+        # now figure out the closest match, or None if they overlap
+        # exitcode helps to make sure that both gen muons never match the same reco muon
+        genMuonMatch = [{'DSA': None, 'RSA': None, 'REF': None}, {'DSA': None, 'RSA': None, 'REF': None}]
         for MUON in ('DSA', 'RSA'):
-            lens = [len(genMuonMatches[0][MUON]), len(genMuonMatches[1][MUON])]
-            # both gen muons matched
-            if   lens[0] >  0 and lens[1] >  0:
-                matches = [genMuonMatches[0][MUON], genMuonMatches[1][MUON]]
-                # but to different reco muons
-                if matches[0][0]['idx'] != matches[1][0]['idx']:
-                    genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-                    genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-                # to the SAME reco muon
-                else:
-                    # which one wins the deltaR competition?
-                    # 0 won. 1 gets second best or None.
-                    if matches[0][0]['deltaR'] < matches[1][0]['deltaR']:
-                        genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-                        if lens[1] > 1:
-                            genMuonMatch[1][MUON] = genMuonMatches[1][MUON][1]
-                        else:
-                            genMuonMatch[1][MUON] = None
-                    # 1 won. 0 gets second best or None.
-                    else:
-                        genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-                        if lens[0] > 1:
-                            genMuonMatch[0][MUON] = genMuonMatches[0][MUON][1]
-                        else:
-                            genMuonMatch[0][MUON] = None
-            # second gen muon didn't match
-            elif lens[0] >  0 and lens[1] == 0:
-                genMuonMatch[0][MUON] = genMuonMatches[0][MUON][0]
-            # first gen muon didn't match
-            elif lens[0] == 0 and lens[1] >  0:
-                genMuonMatch[1][MUON] = genMuonMatches[1][MUON][0]
-            # neither gen muon matched
-            elif lens[0] == 0 and lens[1] == 0:
-                pass
+            dimuonMatches, muonMatches, exitcode = genMuonMatches[MUON]
+            genMuonMatch[0][MUON], genMuonMatch[1][MUON] = exitcode.getBestGenMuonMatches(muonMatches)
 
-        if len(dimuonMatches) > 0:
-            genMuonMatch[0]['REF'] = genMuonMatches[0]['REF'][0]
-            genMuonMatch[1]['REF'] = genMuonMatches[1]['REF'][0]
+        # matched refitted muons if there was at least one dimuon
+        for MUON in ('REF',):
+            dimuonMatches, muonMatches, exitcode = genMuonMatches['REF']
+            if len(dimuonMatches) > 0:
+                genMuonMatch[0]['REF'] = muonMatches[0][0]
+                genMuonMatch[1]['REF'] = muonMatches[1][0]
 
-        # now loop over the quantities and fill. split by whether it's a mu plot or a mumu plot.
+        # now loop over the quantities and fill. split by whether it's a mu plot or a mumu plot
+        genMuonPairSelection = Selections.AcceptanceSelection(genMuonPair)
+        genMuonSelections    = [Selections.AcceptanceSelection(genMuonPair[0]), Selections.AcceptanceSelection(genMuonPair[1])]
         for KEY in CONFIG:
             F = CONFIG[KEY]['LAMBDA']
             AF = CONFIG[KEY]['ACC_LAMBDA']
-            # mu mu plot
-            if KEY == 'dphi' or KEY == 'dR':
-                # cut genMuons outside the detector acceptance
-                genMuonPairSelection = Selections.AcceptanceSelection(genMuonPair)
-                if AF(genMuonPairSelection):
-                    self.HISTS[KEY+'Den'].Fill(F(genMuonPair))
 
-                    foundDSA = False
+            # mumu plots: check if pair in acceptance, fill den, fill num if both match
+            if KEY == 'dphi' or KEY == 'dR':
+                if AF(genMuonPairSelection):
+                    self.HISTS[       KEY+'Den'].Fill(F(genMuonPair))
+                    self.HISTS['REF_'+KEY+'Den'].Fill(F(genMuonPair))
+
                     for MUON in ('DSA', 'RSA', 'REF'):
                         if genMuonMatch[0][MUON] is not None and genMuonMatch[1][MUON] is not None:
-                            self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuonPair))
-                            self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuonPair))
+                            self.EffPairFill(MUON, KEY, genMuonPair, genMuonMatch, F)
 
-                            # THEN if the charges are the same, fill. Should be flat and close to 1.
-                            closestRecoMuons = [genMuonMatch[0][MUON]['muon'], genMuonMatch[1][MUON]['muon']]
-                            if genMuonPair[0].charge == closestRecoMuons[0].charge and genMuonPair[1].charge == closestRecoMuons[1].charge:
-                                self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuonPair))
-
-                            if MUON == 'DSA':
-                                foundDSA = True
-
-                            if MUON == 'RSA' and not foundDSA:
-                                self.HISTS[KEY+'Extra'].Fill(F(genMuonPair))
-            # mu plot
+            # mu plots: for DSA and RSA, check if gen muon in acceptance, fill den, fill num if match
+            # for REF, check if pair in acceptance, fill den, full num if both match
             else:
                 for idx, genMuon in enumerate(genMuonPair):
-                    # cut genMuons outside the detector acceptance
-                    genMuonSelection = Selections.AcceptanceSelection(genMuon)
-                    if AF(genMuonSelection):
+                    if AF(genMuonSelections[idx]):
                         self.HISTS[KEY+'Den'].Fill(F(genMuon))
 
-                        foundDSA = False
-                        for MUON in ('DSA', 'RSA', 'REF'):
+                        for MUON in ('DSA', 'RSA'):
                             if genMuonMatch[idx][MUON] is not None:
-                                self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuon))
-                                self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuon))
+                                self.EffSingleFill(MUON, KEY, genMuon, genMuonMatch, F, idx)
 
-                                # THEN if the charges are the same, fill. Should be flat and close to 1.
-                                closestRecoMuon = genMuonMatch[idx][MUON]['muon']
-                                if genMuon.charge == closestRecoMuon.charge:
-                                    self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuon))
+                    if AF(genMuonPairSelection):
+                        self.HISTS['REF_'+KEY+'Den'].Fill(F(genMuon))
 
-                                if MUON == 'DSA':
-                                    foundDSA = True
+                        for MUON in ('REF',):
+                            if genMuonMatch[0][MUON] is not None and genMuonMatch[1][MUON] is not None:
+                                self.EffSingleFill(MUON, KEY, genMuon, genMuonMatch, F, idx)
 
-                                if MUON == 'RSA' and not foundDSA:
-                                    self.HISTS[KEY+'Extra'].Fill(F(genMuon))
+# modular fill functions for use above: gen muon pair
+def EffPairFill(self, MUON, KEY, genMuonPair, genMuonMatch, F):
+
+    # first fill the eff plot; the numerator is the denominator for charge
+    self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuonPair))
+    self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuonPair))
+
+    # THEN if the charges are the same, fill. Should be flat and close to 1.
+    closestRecoMuons = [genMuonMatch[0][MUON]['muon'], genMuonMatch[1][MUON]['muon']]
+    if genMuonPair[0].charge == closestRecoMuons[0].charge and genMuonPair[1].charge == closestRecoMuons[1].charge:
+        self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuonPair))
+
+# modular fill functions for use above: individual gen muon
+def EffSingleFill(self, MUON, KEY, genMuon, genMuonMatch, F, idx):
+
+    # first fill the eff plot; the numerator is the denominator for charge
+    self.HISTS[MUON+'_'+KEY+'Eff'      ].Fill(F(genMuon))
+    self.HISTS[MUON+'_'+KEY+'ChargeDen'].Fill(F(genMuon))
+
+    # THEN if the charges are the same, fill. Should be flat and close to 1.
+    closestRecoMuon = genMuonMatch[idx][MUON]['muon']
+    if genMuon.charge == closestRecoMuon.charge:
+        self.HISTS[MUON+'_'+KEY+'ChargeEff'].Fill(F(genMuon))
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
-    for METHOD in ('declareHistograms', 'analyze'):
+    for METHOD in ('declareHistograms', 'analyze', 'EffPairFill', 'EffSingleFill'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
         BRANCHKEYS  = ('GEN', 'DSAMUON', 'RSAMUON', 'TRIGGER', 'DIMUON'),
     )
-    analyzer.writeHistograms('roots/SignalRecoEffPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/SignalRecoEffPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
