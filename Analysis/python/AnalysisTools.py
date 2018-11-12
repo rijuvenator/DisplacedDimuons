@@ -49,12 +49,12 @@ def proximityMatch(muon1, muon2, vertex=None, threshold=0.2):
 # Note: this function was originally designed with baseMuon = genMuon and muonList = list(recoMuons)
 # but it is sometimes useful to have baseMuon = recoMuon and muonList = list(genMuons)
 # so the functions are treated symmetrically
-def matchedMuons(baseMuon, muonList, vertex=None):
+def matchedMuons(baseMuon, muonList, vertex=None, threshold=0.2):
     matches = []
     if len(muonList) == 0:
         return matches
     for i,muon in enumerate(muonList):
-        deltaR = proximityMatch(baseMuon, muon, vertex)
+        deltaR = proximityMatch(baseMuon, muon, vertex, threshold)
         if deltaR is not None:
             try:
                 oidx = muon.idx
@@ -136,7 +136,7 @@ class ExitCode(object):
                 return         None             , None
 
 
-def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, doDimuons=True):
+def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=0.2, doDimuons=True):
     exitcode = ExitCode()
     # return matched based on refitted tracks
     if recoMuons is None:
@@ -144,8 +144,8 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, doDimuons=
         dimuonMatches = []
         muonMatches = [[], []]
         for idx,dimuon in enumerate(dimuons):
-            deltaR_Align = [proximityMatch(genMuonPair[0], dimuon.mu1, vertex=vertex), proximityMatch(genMuonPair[1], dimuon.mu2, vertex=vertex)]
-            deltaR_Cross = [proximityMatch(genMuonPair[0], dimuon.mu2, vertex=vertex), proximityMatch(genMuonPair[1], dimuon.mu1, vertex=vertex)]
+            deltaR_Align = [proximityMatch(genMuonPair[0], dimuon.mu1, vertex=vertex, threshold=threshold), proximityMatch(genMuonPair[1], dimuon.mu2, vertex=vertex, threshold=threshold)]
+            deltaR_Cross = [proximityMatch(genMuonPair[0], dimuon.mu2, vertex=vertex, threshold=threshold), proximityMatch(genMuonPair[1], dimuon.mu1, vertex=vertex, threshold=threshold)]
 
             # figure out which pairing resulted in both muons being matched
             alignMatched = deltaR_Align[0] is not None and deltaR_Align[1] is not None
