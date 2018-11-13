@@ -54,8 +54,7 @@ def makeEffPlots(quantity, fs, SP=None):
 
     canvas = Plotter.Canvas(lumi = fs if SP is None else SPLumiStr(fs, *SP))
     canvas.addMainPlot(p['Eff'])
-    p['Eff'].SetMarkerColor(R.kBlue)
-    p['Eff'].SetLineColor(R.kBlue)
+    p['Eff'].setColor(R.kBlue)
     RT.addBinWidth(canvas.firstPlot)
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.)

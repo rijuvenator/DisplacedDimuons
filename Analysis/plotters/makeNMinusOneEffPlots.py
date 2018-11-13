@@ -50,8 +50,7 @@ def makePerSamplePlots():
 
             canvas = Plotter.Canvas(lumi=lumi)
             canvas.addMainPlot(p)
-            p.SetLineColor(R.kBlue)
-            p.SetMarkerColor(R.kBlue)
+            p.setColor(R.kBlue)
             canvas.firstPlot.SetMinimum(0.)
             canvas.firstPlot.SetMaximum(1.)
 
@@ -114,8 +113,7 @@ def makeStackPlots(DataMC=False, logy=False):
 #       canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
 
-        p.SetLineColor(R.kBlue)
-        p.SetMarkerColor(R.kBlue)
+        p.setColor(R.kBlue)
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(1.)
         #canvas.firstPlot.SetMaximum(1.e-4)

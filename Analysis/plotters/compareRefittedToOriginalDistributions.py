@@ -125,8 +125,7 @@ def makeSummaryPlot(fs, quantity):
         for MUON in MUONS:
             canvas.addMainPlot(p[MUON][parameter])
 
-            p[MUON][parameter].SetLineColor(COLORS[MUON])
-            p[MUON][parameter].SetFillColor(COLORS[MUON])
+            p[MUON][parameter].setColor(COLORS[MUON], which='LF')
 
         canvas.makeLegend(lWidth=.1, pos='tr', fontscale=1.+1./3.)
 

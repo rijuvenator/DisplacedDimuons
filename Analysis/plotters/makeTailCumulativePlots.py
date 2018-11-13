@@ -86,8 +86,7 @@ def makeStackPlots(DataMC=False, logy=False):
         fname = 'pdfs/TCUM_{}_Stack{}.pdf'.format(hkey.strip('_TCUM'), '-Log' if logy else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
         canvas.addMainPlot(p['BG'])

@@ -90,8 +90,7 @@ def makeEffPlots(quantity, fs, SP=None):
             key = NumDens[i][0]
             col = NumDens[i][3]
             canvas.addMainPlot(p[key])
-            p[key].SetMarkerColor(col)
-            p[key].SetLineColor(col)
+            p[key].setColor(col)
         # aesthetic change
         if quantity == 'Lxy' or (quantity == 'd0' and CHARGE == ''):
             canvas.makeLegend(pos='bl')

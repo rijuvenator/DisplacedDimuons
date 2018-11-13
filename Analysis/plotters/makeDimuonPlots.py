@@ -101,8 +101,7 @@ def makeStackPlots(DataMC=False, logy=False):
         fname = 'pdfs/{}{}_Stack{}{}{}.pdf'.format(hkey, CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
         if True:
@@ -274,8 +273,7 @@ def makeSplitDeltaPhiStackPlots(logy=False):
                 p[DeltaPhiRange][key] = Plotter.Plot(h[DeltaPhiRange][key], *PConfig[key])
 
             for key in BGORDER:
-                p[DeltaPhiRange][key].SetLineColor(PC[key]['COLOR'])
-                p[DeltaPhiRange][key].SetFillColor(PC[key]['COLOR'])
+                p[DeltaPhiRange][key].setColor(PC[key]['COLOR'], which='LF')
 
             canvas = Plotter.Canvas(logy=logy)
             canvas.addMainPlot(p[DeltaPhiRange]['BG'])
