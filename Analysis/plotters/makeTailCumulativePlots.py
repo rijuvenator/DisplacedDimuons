@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
 TRIGGER = False
 

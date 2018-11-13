@@ -4,8 +4,8 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 f = R.TFile.Open('../analyzers/roots/pairingCriteriaPlots_Trig_HTo2XTo2Mu2J.root')
 
