@@ -108,6 +108,7 @@ def analyze(self, E, PARAMS=None):
                     for dim in selectedDimuons:
                         if dim.idx1 in bestTwo and dim.idx2 in bestTwo:
                             bestDimuon = dim
+                            break
                     if bestDimuon is not None:
                         if bestDimuon.idx1 == matchedDimuon.idx1 and bestDimuon.idx2 == matchedDimuon.idx2:
                             self.HISTS['nCorrectPT'].Fill(pTCut)
