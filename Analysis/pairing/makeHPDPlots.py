@@ -53,7 +53,7 @@ def makePTCutPlot(fs, sp=None):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/HPD_PtDist_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/HPD_pTDist_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp) if sp is not None else 'Global'))
 
 for fs in ('2Mu2J',):
     for sp in [None] + SIGNALPOINTS:

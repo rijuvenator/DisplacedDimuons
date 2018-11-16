@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
-f = R.TFile.Open('../analyzers/roots/pairingCriteriaPlots_Trig_HTo2XTo2Mu2J.root')
+f = R.TFile.Open('roots/pairingCriteriaPlots_Trig_HTo2XTo2Mu2J.root')
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff
