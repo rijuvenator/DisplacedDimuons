@@ -32,6 +32,8 @@ def DASQueryList(query):
 PATTERNS = {
     # matches Drell-Yan MC "name" with two groups: mLow (digits 2-4) and mHigh (digits 2-4 OR "Inf")
     'DY_MBIN'    : re.compile(r'DY(\d{2,4})to(Inf|\d{2,4})'),
+    # matches QCD MC "name" with three groups: ptLow (digits 2), ptHigh (digits 2-3 OR "Inf"), and possibly -ME
+    'QCD_MBIN'   : re.compile(r'QCD(\d{2})to(Inf|\d{2,3})(-ME)*'),
 }
 
 # class for storing information about data
@@ -174,6 +176,10 @@ class BackgroundSample(MCSample):
         if self.name.startswith('DY'):
             match = PATTERNS['DY_MBIN'].match(self.name)
             self.massRange = (int(match.group(1)), float('inf') if match.group(2) == 'Inf' else int(match.group(2)))
+
+        if self.name.startswith('QCD'):
+            match = PATTERNS['QCD_MBIN'].match(self.name)
+            self.pTRange = (int(match.group(1)), float('inf') if match.group(2) == 'Inf' else int(match.group(2)))
 
         # set nTuple info
         self.setNTupleInfo(self.name)

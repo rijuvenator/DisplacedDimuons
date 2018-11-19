@@ -72,7 +72,7 @@ samples = [
         30935823, 0.136188, 209, 1., 18810.,  k_factor=1., is_madgraph=True),
     sample('dy50ToInf',    'DY50toInf',
         '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/AODSIM',
-        122547040, 0.164984, 209, 1.,  5941.,  k_factor=1., is_madgraph=True),
+        122547040, 0.164984, 209, 1.,  6225.,  k_factor=1., is_madgraph=True),
     # sample('dy100To200',   'DY100To200',   '/DYJetsToLL_M-100to200_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',  1083606, 0.1753, 209, 1., 226.6,   k_factor=1., is_madgraph=True),
     # sample('dy200To400',   'DY200to400',   '/DYJetsToLL_M-200to400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v2/AODSIM',   298679, 0.2111, 209, 1., 7.77,    k_factor=1., is_madgraph=True),
     # sample('dy400To500',   'DY400to500',   '/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',   287262, 0.2367, 209, 1., 0.4065,  k_factor=1., is_madgraph=True),
@@ -104,13 +104,41 @@ samples = [
 #    sample('ttbar_1800toInf',  'ttbar_1800toInf',  '/TTToLL_MLL_1800ToInf_TuneCUETP8M1_13TeV-powheg-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',   40829, 0., 4, 1., 0.00017, k_factor=1.),
 
     # Single-top cross sections are NNLO from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
-    sample('tW',     'tW',   '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',     6952830, 0., 66, 1., 35.8, k_factor=1.), # xsdb x-sec is 38.09 pb
-    sample('tbarW', 'tbarW', '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM', 6933094, 0., 63, 1., 35.8, k_factor=1.), # xsdb x-sec is 38.06
+    sample('tW',     'tW',   '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM',     6952830,  0., 66, 1., 35.8, k_factor=1.), # xsdb x-sec is 38.09 pb
+    sample('tbarW', 'tbarW', '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/AODSIM', 6933094,  0., 63, 1., 35.8, k_factor=1.), # xsdb x-sec is 38.06
 
     # For W+jets, there also exist extensions and aMC@NLO samples
-    sample('Wjets', 'Wjets', '/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM', 29804825, 0., 52, 1., 61526.7, k_factor=1.), #already NNLO xs (Source? xsdb number is 50260 pb)
+    sample('Wjets', 'Wjets', '/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                       29804825, 0., 52, 1., 61526.7, k_factor=1.), #already NNLO xs (Source? xsdb number is 50260 pb)
+
     # For QCD, there are also MuEnrichedPt5 and inclusive samples in pT bins
-    # sample('QCD', 'QCD', '/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM', 22094081, 0., 43, 1., 269900., k_factor=1.),
+    # sample('QCD15to30', 'QCD15to30', '/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        39908750, 0., 43, 1., -1,         k_factor=1.)
+    sample('QCD30to50', 'QCD30to50', '/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9980050,  0., 43, 1., 138900000., k_factor=1.),
+    sample('QCD50to80', 'QCD50to80', '/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9954370,  0., 43, 1.,  19100000., k_factor=1.),
+    sample('QCD80to120', 'QCD80to120', '/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                     6986740,  0., 43, 1.,   2735000., k_factor=1.),
+    # sample('QCD120to170', 'QCD120to170', '/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  6867422,  0., 43, 1., 471100,     k_factor=1.),
+    # sample('QCD170to300', 'QCD170to300', '/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  6958708,  0., 43, 1., 117276,     k_factor=1.),
+    # sample('QCD300to470', 'QCD300to470', '/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  4150588,  0., 43, 1., 7823,       k_factor=1.),
+    # sample('QCD470to600', 'QCD470to600', '/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  3959986,  0., 43, 1., 648.2,      k_factor=1.),
+    # sample('QCD600to800', 'QCD600to800', '/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  3896412,  0., 43, 1., 186.9,      k_factor=1.),
+    # sample('QCD800to1000', 'QCD800to1000', '/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',               3992112,  0., 43, 1., 32.3,       k_factor=1.),
+    # sample('QCD1000to1400', 'QCD1000to1400', '/QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            2999069,  0., 43, 1., 9.4183,     k_factor=1.),
+    # sample('QCD1400to1800', 'QCD1400to1800', '/QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            396409,   0., 43, 1., 0.84265,    k_factor=1.),
+    # sample('QCD1800to2400', 'QCD1800to2400', '/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            397660,   0., 43, 1., 0.114943,   k_factor=1.),
+    # sample('QCD2400to3200', 'QCD2400to3200', '/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            399226,   0., 43, 1., 0.00682981, k_factor=1.),
+
+    sample('QCDMuEnr20toInf','QCDMuEnr20toInf', '/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',      22094081, 0., 45, 1., 720648000.*0.00042, k_factor=1.),
+    # sample('QCDMuEnr20to30','QCDMuEnr20to30', '/QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          31878740, 0., 45, 1., -1,      k_factor=1.),
+    # sample('QCDMuEnr30to50','QCDMuEnr30to50', '/QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          29954815, 0., 45, 1., 1652471, k_factor=1.),
+    # sample('QCDMuEnr50to80','QCDMuEnr50to80', '/QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          19806915, 0., 45, 1., 437504,  k_factor=1.),
+    # sample('QCDMuEnr80to120','QCDMuEnr80to120', '/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',       13895437, 0., 45, 1., 106033,  k_factor=1.),
+    # sample('QCDMuEnr120to170','QCDMuEnr120to170', '/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',    8042721,  0., 45, 1., 24720,   k_factor=1.),
+    # sample('QCDMuEnr170to300','QCDMuEnr170to300', '/QCD_Pt-170to300_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',    7947159,  0., 45, 1., 8654,    k_factor=1.),
+    # sample('QCDMuEnr300to470','QCDMuEnr300to470', '/QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',    7937590,  0., 45, 1., 797.0,   k_factor=1.),
+    # sample('QCDMuEnr470to600','QCDMuEnr470to600', '/QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',    3972819,  0., 45, 1., 79.0,    k_factor=1.),
+    # sample('QCDMuEnr600to800','QCDMuEnr600to800', '/QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',    4010136,  0., 45, 1., 25.0,    k_factor=1.),
+    # sample('QCDMuEnr800to1000','QCDMuEnr800to1000', '/QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',   3962749,  0., 45, 1., 4.7,     k_factor=1.),
+    # sample('QCDMuEnr1000toInf','QCDMuEnr1000toInf', '/QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM', 3990117,  0., 45, 1., 1.6,     k_factor=1.),
+
 
     # Signal samples
     # H --> XX --> 2mu2jets

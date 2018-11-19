@@ -5,8 +5,12 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
+import PlotterParser
 
-TRIGGER = False
+ARGS = PlotterParser.PARSER.parse_args()
+
+TRIGGER   = ARGS.TRIGGER
+CUTSTRING = ARGS.CUTSTRING
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalVertexFitEffPlots.root')
@@ -55,7 +59,7 @@ def makeEffPlots(quantity, fs, SP=None):
     RT.addBinWidth(canvas.firstPlot)
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.)
-    canvas.cleanup('pdfs/SVFE_{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
+    canvas.cleanup('pdfs/SVFE_{}Eff{}_{}HTo2XTo{}_{}.pdf'.format(quantity, CUTSTRING, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
 
 for quantity in ('pT', 'eta', 'phi', 'Lxy'):
     for fs in ('4Mu', '2Mu2J'):

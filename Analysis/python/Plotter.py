@@ -406,7 +406,7 @@ class Canvas(R.TCanvas):
     # makes ratio plot given a top hist and a bottom hist
     # plusminus is the window around 1, i.e. 0.5 means plot from 0.5 to 1.5
     # ytit is the y axis title, xtit is the x axis title, option is the draw option
-    def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit=''):
+    def makeRatioPlot(self, topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='', drawLine=True):
         if self.ratioFactor == 0: return
         self.cd()
         self.ratPad.cd()
@@ -438,15 +438,16 @@ class Canvas(R.TCanvas):
 
         self.rat.Draw(option)
 
-        low = self.rat.GetXaxis().GetXmin()
-        up  = self.rat.GetXaxis().GetXmax()
-        x   = n.array([ low, up ])
-        y   = n.array([ 1. , 1. ])
-        self.gr = R.TGraph(2,x,y)
-        self.gr.SetLineColor(R.kRed)
-        self.gr.SetLineStyle(3)
-        self.gr.SetLineWidth(2)
-        self.gr.Draw('C same')
+        if drawLine:
+            low = self.rat.GetXaxis().GetXmin()
+            up  = self.rat.GetXaxis().GetXmax()
+            x   = n.array([ low, up ])
+            y   = n.array([ 1. , 1. ])
+            self.gr = R.TGraph(2,x,y)
+            self.gr.SetLineColor(R.kRed)
+            self.gr.SetLineStyle(3)
+            self.gr.SetLineWidth(2)
+            self.gr.Draw('C same')
 
         self.rat.Draw(option+' same')
         self.rat.SetMarkerColor(R.kBlack)
@@ -543,9 +544,10 @@ class Canvas(R.TCanvas):
         pave.SetTextSize(self.fontsize*.9)
         pave.SetMargin(0)
         pave.SetFillStyle(0)
-        pave.SetFillColor(4000)
+        pave.SetFillColor(0)
         pave.SetLineStyle(0)
-        pave.SetLineColor(4000)
+        pave.SetLineColor(0)
+        pave.SetBorderSize(0)
 
         # add all the entries and draw, then move the pave
         for i, (entry, text, name) in enumerate(zip(entries, texts, names)):
@@ -605,3 +607,48 @@ class Canvas(R.TCanvas):
         #R.SetOwnership(self, False)
         self.save(filename)
         self.deleteCanvas()
+
+# Simple class for color palette definitions ("color state machine"):
+# palette: Class objects can be initialized with the 'palette' argument being
+# the name of a pre-defined palette or a user-defined list of colors (i.e.,
+# integers in the case of ROOT).
+# colorState: position of the color to start with (defaults to the beginning of
+# the color palette list, i.e., zero)
+# getColor(): returns the current color state
+# getNextColor(): returns the current color state and sets the color state to
+# the next color in the palette (modulo the total number of colors)
+# resetColor(): reverts the color state to a given color in the palette
+# (default: reset to the beginning of the palette)
+class ColorPalette:
+    __palettes = {
+        'defaultPalette': [600,632,417,867,921,811,616,397,433,874,797,833]
+    }
+
+    def __init__(self, palette='defaultPalette', colorState=0):
+        self.colorState = colorState
+        if isinstance(palette, str) and palette in self.__palettes.keys():
+            self.palette = self.__palettes[palette]
+        elif isinstance(palette, list):
+            self.palette = palette
+        else:
+            print('Warning: Invalid palette. Using default palette.')
+            self.palette = self.__palettes['defaultPalette']
+
+    def getColor(self):
+        return self.colorState
+
+    def getNextColor(self):
+        color = self.palette[self.colorState]
+        if self.colorState < len(self.palette)-1:
+            self.colorState += 1
+        else:
+            self.colorState = 0
+        return color
+
+    def resetColor(self, colorState=0):
+        if colorState < len(self.palette):
+            self.colorState = colorState
+        else:
+            print('Warning: Color index outside of the palette range.')
+            self.colorState = 0
+

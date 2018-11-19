@@ -5,8 +5,10 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import HistogramGetter
+import PlotterParser
 
-TRIGGER = False
+ARGS = PlotterParser.PARSER.parse_args()
+TRIGGER = ARGS.TRIGGER
 
 # get histograms
 HISTS = HistogramGetter.getHistograms('../analyzers/roots/Main/SignalRecoEffPlots.root')
@@ -18,8 +20,9 @@ def makeEffPlots(quantity, fs, SP=None):
         'DSA_Eff'       : 'DSA_{}Eff'      ,
         'RSA_Eff'       : 'RSA_{}Eff'      ,
         'REF_Eff'       : 'REF_{}Eff'      ,
+        'REF_Den'       : 'REF_{}Den'      ,
         'Den'           : '{}Den'          ,
-        'Extra'         : '{}Extra'        ,
+#       'Extra'         : '{}Extra'        ,
         'DSA_ChargeEff' : 'DSA_{}ChargeEff',
         'RSA_ChargeEff' : 'RSA_{}ChargeEff',
         'REF_ChargeEff' : 'REF_{}ChargeEff',
@@ -62,7 +65,7 @@ def makeEffPlots(quantity, fs, SP=None):
     NumDens = (
         ('DSA_Eff'      , 'Den'          , 'DSA'       , R.kBlue   ),
         ('RSA_Eff'      , 'Den'          , 'RSA'       , R.kRed    ),
-        ('REF_Eff'      , 'Den'          , 'REF'       , R.kGreen  ),
+        ('REF_Eff'      , 'REF_Den'      , 'REF'       , R.kGreen  ),
 #       ('Extra'        , 'Den'          , 'Extra'     , R.kMagenta),
         ('DSA_ChargeEff', 'DSA_ChargeDen', 'DSA:Charge', R.kBlue   ),
         ('RSA_ChargeEff', 'RSA_ChargeDen', 'RSA:Charge', R.kRed    ),
@@ -103,6 +106,8 @@ def makeEffPlots(quantity, fs, SP=None):
         # aesthetic change
         if quantity == 'dR':
             canvas.firstPlot.GetXaxis().SetRangeUser(0., 1.)
+        elif quantity == 'pT':
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 800.)
         canvas.cleanup('pdfs/SRE_{}{}Eff_{}HTo2XTo{}_{}.pdf'.format(quantity, CHARGE, 'Trig-' if TRIGGER else '', fs, 'Global' if SP is None else SPStr(SP)))
         CHARGE = 'Charge'
 

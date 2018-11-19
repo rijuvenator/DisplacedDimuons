@@ -7,14 +7,14 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
-    'pT'      : {'AXES':(1000,      0., 500.   ), 'LAMBDA': lambda dim: dim.pt                            , 'PRETTY':'p_{T} [GeV]'           },
-    'pTCosPhi': {'AXES':(1000,      0., 1000.  ), 'LAMBDA': lambda dim: math.cos(dim.deltaPhi)*dim.pt     , 'PRETTY':'p_{T}cos(#Phi) [GeV]'  },
+    'pT'      : {'AXES':(1500,      0., 1500.  ), 'LAMBDA': lambda dim: dim.pt                            , 'PRETTY':'p_{T} [GeV]'           },
+    'pTCosPhi': {'AXES':(1500,      0., 1500.  ), 'LAMBDA': lambda dim: math.cos(dim.deltaPhi)*dim.pt     , 'PRETTY':'p_{T}cos(#Phi) [GeV]'  },
     'pTOverM' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.pt/dim.mass                   , 'PRETTY':'p_{T}/M(#mu#mu)'       },
     'eta'     : {'AXES':(1000,     -3., 3.     ), 'LAMBDA': lambda dim: dim.eta                           , 'PRETTY':'#eta'                  },
     'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
-    'LxySig'  : {'AXES':(5000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
+    'LxySig'  : {'AXES':(2000,      0., 200.   ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
     'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
-    'vtxChi2' : {'AXES':(1000,      0., 20.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
+    'vtxChi2' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
     'deltaR'  : {'AXES':(1000,      0., 5.     ), 'LAMBDA': lambda dim: dim.deltaR                        , 'PRETTY':'#DeltaR(#mu#mu)'       },
     'deltaEta': {'AXES':(1000,     -5., 5.     ), 'LAMBDA': lambda dim: dim.mu1.eta-dim.mu2.eta           , 'PRETTY':'#Delta#eta(#mu#mu)'    },
     'deltaphi': {'AXES':(1000,-math.pi, math.pi), 'LAMBDA': lambda dim: dim.mu1.p4.DeltaPhi(dim.mu2.p4)   , 'PRETTY':'#Delta#phi(#mu#mu)'    },
@@ -81,6 +81,11 @@ def analyze(self, E, PARAMS=None):
 
     # decide what set of cuts to apply based on self.CUTS cut string
     ALL = True if 'All' in self.CUTS else False
+    PROMPT = True if '_Prompt' in self.CUTS else False
+    NOPROMPT = True if '_NoPrompt' in self.CUTS else False
+    NSTATIONS = True if '_NS' in self.CUTS else False
+    NMUONHITS = True if '_NH' in self.CUTS else False
+    FPTERR = True if '_FPTE' in self.CUTS else False
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
     if ALL:
@@ -89,10 +94,64 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
+    # return if there are LxySig > 3
+    elif PROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if highLxySigExists:
+            return
+        if NSTATIONS and not NMUONHITS:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        else:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
+
+    # return if there are NO LxySig > 3 -- that's category 1
+    elif NOPROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+        if not highLxySigExists:
+            return
+        if NSTATIONS and not NMUONHITS:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and not FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        elif NSTATIONS and NMUONHITS and FPTERR:
+            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        else:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
+
     # no cuts
     else:
         selectedDSAmuons = DSAmuons
         selectedDimuons  = Dimuons
+
+    # for the MC/Data events, skip events with no dimuons, but not for "no selection"
+    if (PROMPT or NOPROMPT) and NSTATIONS:
+        if len(selectedDimuons) == 0: return
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
@@ -124,8 +183,6 @@ def analyze(self, E, PARAMS=None):
             #genMuonSelection = Selections.AcceptanceSelection(genMuonPair)
 
             # find the matching dimuon, if any, and fill
-            # old style matching to reco muons
-            #dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons, selectedDSAmuons, vertex='BS')
             dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
 
             if len(dimuonMatches) > 0:
