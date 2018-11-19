@@ -119,8 +119,6 @@ def analyze(self, E, PARAMS=None):
         if not Selections.passedTrigger(E): return
     
     dsaMuons = E.getPrimitives('DSAMUON')
-    #print "new event"
-    recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
     
     Primitives.CopyExtraRecoMuonInfo(diMuons, dsaMuons)

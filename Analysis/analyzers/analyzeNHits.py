@@ -3,6 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
+import DisplacedDimuons.Analysis.AnalysisTools as AT
 
 #
 # voms-proxy-init --voms cms
@@ -65,22 +66,38 @@ def matchGenReco(genMuons, recoMuons):
             genReco[gen].append(reco)
             
     return reversed(findBestMatches(genReco))
-    
+
+def fillStats(self, gen, reco):
+    ndtstats = reco.nDTStations
+    ndthits = reco.nDTHits
+    ncscstats = reco.nCSCStations
+    ncschits = reco.nCSCHits
+    if ncscstats == 0:
+        if ndtstats != 0:
+            if gen.pt != 0: self.HISTS['dt_%istat'%ndtstats].Fill(ndthits)
+    else:
+        if ndtstats == 0:
+            if gen.pt != 0: self.HISTS['csc_%istat'%ncscstats].Fill(ncschits)
+        else: # csc !=0 & dt !=0
+            if gen.pt != 0: 
+                nstat = ndtstats+ncscstats
+                nhits = ndthits+ncschits
+                if nstat > 4:
+                    self.HISTS['csc&dt_5+stat'].Fill(nhits)
+                else:
+                    self.HISTS['csc&dt_%istat'%(nstat)].Fill(nhits)
 
 def analyze(self, E, PARAMS=None):
     
+    #selections
+    if self.TRIGGER:
+        if not Selections.passedTrigger(E): return
+    
     dsaMuons = E.getPrimitives('DSAMUON')
     
-    recoMuons = []
     diMuons = E.getPrimitives('DIMUON')
-    for dimuon in diMuons:
-        print dimuon.Lxy()
-        if(dimuon.Lxy() < 330):
-            recoMuons.append(dimuon.mu1)
-            recoMuons.append(dimuon.mu2)
-    #recoMuons = dsaMuons # to look at un-vertex-fit muons
-    
-    if(len(recoMuons) == 0): return
+    Primitives.CopyExtraRecoMuonInfo(diMuons, dsaMuons)
+ 
     
     
     if '4Mu' in self.NAME:
@@ -90,35 +107,22 @@ def analyze(self, E, PARAMS=None):
     elif '2Mu2J' in self.NAME:
         mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
         genMuons = (mu1, mu2)
+        genMuonPairs = ((mu1, mu2),)
     else:
         print "Haven't implemented these samples"
         return
     
-    #selections
-    if self.TRIGGER:
-        if not Selections.passedTrigger(E): return
-        
-        
-    matches = matchGenReco(genMuons, recoMuons)
-    for [gen, reco] in matches:  
-        ndtstats = dsaMuons[reco.idx].nDTStations
-        ndthits = dsaMuons[reco.idx].nDTHits
-        ncscstats = dsaMuons[reco.idx].nCSCStations
-        ncschits = dsaMuons[reco.idx].nCSCHits
-        if ncscstats == 0:
-            if ndtstats != 0:
-                if gen.pt != 0: self.HISTS['dt_%istat'%ndtstats].Fill(ndthits)
-        else:
-            if ndtstats == 0:
-                if gen.pt != 0: self.HISTS['csc_%istat'%ncscstats].Fill(ncschits)
-            else: # csc !=0 & dt !=0
-                if gen.pt != 0: 
-                    nstat = ndtstats+ncscstats
-                    nhits = ndthits+ncschits
-                    if nstat > 4:
-                        self.HISTS['csc&dt_5+stat'].Fill(nhits)
-                    else:
-                        self.HISTS['csc&dt_%istat'%(nstat)].Fill(nhits)
+    
+    selectedDimuons = [dim for dim in diMuons if dim.Lxy() < 330]
+    
+    for genMuonPair in genMuonPairs:
+        dimuonMatches, muonMatches, exitcode = AT.matchedDimuons(genMuonPair, selectedDimuons)
+        if len(muonMatches[0]):
+            fillStats(self,genMuonPair[0],muonMatches[0][0]['muon'])
+        if len(muonMatches[1]):
+            fillStats(self,genMuonPair[1],muonMatches[1][0]['muon'])
+            
+    return
     
 
 #### RUN ANALYSIS ####

@@ -46,6 +46,15 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
         
     if len(plotType) != 0:
         plotType +='_'
+        
+    maxValue = 0
+    for i in stations:
+        if i == 5:
+            h = f.Get('%s_%i+stat_%s%s'%(chamberType,i, plotType, sampleName))
+        else:
+            h = f.Get('%s_%istat_%s%s'%(chamberType,i, plotType,sampleName))
+        if h.GetMaximum() > maxValue:
+            maxValue = h.GetMaximum()
     
     for i in stations:
         if i == 5:
@@ -61,10 +70,11 @@ def makePlot(chamberType, f, mH, mX, ct, plotType = ''):
         if i == 1:
             h.SetTitle("mH=%s mX=%s ct=%3.1f [cm]" % (mH, mX, float(ct) / 10))
             h.Draw()
-            if chamberType == 'csc&dt':
-                h.SetMaximum(1000)
-            else:
-                h.SetMaximum(2500)
+            #if chamberType == 'csc&dt':
+            #    h.SetMaximum(1000)
+            #else:
+            #    h.SetMaximum(1.2*maxValue)
+            h.SetMaximum(1.2*maxValue)
             h.SetMinimum(0)
         else:
             h.Draw('sames')
