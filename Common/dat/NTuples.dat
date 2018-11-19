@@ -73,6 +73,10 @@ WW /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WW.root
 WJets /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WJets.root
 WZ /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_WZ.root
 ZZ /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_ZZ.root
+QCD20toInf-ME /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_QCD20toInf-ME.root
+QCD30to50 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_QCD30to50.root
+QCD50to80 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_QCD50to80.root
+QCD80to120 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_QCD80to120.root
 DoubleMuonRun2016B-07Aug17-v2 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016B-07Aug17-v2.root
 DoubleMuonRun2016C-07Aug17 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016C-07Aug17.root
 DoubleMuonRun2016D-07Aug17 /eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/ntuple_DoubleMuonRun2016D-07Aug17.root

@@ -112,9 +112,9 @@ samples = [
 
     # For QCD, there are also MuEnrichedPt5 and inclusive samples in pT bins
     # sample('QCD15to30', 'QCD15to30', '/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        39908750, 0., 43, 1., -1,         k_factor=1.)
-    sample('QCD30to50', 'QCD30to50', '/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9980050,  0., 43, 1., -1,         k_factor=1.),
-    sample('QCD50to80', 'QCD50to80', '/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9954370,  0., 43, 1., 19204300,   k_factor=1.),
-    sample('QCD80to120', 'QCD80to120', '/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                     6986740,  0., 43, 1., 2762530,    k_factor=1.),
+    sample('QCD30to50', 'QCD30to50', '/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9980050,  0., 43, 1., 138900000., k_factor=1.),
+    sample('QCD50to80', 'QCD50to80', '/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                        9954370,  0., 43, 1.,  19100000., k_factor=1.),
+    sample('QCD80to120', 'QCD80to120', '/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                     6986740,  0., 43, 1.,   2735000., k_factor=1.),
     # sample('QCD120to170', 'QCD120to170', '/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  6867422,  0., 43, 1., 471100,     k_factor=1.),
     # sample('QCD170to300', 'QCD170to300', '/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  6958708,  0., 43, 1., 117276,     k_factor=1.),
     # sample('QCD300to470', 'QCD300to470', '/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',                  4150588,  0., 43, 1., 7823,       k_factor=1.),
@@ -126,7 +126,7 @@ samples = [
     # sample('QCD1800to2400', 'QCD1800to2400', '/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            397660,   0., 43, 1., 0.114943,   k_factor=1.),
     # sample('QCD2400to3200', 'QCD2400to3200', '/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',            399226,   0., 43, 1., 0.00682981, k_factor=1.),
 
-    sample('QCDMuEnr20toInf','QCDMuEnr20toInf', '/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',      22094081, 0., 45, 1., -1,      k_factor=1.),
+    sample('QCDMuEnr20toInf','QCDMuEnr20toInf', '/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',      22094081, 0., 45, 1., 720648000.*0.00042, k_factor=1.),
     # sample('QCDMuEnr20to30','QCDMuEnr20to30', '/QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          31878740, 0., 45, 1., -1,      k_factor=1.),
     # sample('QCDMuEnr30to50','QCDMuEnr30to50', '/QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          29954815, 0., 45, 1., 1652471, k_factor=1.),
     # sample('QCDMuEnr50to80','QCDMuEnr50to80', '/QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM',          19806915, 0., 45, 1., 437504,  k_factor=1.),
