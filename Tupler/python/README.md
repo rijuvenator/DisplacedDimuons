@@ -68,7 +68,7 @@ Finally, **submitAll.py** submits the full suite of jobs; all that is needed is 
 Currently, the script will submit 84 jobs, all running on PAT Tuples, corresponding to
   * 33 jobs for all HTo2XTo4Mu signal points
   * 33 jobs for all HTo2XTo2Mu2J signal points
-  * 11 jobs for most background MC samples
+  * 15 jobs for most background MC samples
   * 7 jobs for data DoubleMuon Run2016 B-H
 
 Note that the WZ and ZZ samples have an extra dataset which will be merged afterwards, resulting in 82 total nTuples.
