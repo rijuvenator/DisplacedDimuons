@@ -10,15 +10,19 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 # 7 + 136 + 72 = 215 background jobs
 BGSampleList = (
-    ('DY10to50'  , None        ),
-    ('WJets'     , None        ),
-    ('WW'        , None        ),
-    ('WZ'        , None        ),
-    ('ZZ'        , None        ),
-    ('tW'        , None        ),
-    ('tbarW'     , None        ),
-    ('DY50toInf' , (136, 50000)), # 6.76M events
-    ('ttbar'     , (72,  50000)), # 3.60M events
+    ('DY10to50'     , None        ),
+    ('WJets'        , None        ),
+    ('WW'           , None        ),
+    ('WZ'           , None        ),
+    ('ZZ'           , None        ),
+    ('tW'           , None        ),
+    ('tbarW'        , None        ),
+    ('QCD20toInf-ME', None        ),
+#   ('QCD30to50'    , None        ),
+#   ('QCD50to80'    , None        ),
+#   ('QCD80to120'   , None        ),
+    ('DY50toInf'    , (136, 50000)), # 6.76M events
+    ('ttbar'        , (72,  50000)), # 3.60M events
 )
 # 257 data jobs
 DataSampleList = (

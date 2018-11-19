@@ -92,7 +92,7 @@ QCD30to50
 9980050
 0.0
 1.0
--1
+138900000.0
 -
 QCD50to80
 /QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
@@ -100,7 +100,7 @@ QCD50to80
 9954370
 0.0
 1.0
-19204300
+19100000.0
 -
 QCD80to120
 /QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
@@ -108,7 +108,7 @@ QCD80to120
 6986740
 0.0
 1.0
-2762530
+2735000.0
 -
 QCD20toInf-ME
 /QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/RunIISummer16DR80Premix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/AODSIM
@@ -116,5 +116,5 @@ QCD20toInf-ME
 22094081
 0.0
 1.0
--1
+302672.16
 -
