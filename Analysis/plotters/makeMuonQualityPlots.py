@@ -60,10 +60,45 @@ def makePerSamplePlots():
         gPad.SetLogy(1)
         canvas.Print(fname+"(", "Title:"+htit)
 
+        # delta R between nearest HLT and DSA muons for good events failing the default HLT-RECO match
+        canvas.Clear()
+        pad = R.TPad('pad','pad', 0, 0, 1, 1)
+        pad.Draw()
+        pad.Divide(2,2)
+        pad.cd(1)
+        HISTS[ref]['dR1_HLT_DSA_GoodEvent'].Draw("hist")
+        pad.cd(2)
+        HISTS[ref]['dR1_HLT_DSA_GoodEvent'].Draw("hist")
+        gPad.SetLogy(1)
+        pad.cd(3)
+        HISTS[ref]['dR2_HLT_DSA_GoodEvent'].Draw("hist")
+        pad.cd(4)
+        HISTS[ref]['dR2_HLT_DSA_GoodEvent'].Draw("hist")
+        gPad.SetLogy(1)
+        canvas.Print(fname, "Title:dR_HLT_DSA, no HLT-RECO match, good events")
+
+        # delta R between nearest HLT and DSA muons for bad events failing the default HLT-RECO match
+        canvas.Clear()
+        pad = R.TPad('pad','pad', 0, 0, 1, 1)
+        pad.Draw()
+        pad.Divide(2,2)
+        pad.cd(1)
+        HISTS[ref]['dR1_HLT_DSA_BadEvent'].Draw("hist")
+        pad.cd(2)
+        HISTS[ref]['dR1_HLT_DSA_BadEvent'].Draw("hist")
+        gPad.SetLogy(1)
+        pad.cd(3)
+        HISTS[ref]['dR2_HLT_DSA_BadEvent'].Draw("hist")
+        pad.cd(4)
+        HISTS[ref]['dR2_HLT_DSA_BadEvent'].Draw("hist")
+        gPad.SetLogy(1)
+        canvas.Print(fname, "Title:dR_HLT_DSA, no HLT-RECO match, bad events")
+
         # number of unsuccessful and successful HLT-DSA matches
         canvas.Clear()
         htit = 'matches_HLT_DSA'
         HISTS[ref][htit].Draw("hist")
+        HISTS[ref][htit].Draw("same text")
         canvas.Print(fname, "Title:"+htit)
 
         # N(CSC stations) vs N(DT stations) 
@@ -518,6 +553,21 @@ def makePerSamplePlots():
             HISTS[ref][htit].Draw("hist")
             if ipad == 9 or ihist == htot-1:
                 canvas.Print(fname, "Title:pT pull in slices of sigma(pT)/pT")
+
+        # refitted muons for DSA muons failing dpT/pT cut
+        canvas.Clear()
+        pad = R.TPad('pad','pad', 0, 0, 1, 1)
+        pad.Draw()
+        pad.Divide(2,2)
+        pad.cd(1)
+        HISTS[ref]['eta_for_dpt_over_pt_gt_1'].Draw("hist")
+        pad.cd(2)
+        HISTS[ref]['pTres_ref_for_dpt_over_pt_gt_1'].Draw("hist")
+        pad.cd(3)
+        HISTS[ref]['dpt_over_pt_ref_for_dpt_over_pt_gt_1'].Draw("hist")
+        pad.cd(4)
+        HISTS[ref]['pTres_ref_for_dpt_over_pt_gt_1_ref_lt_1'].Draw("hist")
+        canvas.Print(fname, "Title:refitted muons, sigma(pT)/pT > 1")
 
         # chi2/ndof per station
         canvas.Clear()

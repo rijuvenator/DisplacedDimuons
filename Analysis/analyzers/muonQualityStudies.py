@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, matchedTrigger
 
 # slices of sigma(pT)/pT and chi2/ndof, for histograms
 SLICE_EDGES = [0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 3.0, 4.0, float('inf')]
@@ -16,10 +16,14 @@ def begin(self, PARAMS=None):
 def declareHistograms(self, PARAMS=None):
 
     # delta R between nearest HLT and DSA muons
-    self.HistInit('dR_HLT_DSA', ';dR; Muons', 50, 0., 1.)
+    self.HistInit('dR_HLT_DSA',            ';dR; Muons',          50, 0., 1.)
+    self.HistInit('dR1_HLT_DSA_BadEvent',  ';best dR; Muons',     50, 0., 1.)
+    self.HistInit('dR2_HLT_DSA_BadEvent',  ';2nd best dR; Muons', 50, 0., 1.)
+    self.HistInit('dR1_HLT_DSA_GoodEvent', ';best dR; Muons',     50, 0., 1.)
+    self.HistInit('dR2_HLT_DSA_GoodEvent', ';2nd best dR; Muons', 50, 0., 1.)
 
     # number of unsuccessful and successful HLT-DSA matches
-    self.HistInit('matches_HLT_DSA', '; ; Muons', 2, -0.5, 1.5)
+    self.HistInit('matches_HLT_DSA', '; ; Events', 5, -0.5, 4.5)
 
     # N(CSC stations) vs N(DT stations)
     self.HistInit('CSC_vs_DT_Stations', ';N(DT stations); N(CSC stations)', 5, -0.5, 4.5, 5, -0.5, 4.5)
@@ -100,6 +104,11 @@ def declareHistograms(self, PARAMS=None):
 
         self.HistInit('pTpull_for_dpt_over_pt_hist'+str(ihist),   ';(pT(rec)-pT(gen))/sigma(pT) for sigma(pT)/pT, hist' + str(ihist) + ';', 50,  -3.,  3.)
 
+    self.HistInit('eta_for_dpt_over_pt_gt_1',                ';eta of original muons, sigma(pT)/pT > 1',                       100, -3., 3.)
+    self.HistInit('pTres_ref_for_dpt_over_pt_gt_1',          ';(pT(rec)-pT(gen))/pT(gen) of refitted muons, sigma(pT)/pT > 1',  50, -1., 1.)
+    self.HistInit('dpt_over_pt_ref_for_dpt_over_pt_gt_1',    ';sigma(pT)/pT of refitted muons, sigma(pT)/pT > 1',               50,  0., 5.)
+    self.HistInit('pTres_ref_for_dpt_over_pt_gt_1_ref_lt_1', ';(pT(rec)-pT(gen))/pT(gen) of refitted muons, sigma(pT)/pT > 1, sigma(pT_ref)/pT_ref < 1',  50, -1., 1.)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
 
@@ -125,65 +134,82 @@ def analyze(self, E, PARAMS=None):
     # original DSA muons
     DSAMuons = E.getPrimitives('DSAMUON')
 
+    # all dimuons and dimuons made of muons passing quality cuts
+    allDimuons = E.getPrimitives('DIMUON')
+    selectedDSAmuons = [mu for mu in DSAMuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+    selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+    selectedDimuons  = [dim for dim in allDimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
     # studies of matching between HLT and DSA muons
     HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+#    print "List of HLT muons:"
+#    for hltmuon in HLTMuons:
+#        print(hltmuon)
+    for muon in DSAMuons:
+        print muon
+
     match_found = False
-    for hlt_idx1, hltmuon1 in enumerate(HLTMuons):
-        # sanity check
-        if hltmuon1.pt < 23. or abs(hltmuon1.eta) > 2.0:
-            print "+++ Warning: found HLT muon with pT = ", hltmuon1.pt, "and eta = ", hltmuon1.eta, "+++"
-        for hlt_idx2, hltmuon2 in enumerate(HLTMuons):
-            if hlt_idx2 > hlt_idx1:
-                # for a given pair of muons, re-calculate trigger variables and trigger decision
-                hlt_dim = hltmuon1.p4 + hltmuon2.p4
-                invm = hlt_dim.M()
-                angle = hltmuon1.p3.Angle(hltmuon2.p3)
-                # the following can happen only if there are more than two HLT muons
-                if invm < 10. or angle > 2.5:
-                    if len(HLTMuons) == 2:
-                        print "+++ Warning: inconsistency in the trigger +++"
-                    print "found online dimuon with mass = ", invm, "and angle =", angle
-                    print "hlt_idxs: ", hlt_idx1, hlt_idx2, "; list of HLT muons:"
-                    for hltmuon in HLTMuons:
-                        print(hltmuon)
-                else:
-                    # found a pair of muons that fired; now look for closest DSA muons
-                    matches = []
-                    for recmuon in DSAMuons:
-                        print(recmuon)
-                        deltaR1 = hltmuon1.p4.DeltaR(recmuon.p4)
-                        deltaR2 = hltmuon2.p4.DeltaR(recmuon.p4)
-                        print 'deltaR1 = ', deltaR1, 'deltaR2 = ', deltaR2
-                        matches.append({'hlt_idx':hlt_idx1, 'rec_idx':recmuon.idx, 'deltaR':deltaR1})
-                        matches.append({'hlt_idx':hlt_idx2, 'rec_idx':recmuon.idx, 'deltaR':deltaR2})
-                    matches = sorted(matches, key=lambda dic:dic['deltaR'])
-                    print matches
-                    idx_2nd = -999
-                    for idx_match, match in enumerate(matches):
-                        if match['hlt_idx'] != matches[0]['hlt_idx'] and match['rec_idx'] != matches[0]['rec_idx']:
-                            idx_2nd = idx_match
-                            break
-    
-                    # extract dR values and compare them with the threshold
-                    dR1 = -999.
-                    dR2 = -999.
-                    if len(matches) > 0:
-                        print 'best match:', matches[0]
-                        dR1 = matches[0]['deltaR']
-                        self.HISTS['dR_HLT_DSA'].Fill(dR1)
-                    if idx_2nd > 0:
-                        print '2nd best:', matches[idx_2nd]
-                        dR2 = matches[idx_2nd]['deltaR']
-                        self.HISTS['dR_HLT_DSA'].Fill(dR2)
-                    if abs(dR1) < 0.3 and abs(dR2) < 0.3:
-                        match_found = True
+#    HLTDSAMatches = matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=True, threshold=0.4)
+    HLTDSAMatches = matchedTrigger(HLTMuons, selectedDSAmuons, saveDeltaR=True, threshold=0.4)
+    for i, j in HLTDSAMatches:
+        imatch = 0
+        for match in HLTDSAMatches[(i,j)]['bestMatches']:
+            if   imatch == 0: print 'best match:', i, j, match
+            elif imatch == 1: print '2nd best:',   i, j, match
+            imatch += 1
+            dR = match['deltaR']
+            self.HISTS['dR_HLT_DSA'].Fill(dR)
+        if HLTDSAMatches[(i,j)]['matchFound'] == True:
+            match_found = True
 
     # check for how many events a DSA-HLT match was found
+    self.HISTS['matches_HLT_DSA'].Fill(0)
     if match_found:
         self.HISTS['matches_HLT_DSA'].Fill(1)
     else:
+        self.HISTS['matches_HLT_DSA'].Fill(2)
+
         print 'match not found'
-        self.HISTS['matches_HLT_DSA'].Fill(0)
+        print(E)
+
+        # check if there were any matching dimuons
+        for genMuonPair in genMuonPairs:
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, allDimuons)
+            if len(dimuonMatches) > 0:
+                self.HISTS['matches_HLT_DSA'].Fill(3)
+            else:
+                for i, j in HLTDSAMatches:
+                    imatch = 0
+                    for match in HLTDSAMatches[(i,j)]['bestMatches']:
+                        dR = match['deltaR']
+                        if   imatch == 0: self.HISTS['dR1_HLT_DSA_BadEvent'].Fill(dR)
+                        elif imatch == 1: self.HISTS['dR2_HLT_DSA_BadEvent'].Fill(dR)
+                        imatch += 1
+
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
+            if len(dimuonMatches) > 0:
+                self.HISTS['matches_HLT_DSA'].Fill(4)
+
+                print "Lose good event!"
+                for i, j in HLTDSAMatches:
+                    imatch = 0
+                    for match in HLTDSAMatches[(i,j)]['bestMatches']:
+                        dR = match['deltaR']
+                        if   imatch == 0: self.HISTS['dR1_HLT_DSA_GoodEvent'].Fill(dR)
+                        elif imatch == 1: self.HISTS['dR2_HLT_DSA_GoodEvent'].Fill(dR)
+                        imatch += 1
+
+                gen_dim = genMuonPair[0].p4 + genMuonPair[1].p4
+                gen_invm = gen_dim.M()
+                for match in dimuonMatches:
+                    dimuon = match['dim']
+                    rec_invm = dimuon.p4.M()
+                    print "gen_mass = ", gen_invm, "rec_mass = ", rec_invm
+                    print "gen_Lxy = ", genMuonPair[0].Lxy_, "rec_Lxy = ", dimuon.Lxy(), "+/-", dimuon.LxyErr()
+                    print(dimuon)
+#                    for muonMatch in muonMatches:
+#                        print "idx = ", muonMatch[0]['oidx'], "dR = ", muonMatch[0]['deltaR']
+                    
 
     # studies of single-muon variables
     # loop over genMuons and fill histograms
@@ -303,6 +329,24 @@ def analyze(self, E, PARAMS=None):
                 pt_pull = (muon.pt - genMuon.BS.pt)/muon.ptError
                 self.HISTS['pTpull_for_dpt_over_pt_hist%d'%ihist].Fill(pt_pull)
 
+                # Refitted muons for DSA muons failing dpT/pT cut
+                if sigmapt_over_pt > 1.:
+                    self.HISTS['eta_for_dpt_over_pt_gt_1'].Fill(muon.eta)
+                    for genMuonPair in genMuonPairs:
+                        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, allDimuons)
+                        for match in dimuonMatches:
+                            dimuon = match['dim']
+                            for refmu in (dimuon.mu1, dimuon.mu2):
+                                if refmu.idx == muon.idx:
+#                                    print "Found refitted muon", refmu.idx, refmu.pt
+                                    pt_res_ref          = (refmu.pt - genMuon.pt)/genMuon.pt
+                                    sigmapt_over_pt_ref = refmu.ptError/refmu.pt
+                                    self.HISTS['pTres_ref_for_dpt_over_pt_gt_1'].Fill(pt_res_ref)
+                                    self.HISTS['dpt_over_pt_ref_for_dpt_over_pt_gt_1'].Fill(sigmapt_over_pt_ref)
+                                    if sigmapt_over_pt_ref < 1:
+                                        self.HISTS['pTres_ref_for_dpt_over_pt_gt_1_ref_lt_1'].Fill(pt_res_ref)
+
+
                 # pT resolution in slices of chi2/ndof
                 ihist = 0
                 while chi2_over_ndof >= SLICE_EDGES[ihist]: ihist += 1
@@ -338,7 +382,7 @@ if __name__ == '__main__':
     # declare analyzer
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'GEN', 'TRIGGER', 'DSAMUON', 'DIMUON',),
+        BRANCHKEYS  = ('EVENT', 'GEN', 'TRIGGER', 'DSAMUON', 'RSAMUON', 'DIMUON',),
     )
 
     # write plots
