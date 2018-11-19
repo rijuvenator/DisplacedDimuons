@@ -34,6 +34,10 @@ for NAME in (
 #   'WZ-ext'                       ,
     'ZZ'                           ,
 #   'ZZ-ext'                       ,
+    'QCD20toInf-ME'                ,
+    'QCD30to50'                    ,
+    'QCD50to80'                    ,
+    'QCD80to120'                   ,
     # Data
     'DoubleMuonRun2016B-07Aug17-v2',
     'DoubleMuonRun2016C-07Aug17'   ,

@@ -108,10 +108,6 @@ def optimize_units_per_job(sample):
 
 if __name__ == '__main__' and 'submit' in sys.argv:
 
-    # load the CRAB configuration
-    with open('crab_cfg.json', 'r') as f:
-        crab_cfg = json.load(f)['config_mc']
-
     just_testing = 'testing' in sys.argv or '--testing' in sys.argv
     create_only  = 'create_only' in sys.argv or '--create_only' in sys.argv
     limit_memory = 'limit_memory' in sys.argv or '--limit_memory' in sys.argv
@@ -126,10 +122,14 @@ if __name__ == '__main__' and 'submit' in sys.argv:
 
     for sample in samples:
 
-        if sample.name != 'Hto2Xto4mu_125_50_50':
-            continue
+        # load the CRAB configuration
+        with open('crab_cfg.json', 'r') as f:
+            crab_cfg = json.load(f)['config_mc']
 
-        print sample.name
+        # if sample.name not in ['QCD30to50', 'QCD80to120']:
+        #     continue
+
+        print '\nProcessing sample ' + sample.name
         print sample.dataset
         #print sample.__dict__
 
@@ -174,7 +174,7 @@ if __name__ == '__main__' and 'submit' in sys.argv:
             crab_cfg['config.Data.unitsPerJob'] = \
                     str(optimize_units_per_job(sample))
         else:
-            crab_cfg['config.Data.unitsPerJob'] = "15000"
+            crab_cfg['config.Data.unitsPerJob'] = "50000"
 
         # define entries that should not be written to the final config file
         discard_keys = ['custom_tag']
@@ -212,5 +212,4 @@ if __name__ == '__main__' and 'submit' in sys.argv:
                 os.system('crab submit -c ' + sample.job + dryrun_str)
             else:
                 os.system('crab submit -c crabConfig.py' + dryrun_str)
-                os.system('rm crabConfig.py')
-
+                os.system('rm -v crabConfig.py')
