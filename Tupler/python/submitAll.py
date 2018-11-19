@@ -2,12 +2,12 @@ import subprocess as bash
 import DisplacedDimuons.Common.DataHandler as DH
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
-# Monday July 2 2018 at 10:47 CET:
+# Monday November 19 2018 at 14:36 CET:
 # all HTo2XTo2Mu2J signal    PAT Tuples are available (33)
 # all HTo2XTo4Mu   signal    PAT Tuples are available (33)
-# all BG MC                  PAT Tuples are available (11) EXCEPT
-#   - most mass binned DY
-#   - QCD
+# all BG MC                  PAT Tuples are available (15) EXCEPT
+#   - most mass binned DY (we have 2 of them)
+#   - some pT binned QCD (we have 4 of them)
 # Note that WZ and ZZ extra samples will be merged after Tuples are made.
 # all DoubleMuon Run2016 B-H PAT Tuples are available (7)
 
