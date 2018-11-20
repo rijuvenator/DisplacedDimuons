@@ -7,13 +7,21 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
-f = R.TFile.Open('roots/pairingCriteriaPlots_Trig_HTo2XTo2Mu2J.root')
+PlotterParser.PARSER.add_argument('--fs', dest='FS', default='2Mu2J', help='which final state to run')
+ARGS = PlotterParser.PARSER.parse_args()
+
+f = R.TFile.Open('roots/pairingCriteriaPlots_Trig_HTo2XTo{}.root'.format(ARGS.FS))
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff
-    tags=('nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         )
-    legs=('N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})')
-    cols=(R.kRed       , R.kBlue                    , R.kGreen             )
+    tags=['nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         , 'nCorrectPTOC'              ]
+    legs=['N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})', 'N(correct by p_{T} & o.c.)']
+    cols=[R.kRed       , R.kBlue                    , R.kGreen             , R.kMagenta                  ]
+
+    if ARGS.FS == '2Mu2J':
+        tags = tags[:-1]
+        legs = legs[:-1]
+        cols = cols[:-1]
 
     # get/add histograms
     if sp is None:
@@ -52,9 +60,14 @@ def makePTCutPlot(fs, sp=None):
 
 def makePTCutEffPlot(fs, sp=None):
     # configy type stuff
-    tags=('nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           )
-    legs=('signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.')
-    cols=(R.kRed       , R.kBlue                      , R.kGreen                )
+    tags=['nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           , 'nCorrectPTOC'               ]
+    legs=['signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.', 'correct by p_{T} & o.c. eff']
+    cols=[R.kRed       , R.kBlue                      , R.kGreen                , R.kMagenta                   ]
+
+    if ARGS.FS == '2Mu2J':
+        tags = tags[:-1]
+        legs = legs[:-1]
+        cols = cols[:-1]
 
     # get/add histograms
     if sp is None:
@@ -90,7 +103,7 @@ def makePTCutEffPlot(fs, sp=None):
     for tag in tags:
         canvas.addMainPlot(p[tag])
     canvas.firstPlot.SetMaximum(1.01)
-    canvas.firstPlot.SetMinimum(0.90)
+    canvas.firstPlot.SetMinimum(0.90 if ARGS.FS == '2Mu2J' else 0.50)
     #canvas.setMaximum()
     #canvas.setMinimum()
 
@@ -110,6 +123,8 @@ def makePTCutEffPlot(fs, sp=None):
     canvas.cleanup('pdfs/PC_MatchEff_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp) if sp is not None else 'Global'))
 
 def makeMultiplicityPlots(fs, sp):
+    if ARGS.FS == '4Mu': return
+
     # configy type stuff
     pTCuts = (0, 5, 10, 15)
     splits = ('_', '_Matched_', '_NotMatched_')
@@ -198,6 +213,7 @@ ORDER = [
 ]
 
 CUTS = (0, 5, 10, 15)
+#CUTS = (15, 10, 5, 0)
 PRETTY = {i:str(i)+' GeV' for i in CUTS}
 PRETTY[0] = 'no cut'
 #COLORS = {0:R.kRed, 5:R.kBlue, 10:R.kGreen, 15:R.kMagenta}
@@ -210,11 +226,11 @@ def makeSummaryPlot(fs):
     DATA = {'2Mu2J':{}, '4Mu':{}}
     for sp in SIGNALPOINTS:
         DATA[fs][sp] = {i:0 for i in CUTS}
+        #h = HistogramGetter.getHistogram(f, (fs, sp), 'nCorrectPTOC').Clone()
+        #h2 = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
+        #h.Divide(h2)
         h = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
         h.Scale(1./h.GetBinContent(1))
-        if sp == (125, 20, 1300):
-            for ibin in range(1,17):
-                print ibin-1, h.GetBinContent(ibin)
         for CUT in CUTS:
             ibin = CUT+1
             DATA[fs][sp][CUT] = h.GetBinContent(ibin)
@@ -286,7 +302,7 @@ def makeSummaryPlot(fs):
     # custom modifications to cleanup
     canvas.cleanup('PC_MatchEffSummary_HTo2XTo{}.pdf'.format(fs))
 
-for fs in ('2Mu2J',):
+for fs in (ARGS.FS,):
     for sp in [None] + SIGNALPOINTS:
         makePTCutPlot(fs, sp)
         makePTCutEffPlot(fs, sp)
