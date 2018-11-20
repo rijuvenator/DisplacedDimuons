@@ -55,7 +55,7 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 * Plot.scaleLabels       (factor, axes='XY')
 * Plot.scaleTitleOffsets (factor, axes='XY')
 * Plot.setTitles         (X=None, Y=None, Z=None)
-* Plot.setColor          (color, which='LF')
+* Plot.setColor          (color, which='LM')
 ```
 
 
