@@ -172,6 +172,8 @@ The `--folder` parameter defaults to `analyzers`, the folder where most of the a
 python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
 ```
 
+The `--one` parameter is for testing batch submissions by just submitting one job of the given sample types.
+
 The `--extra` parameter should be passed last, if at all. It is for passing any additional arguments to the _Analyzer_ script, e.g. `--trigger` or `--cuts`. Everything after `--extra` will be passed directly to the given _Analyzer_, except that all instances of `__` will be replaced with `--`. This is necessary because if they are passed with `--`, the parser in _runAll.py_ will interpret them as options for itself, rather than additional options for the _Analyzer_. To do: this can probably be improved by requiring that the parameter be a single quoted string, but it works for now.
 
 <a name="plotters"></a>

@@ -55,6 +55,7 @@ parser.add_argument('SCRIPT'   ,                                        help='wh
 parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'  , help='whether to run locally'                                         )
 parser.add_argument('--condor' , dest='CONDOR' , action='store_true'  , help='whether to run on condor instead of LXBATCH'                    )
 parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'  , help='whether to run on HEPHY batch system instead of LXBATCH'        )
+parser.add_argument('--one'    , dest='ONE'    , action='store_true'  , help='whether to just do one job (e.g. for testing batch)'            )
 parser.add_argument('--samples', dest='SAMPLES', default='S2BD'       , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
 parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'  , help='which folder the script is located in'                          )
 parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*', help='any extra command-line parameters to be passed to script'       )
@@ -110,6 +111,14 @@ if 'D' in args.SAMPLES:
             for i in xrange(NJOBS):
                 ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
+# if --one is passed, restrict ArgsList to just being one of signal and/or one of the small BG MCs
+if args.ONE:
+    ArgsList = []
+    if 'S' in args.SAMPLES or '2' in args.SAMPLES:
+        ArgsList.extend(['--name HTo2XTo4Mu --signalpoint 125 20 13'])
+    if 'B' in args.SAMPLES:
+        ArgsList.extend(['--name WJets'])
+
 # This is clunky, but I don't have a better way of doing it
 # if additional command-line parameters need to be passed to the analyzer script,
 # do it with --extra EXTRA PARAMETERS
@@ -157,6 +166,7 @@ python $@
 condorSubmit = '''
 universe               = vanilla
 executable             = condorExecutable.sh
+getenv                 = True
 '''
 
 condorSubmitAdd = '''
@@ -164,22 +174,21 @@ output                 = logs/{logname}_{index}.out
 log                    = logs/{logname}_{index}.log
 error                  = logs/{logname}_{index}.err
 arguments              = {ARGS}
-#transfer_output_files  = {OUTPUT}
-#transfer_output_remaps = "{REMAP}"
+#image_size             = 28000
+should_transfer_files  = NO
++JobFlavour            = "microcentury"
 queue 1
 '''
 
-# used for condor mode; not very useful
-def getRootOutputFile(SCRIPT, ARGS):
-    line = bash.check_output('grep writeHistograms '+SCRIPT, shell=True)
-    matches = re.search(r'roots/.*\.root', line)
-    args = ARGS.split()
-    sample = args[1]
-    if sample.startswith('HTo2X'):
-        sp = '_{}_{}_{}'.format(*args[3:6])
-        sample += sp
-    fname = matches.group(0).replace('{}', sample)
-    return fname
+# get rid of empty lines in the condor scripts
+# if condorExecutable starts with a blank line, it won't run at all!!
+def stripEmptyLines(string):
+    if string[0] == '\n':
+        string = string[1:]
+    return string
+condorExecutable = stripEmptyLines(condorExecutable)
+condorSubmit     = stripEmptyLines(condorSubmit    )
+condorSubmitAdd  = stripEmptyLines(condorSubmitAdd )
 
 #############################
 #### SUBMIT AND RUN JOBS ####
@@ -216,25 +225,21 @@ elif MODE == 'CONDOR':
     executableName = 'condorExecutable.sh'
     open(executableName, 'w').write(condorExecutable.format(**locals()))
     submitName = 'condorSubmit'
+    try:
+        numberOfExistingSubmits = int(bash.check_output('ls logs | grep -c "{}*"'.format(submitName), shell=True).strip('\n'))+1
+    except bash.CalledProcessError:
+        numberOfExistingSubmits = 1
+    submitName = submitName + '_' + str(numberOfExistingSubmits)
     for index, ARGS in enumerate(ArgsList):
-        if FOLDER == 'analyzers':
-            OUTPUT = getRootOutputFile(SCRIPT, ARGS)
-            REMAP  = OUTPUT.replace('roots/', '') + '=' + OUTPUT
-        else:
-            OUTPUT = '""'
-            REMAP  = ''
-
         condorSubmit += condorSubmitAdd.format(
             logname = SCRIPT.replace('.py', ''),
             index   = index,
             ARGS    = SCRIPT + ' ' + ARGS,
-            OUTPUT  = OUTPUT,
-            REMAP   = REMAP,
         )
 
     open(submitName, 'w').write(condorSubmit)
     bash.call('chmod +x '+executableName                  , shell=True)
-#   bash.call('condor_submit '+submitName                 , shell=True)
+    bash.call('condor_submit '+submitName                 , shell=True)
     bash.call('cp '+executableName+' '+submitName+' logs/', shell=True)
     bash.call('rm '+submitName                            , shell=True)
 
