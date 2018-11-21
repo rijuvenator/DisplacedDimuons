@@ -57,6 +57,7 @@ parser.add_argument('--condor' , dest='CONDOR' , action='store_true'  , help='wh
 parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'  , help='whether to run on HEPHY batch system instead of LXBATCH'        )
 parser.add_argument('--one'    , dest='ONE'    , action='store_true'  , help='whether to just do one job (e.g. for testing batch)'            )
 parser.add_argument('--samples', dest='SAMPLES', default='S2BD'       , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--file'   , dest='FILE'   , default=''           , help='file containing a specific list of jobs to be run'              )
 parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'  , help='which folder the script is located in'                          )
 parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*', help='any extra command-line parameters to be passed to script'       )
 args = parser.parse_args()
@@ -89,29 +90,45 @@ if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRI
 # any BG sample less than 100K events will also get one job each
 # the other BG samples will be split up
 # all data samples are huge and must be split up
-ArgsList = []
-if 'S' in args.SAMPLES:
-    ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-if '2' in args.SAMPLES:
-    ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-if 'B' in args.SAMPLES:
-    for NAME, SPLITTING in BGSampleList:
-        if SPLITTING is None or SCRIPT in SplittingVetoList:
-            ArgsList.append('--name {}'.format(NAME))
-        else:
-            NJOBS, NEVENTS = SPLITTING
-            for i in xrange(NJOBS):
-                ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-if 'D' in args.SAMPLES:
-    for NAME, SPLITTING in DataSampleList:
-        if SPLITTING is None:
-            ArgsList.append('--name {}'.format(NAME))
-        else:
-            NJOBS, NEVENTS = SPLITTING
-            for i in xrange(NJOBS):
-                ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+if args.FILE == '':
+    ArgsList = []
+    if 'S' in args.SAMPLES:
+        ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
+    if '2' in args.SAMPLES:
+        ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
+    if 'B' in args.SAMPLES:
+        for NAME, SPLITTING in BGSampleList:
+            if SPLITTING is None or SCRIPT in SplittingVetoList:
+                ArgsList.append('--name {}'.format(NAME))
+            else:
+                NJOBS, NEVENTS = SPLITTING
+                for i in xrange(NJOBS):
+                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+    if 'D' in args.SAMPLES:
+        for NAME, SPLITTING in DataSampleList:
+            if SPLITTING is None:
+                ArgsList.append('--name {}'.format(NAME))
+            else:
+                NJOBS, NEVENTS = SPLITTING
+                for i in xrange(NJOBS):
+                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+
+# if a file is given, make the arguments the lines in the file instead
+# the script name should be in the arguments, so pass a dummy argument to SCRIPT and set it to nothing here
+# you lose the protection of the file check above, though
+# below this line, SCRIPT being empty makes everything still work, but be careful
+if args.FILE != '':
+    if not os.path.isfile(args.FILE):
+        print '[RUNALL ERROR]: {FILE} does not seem to be a valid file.'.format(FILE=args.FILE)
+        exit()
+    SCRIPT = ''
+    ArgsList = []
+    with open(args.FILE) as f:
+        for line in f:
+            ArgsList.append(line.strip('\n'))
 
 # if --one is passed, restrict ArgsList to just being one of signal and/or one of the small BG MCs
+# this is for testing job submission to condor or LSF, for example, and --test isn't appropriate
 if args.ONE:
     ArgsList = []
     if 'S' in args.SAMPLES or '2' in args.SAMPLES:
@@ -182,6 +199,7 @@ queue 1
 
 # get rid of empty lines in the condor scripts
 # if condorExecutable starts with a blank line, it won't run at all!!
+# the other blank lines are just for sanity, at this point
 def stripEmptyLines(string):
     if string[0] == '\n':
         string = string[1:]
@@ -232,7 +250,7 @@ elif MODE == 'CONDOR':
     submitName = submitName + '_' + str(numberOfExistingSubmits)
     for index, ARGS in enumerate(ArgsList):
         condorSubmit += condorSubmitAdd.format(
-            logname = SCRIPT.replace('.py', ''),
+            logname = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
             index   = index,
             ARGS    = SCRIPT + ' ' + ARGS,
         )
