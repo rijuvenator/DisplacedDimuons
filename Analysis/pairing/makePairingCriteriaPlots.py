@@ -257,6 +257,8 @@ def makeSummaryPlot(fs, quantity='Match', reverseCuts=False):
     canvas.legend.SetBorderSize(1)
 
     ymin, ymax = 0.8, 1.
+    if quantity == 'CorrectChi2': ymin = 0.
+    if fs == '4Mu' and quantity == 'Match': ymin = 0.5
     canvas.firstPlot.SetMaximum(ymax)
     canvas.firstPlot.SetMinimum(ymin)
 
@@ -303,14 +305,15 @@ def makeSummaryPlot(fs, quantity='Match', reverseCuts=False):
     canvas.drawText(text='20'  , align='cc', pos=(start+step*10, .08))
 
     # custom modifications to cleanup
-    canvas.cleanup('PC_{}EffSummary_HTo2XTo{}.pdf'.format(quantity, fs))
+    canvas.cleanup('pdfs/PC_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
 
 for fs in (ARGS.FS,):
     for sp in [None] + SIGNALPOINTS:
         makePTCutPlot(fs, sp)
         makePTCutEffPlot(fs, sp)
         makeMultiplicityPlots(fs, sp)
-    makeSummaryPlot(fs)
+    if True:
+        makeSummaryPlot(fs, quantity='Match'      , reverseCuts=False)
     if fs == '4Mu':
-        makeSummaryPlot(fs, quantity='CorrectPTOC', reverseCuts=True)
-        makeSummaryPlot(fs, quantity='CorrectPT'  , reverseCuts=True)
+        makeSummaryPlot(fs, quantity='CorrectChi2', reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectPTOC', reverseCuts=True )

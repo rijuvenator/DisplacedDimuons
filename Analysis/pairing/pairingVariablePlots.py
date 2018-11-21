@@ -20,6 +20,7 @@ SQUANTS = {
 }
 DQUANTS = {
     'deltaM'  : {'AXES':(100, 0., 500.), 'LAMBDA': lambda d1, d2: abs(d1.mass-d2.mass)                           , 'PRETTY':'#DeltaM(#mu#mu)'        },
+    'FDM'     : {'AXES':(100, 0., 1.  ), 'LAMBDA': lambda d1, d2: abs(d1.mass-d2.mass)/(d1.mass+d2.mass)         , 'PRETTY':'#DeltaM/#SigmaM(#mu#mu)'},
     'QLxyErr' : {'AXES':(100, 0., 100.), 'LAMBDA': lambda d1, d2: quadrature(d1, d2, SQUANTS['LxyErr']['LAMBDA']), 'PRETTY':'Q(#sigma_{L_{xy}}) [cm]'},
 }
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -64,6 +65,8 @@ def analyze(self, E, PARAMS=None):
         selectedMuons    = sorted(baseMuons, key=lambda mu: mu.pt, reverse=True)[:4]
         selectedOIndices = [mu.idx for mu in selectedMuons]
         selectedDimuons  = [dim for dim in baseDimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        if ARGS.CUTS == '_OC':
+            selectedDimuons = [dim for dim in selectedDimuons if muons[dim.idx1].charge != muons[dim.idx2].charge]
         selectedDimIDs   = {(dim.idx1, dim.idx2):dim for dim in selectedDimuons}
 
         # find matches for both pairs
@@ -120,6 +123,7 @@ def analyze(self, E, PARAMS=None):
         # now...
         # realMatches has either 0-2 elements, depending on success of finding matches
         # selectedDim* has 0-6 elements, given 4 choose 2 vs. vertex fit efficiency
+        # selectedDim* has 0-4 elements if the opposite charge requirement is in effect
         nMSD = len(realMatches)
         nHPD = len(selectedDimIDs)
 
