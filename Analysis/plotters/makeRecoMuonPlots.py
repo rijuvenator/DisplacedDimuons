@@ -3,8 +3,8 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
 
@@ -102,8 +102,7 @@ def makeStackPlots(DataMC=False, logy=False):
         fname = 'pdfs/{}{}_Stack{}{}{}.pdf'.format(hkey, CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
         if True:

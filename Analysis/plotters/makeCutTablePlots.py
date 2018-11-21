@@ -3,7 +3,7 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
-import HistogramGetter
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import re
 
 TRIGGER = False

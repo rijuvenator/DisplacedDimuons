@@ -4,8 +4,8 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 PlotterParser.PARSER.add_argument('--fs', dest='FS', default='2Mu2J', help='which final state to do')
 ARGS = PlotterParser.PARSER.parse_args()

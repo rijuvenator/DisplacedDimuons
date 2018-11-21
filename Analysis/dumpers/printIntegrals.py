@@ -5,7 +5,7 @@ R.PyConfig.IgnoreCommandLineOptions = True
 R.gROOT.SetBatch(True)
 
 import DisplacedDimuons.Analysis.RootTools as RT
-import HistogramGetter
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import subprocess as bash
 import argparse
 

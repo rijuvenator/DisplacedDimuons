@@ -203,6 +203,16 @@ class Plot(object):
         for axis,title in zip(('X', 'Y', 'Z'),(X, Y, Z)):
             if title is not None: getattr(self, 'Get'+axis+'axis')().SetTitle(title)
 
+    # sets multiple colors at once
+    # which should be a subset of LMF -- line, marker, fill
+    def setColor(self, color, which='LM'):
+        if 'L' in which:
+            self.plot.SetLineColor(color)
+        if 'M' in which:
+            self.plot.SetMarkerColor(color)
+        if 'F' in which:
+            self.plot.SetFillColor(color)
+
 # Enhances a TLegend, providing some much needed geometry functionality
 # X1, X2, Y1, Y2 construct the parent TLegend object; corner is a pos string (see Canvas)
 class Legend(R.TLegend):
@@ -321,9 +331,10 @@ class Canvas(R.TCanvas):
 
     # sets the canvas maximum to 5% above the maximum of all the plots in plotList
     # recompute forces recomputation of the maximum (if it's wrong, for example)
-    def setMaximum(self, recompute=False):
+    # scale allows a custom scale
+    def setMaximum(self, recompute=False, scale=1.05):
         if not recompute:
-            self.firstPlot.SetMaximum(1.05 * max([p.GetMaximum() for p in self.plotList]))
+            self.firstPlot.SetMaximum(scale * max([p.GetMaximum() for p in self.plotList]))
         else:
             realMax = 0.
             for p in self.plotList:
@@ -336,7 +347,29 @@ class Canvas(R.TCanvas):
                 for ibin in xrange(1, h.GetNbinsX()+1):
                     if h.GetBinContent(ibin) > realMax:
                         realMax = h.GetBinContent(ibin)
-            self.firstPlot.SetMaximum(1.05 * realMax)
+            self.firstPlot.SetMaximum(scale * realMax)
+
+    # sets the canvas minimum to the minimum of all the plots in plotList
+    # recompute forces recomputation of the minimum (if it's wrong, for example)
+    # scale allows a custom scale
+    # warning: do not use this if there's a 0 bin somewhere and you're making a log plot.
+    # ROOT will not let you set the minimum of a log plot to 0.
+    def setMinimum(self, recompute=False, scale=1.):
+        if not recompute:
+            self.firstPlot.SetMinimum(scale * min([p.GetMinimum() for p in self.plotList]))
+        else:
+            realMin = float('inf')
+            for p in self.plotList:
+                h = p.plot
+                if not isinstance(p.plot, R.TH1):
+                    try:
+                        h = p.plot.GetStack().Last()
+                    except:
+                        continue
+                for ibin in xrange(1, h.GetNbinsX()+1):
+                    if h.GetBinContent(ibin) < realMin:
+                        realMin = h.GetBinContent(ibin)
+            self.firstPlot.SetMinimum(scale * realMin)
 
     # creates the legend
     # lWidth is width as fraction of pad; height defaults to 0.2, offset defaults to 0.03

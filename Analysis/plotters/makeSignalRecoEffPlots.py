@@ -4,8 +4,8 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
 TRIGGER = ARGS.TRIGGER
@@ -90,8 +90,7 @@ def makeEffPlots(quantity, fs, SP=None):
             key = NumDens[i][0]
             col = NumDens[i][3]
             canvas.addMainPlot(p[key])
-            p[key].SetMarkerColor(col)
-            p[key].SetLineColor(col)
+            p[key].setColor(col)
         # aesthetic change
         if quantity == 'Lxy' or (quantity == 'd0' and CHARGE == ''):
             canvas.makeLegend(pos='bl')

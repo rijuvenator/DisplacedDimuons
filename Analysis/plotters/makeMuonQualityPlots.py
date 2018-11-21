@@ -4,7 +4,7 @@ from ROOT import gStyle, gPad
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
+import DisplacedDimuon.Analysis.HistogramGetter as HistogramGetter
 
 TRIGGER = True
 PRINTINTEGRALS = False

@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.Selections as Selections
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
 TRIGGER = False
 
@@ -86,8 +86,7 @@ def makeStackPlots(DataMC=False, logy=False):
         fname = 'pdfs/NM1_{}_Stack{}.pdf'.format(hkey, '-Log' if logy else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., cHeight=600 if not DataMC else 800, logy=logy)
         canvas.addMainPlot(p['BG'])

@@ -5,8 +5,8 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
 TRIGGER = ARGS.TRIGGER
@@ -125,8 +125,7 @@ def makeSummaryPlot(fs, quantity):
         for MUON in MUONS:
             canvas.addMainPlot(p[MUON][parameter])
 
-            p[MUON][parameter].SetLineColor(COLORS[MUON])
-            p[MUON][parameter].SetFillColor(COLORS[MUON])
+            p[MUON][parameter].setColor(COLORS[MUON], which='LF')
 
         canvas.makeLegend(lWidth=.1, pos='tr', fontscale=1.+1./3.)
 
