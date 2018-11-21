@@ -222,28 +222,31 @@ PRETTY[0] = 'no cut'
 COLORS = {0:R.kWhite, 5:R.kRed, 10:R.kRed+2, 15:R.kRed+4}
 LINES = [12, 21, 27]
 DASHED = [3, 6, 9, 15, 18, 24, 30]
-def makeSummaryPlot(fs):
+def makeSummaryPlot(fs, quantity='Match', reverseCuts=False):
     DATA = {'2Mu2J':{}, '4Mu':{}}
     for sp in SIGNALPOINTS:
         DATA[fs][sp] = {i:0 for i in CUTS}
-        #h = HistogramGetter.getHistogram(f, (fs, sp), 'nCorrectPTOC').Clone()
-        #h2 = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
-        #h.Divide(h2)
-        h = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
-        h.Scale(1./h.GetBinContent(1))
+        if quantity == 'Match':
+            h = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
+            h.Scale(1./h.GetBinContent(1))
+        else:
+            h = HistogramGetter.getHistogram(f, (fs, sp), 'n'+quantity).Clone()
+            hDen = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
+            h.Divide(hDen)
         for CUT in CUTS:
             ibin = CUT+1
             DATA[fs][sp][CUT] = h.GetBinContent(ibin)
     h = {}
     p = {}
     for CUT in CUTS:
-        h[CUT] = R.TH1F('h'+str(CUT)+fs, ';;Signal Efficiency', 33, 0., 33.)
+        h[CUT] = R.TH1F('h'+str(CUT)+fs+quantity, ';;Signal Efficiency', 33, 0., 33.)
         for i,sp in enumerate(ORDER):
             h[CUT].SetBinContent(i+1, DATA[fs][sp][CUT])
         p[CUT] = Plotter.Plot(h[CUT], PRETTY[CUT], 'l', 'hist')
 
     canvas = Plotter.Canvas(lumi='(each 3 = c#tau decreasing from left to right)    ' + fs)
-    for CUT in CUTS:
+    REALCUTS = CUTS if not reverseCuts else list(reversed(CUTS))
+    for CUT in REALCUTS:
         canvas.addMainPlot(p[CUT])
         p[CUT].setColor(COLORS[CUT], which='LF')
 
@@ -300,7 +303,7 @@ def makeSummaryPlot(fs):
     canvas.drawText(text='20'  , align='cc', pos=(start+step*10, .08))
 
     # custom modifications to cleanup
-    canvas.cleanup('PC_MatchEffSummary_HTo2XTo{}.pdf'.format(fs))
+    canvas.cleanup('PC_{}EffSummary_HTo2XTo{}.pdf'.format(quantity, fs))
 
 for fs in (ARGS.FS,):
     for sp in [None] + SIGNALPOINTS:
@@ -308,3 +311,6 @@ for fs in (ARGS.FS,):
         makePTCutEffPlot(fs, sp)
         makeMultiplicityPlots(fs, sp)
     makeSummaryPlot(fs)
+    if fs == '4Mu':
+        makeSummaryPlot(fs, quantity='CorrectPTOC', reverseCuts=True)
+        makeSummaryPlot(fs, quantity='CorrectPT'  , reverseCuts=True)
