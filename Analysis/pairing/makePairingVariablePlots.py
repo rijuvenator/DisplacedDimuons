@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
-f = R.TFile.Open('roots/4MuPairingVariablePlots_Trig_HTo2XTo4Mu.root')
+f = R.TFile.Open('roots/pairingVariablePlots_Trig_HTo2XTo4Mu.root')
 
 def makePlot(fs, sp, quantity):
     # configy type stuff
@@ -47,7 +47,7 @@ def makePlot(fs, sp, quantity):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/4MuPV_{}_HTo2XTo{}_{}.pdf'.format(quantity, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/PV_{}_HTo2XTo{}_{}.pdf'.format(quantity, fs, SPStr(sp) if sp is not None else 'Global'))
 
 for fs in ('4Mu',):
     for sp in [None] + SIGNALPOINTS:
