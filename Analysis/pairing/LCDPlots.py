@@ -36,14 +36,31 @@ def analyze(self, E, PARAMS=None):
     baseOIndices = [mu.idx for mu in baseMuons]
     baseDimuons  = [dim for dim in dimuons if dim.idx1 in baseOIndices and dim.idx2 in baseOIndices]
 
-    if len(baseDimuons) > 0:
+    if ARGS.CUTS == '_HPD':
+        sortedMuons = sorted(baseMuons, key=lambda mu: mu.pt, reverse=True)
+        if len(sortedMuons) > 4:
+            highestPTMuons = sortedMuons[:4]
+        else:
+            highestPTMuons = sortedMuons
+        highestIndices = [mu.idx for mu in highestPTMuons]
+        selectedDimuons = [dim for dim in baseDimuons if dim.idx1 in highestIndices and dim.idx2 in highestIndices]
+    else:
+        selectedDimuons = baseDimuons
+
+    if len(selectedDimuons) > 0:
 
         # sort dimuons by chi^2, get best <=2, and their "IDs"
-        sortedDimuons = sorted(baseDimuons, key=lambda dim: dim.normChi2)
-        if len(sortedDimuons) > 1:
-            lowestChi2Dimuons = sortedDimuons[:2]
-        else:
-            lowestChi2Dimuons = [sortedDimuons[0]]
+        sortedDimuons = sorted(selectedDimuons, key=lambda dim: dim.normChi2)
+        lowestChi2Dimuons = []
+        for dim in sortedDimuons:
+            if len(lowestChi2Dimuons) == 0:
+                lowestChi2Dimuons.append(dim)
+            else:
+                alreadyLow = lowestChi2Dimuons[0]
+                alreadyID  = (alreadyLow.idx1, alreadyLow.idx2)
+                if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
+                lowestChi2Dimuons.append(dim)
+                break
         #bestDimuonIDs_Chi2 = {(d.idx1, d.idx2):d for d in lowestChi2Dimuons}
         bestDimuonIDs_Chi2 = [(d.idx1, d.idx2) for d in lowestChi2Dimuons]
 
@@ -52,7 +69,7 @@ def analyze(self, E, PARAMS=None):
         m0matches = []
         m1matches = []
         for i,genMuonPair in enumerate(genMuonPairs):
-            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, baseDimuons)
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
             if len(dimuonMatches) > 0:
                 for match in dimuonMatches:
                     match['which'] = i

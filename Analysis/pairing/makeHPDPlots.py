@@ -34,11 +34,12 @@ def makePTCutPlot(fs, sp=None):
         p[tag] = Plotter.Plot(h[tag], legs[i], 'l', 'hist')
 
     # canvas, plots, min max
-    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs, logy=True)
+    logy = True
+    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs, logy=logy)
     for tag in tags:
         canvas.addMainPlot(p[tag])
     canvas.setMaximum()
-    if False:
+    if not logy:
         canvas.firstPlot.SetMinimum(0)
     else:
         canvas.firstPlot.SetMinimum(1.)
