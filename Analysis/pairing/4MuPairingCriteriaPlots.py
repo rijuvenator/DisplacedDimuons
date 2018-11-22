@@ -11,8 +11,7 @@ MULTCUTS = (0, 5, 10, 15)
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    #for key in ('nMuon', 'nDimuon', 'nPair', 'nMatch', 'nCorrectChi2', 'nCorrectPT'):
-    for key in ('nMatch', 'nCorrectChi2', 'nCorrectPT', 'nCorrectPTOC'):
+    for key in ('nMatch', 'nCorrectChi2', 'nCorrectPT', 'nCorrectPTOC', 'nCorrectPTChi2',):# 'nCorrectPTFDM'):
         self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
 
 # internal loop function for Analyzer class
@@ -47,10 +46,16 @@ def analyze(self, E, PARAMS=None):
         if len(selectedDimuons) > 0:
             # sort dimuons by chi^2, get best <=2, and their "IDs"
             sortedDimuons = sorted(selectedDimuons, key=lambda dim: dim.normChi2)
-            if len(sortedDimuons) > 1:
-                lowestChi2Dimuons = sortedDimuons[:2]
-            else:
-                lowestChi2Dimuons = [sortedDimuons[0]]
+            lowestChi2Dimuons = []
+            for dim in sortedDimuons:
+                if len(lowestChi2Dimuons) == 0:
+                    lowestChi2Dimuons.append(dim)
+                else:
+                    alreadyLow = lowestChi2Dimuons[0]
+                    alreadyID  = (alreadyLow.idx1, alreadyLow.idx2)
+                    if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
+                    lowestChi2Dimuons.append(dim)
+                    break
             bestDimuonIDs_Chi2 = [(d.idx1, d.idx2) for d in lowestChi2Dimuons]
 
             # sort muons by pT, get best <=4, their dimuons, and their "IDs"
@@ -61,6 +66,20 @@ def analyze(self, E, PARAMS=None):
                 highestPTMuons = sortedMuons
             highestIndices = [mu.idx for mu in highestPTMuons]
             bestDimuonIDs_pT = [(d.idx1, d.idx2) for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
+
+            # sort HPDs by chi^2 and get best <=2
+            sortedHPDs = sorted([dim for dim in selectedDimuons if (dim.idx1, dim.idx2) in bestDimuonIDs_pT], key=lambda dim: dim.normChi2)
+            HPD_LCDs = []
+            for dim in sortedHPDs:
+                if len(HPD_LCDs) == 0:
+                    HPD_LCDs.append(dim)
+                else:
+                    alreadyLow = HPD_LCDs[0]
+                    alreadyID  = (alreadyLow.idx1, alreadyLow.idx2)
+                    if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
+                    HPD_LCDs.append(dim)
+                    break
+            bestDimuonIDs_HPD_LCD = [(d.idx1, d.idx2) for d in HPD_LCDs]
 
             # loop over gen muon pairs
             for genMuonPair in genMuonPairs:
@@ -78,8 +97,13 @@ def analyze(self, E, PARAMS=None):
                     # fill nCorrectPT : pT criterion, i.e. dimuon made of highest 2 pT
                     if (matchedDimuon.idx1, matchedDimuon.idx2) in bestDimuonIDs_pT:
                         self.HISTS['nCorrectPT'].Fill(pTCut)
+                        # fill nCorrectPTOC : pT criterion + opposite charge
                         if muons[matchedDimuon.idx1].charge != muons[matchedDimuon.idx2].charge:
                             self.HISTS['nCorrectPTOC'].Fill(pTCut)
+
+                    # fill nCorrectPTChi2 : pT criterion + lowest chi^2
+                    if (matchedDimuon.idx1, matchedDimuon.idx2) in bestDimuonIDs_HPD_LCD:
+                        self.HISTS['nCorrectPTChi2'].Fill(pTCut)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

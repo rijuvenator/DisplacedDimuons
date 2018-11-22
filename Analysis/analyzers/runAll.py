@@ -51,15 +51,16 @@ HOME         = os.environ['HOME']
 
 # parse arguments -- this configures which samples to process, which analyzer to run, and which batch system to use
 parser = argparse.ArgumentParser()
-parser.add_argument('SCRIPT'   ,                                        help='which script to run'                                            )
-parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'  , help='whether to run locally'                                         )
-parser.add_argument('--condor' , dest='CONDOR' , action='store_true'  , help='whether to run on condor instead of LXBATCH'                    )
-parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'  , help='whether to run on HEPHY batch system instead of LXBATCH'        )
-parser.add_argument('--one'    , dest='ONE'    , action='store_true'  , help='whether to just do one job (e.g. for testing batch)'            )
-parser.add_argument('--samples', dest='SAMPLES', default='S2BD'       , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
-parser.add_argument('--file'   , dest='FILE'   , default=''           , help='file containing a specific list of jobs to be run'              )
-parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'  , help='which folder the script is located in'                          )
-parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*', help='any extra command-line parameters to be passed to script'       )
+parser.add_argument('SCRIPT'   ,                                         help='which script to run'                                            )
+parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'   , help='whether to run locally'                                         )
+parser.add_argument('--condor' , dest='CONDOR' , action='store_true'   , help='whether to run on condor instead of LXBATCH'                    )
+parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system instead of LXBATCH'        )
+parser.add_argument('--one'    , dest='ONE'    , action='store_true'   , help='whether to just do one job (e.g. for testing batch)'            )
+parser.add_argument('--samples', dest='SAMPLES', default='S2BD'        , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--file'   , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
+parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'   , help='which folder the script is located in'                          )
+parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
+parser.add_argument('--flavour', dest='FLAVOUR', default='microcentury', help='which job flavour to use. use for LXBATCH too.'                 )
 args = parser.parse_args()
 
 # this is mostly so that **locals() works later on
@@ -193,7 +194,7 @@ error                  = logs/run{runNum}/{logname}_{index}.err
 arguments              = {ARGS}
 #image_size             = 28000
 should_transfer_files  = NO
-+JobFlavour            = "microcentury"
++JobFlavour            = "{flavour}"
 queue 1
 '''
 
@@ -217,9 +218,10 @@ if MODE == 'LXBATCH':
     for index, ARGS in enumerate(ArgsList):
         scriptName = 'submit_{index}.sh'                         .format(**locals())
         open(scriptName, 'w').write(submitScript                 .format(**locals()))
-        # leaving this line commented in case fewer jobs are desired
-        #queue = '1nh' if 'splitting' not in ARGS else '8nh'
-        queue = '1nh'
+        if args.FLAVOUR in ('1nh', '8nh'):
+            queue = args.FLAVOUR
+        else:
+            queue = '1nh'
         bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
         bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
 
@@ -259,6 +261,7 @@ elif MODE == 'CONDOR':
             logname = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
             index   = index,
             ARGS    = SCRIPT + ' ' + ARGS,
+            flavour = args.FLAVOUR,
         )
 
     open(submitName, 'w').write(condorSubmit)
