@@ -10,7 +10,7 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 PlotterParser.PARSER.add_argument('--fs', dest='FS', default='2Mu2J', help='which final state to run')
 ARGS = PlotterParser.PARSER.parse_args()
 
-f = R.TFile.Open('roots/pairingCriteriaPlots_Trig_HTo2XTo{}.root'.format(ARGS.FS))
+f = R.TFile.Open('roots/Main/pairingCriteriaPlots_Trig_HTo2XTo{}.root'.format(ARGS.FS))
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff

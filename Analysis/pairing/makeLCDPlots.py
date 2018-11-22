@@ -8,7 +8,7 @@ import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
-f = R.TFile.Open('roots/LCDPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
+f = R.TFile.Open('roots/Main/LCDPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
 def makeLxyPlot(fs, sp=None):
     # configy type stuff

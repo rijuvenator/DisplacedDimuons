@@ -9,7 +9,7 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 args = PlotterParser.PARSER.parse_args()
 
-f = R.TFile.Open('roots/pairingVariablePlots_Trig{}_HTo2XTo4Mu.root'.format(args.CUTSTRING))
+f = R.TFile.Open('roots/Main/pairingVariablePlots_Trig{}_HTo2XTo4Mu.root'.format(args.CUTSTRING))
 
 def makePlot(fs, sp, quantity):
     # configy type stuff
