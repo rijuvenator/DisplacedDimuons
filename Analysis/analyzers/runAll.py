@@ -187,9 +187,9 @@ getenv                 = True
 '''
 
 condorSubmitAdd = '''
-output                 = logs/{logname}_{index}.out
-log                    = logs/{logname}_{index}.log
-error                  = logs/{logname}_{index}.err
+output                 = logs/run{runNum}/{logname}_{index}.out
+log                    = logs/run{runNum}/{logname}_{index}.log
+error                  = logs/run{runNum}/{logname}_{index}.err
 arguments              = {ARGS}
 #image_size             = 28000
 should_transfer_files  = NO
@@ -239,27 +239,33 @@ elif MODE == 'HEPHY':
 
 #### Run on CONDOR ####
 elif MODE == 'CONDOR':
+    # make the logs directory if it doesn't exist
     bash.call('mkdir -p logs', shell=True)
     executableName = 'condorExecutable.sh'
     open(executableName, 'w').write(condorExecutable.format(**locals()))
-    submitName = 'condorSubmit'
+
+    # get the number of run* directories, and make the next one
     try:
-        numberOfExistingSubmits = int(bash.check_output('ls logs | grep -c "{}*"'.format(submitName), shell=True).strip('\n'))+1
+        numberOfExistingRuns = int(bash.check_output('ls -d logs/run* 2>/dev/null | wc -l', shell=True).strip('\n'))
     except bash.CalledProcessError:
-        numberOfExistingSubmits = 1
-    submitName = submitName + '_' + str(numberOfExistingSubmits)
+        numberOfExistingRuns = 0
+    runNum = numberOfExistingRuns+1
+    bash.call('mkdir logs/run{}'.format(runNum), shell=True)
+
+    submitName = 'condorSubmit'
     for index, ARGS in enumerate(ArgsList):
         condorSubmit += condorSubmitAdd.format(
+            runNum  = runNum,
             logname = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
             index   = index,
             ARGS    = SCRIPT + ' ' + ARGS,
         )
 
     open(submitName, 'w').write(condorSubmit)
-    bash.call('chmod +x '+executableName                  , shell=True)
-    bash.call('condor_submit '+submitName                 , shell=True)
-    bash.call('cp '+executableName+' '+submitName+' logs/', shell=True)
-    bash.call('rm '+submitName                            , shell=True)
+    bash.call('chmod +x '+executableName                                 , shell=True)
+    bash.call('condor_submit '+submitName                                , shell=True)
+    bash.call('cp '+executableName+' '+submitName+' logs/run'+str(runNum), shell=True)
+    bash.call('rm '+submitName                                           , shell=True)
 
 #### Run locally with GNU PARALLEL ####
 elif MODE == 'LOCAL':
