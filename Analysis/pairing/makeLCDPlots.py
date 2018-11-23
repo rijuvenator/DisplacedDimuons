@@ -93,6 +93,9 @@ def makeEffPlot(fs, sp=None):
     canvas.firstPlot.SetMinimum(0)
     canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
 
+    # set titles
+    canvas.firstPlot.setTitles(X='gen dimuon L_{xy} [cm]', Y='Efficiency')
+
     # colors
     for i,tag in enumerate(tags):
         p[tag].setColor(cols[i])

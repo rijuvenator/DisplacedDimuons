@@ -144,4 +144,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('DSAMUON', 'EVENT', 'GEN', 'DIMUON', 'TRIGGER'),
     )
-    analyzer.writeHistograms('roots/LCDPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/LCDPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

@@ -14,14 +14,14 @@ f = R.TFile.Open('roots/Main/pairingCriteriaPlots_Trig_HTo2XTo{}.root'.format(AR
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff
-    tags=['nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         , 'nCorrectPTOC'              ]
-    legs=['N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})', 'N(correct by p_{T} & o.c.)']
-    cols=[R.kRed       , R.kBlue                    , R.kGreen             , R.kMagenta                  ]
+    tags=['nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         , 'nCorrectPTOC'              , 'nCorrectPTChi2'    ]
+    legs=['N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})', 'N(correct by p_{T} & o.c.)', 'N(correct HPD+LCD)']
+    cols=[R.kRed       , R.kBlue                    , R.kGreen             , R.kMagenta                  , R.kOrange           ]
 
     if ARGS.FS == '2Mu2J':
-        tags = tags[:-1]
-        legs = legs[:-1]
-        cols = cols[:-1]
+        tags = tags[:-2]
+        legs = legs[:-2]
+        cols = cols[:-2]
 
     # get/add histograms
     if sp is None:
@@ -60,14 +60,14 @@ def makePTCutPlot(fs, sp=None):
 
 def makePTCutEffPlot(fs, sp=None):
     # configy type stuff
-    tags=['nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           , 'nCorrectPTOC'               ]
-    legs=['signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.', 'correct by p_{T} & o.c. eff']
-    cols=[R.kRed       , R.kBlue                      , R.kGreen                , R.kMagenta                   ]
+    tags=['nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           , 'nCorrectPTOC'               , 'nCorrectPTChi2'    ]
+    legs=['signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.', 'correct by p_{T} & o.c. eff', 'correct by HPD+LCD']
+    cols=[R.kRed       , R.kBlue                      , R.kGreen                , R.kMagenta                   , R.kOrange           ]
 
     if ARGS.FS == '2Mu2J':
-        tags = tags[:-1]
-        legs = legs[:-1]
-        cols = cols[:-1]
+        tags = tags[:-2]
+        legs = legs[:-2]
+        cols = cols[:-2]
 
     # get/add histograms
     if sp is None:
@@ -257,7 +257,7 @@ def makeSummaryPlot(fs, quantity='Match', reverseCuts=False):
     canvas.legend.SetBorderSize(1)
 
     ymin, ymax = 0.8, 1.
-    if quantity == 'CorrectChi2': ymin = 0.
+    if quantity == 'CorrectChi2' or quantity == 'CorrectPTChi2': ymin = 0.
     if fs == '4Mu' and quantity == 'Match': ymin = 0.5
     canvas.firstPlot.SetMaximum(ymax)
     canvas.firstPlot.SetMinimum(ymin)
@@ -313,7 +313,8 @@ for fs in (ARGS.FS,):
         makePTCutEffPlot(fs, sp)
         makeMultiplicityPlots(fs, sp)
     if True:
-        makeSummaryPlot(fs, quantity='Match'      , reverseCuts=False)
+        makeSummaryPlot(fs, quantity='Match'        , reverseCuts=False)
     if fs == '4Mu':
-        makeSummaryPlot(fs, quantity='CorrectChi2', reverseCuts=True )
-        makeSummaryPlot(fs, quantity='CorrectPTOC', reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectChi2'  , reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectPTOC'  , reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectPTChi2', reverseCuts=True )
