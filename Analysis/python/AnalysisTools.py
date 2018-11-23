@@ -272,9 +272,8 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
     # final return
     return dimuonMatches, muonMatches, exitcode
 
-def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
+def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
     HLTMuonMatches = {}
-    printAllMatches = False
 
     # loop over unique pairs of HLT muons
     nHLT = len(HLTMuons)
