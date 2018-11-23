@@ -18,7 +18,10 @@ if grepOutput != '':
         baseNames.append(re.match(r'logs/(run\d+/.*)\.log', line.split('\n')[0]).group(1))
 
 # print out the jobs found
-print '{} removed jobs found:{}'.format(len(baseNames), '\n  '+'\n  '.join(baseNames)+'\n')
+if len(baseNames) > 0:
+    print '{} removed jobs found:{}'.format(len(baseNames), '\n  '+'\n  '.join(baseNames)+'\n')
+else:
+    print '0 removed jobs found'
 
 # now grep for baseName.err in any condorSubmit_* files and get the arguments line after it
 # grepOutput is 2 lines: the first line is the .err, the second line is the arguments, so get the second line

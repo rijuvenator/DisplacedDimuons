@@ -60,13 +60,16 @@ parser.add_argument('--samples', dest='SAMPLES', default='S2BD'        , help='w
 parser.add_argument('--file'   , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
 parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'   , help='which folder the script is located in'                          )
 parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
-parser.add_argument('--flavour', dest='FLAVOUR', default='microcentury', help='which job flavour to use. use for LXBATCH too.'                 )
+parser.add_argument('--flavour', dest='FLAVOUR', default='microcentury', help='which condor job flavour to use'                                )
+parser.add_argument('--queue'  , dest='QUEUE'  , default='1nh'         , help='which LSF job queue to use'                                     )
 args = parser.parse_args()
 
 # this is mostly so that **locals() works later on
-SCRIPT = args.SCRIPT
-FOLDER = args.FOLDER
-EXTRA  = args.EXTRA
+SCRIPT  = args.SCRIPT
+FOLDER  = args.FOLDER
+EXTRA   = args.EXTRA
+FLAVOUR = args.FLAVOUR
+QUEUE   = args.QUEUE
 
 # set mode: local, lxbatch, hephy, or condor
 if (args.LOCAL, args.HEPHY, args.CONDOR).count(True) > 1:
@@ -81,6 +84,14 @@ else            : MODE = 'LXBATCH'
 if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
     print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}. Did you forget to use --folder?'.format(**locals())
     exit()
+
+# ensure that FLAVOUR/QUEUE is an acceptable value
+if   MODE == 'CONDOR':
+    if FLAVOUR not in ('espresso', 'microcentury', 'longlunch', 'workday', 'tomorrow', 'testmatch', 'nextweek'):
+        print '[RUNALL ERROR]: {FLAVOUR} is not a valid condor job flavour.'.format(**locals())
+elif MODE == 'LXBATCH':
+    if QUEUE not in ('8nm', '1nh', '8nh', '1nd', '2nd', '1nw', '2nw'):
+        print '[RUNALL ERROR]: {QUEUE} is not a valid LSF queue.'.format(**locals())
 
 ###############################
 #### BUILD INPUT ARGUMENTS ####
@@ -218,11 +229,7 @@ if MODE == 'LXBATCH':
     for index, ARGS in enumerate(ArgsList):
         scriptName = 'submit_{index}.sh'                         .format(**locals())
         open(scriptName, 'w').write(submitScript                 .format(**locals()))
-        if args.FLAVOUR in ('1nh', '8nh'):
-            queue = args.FLAVOUR
-        else:
-            queue = '1nh'
-        bash.call('bsub -q {queue} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
+        bash.call('bsub -q {QUEUE} -J ana_{index} < {scriptName}'.format(**locals()), shell=True)
         bash.call('rm {scriptName}'                              .format(**locals()), shell=True)
 
 #### Run on HEPHY Batch ####
@@ -254,6 +261,7 @@ elif MODE == 'CONDOR':
     runNum = numberOfExistingRuns+1
     bash.call('mkdir logs/run{}'.format(runNum), shell=True)
 
+    # make the submit file
     submitName = 'condorSubmit'
     for index, ARGS in enumerate(ArgsList):
         condorSubmit += condorSubmitAdd.format(
@@ -261,7 +269,7 @@ elif MODE == 'CONDOR':
             logname = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
             index   = index,
             ARGS    = SCRIPT + ' ' + ARGS,
-            flavour = args.FLAVOUR,
+            flavour = FLAVOUR,
         )
 
     open(submitName, 'w').write(condorSubmit)
