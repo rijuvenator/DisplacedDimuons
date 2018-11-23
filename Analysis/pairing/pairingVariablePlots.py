@@ -3,7 +3,7 @@ import numpy as np
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, matchedDimuonPairs
 
 PTCUTS = list(range(41))
 MULTCUTS = (0, 5, 10, 15)
@@ -69,56 +69,8 @@ def analyze(self, E, PARAMS=None):
             selectedDimuons = [dim for dim in selectedDimuons if muons[dim.idx1].charge != muons[dim.idx2].charge]
         selectedDimIDs   = {(dim.idx1, dim.idx2):dim for dim in selectedDimuons}
 
-        # find matches for both pairs
-        dmatches = []
-        m0matches = []
-        m1matches = []
-        for i,genMuonPair in enumerate(genMuonPairs):
-            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, baseDimuons)
-            if len(dimuonMatches) > 0:
-                for match in dimuonMatches:
-                    match['which'] = i
-                for match in muonMatches[0]:
-                    match['which'] = i
-                for match in muonMatches[1]:
-                    match['which'] = i
-                dmatches.extend(dimuonMatches)
-                m0matches.extend(muonMatches[0])
-                m1matches.extend(muonMatches[1])
-
-        # sort EVERYTHING by deltaR^2
-        # remember: matches is [matches_pair0 ... matches_pair1], and matches_pair0, e.g. is a list of dimuonMatches
-        # so a "column" of the table is matches_pair0 + matches_pair1. When they get sorted, the best ones
-        # will float to the top, and the "which" will help remember which pair they came from
-        if len(dmatches) > 0: # zip doesn't behave for zero length
-            sortTable = zip(dmatches, m0matches, m1matches)
-            sortTable.sort(key=lambda row:row[1]['deltaR']**2.+row[2]['deltaR'])
-            dimuonMatches, muonMatches0, muonMatches1 = zip(*sortTable)
-        else:
-            sortTable = []
-            dimuonMatches, muonMatches0, muonMatches1 = [], [], []
-
-        # find the best two dimuon matches with non-overlapping muons
-        realMatches = {}
-        for dimuonMatch, muonMatch0, muonMatch1 in sortTable:
-            # remember which pair
-            which = dimuonMatch['which']
-            # if there's nothing in realMatches, take this match
-            if len(realMatches) == 0:
-                realMatches[which] = dimuonMatch
-            # there's already something in realMatches
-            # if it's the same pair, keep going
-            # okay, it's the other pair. Great. But make sure the other pair
-            # has no muons in common with the pair that exists already (alreadyFound, alreadyIndices)
-            # if it does, keep going
-            # otherwise, bingo! we've found the other match. fill it and break.
-            else:
-                if which in realMatches: continue
-                alreadyFound = realMatches[realMatches.keys()[0]]
-                alreadyIndices = [alreadyFound['dim'].idx1, alreadyFound['dim'].idx2]
-                if dimuonMatch['dim'].idx1 in alreadyIndices or dimuonMatch['dim'].idx2 in alreadyIndices: continue
-                realMatches[which] = dimuonMatch
-                break
+        # find best non-overlapping matches for both pairs
+        realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, baseDimuons)
 
         # now...
         # realMatches has either 0-2 elements, depending on success of finding matches

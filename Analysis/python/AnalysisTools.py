@@ -341,6 +341,51 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
     # Then do: for match in HLTMuonMatches['bestMatches']: dR = match['deltaR'] (can fill a histogram)
     return HLTMuonMatches
 
+def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, threshold=0.2, doDimuons=True):
+    # find matches for both pairs
+    matchLists = {'dim':[], 'mu0':[], 'mu1':[]}
+    for i, genMuonPair in enumerate(genMuonPairs):
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, dimuons, recoMuons=recoMuons, vertex=vertex, threshold=threshold, doDimuons=doDimuons)
+        if len(dimuonMatches) > 0:
+            for key, matchList in zip(['dim', 'mu0', 'mu1'], [dimuonMatches, muonMatches[0], muonMatches[1]]):
+                for match in matchList:
+                    match['pairIndex'] = i
+                matchLists[key].extend(matchList)
+
+    # sort everything by deltaR^2
+    # remember: matches is [matches_pair0 ... matches_pair1], and matches_pair0, e.g. is a list of dimuonMatches
+    # so a "column" of the table is matches_pair0 + matches_pair1. When they get sorted, the best ones
+    # will float to the top, and the "pairIndex" will help remember which pair they came from
+    if len(matchLists['dim']) > 0: # zip doesn't behave for zero length
+        sortTable = zip(matchLists['dim'], matchLists['mu0'], matchLists['mu1'])
+        sortTable.sort(key=lambda row:row[1]['deltaR']**2.+row[2]['deltaR']**2.)
+        dimuonMatches, muon0Matches, muon1Matches = zip(*sortTable)
+    else:
+        sortTable = []
+        dimuonMatches, muon0Matches, muon1Matches = [], [], []
+
+    # find the best two dimuon matches with non-overlapping muons
+    realMatches = {}
+    for dimMatch, mu0Match, mu1Match in sortTable:
+        # remember which pair
+        pairIndex = dimMatch['pairIndex']
+        # if there's nothing in realMatches, take this match
+        if len(realMatches) == 0:
+            realMatches[pairIndex] = dimMatch
+        # there's already something in realMatches
+        # if it's the same pair, keep going
+        # okay, it's the other pair. Great. But make sure the other pair
+        # has no muons in common with the pair that exists already (alreadyFound, alreadyIndices)
+        # if it does, keep going
+        # otherwise, bingo! we've found the other match. fill it and break.
+        else:
+            if pairIndex in realMatches: continue
+            alreadyFound = realMatches[realMatches.keys()[0]]['dim']
+            alreadyIndices = (alreadyFound.idx1, alreadyFound.idx2)
+            if dimMatch['dim'].idx1 in alreadyIndices or dimMatch['dim'].idx2 in alreadyIndices: continue
+            realMatches[pairIndex] = dimMatch
+
+    return realMatches, dimuonMatches, muon0Matches, muon1Matches
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

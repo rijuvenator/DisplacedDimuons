@@ -17,7 +17,7 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit('nDimuon'+split+'_'+pTCut, ';Dimuon Multiplicity;Counts', 22, 0., 22.)
 
     #for key in ('nMuon', 'nDimuon', 'nPair', 'nMatch', 'nCorrectChi2', 'nCorrectPT'):
-    for key in ('nMatch', 'nCorrectChi2', 'nCorrectPT'):
+    for key in ('nMatch', 'nCorrectChi2', 'nCorrectHPD'):
         self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
 
 # internal loop function for Analyzer class
@@ -101,7 +101,7 @@ def analyze(self, E, PARAMS=None):
                     if bestDimuon.idx1 == matchedDimuon.idx1 and bestDimuon.idx2 == matchedDimuon.idx2:
                         self.HISTS['nCorrectChi2'].Fill(pTCut)
 
-                    # fill nCorrectPT : pT criterion, i.e. dimuon made of highest 2 pT
+                    # fill nCorrectHPD : pT criterion, i.e. dimuon made of highest 2 pT
                     sortedMuons = sorted(selectedMuons, key=lambda mu: mu.pt, reverse=True)
                     bestTwo = (sortedMuons[0].idx, sortedMuons[1].idx)
                     bestDimuon = None
@@ -111,7 +111,7 @@ def analyze(self, E, PARAMS=None):
                             break
                     if bestDimuon is not None:
                         if bestDimuon.idx1 == matchedDimuon.idx1 and bestDimuon.idx2 == matchedDimuon.idx2:
-                            self.HISTS['nCorrectPT'].Fill(pTCut)
+                            self.HISTS['nCorrectHPD'].Fill(pTCut)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
