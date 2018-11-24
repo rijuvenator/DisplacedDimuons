@@ -10,11 +10,15 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/LCDPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-def makeLxyPlot(fs, sp=None):
+QUANTITIES = ('Lxy', 'pT1', 'mass', 'RLxy', 'RpT1', 'Rmass')
+CRITERIA = ('Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S')
+CRITERIA_4 = ('HPD-AMD', 'HPD-FMD', 'HPD-C2S')
+
+def makeDistPlot(quantity, criteria, fs, sp=None):
     # configy type stuff
-    legs=('All', 'Matched', 'NotMatched')
-    tags=['Lxy_'+tag for tag in legs]
-    cols=(R.kBlack, R.kBlue, R.kRed)
+    legs = ('All', 'Matched', 'NotMatched')
+    tags = [quantity+'_'+('All'+('4' if criteria in CRITERIA_4 else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
+    cols = (R.kBlack, R.kBlue, R.kRed)
 
     # get/add histograms
     if sp is None:
@@ -44,7 +48,8 @@ def makeLxyPlot(fs, sp=None):
         canvas.firstPlot.SetMinimum(0)
     else:
         canvas.firstPlot.SetMinimum(1.)
-    canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
+    if quantity == 'Lxy':
+        canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
 
     # colors
     for i,tag in enumerate(tags):
@@ -54,13 +59,13 @@ def makeLxyPlot(fs, sp=None):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/LCD_LxyDist{}_HTo2XTo{}_{}.pdf'.format(ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/LCD_{}Dist_{}{}_HTo2XTo{}_{}.pdf'.format(quantity, criteria, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
-def makeEffPlot(fs, sp=None):
+def makeEffPlot(quantity, criteria, fs, sp=None):
     # configy type stuff
-    legs=('All', 'Matched', 'NotMatched')
-    tags=['Lxy_'+tag for tag in legs]
-    cols=(R.kBlack, R.kBlue, R.kRed)
+    legs = ('All', 'Matched', 'NotMatched')
+    tags = [quantity+'_'+('All'+('4' if criteria in CRITERIA_4 else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
+    cols = (R.kBlack, R.kBlue, R.kRed)
 
     # get/add histograms
     if sp is None:
@@ -91,10 +96,11 @@ def makeEffPlot(fs, sp=None):
         canvas.addMainPlot(p[tag])
     canvas.setMaximum()
     canvas.firstPlot.SetMinimum(0)
-    canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
+    if quantity == 'Lxy':
+        canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
 
     # set titles
-    canvas.firstPlot.setTitles(X='gen dimuon L_{xy} [cm]', Y='Efficiency')
+    canvas.firstPlot.setTitles(X=clones[tags[0]].GetXaxis().GetTitle(), Y='Efficiency')
 
     # colors
     for i,tag in enumerate(tags):
@@ -104,9 +110,12 @@ def makeEffPlot(fs, sp=None):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/LCD_LxyEff{}_HTo2XTo{}_{}.pdf'.format(ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/LCD_{}Eff_{}{}_HTo2XTo{}_{}.pdf'.format(quantity, criteria, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
 for fs in ('4Mu',):
-    for sp in [None] + SIGNALPOINTS:
-        makeLxyPlot(fs, sp)
-    makeEffPlot(fs, None)
+    #for sp in [None] + SIGNALPOINTS:
+    for sp in [None]:
+        for quantity in QUANTITIES:
+            for criteria in CRITERIA:
+                makeDistPlot(quantity, criteria, fs, sp)
+                makeEffPlot(quantity, criteria, fs, sp)
