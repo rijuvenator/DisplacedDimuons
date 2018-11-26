@@ -4,7 +4,7 @@ from ROOT import gStyle, gPad
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import DisplacedDimuon.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
 TRIGGER = True
 PRINTINTEGRALS = False
@@ -101,7 +101,23 @@ def makePerSamplePlots():
         HISTS[ref][htit].Draw("same text")
         canvas.Print(fname, "Title:"+htit)
 
-        # N(CSC stations) vs N(DT stations) 
+        # some diagnostics for RECO muons matched to signal GEN muons but not matched to HLT muons
+        canvas.Clear()
+        pad = R.TPad('pad','pad', 0, 0, 1, 1)
+        pad.Draw()
+        pad.Divide(2,2)
+        pad.cd(1)
+        HISTS[ref]['unmatched_pt_res'].Draw("hist")
+        pad.cd(2)
+        HISTS[ref]['unmatched_invm_res'].Draw("hist")
+        pad.cd(3)
+        HISTS[ref]['unmatched_pt_rec_vs_pt_gen'].Draw("")
+        pad.cd(4)
+        HISTS[ref]['unmatched_pt_rec_vs_pt_gen_zoomed'].Draw("")
+        canvas.Print(fname, "Title:RECO muons matched to signal GEN muons but not matched to HLT muons")
+
+        # N(CSC stations) vs N(DT stations)
+        canvas.Clear()
         htit = 'CSC_vs_DT_Stations'
         HISTS[ref][htit].Draw("text")
         canvas.Print(fname, "Title:"+htit)

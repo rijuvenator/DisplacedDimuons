@@ -25,6 +25,12 @@ def declareHistograms(self, PARAMS=None):
     # number of unsuccessful and successful HLT-DSA matches
     self.HistInit('matches_HLT_DSA', '; ; Events', 5, -0.5, 4.5)
 
+    # some diagnostics for RECO muons matched to signal GEN muons but not matched to HLT muons
+    self.HistInit('unmatched_pt_res',   ';(pT(rec)-pT(gen))/pT(gen);Muons',  50, -1., 1.)
+    self.HistInit('unmatched_invm_res', ';(m(rec)-m(gen))/m(gen);Dimuons',   50, -1., 1.)
+    self.HistInit('unmatched_pt_rec_vs_pt_gen', ';pT(gen); pT(rec)',        100,  0., 200., 100, 0., 200.)
+    self.HistInit('unmatched_pt_rec_vs_pt_gen_zoomed', ';pT(gen); pT(rec)',  50,  0., 50.,   50, 0., 50.)
+
     # N(CSC stations) vs N(DT stations)
     self.HistInit('CSC_vs_DT_Stations', ';N(DT stations); N(CSC stations)', 5, -0.5, 4.5, 5, -0.5, 4.5)
 
@@ -136,7 +142,8 @@ def analyze(self, E, PARAMS=None):
 
     # all dimuons and dimuons made of muons passing quality cuts
     allDimuons = E.getPrimitives('DIMUON')
-    selectedDSAmuons = [mu for mu in DSAMuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+    selectedDSAmuons  = [mu for mu in DSAMuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
+    DSAmuons_formatch = [mu for mu in DSAMuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1. and abs(mu.eta) < 2.0 and mu.pt > 5.]
     selectedOIndices = [mu.idx for mu in selectedDSAmuons]
     selectedDimuons  = [dim for dim in allDimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
@@ -149,8 +156,7 @@ def analyze(self, E, PARAMS=None):
         print muon
 
     match_found = False
-#    HLTDSAMatches = matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=True, threshold=0.4)
-    HLTDSAMatches = matchedTrigger(HLTMuons, selectedDSAmuons, saveDeltaR=True, threshold=0.4)
+    HLTDSAMatches = matchedTrigger(HLTMuons, DSAmuons_formatch, saveDeltaR=True, threshold=0.4, printAllMatches=True)
     for i, j in HLTDSAMatches:
         imatch = 0
         for match in HLTDSAMatches[(i,j)]['bestMatches']:
@@ -186,11 +192,12 @@ def analyze(self, E, PARAMS=None):
                         elif imatch == 1: self.HISTS['dR2_HLT_DSA_BadEvent'].Fill(dR)
                         imatch += 1
 
+            # more detailed diagnostics for cases when a good-quality
+            # signal dimuon is lost
             dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
             if len(dimuonMatches) > 0:
-                self.HISTS['matches_HLT_DSA'].Fill(4)
-
                 print "Lose good event!"
+                self.HISTS['matches_HLT_DSA'].Fill(4)
                 for i, j in HLTDSAMatches:
                     imatch = 0
                     for match in HLTDSAMatches[(i,j)]['bestMatches']:
@@ -201,15 +208,36 @@ def analyze(self, E, PARAMS=None):
 
                 gen_dim = genMuonPair[0].p4 + genMuonPair[1].p4
                 gen_invm = gen_dim.M()
-                for match in dimuonMatches:
-                    dimuon = match['dim']
+                for dimuonMatch in dimuonMatches:
+                    dimuon = dimuonMatch['dim']
                     rec_invm = dimuon.p4.M()
                     print "gen_mass = ", gen_invm, "rec_mass = ", rec_invm
                     print "gen_Lxy = ", genMuonPair[0].Lxy_, "rec_Lxy = ", dimuon.Lxy(), "+/-", dimuon.LxyErr()
                     print(dimuon)
-#                    for muonMatch in muonMatches:
-#                        print "idx = ", muonMatch[0]['oidx'], "dR = ", muonMatch[0]['deltaR']
-                    
+                    unmatched_invm_res = (rec_invm - gen_invm)/gen_invm
+                    self.HISTS['unmatched_invm_res'].Fill(unmatched_invm_res)
+                    for muonMatch in muonMatches:
+                        recmu_idx = muonMatch[0]['oidx']
+                        muon_found = False
+                        for i, j in HLTDSAMatches:
+                            for hltMatch in HLTDSAMatches[(i,j)]['bestMatches']:
+                                if hltMatch['rec_idx'] == recmu_idx and hltMatch['deltaR'] < 0.4:
+                                    muon_found = True
+                                    break
+                        if muon_found == False:
+                            print "DSA muon not matched to HLT muon:", recmu_idx
+                            recmu_p4 = muonMatch[0]['muon'].p4
+                            recmu_pt = muonMatch[0]['muon'].pt
+                            for genmu in genMuonPair:
+                                genmu_p4 = genmu.p4
+                                dr = recmu_p4.DeltaR(genmu_p4)
+                                if dr < 0.2:
+                                    genmu_pt = genmu.pt
+                                    unmatched_pt_res = (recmu_pt - genmu_pt)/genmu_pt
+                                    print "muon pT = ", recmu_pt, "pt of matched gen muon = ", genmu_pt, "pt_res =", unmatched_pt_res
+                                    self.HISTS['unmatched_pt_res'].Fill(unmatched_pt_res)
+                                    self.HISTS['unmatched_pt_rec_vs_pt_gen'].Fill(genmu_pt, recmu_pt)
+                                    self.HISTS['unmatched_pt_rec_vs_pt_gen_zoomed'].Fill(genmu_pt, recmu_pt)
 
     # studies of single-muon variables
     # loop over genMuons and fill histograms
