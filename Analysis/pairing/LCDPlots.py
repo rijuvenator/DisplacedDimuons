@@ -8,16 +8,17 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    for key in ('All', 'All4', 'Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S'):
+    #for key in ('All', 'All-4', 'Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S'):
+    for key in ('All', 'All-4', 'HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-AMD-4', 'HPD-C2S-4'):
         matchtaglist = ('',) if 'All' in key else ('_Matched', '_NotMatched')
         for matchtag in matchtaglist:
             self.HistInit('Lxy_' +key+matchtag, ';gen dimuon L_{xy} [cm];Counts' , 800 , 0., 800. )
-            self.HistInit('pT1_' +key+matchtag, ';gen leading p_{T} [GeV];Counts', 120 , 0., 1200.)
-            self.HistInit('mass_'+key+matchtag, ';gen dimuon mass [GeV];Counts'  , 400 , 0., 400. )
+            #self.HistInit('pT1_' +key+matchtag, ';gen leading p_{T} [GeV];Counts', 120 , 0., 1200.)
+            #self.HistInit('mass_'+key+matchtag, ';gen dimuon mass [GeV];Counts'  , 400 , 0., 400. )
 
             self.HistInit('RLxy_' +key+matchtag, ';reco dimuon L_{xy} [cm];Counts' , 800 , 0., 800. )
-            self.HistInit('RpT1_' +key+matchtag, ';reco leading p_{T} [GeV];Counts', 120 , 0., 1200.)
-            self.HistInit('Rmass_'+key+matchtag, ';reco dimuon mass [GeV];Counts'  , 400 , 0., 400. )
+            #self.HistInit('RpT1_' +key+matchtag, ';reco leading p_{T} [GeV];Counts', 120 , 0., 1200.)
+            #self.HistInit('Rmass_'+key+matchtag, ';reco dimuon mass [GeV];Counts'  , 400 , 0., 400. )
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -43,6 +44,8 @@ def analyze(self, E, PARAMS=None):
     baseMuons    = [mu for mu in muons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
     baseOIndices = [mu.idx for mu in baseMuons]
     baseDimuons  = [dim for dim in dimuons if dim.idx1 in baseOIndices and dim.idx2 in baseOIndices]
+
+    if ARGS.CUTS == '_4Reco' and len(baseMuons) < 4: return
 
     if len(baseDimuons) > 0:
 
@@ -87,6 +90,7 @@ def analyze(self, E, PARAMS=None):
                 HPD_LCDs.append(dim)
                 break
         bestDimuonIDs['HPD-LCD'] = [(d.idx1, d.idx2) for d in HPD_LCDs]
+        bestDimuonIDs['HPD-LCD-4'] = bestDimuonIDs['HPD-LCD']
 
         # pair HPDs uniquely and non-overlapping-ly and sort the PAIRINGs by AMD and C2S
         pairings = []
@@ -106,15 +110,20 @@ def analyze(self, E, PARAMS=None):
 
             sortedPairings = {}
             for key in functions:
+                realKey = key+'-4'
                 sortedPairings[key] = sorted(pairings, key=functions[key])
-                bestDimuonIDs['HPD-'+key] = []
+                bestDimuonIDs['HPD-'+realKey] = []
+                bestDimuonIDs['HPD-'+    key] = []
                 if len(sortedPairings[key]) > 0:
                     didx1, didx2 = sortedPairings[key][0]
                     for idx in sortedPairings[key][0]:
-                        bestDimuonIDs['HPD-'+key].append((HPDs[idx].idx1, HPDs[idx].idx2))
+                        bestDimuonIDs['HPD-'+realKey].append((HPDs[idx].idx1, HPDs[idx].idx2))
+                        bestDimuonIDs['HPD-'+    key].append((HPDs[idx].idx1, HPDs[idx].idx2))
 
         else:
-            for key in ('AMD', 'FMD', 'C2S'): bestDimuonIDs['HPD-'+key] = []
+            for key in ('AMD', 'FMD', 'C2S'):
+                bestDimuonIDs['HPD-'+key+'-4'] = []
+                bestDimuonIDs['HPD-'+key     ] = []
 
         # find best non-overlapping matches for both pairs
         realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, baseDimuons)
@@ -124,11 +133,11 @@ def analyze(self, E, PARAMS=None):
 
         funcs = {
             'Lxy'   : lambda gmpair: gmpair[0].Lxy(),
-            'pT1'   : lambda gmpair: max(gmpair[0].pt, gmpair[1].pt),
-            'mass'  : lambda gmpair: (gmpair[0].p4+gmpair[1].p4).M(),
+#           'pT1'   : lambda gmpair: max(gmpair[0].pt, gmpair[1].pt),
+#           'mass'  : lambda gmpair: (gmpair[0].p4+gmpair[1].p4).M(),
             'RLxy'  : lambda dim   : dim.Lxy(),
-            'RpT1'  : lambda dim   : max(dim.mu1.pt, dim.mu2.pt),
-            'Rmass' : lambda dim   : dim.mass,
+#           'RpT1'  : lambda dim   : max(dim.mu1.pt, dim.mu2.pt),
+#           'Rmass' : lambda dim   : dim.mass,
         }
 
         for tag in funcs:
@@ -139,9 +148,9 @@ def analyze(self, E, PARAMS=None):
                     q = funcs[tag](genMuonPairs[i])
                 self.HISTS[tag+'_All'].Fill(q)
                 if len(MSDIDs) == 2:
-                    self.HISTS[tag+'_All4'].Fill(q)
-                for pckey in ('Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S'):
-                    if len(MSDIDs) != 2 and pckey in ('HPD-AMD', 'HPD-FMD', 'HPD-C2S'): continue
+                    self.HISTS[tag+'_All-4'].Fill(q)
+                for pckey in ('HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-AMD-4', 'HPD-C2S-4'):
+                    if '-4' in pckey and len(MSDIDs) != 2: continue
                     if ID in bestDimuonIDs[pckey]:
                         self.HISTS[tag+'_'+pckey+'_Matched'].Fill(q)
                     else:

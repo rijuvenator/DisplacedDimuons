@@ -10,14 +10,16 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/LCDPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-QUANTITIES = ('Lxy', 'pT1', 'mass', 'RLxy', 'RpT1', 'Rmass')
-CRITERIA = ('Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S')
-CRITERIA_4 = ('HPD-AMD', 'HPD-FMD', 'HPD-C2S')
+#QUANTITIES = ('Lxy', 'pT1', 'mass', 'RLxy', 'RpT1', 'Rmass')
+#CRITERIA = ('Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S')
+#CRITERIA_4 = ('HPD-AMD', 'HPD-FMD', 'HPD-C2S')
+QUANTITIES = ('Lxy', 'RLxy')
+CRITERIA = ('HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-C2S-4', 'HPD-AMD-4')
 
 def makeDistPlot(quantity, criteria, fs, sp=None):
     # configy type stuff
     legs = ('All', 'Matched', 'NotMatched')
-    tags = [quantity+'_'+('All'+('4' if criteria in CRITERIA_4 else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
+    tags = [quantity+'_'+('All'+('-4' if '-4' in criteria else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
     cols = (R.kBlack, R.kBlue, R.kRed)
 
     # get/add histograms
@@ -64,7 +66,7 @@ def makeDistPlot(quantity, criteria, fs, sp=None):
 def makeEffPlot(quantity, criteria, fs, sp=None):
     # configy type stuff
     legs = ('All', 'Matched', 'NotMatched')
-    tags = [quantity+'_'+('All'+('4' if criteria in CRITERIA_4 else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
+    tags = [quantity+'_'+('All'+('-4' if '-4' in criteria else '') if 'All' in leg else criteria+'_'+leg) for leg in legs]
     cols = (R.kBlack, R.kBlue, R.kRed)
 
     # get/add histograms
