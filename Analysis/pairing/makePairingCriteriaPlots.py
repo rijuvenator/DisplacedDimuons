@@ -7,13 +7,21 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
-f = R.TFile.Open('roots/pairingCriteriaPlots_Trig_HTo2XTo2Mu2J.root')
+PlotterParser.PARSER.add_argument('--fs', dest='FS', default='2Mu2J', help='which final state to run')
+ARGS = PlotterParser.PARSER.parse_args()
+
+f = R.TFile.Open('roots/Main/pairingCriteriaPlots_Trig_HTo2XTo{}.root'.format(ARGS.FS))
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff
-    tags=('nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         )
-    legs=('N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})')
-    cols=(R.kRed       , R.kBlue                    , R.kGreen             )
+    tags=['nMatch'    , 'nCorrectChi2'              , 'nCorrectPT'         , 'nCorrectPTOC'              , 'nCorrectPTChi2'    ]
+    legs=['N(matched)', 'N(correct by #chi^{2}/dof)', 'N(correct by p_{T})', 'N(correct by p_{T} & o.c.)', 'N(correct HPD+LCD)']
+    cols=[R.kRed       , R.kBlue                    , R.kGreen             , R.kMagenta                  , R.kOrange           ]
+
+    if ARGS.FS == '2Mu2J':
+        tags = tags[:-2]
+        legs = legs[:-2]
+        cols = cols[:-2]
 
     # get/add histograms
     if sp is None:
@@ -52,9 +60,14 @@ def makePTCutPlot(fs, sp=None):
 
 def makePTCutEffPlot(fs, sp=None):
     # configy type stuff
-    tags=('nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           )
-    legs=('signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.')
-    cols=(R.kRed       , R.kBlue                      , R.kGreen                )
+    tags=['nMatch'     , 'nCorrectChi2'                , 'nCorrectPT'           , 'nCorrectPTOC'               , 'nCorrectPTChi2'    ]
+    legs=['signal eff.', 'correct by #chi^{2}/dof eff.', 'correct by p_{T} eff.', 'correct by p_{T} & o.c. eff', 'correct by HPD+LCD']
+    cols=[R.kRed       , R.kBlue                      , R.kGreen                , R.kMagenta                   , R.kOrange           ]
+
+    if ARGS.FS == '2Mu2J':
+        tags = tags[:-2]
+        legs = legs[:-2]
+        cols = cols[:-2]
 
     # get/add histograms
     if sp is None:
@@ -90,7 +103,7 @@ def makePTCutEffPlot(fs, sp=None):
     for tag in tags:
         canvas.addMainPlot(p[tag])
     canvas.firstPlot.SetMaximum(1.01)
-    canvas.firstPlot.SetMinimum(0.90)
+    canvas.firstPlot.SetMinimum(0.90 if ARGS.FS == '2Mu2J' else 0.50)
     #canvas.setMaximum()
     #canvas.setMinimum()
 
@@ -110,6 +123,8 @@ def makePTCutEffPlot(fs, sp=None):
     canvas.cleanup('pdfs/PC_MatchEff_HTo2XTo{}_{}.pdf'.format(fs, SPStr(sp) if sp is not None else 'Global'))
 
 def makeMultiplicityPlots(fs, sp):
+    if ARGS.FS == '4Mu': return
+
     # configy type stuff
     pTCuts = (0, 5, 10, 15)
     splits = ('_', '_Matched_', '_NotMatched_')
@@ -198,6 +213,7 @@ ORDER = [
 ]
 
 CUTS = (0, 5, 10, 15)
+#CUTS = (15, 10, 5, 0)
 PRETTY = {i:str(i)+' GeV' for i in CUTS}
 PRETTY[0] = 'no cut'
 #COLORS = {0:R.kRed, 5:R.kBlue, 10:R.kGreen, 15:R.kMagenta}
@@ -206,28 +222,31 @@ PRETTY[0] = 'no cut'
 COLORS = {0:R.kWhite, 5:R.kRed, 10:R.kRed+2, 15:R.kRed+4}
 LINES = [12, 21, 27]
 DASHED = [3, 6, 9, 15, 18, 24, 30]
-def makeSummaryPlot(fs):
+def makeSummaryPlot(fs, quantity='Match', reverseCuts=False):
     DATA = {'2Mu2J':{}, '4Mu':{}}
     for sp in SIGNALPOINTS:
         DATA[fs][sp] = {i:0 for i in CUTS}
-        h = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
-        h.Scale(1./h.GetBinContent(1))
-        if sp == (125, 20, 1300):
-            for ibin in range(1,17):
-                print ibin-1, h.GetBinContent(ibin)
+        if quantity == 'Match':
+            h = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
+            h.Scale(1./h.GetBinContent(1))
+        else:
+            h = HistogramGetter.getHistogram(f, (fs, sp), 'n'+quantity).Clone()
+            hDen = HistogramGetter.getHistogram(f, (fs, sp), 'nMatch').Clone()
+            h.Divide(hDen)
         for CUT in CUTS:
             ibin = CUT+1
             DATA[fs][sp][CUT] = h.GetBinContent(ibin)
     h = {}
     p = {}
     for CUT in CUTS:
-        h[CUT] = R.TH1F('h'+str(CUT)+fs, ';;Signal Efficiency', 33, 0., 33.)
+        h[CUT] = R.TH1F('h'+str(CUT)+fs+quantity, ';;Signal Efficiency', 33, 0., 33.)
         for i,sp in enumerate(ORDER):
             h[CUT].SetBinContent(i+1, DATA[fs][sp][CUT])
         p[CUT] = Plotter.Plot(h[CUT], PRETTY[CUT], 'l', 'hist')
 
     canvas = Plotter.Canvas(lumi='(each 3 = c#tau decreasing from left to right)    ' + fs)
-    for CUT in CUTS:
+    REALCUTS = CUTS if not reverseCuts else list(reversed(CUTS))
+    for CUT in REALCUTS:
         canvas.addMainPlot(p[CUT])
         p[CUT].setColor(COLORS[CUT], which='LF')
 
@@ -238,6 +257,8 @@ def makeSummaryPlot(fs):
     canvas.legend.SetBorderSize(1)
 
     ymin, ymax = 0.8, 1.
+    if quantity == 'CorrectChi2' or quantity == 'CorrectPTChi2': ymin = 0.
+    if fs == '4Mu' and quantity == 'Match': ymin = 0.5
     canvas.firstPlot.SetMaximum(ymax)
     canvas.firstPlot.SetMinimum(ymin)
 
@@ -284,11 +305,16 @@ def makeSummaryPlot(fs):
     canvas.drawText(text='20'  , align='cc', pos=(start+step*10, .08))
 
     # custom modifications to cleanup
-    canvas.cleanup('PC_MatchEffSummary_HTo2XTo{}.pdf'.format(fs))
+    canvas.cleanup('pdfs/PC_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
 
-for fs in ('2Mu2J',):
+for fs in (ARGS.FS,):
     for sp in [None] + SIGNALPOINTS:
         makePTCutPlot(fs, sp)
         makePTCutEffPlot(fs, sp)
         makeMultiplicityPlots(fs, sp)
-    makeSummaryPlot(fs)
+    if True:
+        makeSummaryPlot(fs, quantity='Match'        , reverseCuts=False)
+    if fs == '4Mu':
+        makeSummaryPlot(fs, quantity='CorrectChi2'  , reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectPTOC'  , reverseCuts=True )
+        makeSummaryPlot(fs, quantity='CorrectPTChi2', reverseCuts=True )

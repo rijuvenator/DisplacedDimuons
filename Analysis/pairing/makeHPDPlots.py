@@ -7,7 +7,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
-f = R.TFile.Open('roots/HPDPlots_Trig_HTo2XTo2Mu2J.root')
+f = R.TFile.Open('roots/Main/HPDPlots_Trig_HTo2XTo2Mu2J.root')
 
 def makePTCutPlot(fs, sp=None):
     # configy type stuff
@@ -34,11 +34,12 @@ def makePTCutPlot(fs, sp=None):
         p[tag] = Plotter.Plot(h[tag], legs[i], 'l', 'hist')
 
     # canvas, plots, min max
-    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs, logy=True)
+    logy = True
+    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs, logy=logy)
     for tag in tags:
         canvas.addMainPlot(p[tag])
     canvas.setMaximum()
-    if False:
+    if not logy:
         canvas.firstPlot.SetMinimum(0)
     else:
         canvas.firstPlot.SetMinimum(1.)
