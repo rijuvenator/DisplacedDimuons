@@ -272,7 +272,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
     # final return
     return dimuonMatches, muonMatches, exitcode
 
-def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
+def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
     HLTMuonMatches = {}
 
     # loop over unique pairs of HLT muons
@@ -299,6 +299,7 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
                         if dR is not None:
                             matches.append({'hlt_idx':hltIdx, 'rec_idx':muon.idx, 'deltaR':dR})
                 matches = sorted(matches, key=lambda dic:dic['deltaR'])
+                if printAllMatches: print matches
 
                 # find the closest matches
                 # walk through the list of matches. the first one (0) is the best one for
@@ -331,6 +332,17 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
                             HLTMuonMatches[(i,j)]['matchFound'] = False
                 else:
                     HLTMuonMatches[(i,j)]['matchFound'] = False
+
+            # sanity check for the 2016 trigger: make sure that there
+            # are no events with a single pair of HLT muons failing
+            # angular or mass cuts
+            else:
+                if nHLT == 2:
+                    print "+++ Warning in matchedTrigger: inconsistency in the trigger +++"
+                    print "found single online dimuon with mass = ", invm, "and angle =", angle
+                    print "hlt_idxs: ", i, j, "; list of HLT muons:"
+                    for hltmuon in HLTMuons:
+                        print(hltmuon)
 
     # return structure
     # if no triggering pair was found, this dictionary will be empty, otherwise keys are (i,j) indices of HLTMuons
