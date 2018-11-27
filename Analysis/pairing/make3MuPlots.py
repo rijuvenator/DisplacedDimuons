@@ -58,8 +58,8 @@ def makeEffPlot(quantity, fs, sp=None):
 
     canvas.cleanup('pdfs/3Mu_{}Eff{}_HTo2XTo{}_{}.pdf'.format(quantity, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
-def makeChi2Plot(fs, sp=None):
-    tags = ['chi2_'+tag for tag in ('CID', 'MSD', 'LCD', 'UMD')]
+def makeSplit4Plot(quantity, fs, sp=None):
+    tags = [quantity+'_'+tag for tag in ('CID', 'MSD', 'LCD', 'UMD')]
     legs = dict(zip(tags, ('correct', 'signal', 'lowest #chi^{2}/dof', 'unmatched')))
     cols = dict(zip(tags, (R.kBlue, R.kGreen, R.kMagenta, R.kRed)))
 
@@ -96,7 +96,7 @@ def makeChi2Plot(fs, sp=None):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/3Mu_Chi2Dist{}_HTo2XTo{}_{}.pdf'.format(ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/3Mu_{}Dist{}_HTo2XTo{}_{}.pdf'.format(quantity, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
 ORDER = [
     (1000, 350, 3500),
@@ -225,11 +225,11 @@ def makeSummaryPlot(fs, quantity):
     canvas.cleanup('pdfs/3Mu_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
 
 for fs in ('4Mu',):
-    #for sp in [None] + SIGNALPOINTS:
-    for sp in [None]:
-        #for quantity in QUANTITIES:
-        #    #makeDistPlot(quantity, fs, sp)
-        #    makeEffPlot(quantity, fs, sp)
-        makeChi2Plot(fs, sp)
-    #for quantity in QUANTITIES:
-    #    makeSummaryPlot(fs, quantity)
+    for sp in [None] + SIGNALPOINTS:
+        for quantity in QUANTITIES:
+            makeDistPlot(quantity, fs, sp)
+            makeEffPlot(quantity, fs, sp)
+        for quantity in ('chi2', 'Lxy'):
+            makeSplit4Plot(quantity, fs, sp)
+    for quantity in QUANTITIES:
+        makeSummaryPlot(fs, quantity)

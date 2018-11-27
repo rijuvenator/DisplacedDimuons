@@ -22,6 +22,12 @@ def declareHistograms(self, PARAMS=None):
     self.HistInit('chi2_LCD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
     self.HistInit('chi2_UMD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
 
+    # "correctly identified", "matched signal", "least chi^2", and "un matched"
+    self.HistInit('Lxy_CID', ';L_{xy} [cm];Counts', 330, 0., 330.)
+    self.HistInit('Lxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
+    self.HistInit('Lxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
+    self.HistInit('Lxy_UMD', ';L_{xy} [cm];Counts', 330, 0., 330.)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
@@ -101,15 +107,19 @@ def analyze(self, E, PARAMS=None):
                     self.HISTS['GLxy_LCD'].Fill(genMuonPairs[realMatches.keys()[0]][0].Lxy())
                     self.HISTS['RLxy_LCD'].Fill(MSD.Lxy())
 
-                # fill some chi^2 histograms
+                # fill some chi^2 histograms and Lxy
                 if MSDID == LCDID:
                     self.HISTS['chi2_CID'].Fill(MSD.normChi2)
+                    self.HISTS['Lxy_CID' ].Fill(MSD.Lxy())
                 else:
                     self.HISTS['chi2_MSD'].Fill(MSD.normChi2)
                     self.HISTS['chi2_LCD'].Fill(LCD.normChi2)
+                    self.HISTS['Lxy_MSD' ].Fill(MSD.Lxy())
+                    self.HISTS['Lxy_LCD' ].Fill(LCD.Lxy())
                 for dim in sortedDimuons:
                     if dim.ID != MSDID and dim.ID != LCDID:
                         self.HISTS['chi2_UMD'].Fill(dim.normChi2)
+                        self.HISTS['Lxy_UMD' ].Fill(dim.Lxy())
 
             # if there were 2 matches, something's wrong
             else:
