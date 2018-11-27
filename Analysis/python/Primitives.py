@@ -828,11 +828,18 @@ class Dimuon(Particle):
         self.idx1 = self.mu1.idx
         self.idx2 = self.mu2.idx
 
+        self.ID   = (self.mu1.idx, self.mu2.idx)
+
     def __getattr__(self, name):
         if name in ('Lxy', 'LxySig', 'LxyErr'):
             return getattr(self.Lxy_, name)
         raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
 
+    def isOC(self, DSAmuons=None):
+        if DSAmuons is None:
+            return self.mu1.charge != self.mu2.charge
+        else:
+            return DSAmuons[self.idx1].charge != DSAmuons[self.idx2].charge
 
     # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
     headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|\n'

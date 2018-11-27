@@ -5,16 +5,25 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons, matchedDimuonPairs
 
+KEYS = []
+for fillWhen in ('', '-4'):
+    KEYS.append('All'+fillWhen)
+    for oppCharge in ('', '-OC'):
+        KEYS.append('Chi2'+oppCharge+fillWhen)
+        for criteria in ('-LCD', '-C2S', '-AMD'):
+            fullName = 'HPD'+oppCharge+criteria+fillWhen
+            if fillWhen == '-4' or (fillWhen == '' and criteria != '-AMD'):
+                KEYS.append(fullName)
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    #for key in ('All', 'All-4', 'Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S'):
-    for key in ('All', 'All-4', 'HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-AMD-4', 'HPD-C2S-4'):
+    for key in KEYS:
         matchtaglist = ('',) if 'All' in key else ('_Matched', '_NotMatched')
         for matchtag in matchtaglist:
-            self.HistInit('Lxy_' +key+matchtag, ';gen dimuon L_{xy} [cm];Counts' , 800 , 0., 800. )
-            #self.HistInit('pT1_' +key+matchtag, ';gen leading p_{T} [GeV];Counts', 120 , 0., 1200.)
-            #self.HistInit('mass_'+key+matchtag, ';gen dimuon mass [GeV];Counts'  , 400 , 0., 400. )
+            self.HistInit('GLxy_' +key+matchtag, ';gen dimuon L_{xy} [cm];Counts' , 800 , 0., 800. )
+            #self.HistInit('GpT1_' +key+matchtag, ';gen leading p_{T} [GeV];Counts', 120 , 0., 1200.)
+            #self.HistInit('Gmass_'+key+matchtag, ';gen dimuon mass [GeV];Counts'  , 400 , 0., 400. )
 
             self.HistInit('RLxy_' +key+matchtag, ';reco dimuon L_{xy} [cm];Counts' , 800 , 0., 800. )
             #self.HistInit('RpT1_' +key+matchtag, ';reco leading p_{T} [GeV];Counts', 120 , 0., 1200.)
@@ -41,100 +50,106 @@ def analyze(self, E, PARAMS=None):
     dimuons = E.getPrimitives('DIMUON' )
     muons   = E.getPrimitives('DSAMUON')
 
-    baseMuons    = [mu for mu in muons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-    baseOIndices = [mu.idx for mu in baseMuons]
-    baseDimuons  = [dim for dim in dimuons if dim.idx1 in baseOIndices and dim.idx2 in baseOIndices]
+    baseMuons = [mu for mu in muons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
 
-    if ARGS.CUTS == '_4Reco' and len(baseMuons) < 4: return
+    if '_5GeV' in ARGS.CUTS:
+        selectedMuons = [mu for mu in baseMuons if mu.pt > 5.]
+    else:
+        selectedMuons = baseMuons
 
-    if len(baseDimuons) > 0:
+    if '_4Reco' in ARGS.CUTS and len(selectedMuons) < 4: return
 
-        bestDimuonIDs = {}
-        # sort dimuons by chi^2, get best <=2, and their "IDs"
-        sortedDimuons = sorted(baseDimuons, key=lambda dim: dim.normChi2)
-        lowestChi2Dimuons = []
-        for dim in sortedDimuons:
-            if len(lowestChi2Dimuons) == 0:
-                lowestChi2Dimuons.append(dim)
-            else:
-                alreadyLow = lowestChi2Dimuons[0]
-                alreadyID  = (alreadyLow.idx1, alreadyLow.idx2)
-                if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
-                lowestChi2Dimuons.append(dim)
-                break
-        bestDimuonIDs['Chi2'] = [(d.idx1, d.idx2) for d in lowestChi2Dimuons]
+    selectedOIndices = [mu.idx for mu in selectedMuons]
+    selectedDimuons  = [dim for dim in dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
-        # sort muons by pT, get best <=4, their dimuons, and their "IDs"
-        sortedMuons = sorted(baseMuons, key=lambda mu: mu.pt, reverse=True)
-        if len(sortedMuons) > 4:
-            highestPTMuons = sortedMuons[:4]
-        else:
-            highestPTMuons = sortedMuons
+    if len(selectedDimuons) > 0:
+
+        bestDimuons = {}
+
+        # sort muons by pT, get best <=4, and their dimuons
+        sortedMuons = sorted(selectedMuons, key=lambda mu: mu.pt, reverse=True)
+        highestPTMuons = sortedMuons[:4]
         highestIndices = [mu.idx for mu in highestPTMuons]
-        bestDimuonIDs['HPD'] = [(d.idx1, d.idx2) for d in baseDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
-        HPDs = [dim for dim in baseDimuons if (dim.idx1, dim.idx2) in bestDimuonIDs['HPD']]
+        bestDimuons['HPD'] = {d.ID:d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices}
 
         # HPDs with opposite charge
-        bestDimuonIDs['HPD-OC'] = [(d.idx1, d.idx2) for d in HPDs if muons[d.idx1].charge != muons[d.idx2].charge]
+        bestDimuons['HPD-OC'] = {d.ID:d for d in bestDimuons['HPD'].values() if d.isOC(muons)}
 
-        # sort HPDs by chi^2 and get best <=2
-        sortedHPDs = sorted(HPDs, key=lambda dim: dim.normChi2)
-        HPD_LCDs = []
-        for dim in sortedHPDs:
-            if len(HPD_LCDs) == 0:
-                HPD_LCDs.append(dim)
+        # abstraction for getting 2 best non-overlapping dimuons satisfying some criteria
+        def getBest2(dimuonList, applyOC=False):
+            finalList = []
+            for dim in dimuonList:
+                if len(finalList) == 0:
+                    if (not applyOC) or (applyOC and dim.isOC(muons)):
+                        finalList.append(dim)
+                else:
+                    alreadyID = finalList[0].ID
+                    if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
+                    if applyOC and not dim.isOC(muons): continue
+                    finalList.append(dim)
+                    break
+            return {d.ID:d for d in finalList}
+
+        # sort dimuons by chi^2, get best <=2, with or without applying opposite charge
+        sortedDimuons = sorted(selectedDimuons, key=lambda dim: dim.normChi2)
+        bestDimuons['Chi2'] = getBest2(sortedDimuons)
+        bestDimuons['Chi2-4'] = bestDimuons['Chi2']
+        bestDimuons['Chi2-OC'] = getBest2(sortedDimuons, applyOC=True)
+        bestDimuons['Chi2-OC-4'] = bestDimuons['Chi2-OC']
+
+        # sort HPDs by chi^2 and get best <=2, with or without applying opposite charge
+        sortedHPDs = sorted(bestDimuons['HPD'].values(), key=lambda dim: dim.normChi2)
+        bestDimuons['HPD-LCD'] = getBest2(sortedHPDs)
+        bestDimuons['HPD-LCD-4'] = bestDimuons['HPD-LCD']
+        bestDimuons['HPD-OC-LCD'] = getBest2(sortedHPDs, applyOC=True)
+        bestDimuons['HPD-OC-LCD-4'] = bestDimuons['HPD-OC-LCD']
+
+        # pair HPDs (or HPD-OCs) uniquely and non-overlapping-ly and sort the PAIRINGs by AMD, FMD, C2S
+        pairings = {}
+        for tag in ('HPD', 'HPD-OC'):
+            pairings[tag] = []
+            dimuonList = bestDimuons[tag].values()
+            for dim1 in dimuonList:
+                for dim2 in dimuonList:
+                    if dim1.ID == dim2.ID: continue
+                    muonIDs = set(dim1.ID+dim2.ID)
+                    if len(muonIDs) == 4:
+                        pairings[tag].append((dim1, dim2))
+
+        def AMD(pairing): return abs(pairing[0].mass-pairing[1].mass)
+        def FMD(pairing): return abs(pairing[0].mass-pairing[1].mass)/(pairing[0].mass+pairing[1].mass)
+        def C2S(pairing): return pairing[0].normChi2+pairing[1].normChi2
+
+        functions = {'AMD':AMD, 'FMD':FMD, 'C2S':C2S}
+
+        # if there are pairings, use sortedPairings[0]
+        for tag in ('HPD', 'HPD-OC'):
+            if len(pairings[tag]) > 0:
+
+                for fkey in functions:
+                    sortedPairings = sorted(pairings[tag], key=functions[fkey])
+                    bestDimuons[tag+'-'+fkey     ] = []
+                    bestDimuons[tag+'-'+fkey+'-4'] = []
+                    if len(sortedPairings) > 0:
+                        for dim in sortedPairings[0]:
+                            bestDimuons[tag+'-'+fkey     ].append(dim.ID)
+                            bestDimuons[tag+'-'+fkey+'-4'].append(dim.ID)
+
             else:
-                alreadyLow = HPD_LCDs[0]
-                alreadyID  = (alreadyLow.idx1, alreadyLow.idx2)
-                if dim.idx1 in alreadyID or dim.idx2 in alreadyID: continue
-                HPD_LCDs.append(dim)
-                break
-        bestDimuonIDs['HPD-LCD'] = [(d.idx1, d.idx2) for d in HPD_LCDs]
-        bestDimuonIDs['HPD-LCD-4'] = bestDimuonIDs['HPD-LCD']
-
-        # pair HPDs uniquely and non-overlapping-ly and sort the PAIRINGs by AMD and C2S
-        pairings = []
-        for i in range(len(HPDs)):
-            for j in range(i+1, len(HPDs)):
-                muonIDs = set((HPDs[i].idx1, HPDs[i].idx2, HPDs[j].idx1, HPDs[j].idx2))
-                if len(muonIDs) == 4:
-                    pairings.append((i, j))
-
-        if len(pairings) > 0:
-
-            def AMD(pairing): return abs(HPDs[pairing[0]].mass-HPDs[pairing[1]].mass)
-            def FMD(pairing): return abs(HPDs[pairing[0]].mass-HPDs[pairing[1]].mass)/(HPDs[pairing[0]].mass+HPDs[pairing[1]].mass)
-            def C2S(pairing): return HPDs[pairing[0]].normChi2+HPDs[pairing[1]].normChi2
-
-            functions = {'AMD':AMD, 'FMD':FMD, 'C2S':C2S}
-
-            sortedPairings = {}
-            for key in functions:
-                realKey = key+'-4'
-                sortedPairings[key] = sorted(pairings, key=functions[key])
-                bestDimuonIDs['HPD-'+realKey] = []
-                bestDimuonIDs['HPD-'+    key] = []
-                if len(sortedPairings[key]) > 0:
-                    didx1, didx2 = sortedPairings[key][0]
-                    for idx in sortedPairings[key][0]:
-                        bestDimuonIDs['HPD-'+realKey].append((HPDs[idx].idx1, HPDs[idx].idx2))
-                        bestDimuonIDs['HPD-'+    key].append((HPDs[idx].idx1, HPDs[idx].idx2))
-
-        else:
-            for key in ('AMD', 'FMD', 'C2S'):
-                bestDimuonIDs['HPD-'+key+'-4'] = []
-                bestDimuonIDs['HPD-'+key     ] = []
+                for fkey in functions:
+                    bestDimuons[tag+'-'+fkey     ] = []
+                    bestDimuons[tag+'-'+fkey+'-4'] = []
 
         # find best non-overlapping matches for both pairs
-        realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, baseDimuons)
+        realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
 
         # realMatches has 0-2 elements
-        MSDIDs = {w:(m['dim'].idx1, m['dim'].idx2) for w,m in realMatches.iteritems()}
+        MSDIDs = {w:m['dim'].ID for w,m in realMatches.iteritems()}
 
         funcs = {
-            'Lxy'   : lambda gmpair: gmpair[0].Lxy(),
-#           'pT1'   : lambda gmpair: max(gmpair[0].pt, gmpair[1].pt),
-#           'mass'  : lambda gmpair: (gmpair[0].p4+gmpair[1].p4).M(),
+            'GLxy'  : lambda gmpair: gmpair[0].Lxy(),
+#           'GpT1'  : lambda gmpair: max(gmpair[0].pt, gmpair[1].pt),
+#           'Gmass' : lambda gmpair: (gmpair[0].p4+gmpair[1].p4).M(),
             'RLxy'  : lambda dim   : dim.Lxy(),
 #           'RpT1'  : lambda dim   : max(dim.mu1.pt, dim.mu2.pt),
 #           'Rmass' : lambda dim   : dim.mass,
@@ -146,12 +161,15 @@ def analyze(self, E, PARAMS=None):
                     q = funcs[tag](realMatches[i]['dim'])
                 else:
                     q = funcs[tag](genMuonPairs[i])
+
                 self.HISTS[tag+'_All'].Fill(q)
                 if len(MSDIDs) == 2:
                     self.HISTS[tag+'_All-4'].Fill(q)
-                for pckey in ('HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-AMD-4', 'HPD-C2S-4'):
+
+                for pckey in KEYS:
+                    if 'All' in pckey: continue
                     if '-4' in pckey and len(MSDIDs) != 2: continue
-                    if ID in bestDimuonIDs[pckey]:
+                    if ID in bestDimuons[pckey]:
                         self.HISTS[tag+'_'+pckey+'_Matched'].Fill(q)
                     else:
                         self.HISTS[tag+'_'+pckey+'_NotMatched'].Fill(q)

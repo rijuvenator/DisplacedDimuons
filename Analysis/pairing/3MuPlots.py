@@ -9,10 +9,18 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     self.HistInit('counters', ';Categories;Counts' , 8  , 0., 8.  )
+
+    # "matched signal dimuon" and "least chi^2 dimuon", in this case, LCD=MSD
     self.HistInit('GLxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
     self.HistInit('GLxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
     self.HistInit('RLxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
     self.HistInit('RLxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
+
+    # "correctly identified", "matched signal", "least chi^2", and "un matched"
+    self.HistInit('chi2_CID', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
+    self.HistInit('chi2_MSD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
+    self.HistInit('chi2_LCD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
+    self.HistInit('chi2_UMD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -62,13 +70,13 @@ def analyze(self, E, PARAMS=None):
 
         indices = [mu.idx for mu in selectedMuons]
         HPDs    = [dim for dim in selectedDimuons if dim.idx1 in indices and dim.idx2 in indices]
-        HPDIDs  = {(dim.idx1, dim.idx2):dim for dim in HPDs}
+        HPDIDs  = {dim.ID:dim for dim in HPDs}
 
         if len(HPDs) > 0:
             # find LCD
             sortedDimuons = sorted(HPDs, key=lambda dim: dim.normChi2)
             LCD   = sortedDimuons[0]
-            LCDID = (LCD.idx1, LCD.idx2)
+            LCDID = LCD.ID
 
             # find best non-overlapping matches for both pairs
             realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
@@ -81,17 +89,27 @@ def analyze(self, E, PARAMS=None):
             elif len(realMatches) == 1:
                 self.HISTS['counters'].Fill(MATCH1)
                 MSD = realMatches[realMatches.keys()[0]]['dim']
-                MSDID = (MSD.idx1, MSD.idx2)
+                MSDID = MSD.ID
 
                 # if there's a signal match, fill a denominator histogram
                 self.HISTS['GLxy_MSD'].Fill(genMuonPairs[realMatches.keys()[0]][0].Lxy())
                 self.HISTS['RLxy_MSD'].Fill(MSD.Lxy())
 
-                # if LCD = MSD, fill a numberator histogram
+                # if LCD = MSD, fill a numerator histogram
                 if MSDID == LCDID:
                     self.HISTS['counters'].Fill(GOODMATCH)
                     self.HISTS['GLxy_LCD'].Fill(genMuonPairs[realMatches.keys()[0]][0].Lxy())
                     self.HISTS['RLxy_LCD'].Fill(MSD.Lxy())
+
+                # fill some chi^2 histograms
+                if MSDID == LCDID:
+                    self.HISTS['chi2_CID'].Fill(MSD.normChi2)
+                else:
+                    self.HISTS['chi2_MSD'].Fill(MSD.normChi2)
+                    self.HISTS['chi2_LCD'].Fill(LCD.normChi2)
+                for dim in sortedDimuons:
+                    if dim.ID != MSDID and dim.ID != LCDID:
+                        self.HISTS['chi2_UMD'].Fill(dim.normChi2)
 
             # if there were 2 matches, something's wrong
             else:

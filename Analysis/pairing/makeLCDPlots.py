@@ -10,11 +10,16 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/LCDPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-#QUANTITIES = ('Lxy', 'pT1', 'mass', 'RLxy', 'RpT1', 'Rmass')
-#CRITERIA = ('Chi2', 'HPD', 'HPD-OC', 'HPD-LCD', 'HPD-AMD', 'HPD-FMD', 'HPD-C2S')
-#CRITERIA_4 = ('HPD-AMD', 'HPD-FMD', 'HPD-C2S')
-QUANTITIES = ('Lxy', 'RLxy')
-CRITERIA = ('HPD-LCD', 'HPD-C2S', 'HPD-LCD-4', 'HPD-C2S-4', 'HPD-AMD-4')
+#QUANTITIES = ('GLxy', 'GpT1', 'Gmass', 'RLxy', 'RpT1', 'Rmass')
+QUANTITIES = ('GLxy', 'RLxy')
+CRITERIA = []
+for fillWhen in ('', '-4'):
+    for oppCharge in ('', '-OC'):
+        CRITERIA.append('Chi2'+oppCharge+fillWhen)
+        for criteria in ('-LCD', '-C2S', '-AMD'):
+            fullName = 'HPD'+oppCharge+criteria+fillWhen
+            if fillWhen == '-4' or (fillWhen == '' and criteria != '-AMD'):
+                CRITERIA.append(fullName)
 
 def makeDistPlot(quantity, criteria, fs, sp=None):
     # configy type stuff
@@ -50,7 +55,7 @@ def makeDistPlot(quantity, criteria, fs, sp=None):
         canvas.firstPlot.SetMinimum(0)
     else:
         canvas.firstPlot.SetMinimum(1.)
-    if quantity == 'Lxy':
+    if 'Lxy' in quantity:
         canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
 
     # colors
@@ -82,6 +87,9 @@ def makeEffPlot(quantity, criteria, fs, sp=None):
         for tag in tags:
             h[tag] = HistogramGetter.getHistogram(f, (fs, sp), tag).Clone()
 
+    for tag in tags:
+        h[tag].Rebin(5)
+
     clones = {tag:h[tag].Clone() for tag in tags}
     for tag in tags[1:]:
         h[tag] = R.TGraphAsymmErrors(clones[tag], clones[tags[0]], 'cp')
@@ -98,7 +106,7 @@ def makeEffPlot(quantity, criteria, fs, sp=None):
         canvas.addMainPlot(p[tag])
     canvas.setMaximum()
     canvas.firstPlot.SetMinimum(0)
-    if quantity == 'Lxy':
+    if 'Lxy' in quantity:
         canvas.firstPlot.GetXaxis().SetRangeUser(0., 330.)
 
     # set titles
@@ -112,11 +120,13 @@ def makeEffPlot(quantity, criteria, fs, sp=None):
     canvas.makeLegend(lWidth=.2, pos='tr')
     canvas.legend.resizeHeight()
 
+    if not (criteria in ('HPD-OC-C2S', 'HPD-C2S') and ARGS.CUTSTRING in ('', '_5GeV')):
+        canvas.legend.moveLegend(Y=-.3)
+
     canvas.cleanup('pdfs/LCD_{}Eff_{}{}_HTo2XTo{}_{}.pdf'.format(quantity, criteria, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
 for fs in ('4Mu',):
-    #for sp in [None] + SIGNALPOINTS:
-    for sp in [None]:
+    for sp in [None] + SIGNALPOINTS:
         for quantity in QUANTITIES:
             for criteria in CRITERIA:
                 makeDistPlot(quantity, criteria, fs, sp)
