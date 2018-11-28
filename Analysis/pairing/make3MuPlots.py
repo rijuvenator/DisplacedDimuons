@@ -10,14 +10,12 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/3MuPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-QUANTITIES = ('GLxy', 'RLxy')
+QUANTITIES = ('Lxy', 'chi2')
 
-def makeEffPlot(quantity, fs, sp=None):
-    tags = (quantity+'_MSD', quantity+'_LCD')
+def makeEffPlot(quantity, den, fs, sp=None):
+    tags = (quantity+'_MSD', quantity+'_LCD', quantity+'_CID')
 
-    effTag = quantity+'_LCD'
-    effCol = R.kBlue
-    effLeg = ''
+    effTag = quantity+'_CID'
 
     # get/add histograms
     if sp is None:
@@ -32,31 +30,32 @@ def makeEffPlot(quantity, fs, sp=None):
         for tag in tags:
             h[tag] = HistogramGetter.getHistogram(f, (fs, sp), tag).Clone()
 
-    clones = {tag:h[tag].Clone() for tag in tags}
-    for tag in tags[1:]:
-        h[tag] = R.TGraphAsymmErrors(clones[tag], clones[tags[0]], 'cp')
+    hNum = h[quantity+'_CID']
+    h[quantity+'_'+den].Add(h[quantity+'_CID'])
+    hDen = h[quantity+'_'+den]
+
+    graph = R.TGraphAsymmErrors(hNum, hDen, 'cp')
 
     # make plots
-    p = {}
-    p[effTag] = Plotter.Plot(h[effTag], effLeg, 'l', 'px')
+    p = Plotter.Plot(graph, '', 'l', 'px')
 
     # canvas, plots, min max
     canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs)
-    canvas.addMainPlot(p[effTag])
+    canvas.addMainPlot(p)
     canvas.setMaximum()
     canvas.firstPlot.SetMinimum(0)
 
     # set titles
-    canvas.firstPlot.setTitles(X=clones[tags[0]].GetXaxis().GetTitle(), Y='Efficiency')
+    canvas.firstPlot.setTitles(X=hNum.GetXaxis().GetTitle(), Y='Efficiency')
 
     # colors
-    p[effTag].setColor(effCol, which='M')
+    p.setColor(R.kBlue, which='M')
 
     # legend, cleanup
-    canvas.makeLegend(lWidth=.2, pos='tr')
-    canvas.legend.resizeHeight()
+    #canvas.makeLegend(lWidth=.2, pos='tr')
+    #canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/3Mu_{}Eff{}_HTo2XTo{}_{}.pdf'.format(quantity, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/3Mu_{}Eff-{}{}_HTo2XTo{}_{}.pdf'.format(quantity, den, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
 def makeSplit4Plot(quantity, fs, sp=None):
     tags = [quantity+'_'+tag for tag in ('CID', 'MSD', 'LCD', 'UMD')]
@@ -227,9 +226,8 @@ def makeSummaryPlot(fs, quantity):
 for fs in ('4Mu',):
     for sp in [None] + SIGNALPOINTS:
         for quantity in QUANTITIES:
-            makeDistPlot(quantity, fs, sp)
-            makeEffPlot(quantity, fs, sp)
-        for quantity in ('chi2', 'Lxy'):
+            makeEffPlot(quantity, 'MSD', fs, sp)
+            makeEffPlot(quantity, 'LCD', fs, sp)
             makeSplit4Plot(quantity, fs, sp)
     for quantity in QUANTITIES:
         makeSummaryPlot(fs, quantity)

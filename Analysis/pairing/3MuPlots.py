@@ -10,12 +10,6 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 def declareHistograms(self, PARAMS=None):
     self.HistInit('counters', ';Categories;Counts' , 8  , 0., 8.  )
 
-    # "matched signal dimuon" and "least chi^2 dimuon", in this case, LCD=MSD
-    self.HistInit('GLxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('GLxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('RLxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('RLxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-
     # "correctly identified", "matched signal", "least chi^2", and "un matched"
     self.HistInit('chi2_CID', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
     self.HistInit('chi2_MSD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
@@ -97,18 +91,9 @@ def analyze(self, E, PARAMS=None):
                 MSD = realMatches[realMatches.keys()[0]]['dim']
                 MSDID = MSD.ID
 
-                # if there's a signal match, fill a denominator histogram
-                self.HISTS['GLxy_MSD'].Fill(genMuonPairs[realMatches.keys()[0]][0].Lxy())
-                self.HISTS['RLxy_MSD'].Fill(MSD.Lxy())
-
-                # if LCD = MSD, fill a numerator histogram
-                if MSDID == LCDID:
-                    self.HISTS['counters'].Fill(GOODMATCH)
-                    self.HISTS['GLxy_LCD'].Fill(genMuonPairs[realMatches.keys()[0]][0].Lxy())
-                    self.HISTS['RLxy_LCD'].Fill(MSD.Lxy())
-
                 # fill some chi^2 histograms and Lxy
                 if MSDID == LCDID:
+                    self.HISTS['counters'].Fill(GOODMATCH)
                     self.HISTS['chi2_CID'].Fill(MSD.normChi2)
                     self.HISTS['Lxy_CID' ].Fill(MSD.Lxy())
                 else:
