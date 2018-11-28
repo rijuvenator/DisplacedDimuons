@@ -10,17 +10,17 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 def declareHistograms(self, PARAMS=None):
     self.HistInit('counters', ';Categories;Counts' , 8  , 0., 8.  )
 
-    # "correctly identified", "matched signal", "least chi^2", and "un matched"
-    self.HistInit('chi2_CID', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
-    self.HistInit('chi2_MSD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
-    self.HistInit('chi2_LCD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
-    self.HistInit('chi2_UMD', ';vtx #chi^{2}/dof;Counts', 200, 0., 5.)
+    QUANTITIES = (
+        ('chi2'   , (';vtx #chi^{2}/dof;Counts', 200, 0., 5.  )),
+        ('chi2-OC', (';vtx #chi^{2}/dof;Counts', 200, 0., 5.  )),
+        ('Lxy'    , (';L_{xy} [cm];Counts'     , 330, 0., 330.)),
+        ('Lxy-OC' , (';L_{xy} [cm];Counts'     , 330, 0., 330.)),
+    )
 
     # "correctly identified", "matched signal", "least chi^2", and "un matched"
-    self.HistInit('Lxy_CID', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('Lxy_MSD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('Lxy_LCD', ';L_{xy} [cm];Counts', 330, 0., 330.)
-    self.HistInit('Lxy_UMD', ';L_{xy} [cm];Counts', 330, 0., 330.)
+    for tag in ('CID', 'MSD', 'LCD', 'UMD'):
+        for quantity, args in QUANTITIES:
+            self.HistInit(quantity+'_'+tag, *args)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -68,15 +68,24 @@ def analyze(self, E, PARAMS=None):
         else:
             self.HISTS['counters'].Fill(MU3TO3_PT5)
 
-        indices = [mu.idx for mu in selectedMuons]
-        HPDs    = [dim for dim in selectedDimuons if dim.idx1 in indices and dim.idx2 in indices]
-        HPDIDs  = {dim.ID:dim for dim in HPDs}
+        indices  = [mu.idx for mu in selectedMuons]
+        HPDs     = [dim for dim in selectedDimuons if dim.idx1 in indices and dim.idx2 in indices]
+        HPDIDs   = {dim.ID:dim for dim in HPDs}
+        HPDOCs   = [dim for dim in HPDs if dim.isOC(muons)]
+        HPDOCIDs = {dim.ID:dim for dim in HPDOCs}
 
         if len(HPDs) > 0:
             # find LCD
             sortedDimuons = sorted(HPDs, key=lambda dim: dim.normChi2)
             LCD   = sortedDimuons[0]
             LCDID = LCD.ID
+
+            if len(HPDOCs) > 0:
+                sortedOCDimuons = sorted(HPDOCs, key=lambda dim: dim.normChi2)
+                LCDOC   = sortedOCDimuons[0]
+                LCDOCID = LCDOC.ID
+            else:
+                LCDOCID = None
 
             # find best non-overlapping matches for both pairs
             realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
@@ -105,6 +114,21 @@ def analyze(self, E, PARAMS=None):
                     if dim.ID != MSDID and dim.ID != LCDID:
                         self.HISTS['chi2_UMD'].Fill(dim.normChi2)
                         self.HISTS['Lxy_UMD' ].Fill(dim.Lxy())
+
+                # fill some chi^2 histograms and Lxy
+                if LCDOCID is not None:
+                    if MSDID == LCDOCID:
+                        self.HISTS['chi2-OC_CID'].Fill(MSD.normChi2)
+                        self.HISTS['Lxy-OC_CID' ].Fill(MSD.Lxy())
+                    else:
+                        self.HISTS['chi2-OC_MSD'].Fill(MSD.normChi2)
+                        self.HISTS['chi2-OC_LCD'].Fill(LCDOC.normChi2)
+                        self.HISTS['Lxy-OC_MSD' ].Fill(MSD.Lxy())
+                        self.HISTS['Lxy-OC_LCD' ].Fill(LCDOC.Lxy())
+                    for dim in sortedDimuons:
+                        if dim.ID != MSDID and dim.ID != LCDOCID:
+                            self.HISTS['chi2-OC_UMD'].Fill(dim.normChi2)
+                            self.HISTS['Lxy-OC_UMD' ].Fill(dim.Lxy())
 
             # if there were 2 matches, something's wrong
             else:

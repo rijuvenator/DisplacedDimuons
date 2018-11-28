@@ -10,7 +10,7 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/3MuPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-QUANTITIES = ('Lxy', 'chi2')
+QUANTITIES = ('Lxy', 'chi2', 'Lxy-OC', 'chi2-OC')
 
 def makeEffPlot(quantity, den, fs, sp=None):
     tags = (quantity+'_MSD', quantity+'_LCD', quantity+'_CID')
@@ -146,7 +146,7 @@ PROGRAM = {
 }
 LINES = [12, 21, 27]
 DASHED = [3, 6, 9, 15, 18, 24, 30]
-def makeSummaryPlot(fs, quantity):
+def makeSummaryPlot(fs):
     DATA = {'2Mu2J':{}, '4Mu':{}}
     for sp in SIGNALPOINTS:
         DATA[fs][sp] = {i:0 for i in TAGS}
@@ -157,7 +157,7 @@ def makeSummaryPlot(fs, quantity):
     h = {}
     p = {}
     for TAG in TAGS:
-        h[TAG] = R.TH1F('h'+str(TAG)+fs+quantity, ';;Efficiency', 33, 0., 33.)
+        h[TAG] = R.TH1F('h'+str(TAG)+fs, ';;Efficiency', 33, 0., 33.)
         for i,sp in enumerate(ORDER):
             h[TAG].SetBinContent(i+1, DATA[fs][sp][TAG])
         p[TAG] = Plotter.Plot(h[TAG], PRETTY[TAG], 'l', 'hist')
@@ -221,7 +221,7 @@ def makeSummaryPlot(fs, quantity):
     canvas.drawText(text='20'  , align='cc', pos=(start+step*10, .08))
 
     # custom modifications to cleanup
-    canvas.cleanup('pdfs/3Mu_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
+    canvas.cleanup('pdfs/3Mu_MatchEffSummary_HTo2XTo{}_Global.pdf'.format(fs))
 
 for fs in ('4Mu',):
     for sp in [None] + SIGNALPOINTS:
@@ -229,5 +229,4 @@ for fs in ('4Mu',):
             makeEffPlot(quantity, 'MSD', fs, sp)
             makeEffPlot(quantity, 'LCD', fs, sp)
             makeSplit4Plot(quantity, fs, sp)
-    for quantity in QUANTITIES:
-        makeSummaryPlot(fs, quantity)
+    makeSummaryPlot(fs)
