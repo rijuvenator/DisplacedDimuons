@@ -10,7 +10,10 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 f = R.TFile.Open('roots/Main/3MuPlots_Trig{}_HTo2XTo4Mu.root'.format(ARGS.CUTSTRING))
 
-QUANTITIES = ('Lxy', 'chi2', 'Lxy-OC', 'chi2-OC')
+QUANTITIES = []
+for Q in ('Lxy', 'chi2'):
+    for crit in ('LCD', 'LCD-OC', 'HPD', 'HPD-OC'):
+        QUANTITIES.append('{}_{}'.format(Q, crit))
 
 def makeEffPlot(quantity, den, fs, sp=None):
     tags = (quantity+'_MSD', quantity+'_LCD', quantity+'_CID')
@@ -224,7 +227,8 @@ def makeSummaryPlot(fs):
     canvas.cleanup('pdfs/3Mu_MatchEffSummary_HTo2XTo{}_Global.pdf'.format(fs))
 
 for fs in ('4Mu',):
-    for sp in [None] + SIGNALPOINTS:
+    #for sp in [None] + SIGNALPOINTS:
+    for sp in [None]:
         for quantity in QUANTITIES:
             makeEffPlot(quantity, 'MSD', fs, sp)
             makeEffPlot(quantity, 'LCD', fs, sp)

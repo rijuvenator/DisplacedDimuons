@@ -8,19 +8,18 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    self.HistInit('counters', ';Categories;Counts' , 8  , 0., 8.  )
+    self.HistInit('counters', ';Categories;Counts' , 11 , 0., 11. )
 
     QUANTITIES = (
-        ('chi2'   , (';vtx #chi^{2}/dof;Counts', 200, 0., 5.  )),
-        ('chi2-OC', (';vtx #chi^{2}/dof;Counts', 200, 0., 5.  )),
-        ('Lxy'    , (';L_{xy} [cm];Counts'     , 330, 0., 330.)),
-        ('Lxy-OC' , (';L_{xy} [cm];Counts'     , 330, 0., 330.)),
+        ('chi2', (';vtx #chi^{2}/dof;Counts', 200, 0., 5.  )),
+        ('Lxy' , (';L_{xy} [cm];Counts'     , 330, 0., 330.)),
     )
 
     # "correctly identified", "matched signal", "least chi^2", and "un matched"
     for tag in ('CID', 'MSD', 'LCD', 'UMD'):
         for quantity, args in QUANTITIES:
-            self.HistInit(quantity+'_'+tag, *args)
+            for criteria in ('LCD', 'LCD-OC', 'HPD', 'HPD-OC'):
+                self.HistInit(quantity+'_'+criteria+'_'+tag, *args)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -50,7 +49,12 @@ def analyze(self, E, PARAMS=None):
     MU3TO3_PT5 = 4.
     MATCH0     = 5.
     MATCH1     = 6.
-    GOODMATCH  = 7.
+    GOODMATCH  = {
+            'LCD'   :7.,
+            'HPD'   :8.,
+            'LCD-OC':9.,
+            'HPD-OC':10.,
+    }
 
     self.HISTS['counters'].Fill(EVENTS)
 
@@ -75,17 +79,34 @@ def analyze(self, E, PARAMS=None):
         HPDOCIDs = {dim.ID:dim for dim in HPDOCs}
 
         if len(HPDs) > 0:
+            bestDimuon = {}
+
             # find LCD
             sortedDimuons = sorted(HPDs, key=lambda dim: dim.normChi2)
-            LCD   = sortedDimuons[0]
-            LCDID = LCD.ID
+            bestDimuon['LCD'] = sortedDimuons[0]
+
+            # find HPD
+            sortedMuons = sorted(selectedMuons, key=lambda mu:mu.pt, reverse=True)
+            highestMuIDs = (sortedMuons[0].idx, sortedMuons[1].idx)
+            bestDimuon['HPD'] = None
+            for dim in HPDs:
+                if dim.idx1 in highestMuIDs and dim.idx2 in highestMuIDs:
+                    bestDimuon['HPD'] = dim
+                    break
 
             if len(HPDOCs) > 0:
+                # find LCD-OC and HPD-OC
                 sortedOCDimuons = sorted(HPDOCs, key=lambda dim: dim.normChi2)
-                LCDOC   = sortedOCDimuons[0]
-                LCDOCID = LCDOC.ID
+                bestDimuon['LCD-OC'] = sortedOCDimuons[0]
+                bestDimuon['HPD-OC'] = None
+                for dim in HPDOCs:
+                    if dim.idx1 in highestMuIDs and dim.idx2 in highestMuIDs:
+                        bestDimuon['HPD-OC'] = dim
+                        break
             else:
-                LCDOCID = None
+                sortedOCDimuons = []
+                bestDimuon['LCD-OC'] = None
+                bestDimuon['HPD-OC'] = None
 
             # find best non-overlapping matches for both pairs
             realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
@@ -97,38 +118,29 @@ def analyze(self, E, PARAMS=None):
             # there should be at most 1 match
             elif len(realMatches) == 1:
                 self.HISTS['counters'].Fill(MATCH1)
-                MSD = realMatches[realMatches.keys()[0]]['dim']
-                MSDID = MSD.ID
+                bestDimuon['MSD'] = realMatches[realMatches.keys()[0]]['dim']
+                MSD_ID = bestDimuon['MSD'].ID
+
+                funcs = {
+                    'chi2':lambda dim:dim.normChi2,
+                    'Lxy' :lambda dim:dim.Lxy()
+                }
 
                 # fill some chi^2 histograms and Lxy
-                if MSDID == LCDID:
-                    self.HISTS['counters'].Fill(GOODMATCH)
-                    self.HISTS['chi2_CID'].Fill(MSD.normChi2)
-                    self.HISTS['Lxy_CID' ].Fill(MSD.Lxy())
-                else:
-                    self.HISTS['chi2_MSD'].Fill(MSD.normChi2)
-                    self.HISTS['chi2_LCD'].Fill(LCD.normChi2)
-                    self.HISTS['Lxy_MSD' ].Fill(MSD.Lxy())
-                    self.HISTS['Lxy_LCD' ].Fill(LCD.Lxy())
-                for dim in sortedDimuons:
-                    if dim.ID != MSDID and dim.ID != LCDID:
-                        self.HISTS['chi2_UMD'].Fill(dim.normChi2)
-                        self.HISTS['Lxy_UMD' ].Fill(dim.Lxy())
-
-                # fill some chi^2 histograms and Lxy
-                if LCDOCID is not None:
-                    if MSDID == LCDOCID:
-                        self.HISTS['chi2-OC_CID'].Fill(MSD.normChi2)
-                        self.HISTS['Lxy-OC_CID' ].Fill(MSD.Lxy())
+                for crit in ('LCD', 'HPD', 'LCD-OC', 'HPD-OC'):
+                    if bestDimuon[crit] is not None and MSD_ID == bestDimuon[crit].ID:
+                        self.HISTS['counters'].Fill(GOODMATCH[crit])
+                        for Q in funcs:
+                            self.HISTS['{}_{}_{}'.format(Q, crit, 'CID')].Fill(funcs[Q](bestDimuon['MSD']))
                     else:
-                        self.HISTS['chi2-OC_MSD'].Fill(MSD.normChi2)
-                        self.HISTS['chi2-OC_LCD'].Fill(LCDOC.normChi2)
-                        self.HISTS['Lxy-OC_MSD' ].Fill(MSD.Lxy())
-                        self.HISTS['Lxy-OC_LCD' ].Fill(LCDOC.Lxy())
-                    for dim in sortedDimuons:
-                        if dim.ID != MSDID and dim.ID != LCDOCID:
-                            self.HISTS['chi2-OC_UMD'].Fill(dim.normChi2)
-                            self.HISTS['Lxy-OC_UMD' ].Fill(dim.Lxy())
+                        for Q in funcs:
+                            self.HISTS['{}_{}_{}'.format(Q, crit, 'MSD')].Fill(funcs[Q](bestDimuon['MSD']))
+                            self.HISTS['{}_{}_{}'.format(Q, crit, 'LCD')].Fill(funcs[Q](bestDimuon['LCD']))
+                    dimList = sortedDimuons if '-OC' not in crit else sortedOCDimuons
+                    for dim in dimList:
+                        if dim.ID != MSD_ID and bestDimuon[crit] is not None and dim.ID != bestDimuon[crit].ID:
+                            for Q in funcs:
+                                self.HISTS['{}_{}_{}'.format(Q, crit, 'UMD')].Fill(funcs[Q](dim))
 
             # if there were 2 matches, something's wrong
             else:
