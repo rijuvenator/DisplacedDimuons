@@ -20,6 +20,10 @@ def declareHistograms(self, PARAMS=None):
     for key in ('nMatch', 'nCorrectChi2', 'nCorrectHPD'):
         self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
 
+    for key in ('nMatch4', 'nCorrectChi24', 'nCorrectHPD4', 'nCorrectLCD4', 'nCorrectC2S4', 'nCorrectAMD4',
+                'nMatch3', 'nCorrectChi23', 'nCorrectHPD3',):
+        self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
@@ -112,6 +116,80 @@ def analyze(self, E, PARAMS=None):
                     if bestDimuon is not None:
                         if bestDimuon.idx1 == matchedDimuon.idx1 and bestDimuon.idx2 == matchedDimuon.idx2:
                             self.HISTS['nCorrectHPD'].Fill(pTCut)
+
+                    # test the 3mu and 4mu criteria on 2mu samples
+                    bestDimuons = {}
+                    if len(sortedMuons) == 3:
+                        self.HISTS['nMatch3'].Fill(pTCut)
+
+                        # I have not overwritten bestDimuon yet. It's still the HPD.
+                        if bestDimuon is not None:
+                            bestDimuons['HPD3'] = (bestDimuon.ID,)
+                        else:
+                            bestDimuons['HPD3'] = []
+                        # Chi2 among all dimuons
+                        bestDimuons['Chi23'] = (sortedDimuons[0].ID,)
+
+                        for tag in ('Chi2', 'HPD'):
+                            if matchedDimuon.ID in bestDimuons[tag+'3']:
+                                self.HISTS['nCorrect'+tag+'3'].Fill(pTCut)
+
+                    elif len(sortedMuons) >= 4:
+                        self.HISTS['nMatch4'].Fill(pTCut)
+
+                        highestPTMuons = sortedMuons[:4]
+                        highestIndices = [mu.idx for mu in highestPTMuons]
+                        bestDimuons['HPD'] = {d.ID:d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices}
+
+                        pairings = {}
+                        for tag in ('HPD',):
+                            pairings[tag] = []
+                            dimuonList = bestDimuons[tag].values()
+                            for dim1 in dimuonList:
+                                for dim2 in dimuonList:
+                                    if dim1.ID == dim2.ID: continue
+                                    muonIDs = set(dim1.ID+dim2.ID)
+                                    if len(muonIDs) == 4:
+                                        pairings[tag].append((dim1, dim2))
+
+                        def AMD(pairing): return abs(pairing[0].mass-pairing[1].mass)
+                        def FMD(pairing): return abs(pairing[0].mass-pairing[1].mass)/(pairing[0].mass+pairing[1].mass)
+                        def C2S(pairing): return pairing[0].normChi2+pairing[1].normChi2
+
+                        functions = {'AMD4':AMD, 'C2S4':C2S}
+
+                        # if there are pairings, use sortedPairings[0]
+                        for tag in ('HPD',):
+                            if len(pairings[tag]) > 0:
+
+                                for fkey in functions:
+                                    sortedPairings = sorted(pairings[tag], key=functions[fkey])
+                                    bestDimuons[fkey] = []
+                                    if len(sortedPairings) > 0:
+                                        for dim in sortedPairings[0]:
+                                            bestDimuons[fkey].append(dim.ID)
+
+                            else:
+                                for fkey in functions:
+                                    bestDimuons[fkey] = []
+
+                        # I have not overwritten bestDimuon yet. It's still the HPD.
+                        if bestDimuon is not None:
+                            bestDimuons['HPD4'] = (bestDimuon.ID,)
+                        else:
+                            bestDimuons['HPD4'] = []
+                        # Chi2 among all dimuons
+                        bestDimuons['Chi24'] = (sortedDimuons[0].ID,)
+                        # Chi2 among HPDs only
+                        if len(bestDimuons['HPD']) > 0:
+                            bestDimuons['LCD4'] = (sorted(bestDimuons['HPD'].values(), key=lambda dim: dim.normChi2)[0].ID,)
+                        else:
+                            bestDimuons['LCD4'] = []
+
+                        for tag in ('Chi2', 'HPD', 'LCD', 'AMD', 'C2S'):
+                            if matchedDimuon.ID in bestDimuons[tag+'4']:
+                                self.HISTS['nCorrect'+tag+'4'].Fill(pTCut)
+
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

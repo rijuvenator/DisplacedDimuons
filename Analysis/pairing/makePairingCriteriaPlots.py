@@ -19,24 +19,38 @@ VALS = (
     ('nCorrectHPD'    , 'N(HPD)'               , 'eff. by HPD'    , R.kGreen  ,),
     ('nCorrectHPD-OC' , 'N(HPD+O.C.)'          , 'eff. by HPD+OC' , R.kMagenta,),
     ('nCorrectHPD-LCD', 'N(HPD+LCD)'           , 'eff. by HPD+LCD', R.kOrange ,),
+
     ('nMatch4'        , 'N(2 matched)'         , 'sig. eff (2)'   , R.kRed    ,),
     ('nCorrectHPD-AMD', 'N(HPD+AMD)'           , 'eff. by HPD+AMD', R.kGreen  ,),
     ('nCorrectHPD-FMD', 'N(HPD+FMD)'           , 'eff. by HPD+FMD', R.kMagenta,),
     ('nCorrectHPD-C2S', 'N(HPD+#Sigma#chi^{2})', 'eff. by HPD+C2S', R.kBlue   ,),
+
+    ('nMatch3'        , 'N(matched), 3#mu'     , 'sig. eff (3)'   , R.kRed    ,),
+    ('nCorrectChi23'  , 'N(LCD)'               , 'eff. by LCD'    , R.kBlue   ,),
+    ('nCorrectHPD3'   , 'N(HPD)'               , 'eff. by HPD'    , R.kGreen  ,),
+
+    ('nMatch4'        , 'N(matched), 4#mu'     , 'sig. eff (4)'   , R.kRed    ,),
+    ('nCorrectChi24'  , 'N(LCD)'               , 'eff. by LCD'    , R.kBlue   ,),
+    ('nCorrectHPD4'   , 'N(HPD)'               , 'eff. by HPD'    , R.kGreen  ,),
+    ('nCorrectC2S4'   , 'N(C2S)'               , 'eff. by C2S'    , R.kMagenta,),
+    ('nCorrectAMD4'   , 'N(AMD)'               , 'eff. by AMD'    , R.kOrange ,),
 )
+# nMatch4 is overwritten, be careful for 4mu
 CONFIG = {}
 for VAL in VALS:
     CONFIG[VAL[0]] = dict(zip(HEADERS,VAL))
 
 TAGS = {
-    '2Mu2J' : ('nMatch', 'nCorrectChi2', 'nCorrectHPD'),
-    '4Mu'   : ('nMatch', 'nCorrectChi2', 'nCorrectHPD', 'nCorrectHPD-OC', 'nCorrectHPD-LCD'),
-    '4MuPC' : ('nMatch4', 'nCorrectHPD-AMD', 'nCorrectHPD-FMD', 'nCorrectHPD-C2S'),
+    '2Mu2J'  : ('nMatch', 'nCorrectChi2', 'nCorrectHPD'),
+    '4Mu'    : ('nMatch', 'nCorrectChi2', 'nCorrectHPD', 'nCorrectHPD-OC', 'nCorrectHPD-LCD'),
+    '4MuPC'  : ('nMatch4', 'nCorrectHPD-AMD', 'nCorrectHPD-FMD', 'nCorrectHPD-C2S'),
+    '2Mu2J4' : ('nMatch4', 'nCorrectChi24'  , 'nCorrectHPD4'   , 'nCorrectC2S4', 'nCorrectAMD4'),
+    '2Mu2J3' : ('nMatch3', 'nCorrectChi23'  , 'nCorrectHPD3'),
 }
 
-def makePTCutPlot(fs, sp=None, PC=False):
+def makePTCutPlot(fs, sp=None, PC=False, extra=''):
     # configy type stuff
-    tags = TAGS[ARGS.FS + ('' if not PC else 'PC')]
+    tags = TAGS[ARGS.FS + ('' if not PC else 'PC') + extra]
     legs = [CONFIG[tag]['LEG_H'] for tag in tags]
     cols = [CONFIG[tag]['COL'  ] for tag in tags]
 
@@ -73,11 +87,11 @@ def makePTCutPlot(fs, sp=None, PC=False):
     canvas.makeLegend(lWidth=.275, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/PC_Match{}_HTo2XTo{}_{}.pdf'.format('-PC' if PC else '', fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/PC_Match{}{}_HTo2XTo{}_{}.pdf'.format('-PC' if PC else '', extra, fs, SPStr(sp) if sp is not None else 'Global'))
 
-def makePTCutEffPlot(fs, sp=None, PC=False):
+def makePTCutEffPlot(fs, sp=None, PC=False, extra=''):
     # configy type stuff
-    tags = TAGS[ARGS.FS + ('' if not PC else 'PC')]
+    tags = TAGS[ARGS.FS + ('' if not PC else 'PC') + extra]
     legs = [CONFIG[tag]['LEG_EFF'] for tag in tags]
     cols = [CONFIG[tag]['COL'    ] for tag in tags]
 
@@ -116,6 +130,8 @@ def makePTCutEffPlot(fs, sp=None, PC=False):
         canvas.addMainPlot(p[tag])
     canvas.firstPlot.SetMaximum(1.01)
     canvas.firstPlot.SetMinimum(0.90 if ARGS.FS == '2Mu2J' else 0.50)
+    if ARGS.FS == '2Mu2J' and extra != '':
+        canvas.firstPlot.SetMinimum(0.)
     #canvas.setMaximum()
     #canvas.setMinimum()
 
@@ -124,15 +140,19 @@ def makePTCutEffPlot(fs, sp=None, PC=False):
         p[tag].setColor(cols[i])
 
     # legend, cleanup
-    canvas.makeLegend(lWidth=.275, pos='br')
-    canvas.legend.resizeHeight()
-    # hack for getting the legend in the right spot for 1000 and 400, as it turns out
-    if sp is not None and sp[0] > 399:
-        canvas.legend.moveLegend(X=-.35)
+    if extra == '':
+        canvas.makeLegend(lWidth=.275, pos='br')
+        canvas.legend.resizeHeight()
+        # hack for getting the legend in the right spot for 1000 and 400, as it turns out
+        if sp is not None and sp[0] > 399:
+            canvas.legend.moveLegend(X=-.35)
+        else:
+            canvas.legend.moveLegend(Y=.2)
     else:
-        canvas.legend.moveLegend(Y=.2)
+        canvas.makeLegend(lWidth=.275, pos='tr')
+        canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/PC_MatchEff{}_HTo2XTo{}_{}.pdf'.format('-PC' if PC else '', fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/PC_MatchEff{}{}_HTo2XTo{}_{}.pdf'.format('-PC' if PC else '', extra, fs, SPStr(sp) if sp is not None else 'Global'))
 
 def makeMultiplicityPlots(fs, sp):
     if ARGS.FS == '4Mu': return
@@ -320,12 +340,19 @@ def makeSummaryPlot(fs, quantity='Match', reverseCuts=False, PC=False):
     canvas.cleanup('pdfs/PC_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
 
 for fs in (ARGS.FS,):
-    for sp in [None] + SIGNALPOINTS:
-        makeMultiplicityPlots(fs, sp)
-        for PC in (False, True):
-            makePTCutPlot(fs, sp, PC)
-            makePTCutEffPlot(fs, sp, PC)
-    if True:
+    #for sp in [None] + SIGNALPOINTS:
+    for sp in [None]:
+        #makeMultiplicityPlots(fs, sp)
+        #for PC in (False, True):
+        #    if PC and fs == '2Mu2J': continue
+        #    makePTCutPlot(fs, sp, PC)
+        #    makePTCutEffPlot(fs, sp, PC)
+        for extra in ('3', '4'):
+            if fs != '2Mu2J': continue
+            makePTCutPlot(fs, sp, extra=extra)
+            makePTCutEffPlot(fs, sp, extra=extra)
+
+    if False:
         makeSummaryPlot(fs, quantity='Match'         , reverseCuts=False        )
     if fs == '4Mu':
         makeSummaryPlot(fs, quantity='CorrectChi2'   , reverseCuts=True         )
