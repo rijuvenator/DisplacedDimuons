@@ -35,7 +35,7 @@ VALS = (
     ('nCorrectC2S4'   , 'N(C2S)'               , 'eff. by C2S'    , R.kMagenta,),
     ('nCorrectAMD4'   , 'N(AMD)'               , 'eff. by AMD'    , R.kOrange ,),
 )
-# nMatch4 is overwritten, be careful for 4mu
+# nMatch4 is overwritten, be careful for 4mu -- it won't work right now!!
 CONFIG = {}
 for VAL in VALS:
     CONFIG[VAL[0]] = dict(zip(HEADERS,VAL))
@@ -340,13 +340,12 @@ def makeSummaryPlot(fs, quantity='Match', reverseCuts=False, PC=False):
     canvas.cleanup('pdfs/PC_{}EffSummary_HTo2XTo{}_Global.pdf'.format(quantity, fs))
 
 for fs in (ARGS.FS,):
-    #for sp in [None] + SIGNALPOINTS:
-    for sp in [None]:
-        #makeMultiplicityPlots(fs, sp)
-        #for PC in (False, True):
-        #    if PC and fs == '2Mu2J': continue
-        #    makePTCutPlot(fs, sp, PC)
-        #    makePTCutEffPlot(fs, sp, PC)
+    for sp in [None] + SIGNALPOINTS:
+        makeMultiplicityPlots(fs, sp)
+        for PC in (False, True):
+            if PC and fs == '2Mu2J': continue
+            makePTCutPlot(fs, sp, PC)
+            makePTCutEffPlot(fs, sp, PC)
         for extra in ('3', '4'):
             if fs != '2Mu2J': continue
             makePTCutPlot(fs, sp, extra=extra)

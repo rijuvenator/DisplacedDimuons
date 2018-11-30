@@ -227,8 +227,7 @@ def makeSummaryPlot(fs):
     canvas.cleanup('pdfs/3Mu_MatchEffSummary_HTo2XTo{}_Global.pdf'.format(fs))
 
 for fs in ('4Mu',):
-    #for sp in [None] + SIGNALPOINTS:
-    for sp in [None]:
+    for sp in [None] + SIGNALPOINTS:
         for quantity in QUANTITIES:
             makeEffPlot(quantity, 'MSD', fs, sp)
             makeEffPlot(quantity, 'LCD', fs, sp)
