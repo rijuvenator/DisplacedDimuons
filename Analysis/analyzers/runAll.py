@@ -165,7 +165,7 @@ if len(EXTRA) > 0:
 # Some format specifiers are global; otherwise ARGS will be set during the loop + format
 submitScript = '''
 #!/bin/bash
-#export X509_USER_PROXY=/afs/cern.ch/user/a/adasgupt/x509up_u79337
+#export X509_USER_PROXY=/afs/cern.ch/user/{USER_INITIAL}/{USER}/x509up_u79337
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
 cd DisplacedDimuons/Analysis/{FOLDER}

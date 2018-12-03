@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **25 October 2018**
+Last updated: **3 December 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -142,7 +142,10 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * locally with GNU `parallel` (given the optional parameter `--local`)
   * to the HEPHY batch system (given the optional parameter `--hephy`)
 
-There is a `--condor` parameter for submitting to CONDOR, but the functionality doesn't seem to be working just yet.
+The `--condor` parameter is used for submitting jobs to CONDOR (which works on lxplus). See the "CONDOR submission workflow for analyzers" example below for a demonstration of CONDOR usage.
+
+Additional parameter:
+  * `--flavour <FLAVOUR>`, with a suitable CONDOR queue name ("flavour") that specifies the maximally-allowed CPU time per job. Can be one of `espresso` (20min), **`microcentury`** (1h; the default value in this framework), `longlunch` (2h), `workday` (8h), `tomorrow` (1d), `testmatch` (3d), `nextweek` (1w)
 
 The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
@@ -175,6 +178,33 @@ python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
 The `--one` parameter is for testing batch submissions by just submitting one job of the given sample types.
 
 The `--extra` parameter should be passed last, if at all. It is for passing any additional arguments to the _Analyzer_ script, e.g. `--trigger` or `--cuts`. Everything after `--extra` will be passed directly to the given _Analyzer_, except that all instances of `__` will be replaced with `--`. This is necessary because if they are passed with `--`, the parser in _runAll.py_ will interpret them as options for itself, rather than additional options for the _Analyzer_. To do: this can probably be improved by requiring that the parameter be a single quoted string, but it works for now.
+
+### CONDOR submission workflow for analyzers
+
+The following example suggests a workflow that can be used to run own analyzers on data samples using CONDOR. It demonstrates the combined use of many of the parameters described in this section.
+
+```
+# Run your own analysis script ("myAnalyzer.py") on signal, background and data
+# samples on CONDOR (using the "longlunch" queue) and passing custom arguments
+# to the analyzer
+python runAll.py myAnalyzer.py --samples S2BD --condor --flavour longlunch \
+  --extra __cutstring MySelectionString
+
+# monitor the submission status with `condor_q` and wait until all jobs have finished
+
+# Check which jobs have failed due to exceeding CPU Wall time (other errors are
+# not captured at this time)
+python getFailedCondorJobs.py
+
+# If there are failed jobs, the output might look like this:
+# 1 removed jobs found:
+#  run1/myAnalyzer_496
+#
+#  myAnalyzer.py --name DoubleMuonRun2016H-07Aug17 --splitting 50000 63
+
+# Run the failed job again locally before hadding all the new output files
+python myAnalyzer.py --name DoubleMuonRun2016H-07Aug17 --splitting 50000 63
+```
 
 <a name="plotters"></a>
 ## Plotters
