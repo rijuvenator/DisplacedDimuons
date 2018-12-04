@@ -8,7 +8,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 #### GLOBAL CONFIGURATION PARAMETERS ####
 #########################################
 
-# 7 + 136 + 72 = 215 background jobs
+# 8 + 136 + 72 = 216 background jobs
 BGSampleList = (
     ('DY10to50'     , None        ),
     ('WJets'        , None        ),

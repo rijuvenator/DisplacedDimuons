@@ -346,11 +346,12 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAll
 
     # return structure
     # if no triggering pair was found, this dictionary will be empty, otherwise keys are (i,j) indices of HLTMuons
-    # HLTMuonMatches['matchFound'] is True if 2 DSA muons matched 2 HLTMuons below given threshold (default 0.3)
+    # HLTMuonMatches['matchFound'] is True if 2 DSA muons matched 2 HLTMuons below given threshold (default 0.4)
     # HLTMuonMatches['bestMatches'] is a list of 0-2 match dictionaries containing hlt_idx, rec_idx (a.k.a. oIdx), and deltaR
     # If saveDeltaR is True, this list may contain deltaR values > threshold; otherwise, it definitely won't
     # To get the two closest deltaR's regardless of threshold, e.g., do matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=True)
     # Then do: for match in HLTMuonMatches['bestMatches']: dR = match['deltaR'] (can fill a histogram)
+    # Of course, to check if there are any matches at all, simply do any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches])
     return HLTMuonMatches
 
 def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, threshold=0.2, doDimuons=True):

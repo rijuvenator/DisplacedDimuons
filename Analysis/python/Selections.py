@@ -59,20 +59,20 @@ CUTS = {
     'a_eta'      : Cut('a_eta'      , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
     'a_Lxy'      : Cut('a_Lxy'      , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
 
-### TEST RECO MUON CUTS ###
-    't_pT'       : Cut('t_pT'       , lambda muon: muon.pt                             , operator.gt,  15.      ),
-    't_eta'      : Cut('t_eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.4     ),
-    't_nMuonHits': Cut('t_nMuonHits', lambda muon: muon.nMuonHits                      , operator.ge,   1       ),
-    't_nStations': Cut('t_nStations', lambda muon: muon.nDTStations + muon.nCSCStations, operator.ge,   1       ),
+### BASELINE RECO MUON CUTS ###
+    'b_nStations': Cut('b_nStations', lambda muon: muon.nCSCStations+muon.nDTStations  , operator.gt,   1       ),
+    'b_nMuonHits': Cut('b_nMuonHits', lambda muon: muon.nCSCHits+muon.nDTHits          , operator.gt,  12       ),
+    'b_FPTE'     : Cut('b_FPTE'     , lambda muon: muon.ptError/muon.pt                , operator.lt,   1.      ),
+    'b_pT'       : Cut('b_pT'       , lambda muon: muon.pt                             , operator.gt,  10.      ),
 
 }
 
 # CutLists for access convenience (and ordering)
 CutLists = {
-    'MuonCutList'      : ('pT', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
-    'DimuonCutList'    : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
-    'AcceptanceCutList': ('a_pT', 'a_eta', 'a_Lxy'),
-    'TestMuonCutList'  : ('t_pT', 't_eta', 't_nMuonHits', 't_nStations'),
+    'MuonCutList'         : ('pT', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
+    'DimuonCutList'       : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
+    'AcceptanceCutList'   : ('a_pT', 'a_eta', 'a_Lxy'),
+    'BaselineMuonCutList' : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
 }
 for prefix in ('Muon', 'Dimuon'):
     CutLists[prefix+'CutListPlusAll' ] =             CutLists[prefix+'CutList'] + ('all',)
@@ -106,6 +106,7 @@ PrettyTitles = {
 # This will set self.cutList to be the list, and self.cutListKey to be the CutLists key if it exists
 # Then initialize a results dictionary
 # The object acts as a bool, returning the full AND of cuts, or can be accessed with [] for a particular cut
+# In case one would like the AND of a list of cuts, an allOf function is provided
 # In case one would like all the cuts except some subset, an allExcept function is provided
 # The object can also update a dictionary of counts that is passed to it with the *Increment functions
 #   IndividualIncrement increments everything in the results dictionary, as well as all
@@ -156,6 +157,9 @@ class Selection(object):
 
     def allExcept(self, *omittedCutKeys):
         return all([self.results[key] for key in self.cutList if key not in omittedCutKeys])
+
+    def allOf(self, *requiredCutKeys):
+        return all([self.results[key] for key in requiredCutKeys])
 
 # MuonSelection object, derives from Selection using the MuonCutList as default
 # input is a RecoMuon

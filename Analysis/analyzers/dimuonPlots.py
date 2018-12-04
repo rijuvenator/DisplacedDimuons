@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
@@ -80,12 +80,31 @@ def analyze(self, E, PARAMS=None):
         pass
 
     # decide what set of cuts to apply based on self.CUTS cut string
-    ALL = True if 'All' in self.CUTS else False
-    PROMPT = True if '_Prompt' in self.CUTS else False
-    NOPROMPT = True if '_NoPrompt' in self.CUTS else False
-    NSTATIONS = True if '_NS' in self.CUTS else False
-    NMUONHITS = True if '_NH' in self.CUTS else False
-    FPTERR = True if '_FPTE' in self.CUTS else False
+    ALL       = 'All'       in self.CUTS
+    PROMPT    = '_Prompt'   in self.CUTS
+    NOPROMPT  = '_NoPrompt' in self.CUTS
+    NSTATIONS = '_NS'       in self.CUTS
+    NMUONHITS = '_NH'       in self.CUTS
+    FPTERR    = '_FPTE'     in self.CUTS
+    PT        = '_PT'       in self.CUTS
+    HLT       = '_HLT'      in self.CUTS
+
+    if HLT:
+        HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+        HLTMuonMatches = matchedTrigger(HLTMuons, DSAmuons)
+        if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
+
+    def boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
+        cutList = []
+        if NSTATIONS:
+            cutList.append('b_nStations')
+        if NMUONHITS:
+            cutList.append('b_nMuonHits')
+        if FPTERR:
+            cutList.append('b_FPTE')
+        if PT:
+            cutList.append('b_pT')
+        return cutList
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
     if ALL:
@@ -103,21 +122,22 @@ def analyze(self, E, PARAMS=None):
                 break
         if highLxySigExists:
             return
-        if NSTATIONS and not NMUONHITS:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and not FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        else:
+
+        # compute all the baseline selection booleans
+        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
+
+        # figure out which cuts we actually care about
+        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
+
+        # no selection
+        if len(cutList) == 0:
             selectedDSAmuons = DSAmuons
             selectedDimuons  = Dimuons
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        else:
+            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
     # return if there are NO LxySig > 3 -- that's category 1
     elif NOPROMPT:
@@ -128,21 +148,22 @@ def analyze(self, E, PARAMS=None):
                 break
         if not highLxySigExists:
             return
-        if NSTATIONS and not NMUONHITS:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and not FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        else:
+
+        # compute all the baseline selection booleans
+        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
+
+        # figure out which cuts we actually care about
+        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
+
+        # no selection
+        if len(cutList) == 0:
             selectedDSAmuons = DSAmuons
             selectedDimuons  = Dimuons
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        else:
+            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
     # no cuts
     else:
