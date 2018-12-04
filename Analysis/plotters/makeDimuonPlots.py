@@ -59,7 +59,7 @@ def makePerSamplePlots():
 
 # make stack plots
 def makeStackPlots(DataMC=False, logy=False):
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
         if 'VS' in hkey: continue
@@ -234,7 +234,7 @@ def makeSplitDeltaPhiPlots():
 # make split delta phi plots
 # this function is a combination of the stack plot code and the split delta phi code
 def makeSplitDeltaPhiStackPlots(logy=False):
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
         if 'VSdeltaPhi' not in hkey: continue
