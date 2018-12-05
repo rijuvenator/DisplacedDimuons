@@ -286,7 +286,7 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAll
             mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
 
             # found a pair of muons that fired; now look for closest DSA muons
-            if mass > 10. and angle < 2.5:
+            if mass > 9.99996 and angle < 2.5:
                 HLTMuonMatches[(i, j)] = {}
                 # find all the matching DSA muons, sort them by deltaR...
                 matches = []
@@ -339,7 +339,7 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAll
             else:
                 if nHLT == 2:
                     print "+++ Warning in matchedTrigger: inconsistency in the trigger +++"
-                    print "found single online dimuon with mass = ", invm, "and angle =", angle
+                    print "found single online dimuon with mass = ", mass, "and angle =", angle
                     print "hlt_idxs: ", i, j, "; list of HLT muons:"
                     for hltmuon in HLTMuons:
                         print(hltmuon)
