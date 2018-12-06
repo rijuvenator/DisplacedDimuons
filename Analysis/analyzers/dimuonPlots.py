@@ -3,7 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
@@ -86,8 +86,9 @@ def analyze(self, E, PARAMS=None):
     NSTATIONS = '_NS'       in self.CUTS
     NMUONHITS = '_NH'       in self.CUTS
     FPTERR    = '_FPTE'     in self.CUTS
-    PT        = '_PT'       in self.CUTS
     HLT       = '_HLT'      in self.CUTS
+    PT        = '_PT'       in self.CUTS
+    PC        = '_PC'       in self.CUTS
 
     if HLT:
         HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
@@ -139,6 +140,9 @@ def analyze(self, E, PARAMS=None):
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
+        if PC:
+            selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
+
     # return if there are NO LxySig > 3 -- that's category 1
     elif NOPROMPT:
         highLxySigExists = False
@@ -164,6 +168,9 @@ def analyze(self, E, PARAMS=None):
             selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
+        if PC:
+            selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
 
     # no cuts
     else:

@@ -158,7 +158,7 @@ def makeGenRecoPlots():
         colors = {'Matched':R.kRed, 'Closest':R.kBlue}
         KEYS = ('Matched', 'Closest')
 
-        for MUON in ('DSA', 'RSA', 'REF'):
+        for MUON in ('DSA', 'REF'):
             h, p = {}, {}
             for key in KEYS:
                 h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()

@@ -400,6 +400,74 @@ def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, thres
 
     return realMatches, dimuonMatches, muon0Matches, muon1Matches
 
+# apply the pairing criteria recipe developed in the pairing criteria study
+# returns a list of 0, 1, or 2 dimuons, based on how many muons there are and the result of applying the recipe
+def applyPairingCriteria(muons, dimuons, doAMD=False):
+    # get the list of relevant dimuons
+    selectedOIndices = [mu.idx for mu in muons]
+    selectedDimuons  = [dim for dim in dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
+    # if there are any dimuons at all, there had to be >= 2 muons
+    # if there's 2, just return the one dimuon that was made
+    # if there's 3, return the dimuon with the lowest vertex chi^2/dof
+    # if there's 4, find all pairs of dimuons, sort the pairs by chi^2/dof sum, and return the lowest one (2 dimuons)
+    # with optional doAMD mode, return the lowest pair by mass difference instead if both dimuons have Lxy < 30 cm
+    # if there were no pairings with 4 muons, treat it like a 3 muon case
+    if len(selectedDimuons) > 0:
+        if   len(muons) == 2:
+            return selectedDimuons[0:1]
+        elif len(muons) == 3:
+            return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
+        elif len(muons) >= 4:
+            highestPTMuons = sorted(muons, key=lambda mu: mu.pt, reverse=True)[:4]
+            highestIndices = [mu.idx for mu in highestPTMuons]
+            HPDs = [d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
+
+            # find all unique non-overlapping pairs of dimuons
+            pairings = []
+            for dim1 in HPDs:
+                for dim2 in HPDs:
+                    if dim1.ID == dim2.ID: continue
+                    muonIDs = set(dim1.ID+dim2.ID)
+                    if len(muonIDs) == 4:
+                        pairings.append((dim1, dim2))
+
+            def C2S(pairing): return pairing[0].normChi2+pairing[1].normChi2
+            def AMD(pairing): return abs(pairing[0].mass-pairing[1].mass)
+
+            funcs = {'C2S':C2S, 'AMD':AMD}
+
+            # sort the pairings by a pairing criteria
+            if len(pairings) > 0:
+                candidateBestDimuons = {fkey:{} for fkey in funcs}
+                sortedPairings = {}
+                for fkey in funcs:
+                    sortedPairings[fkey] = sorted(pairings, key=funcs[fkey])
+                    for d in sortedPairings[fkey][0]:
+                        candidateBestDimuons[fkey][d.ID] = d
+
+                # try to use AMD for low Lxy
+                if doAMD:
+                    dims = candidateBestDimuons['AMD'].values()
+                    if dims[0].Lxy() < 30. and dims[1].Lxy() < 30.:
+                        bestDimuons = candidateBestDimuons['AMD']
+                    else:
+                        bestDimuons = candidateBestDimuons['C2S']
+                else:
+                    bestDimuons = candidateBestDimuons['C2S']
+                return bestDimuons.values()
+
+            # if there were NO pairings, there had to have been <=3 dimuons
+            # because any 4 dimuons can always make at least 1 pair
+            # this means 1 of the 4 muons formed no dimuons at all
+            # so treat this case like the 3 mu case
+            else:
+                return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
+
+    # there weren't any dimuons so return an empty list
+    else:
+        return []
+
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
     PBi = R.TMath.BetaIncomplete(1./(1.+tau),nOn,nOff+1)

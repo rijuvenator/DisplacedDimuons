@@ -64,12 +64,13 @@ if False:
         ('NoPrompt', '_MCOnly'  ),
     )
     MCBGCutsets = (
-        ''                  ,
-        '_NS'               ,
-        '_NS_NH'            ,
-        '_NS_NH_FPTE'       ,
-        '_NS_NH_FPTE_HLT'   ,
-        '_NS_NH_FPTE_HLT_PT',
+        ''                     ,
+        '_NS'                  ,
+        '_NS_NH'               ,
+        '_NS_NH_FPTE'          ,
+        '_NS_NH_FPTE_HLT'      ,
+        '_NS_NH_FPTE_HLT_PT'   ,
+        '_NS_NH_FPTE_HLT_PT_PC',
     )
     for ftagroot in FTAGS:
         ftag   = ftagroot+'Plots'
