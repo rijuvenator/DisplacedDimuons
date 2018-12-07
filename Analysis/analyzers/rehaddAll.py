@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import os, argparse, glob
 import subprocess as bash
 from DisplacedDimuons.Common.Utilities import SPStr

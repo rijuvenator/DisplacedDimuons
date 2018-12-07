@@ -141,6 +141,56 @@ def makeStackPlot(key, colorAxis, fs, sp):
 
     canvas.cleanup('pdfs/RA_{}-{}{}_HTo2XTo{}_{}.pdf'.format('StackMu' if colorAxis=='nMuons' else 'StackEff', key, ARGS.CUTSTRING, fs, sp if sp is not None else 'Global'))
 
+def makeLxyEffPlot(key, colorAxis, fs, sp):
+
+    config = {
+        'Correct' : ('Correct', 'Matches' ),
+    }
+    if colorAxis == 'nMuons':
+        num, den = config[key]
+
+        nums = ['Lxy_n'+num+'_'+m for m in mnames]
+        dens = ['Lxy_n'+den+'_'+m for m in mnames]
+        tags = list(set(nums + dens))
+        legs = {num:m if 'All' in m else m+' #mu' for num,m in zip(nums,mnames)}
+        cols = {num:c for num,c in zip(nums,colors)}
+
+    if sp is None:
+        h = {}
+        for tag in tags:
+            h[tag] = HistogramGetter.getHistogram(f, (fs, SIGNALPOINTS[0]), tag).Clone()
+        for SP in SIGNALPOINTS[1:]:
+            for tag in tags:
+                h[tag].Add(HistogramGetter.getHistogram(f, (fs, SP), tag))
+    else:
+        h = {}
+        for tag in tags:
+            h[tag] = HistogramGetter.getHistogram(f, (fs, sp), tag).Clone()
+
+    for z in h:
+        h[z].Rebin(10)
+
+    p = {}
+    graphs = {}
+    for num, den in zip(nums,dens):
+        realDen = h[den].Clone()
+        graphs[num] = R.TGraphAsymmErrors(h[num], realDen, 'cp')
+        p     [num] = Plotter.Plot(graphs[num], legs[num], 'l', 'px')
+
+    canvas = Plotter.Canvas(lumi=SPLumiStr(fs, sp) if sp is not None else fs)
+    for tag in nums:
+        canvas.addMainPlot(p[tag])
+    canvas.firstPlot.SetMaximum(1.01)
+    canvas.firstPlot.SetMinimum(0.)
+    canvas.firstPlot.setTitles(X=h[tags[0]].GetXaxis().GetTitle(), Y='Efficiency')
+    for tag in p:
+        p[tag].setColor(cols[tag], which='LM')
+
+    canvas.makeLegend(lWidth=.275, pos='tr')
+    canvas.legend.resizeHeight()
+
+    canvas.cleanup('pdfs/RA_{}-Lxy-{}{}_HTo2XTo{}_{}.pdf'.format('ComboMu' if colorAxis=='nMuons' else 'ComboEff', key, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+
 for fs in ('4Mu', '2Mu2J'):
     for sp in [None] + SIGNALPOINTS:
         for key in keysM:
@@ -151,3 +201,5 @@ for fs in ('4Mu', '2Mu2J'):
             makeStackPlot(key, 'nMuons', fs, sp)
         for key in mnames:
             makeStackPlot(key, 'Eff', fs, sp)
+
+        if fs == '2Mu2J': makeLxyEffPlot('Correct', 'nMuons', fs, sp)

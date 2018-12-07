@@ -21,6 +21,9 @@ def declareHistograms(self, PARAMS=None):
             key = 'n'+quantity+'_'+nMuons
             self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
 
+            if quantity not in ('Matches', 'Correct'): continue
+            self.HistInit('Lxy_'+key, ';L_{xy} [cm];Counts', 800, 0., 800.)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.SP is None:
@@ -123,6 +126,7 @@ def analyze(self, E, PARAMS=None):
                 for genPairIndex, dimuonMatches in realMatches.iteritems():
                     if len(dimuonMatches) > 0:
                         self.fillHist(nMuons, 'Matches', pTCut)
+                        self.fillLxyHist(nMuons, 'Matches', pTCut, genMuonPairs[genPairIndex][0].Lxy())
 
                         # best matched dimuon
                         matchedDimuon = dimuonMatches['dim']
@@ -134,17 +138,20 @@ def analyze(self, E, PARAMS=None):
                             bestDimuon = selectedDimuons[0]
                             if matchedDimuon.ID == bestDimuon.ID:
                                 self.fillHist(nMuons, 'Correct', pTCut)
+                                self.fillLxyHist(nMuons, 'Correct', pTCut, genMuonPairs[genPairIndex][0].Lxy())
 
                         # if we have 3 muons, take the dimuon with the lowest chi^2/dof
                         elif len(selectedMuons) == 3:
                             bestDimuon = sortedDimuons[0]
                             if matchedDimuon.ID == bestDimuon.ID:
                                 self.fillHist(nMuons, 'Correct', pTCut)
+                                self.fillLxyHist(nMuons, 'Correct', pTCut, genMuonPairs[genPairIndex][0].Lxy())
 
                         # if we have 4+ muons, take the pair of dimuons with the lowest sum of chi^2/dof
                         elif len(selectedMuons) >= 4:
                             if matchedDimuon.ID in bestDimuons:
                                 self.fillHist(nMuons, 'Correct', pTCut)
+                                self.fillLxyHist(nMuons, 'Correct', pTCut, genMuonPairs[genPairIndex][0].Lxy())
 
 def fillHist(self, nMuons, quantity, pTCut):
     if nMuons is None: return
@@ -156,6 +163,12 @@ def fillHist(self, nMuons, quantity, pTCut):
     else:
         self.HISTS['n'+quantity+'_'+nMuons].Fill(pTCut)
 
+def fillLxyHist(self, nMuons, quantity, pTCut, Lxy):
+    if nMuons is None: return
+    if pTCut != 0: return
+    self.HISTS['Lxy_n'+quantity+'_All'    ].Fill(Lxy)
+    self.HISTS['Lxy_n'+quantity+'_'+nMuons].Fill(Lxy)
+
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -166,7 +179,7 @@ if __name__ == '__main__':
     Analyzer.setSample(ARGS)
 
     # define Analyzer methods
-    for METHOD in ('analyze', 'declareHistograms', 'fillHist'):
+    for METHOD in ('analyze', 'declareHistograms', 'fillHist', 'fillLxyHist'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
 
     # declare analyzer

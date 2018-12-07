@@ -155,8 +155,16 @@ def analyze(self, E, PARAMS=None):
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
+        # apply pairing criteria and transform selectedDimuons
+        # also filter selectedDSAmuons to only be of those indices that are in the final dimuons
         if PC:
             selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
+            selectedOIndices = []
+            for dim in selectedDimuons:
+                selectedOIndices.append(dim.idx1)
+                selectedOIndices.append(dim.idx2)
+            selectedOIndices = list(set(selectedOIndices))
+            selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
 
     # return if there are NO LxySig > 3 -- that's category 1
     elif NOPROMPT:
@@ -184,8 +192,16 @@ def analyze(self, E, PARAMS=None):
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
             selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
+        # apply pairing criteria and transform selectedDimuons
+        # also filter selectedDSAmuons to only be of those indices that are in the final dimuons
         if PC:
             selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
+            selectedOIndices = []
+            for dim in selectedDimuons:
+                selectedOIndices.append(dim.idx1)
+                selectedOIndices.append(dim.idx2)
+            selectedOIndices = list(set(selectedOIndices))
+            selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
 
     # don't require reco muons to pass all selections
     else:
