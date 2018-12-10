@@ -50,6 +50,7 @@ parser.add_argument('--dirs'      , dest='DIRS'      , nargs='+', default=['tmp'
 parser.add_argument('--cutstrings', dest='CUTSTRINGS', nargs='+', default=[]                                                         )
 parser.add_argument('--suffix'    , dest='SUFFIX'    ,            default=''                                                         )
 parser.add_argument('--noPlots'   , dest='NOPLOTS'   ,                                            action='store_true'                )
+parser.add_argument('--batch'     , dest='BATCH'     ,                                            action='store_true'                )
 ARGS = parser.parse_args()
 
 # for convenience
@@ -78,52 +79,54 @@ if not ARGS.NOPLOTS:
     TAGS = [t+'Plots' for t in TAGS]
 
 # make sure this is what is desired
-if MODE == 'split':
-    FOLDER = '' if len(DIRS) < 2 else DIRS[1]
-    answer = raw_input('''Will
+# don't if this is batch mode
+if not ARGS.BATCH:
+    if MODE == 'split':
+        FOLDER = '' if len(DIRS) < 2 else DIRS[1]
+        answer = raw_input('''Will
   cd to {}
   rehadd {}{} for {}
   move all _* to {}
 OK? [y/n] '''.format(
-        colstring('roots/'+FOLDER                        , col='blue'   ),
-        colstring(' '.join(ARGS.TAGS)                    , col='green'  ),
-        colstring(' (+Plots)' if not ARGS.NOPLOTS else '', col='red'    ),
-        colstring(' '.join(ARGS.SAMPLES)                 , col='teal'   ),
-        colstring(DIRS[0]                                , col='magenta'))
-    )
+            colstring('roots/'+FOLDER                        , col='blue'   ),
+            colstring(' '.join(ARGS.TAGS)                    , col='green'  ),
+            colstring(' (+Plots)' if not ARGS.NOPLOTS else '', col='red'    ),
+            colstring(' '.join(ARGS.SAMPLES)                 , col='teal'   ),
+            colstring(DIRS[0]                                , col='magenta'))
+        )
 
-elif MODE == 'move':
-    answer = raw_input('''Will
+    elif MODE == 'move':
+        answer = raw_input('''Will
   cd to {}
   for {}
   move all Data/MC/Signal to {}
 OK? [y/n] '''.format(
-        colstring('roots/'                 , col='blue' ),
-        colstring(' '.join(ARGS.TAGS)      , col='green'),
-        colstring(' '.join(ARGS.CUTSTRINGS), col='teal' ))
-    )
+            colstring('roots/'                 , col='blue' ),
+            colstring(' '.join(ARGS.TAGS)      , col='green'),
+            colstring(' '.join(ARGS.CUTSTRINGS), col='teal' ))
+        )
 
-elif MODE == 'rehadd':
-    answer = raw_input('''Will
+    elif MODE == 'rehadd':
+        answer = raw_input('''Will
   cd to {}
   get files from {}
   hadd {}{} with all of them
-  rename by adding {}
+  filename formed by adding {}
 OK? [y/n] '''.format(
-        colstring('roots/'                                         , col='blue'   ),
-        colstring(' '.join(ARGS.DIRS)                              , col='teal'   ),
-        colstring(' '.join(ARGS.TAGS)                              , col='green'  ),
-        colstring(' (+Plots)' if not ARGS.NOPLOTS else ''          , col='red'    ),
-        colstring(ARGS.SUFFIX if ARGS.SUFFIX != '' else '<nothing>', col='magenta'))
-    )
-if answer.lower() == 'y':
-    pass
-elif answer.lower() == 'n':
-    print 'OK, exiting now.'
-    exit()
-else:
-    print 'Please type y or n; exiting now.'
-    exit()
+            colstring('roots/'                                         , col='blue'   ),
+            colstring(' '.join(ARGS.DIRS)                              , col='teal'   ),
+            colstring(' '.join(ARGS.TAGS)                              , col='green'  ),
+            colstring(' (+Plots)' if not ARGS.NOPLOTS else ''          , col='red'    ),
+            colstring(ARGS.SUFFIX if ARGS.SUFFIX != '' else '<nothing>', col='magenta'))
+        )
+    if answer.lower() == 'y':
+        pass
+    elif answer.lower() == 'n':
+        print 'OK, exiting now.'
+        exit()
+    else:
+        print 'Please type y or n; exiting now.'
+        exit()
 
 # run the commands
 
@@ -194,10 +197,11 @@ elif MODE == 'rehadd':
         for dirs in DIRS:
             files.extend(glob.glob('{}/{}*'.format(dirs, tag)))
         msg('hadding {} with {}'.format(tag, ' '.join(DIRS)))
-        run(['hadd', tag+'.root'] + files)
+        fname = tag+'.root'
         if SUFFIX != '':
-            msg('renaming {} to {}'.format(tag+'.root', tag+'_'+SUFFIX+'.root'))
-            run(['mv', tag+'.root', tag+'_'+SUFFIX+'.root'])
+            msg('real file name {}'.format(tag+'_'+SUFFIX+'.root'))
+            fname = tag+'_'+SUFFIX+'.root'
+        run(['hadd', fname] + files)
 
 
 ''' EXAMPLE WORKFLOW
@@ -215,6 +219,7 @@ This will
   - since mcbg is given, the resulting root file will be moved
 
 Any remaining root files can be moved with mv *.root ~/DDAnalysis/roots/
+If a different set of samples is desired (e.g. NoPrompt with only bigMC), another command is required
 
 === MOVE ===
 
@@ -236,14 +241,13 @@ python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs {Data,MC}_Prompt
 This will
   - cd to roots/
   - gather all the files from Data_Prompt/ and MC_Prompt/
-  - hadd them together
-  - rename the file by adding _Prompt_NoSignal before the .root
+  - hadd them together, adding _Prompt_NoSignal before the .root
 
 This needs one command for each cutstring. So one should do for example:
 
-for cs in {NS,NS_{NH,NH_{FPTE,FPTE_{HLT,HLT_PT}}}}
+for cs in {NS,NS_{NH,NH_{FPTE,FPTE_{PT,PT_{HLT,HLT_PC}}}}}
 do
-    python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs {Data,MC}_Prompt_${cs} --suffix   Prompt_${cs}_NoSignal
-    python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs      MC_NoPrompt_${cs} --suffix NoPrompt_${cs}_MCOnly
+    python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs {Data,MC}_Prompt_${cs} --suffix   Prompt_${cs}_NoSignal --batch &
+    python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs      MC_NoPrompt_${cs} --suffix NoPrompt_${cs}_MCOnly   --batch &
 done
 '''

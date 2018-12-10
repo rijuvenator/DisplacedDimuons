@@ -68,9 +68,9 @@ if False:
         '_NS'                  ,
         '_NS_NH'               ,
         '_NS_NH_FPTE'          ,
-        '_NS_NH_FPTE_HLT'      ,
-        '_NS_NH_FPTE_HLT_PT'   ,
-        '_NS_NH_FPTE_HLT_PT_PC',
+        '_NS_NH_FPTE_PT'       ,
+        '_NS_NH_FPTE_PT_HLT'   ,
+        '_NS_NH_FPTE_PT_HLT_PC',
     )
     for ftagroot in FTAGS:
         ftag   = ftagroot+'Plots'

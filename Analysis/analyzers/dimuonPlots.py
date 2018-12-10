@@ -86,14 +86,9 @@ def analyze(self, E, PARAMS=None):
     NSTATIONS = '_NS'       in self.CUTS
     NMUONHITS = '_NH'       in self.CUTS
     FPTERR    = '_FPTE'     in self.CUTS
-    HLT       = '_HLT'      in self.CUTS
     PT        = '_PT'       in self.CUTS
+    HLT       = '_HLT'      in self.CUTS
     PC        = '_PC'       in self.CUTS
-
-    if HLT:
-        HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
-        HLTMuonMatches = matchedTrigger(HLTMuons, DSAmuons)
-        if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
 
     def boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
         cutList = []
@@ -105,6 +100,7 @@ def analyze(self, E, PARAMS=None):
             cutList.append('b_FPTE')
         if PT:
             cutList.append('b_pT')
+            cutList.append('b_eta')
         return cutList
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
@@ -114,68 +110,54 @@ def analyze(self, E, PARAMS=None):
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
         selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
 
-    # return if there are LxySig > 3
-    elif PROMPT:
-        highLxySigExists = False
-        for dimuon in Dimuons:
-            if dimuon.LxySig() > 3.:
-                highLxySigExists = True
-                break
-        if highLxySigExists:
-            return
-
-        # compute all the baseline selection booleans
-        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
-
-        # figure out which cuts we actually care about
-        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
-
-        # no selection
-        if len(cutList) == 0:
-            selectedDSAmuons = DSAmuons
-            selectedDimuons  = Dimuons
-        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        else:
-            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-
-        if PC:
-            selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
-
-    # return if there are NO LxySig > 3 -- that's category 1
-    elif NOPROMPT:
-        highLxySigExists = False
-        for dimuon in Dimuons:
-            if dimuon.LxySig() > 3.:
-                highLxySigExists = True
-                break
-        if not highLxySigExists:
-            return
-
-        # compute all the baseline selection booleans
-        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
-
-        # figure out which cuts we actually care about
-        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
-
-        # no selection
-        if len(cutList) == 0:
-            selectedDSAmuons = DSAmuons
-            selectedDimuons  = Dimuons
-        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        else:
-            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-
-        if PC:
-            selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
-
     # no cuts
     else:
         selectedDSAmuons = DSAmuons
         selectedDimuons  = Dimuons
+
+    # for PROMPT and NOPROMPT event selections
+    if PROMPT or NOPROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+
+        # return if there are LxySig > 3
+        if PROMPT:
+            if highLxySigExists:
+                return
+        # return if there are NO LxySig > 3 -- that's category 1
+        elif NOPROMPT:
+            if not highLxySigExists:
+                return
+
+    if PROMPT or NOPROMPT:
+        # compute all the baseline selection booleans
+        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
+
+        # figure out which cuts we actually care about
+        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
+
+        # no selection
+        if len(cutList) == 0:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        else:
+            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
+    # apply HLT RECO matching
+    if HLT:
+        HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+        HLTMuonMatches = matchedTrigger(HLTMuons, selectedDSAmuons)
+        if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
+
+    # apply pairing criteria and transform selectedDimuons
+    if PC:
+        selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if (PROMPT or NOPROMPT) and NSTATIONS:

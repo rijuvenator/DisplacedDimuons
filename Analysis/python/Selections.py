@@ -64,6 +64,7 @@ CUTS = {
     'b_nMuonHits': Cut('b_nMuonHits', lambda muon: muon.nCSCHits+muon.nDTHits          , operator.gt,  12       ),
     'b_FPTE'     : Cut('b_FPTE'     , lambda muon: muon.ptError/muon.pt                , operator.lt,   1.      ),
     'b_pT'       : Cut('b_pT'       , lambda muon: muon.pt                             , operator.gt,  10.      ),
+    'b_eta'      : Cut('b_eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
 
 }
 
@@ -72,7 +73,7 @@ CutLists = {
     'MuonCutList'         : ('pT', 'eta', 'normChi2', 'nMuonHits', 'nStations', 'd0Sig'),
     'DimuonCutList'       : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList'   : ('a_pT', 'a_eta', 'a_Lxy'),
-    'BaselineMuonCutList' : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
+    'BaselineMuonCutList' : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT', 'b_eta'),
 }
 for prefix in ('Muon', 'Dimuon'):
     CutLists[prefix+'CutListPlusAll' ] =             CutLists[prefix+'CutList'] + ('all',)
