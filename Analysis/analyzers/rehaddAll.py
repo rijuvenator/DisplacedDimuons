@@ -245,7 +245,7 @@ This will
 
 This needs one command for each cutstring. So one should do for example:
 
-for cs in {NS,NS_{NH,NH_{FPTE,FPTE_{PT,PT_{HLT,HLT_PC}}}}}
+for cs in {NS,NS_{NH,NH_{FPTE,FPTE_{PT,PT_{HLT,HLT_{PC,PC_{LXYE,LXYE_M}}}}}}}
 do
     python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs {Data,MC}_Prompt_${cs} --suffix   Prompt_${cs}_NoSignal --batch &
     python rehaddAll.py --mode rehadd --tags Dimuon RecoMuon --dirs      MC_NoPrompt_${cs} --suffix NoPrompt_${cs}_MCOnly   --batch &

@@ -112,13 +112,11 @@ def makeStackPlots(DataMC=False, logy=False, zoom=False):
 #       canvas.addMainPlot(p['Signal'])
 
         if 'Dim_mass' in hkey and zoom:
-            print hkey, zoom, CUTSTRING, MCONLY
             if True:
                 p['BG'].GetXaxis().SetRangeUser(0., 30.)
             if not MCONLY:
                 p['Data'].GetXaxis().SetRangeUser(0., 30.)
         if 'Dim_LxyErr' in hkey and zoom:
-            print hkey, zoom, CUTSTRING, MCONLY
             if True:
                 p['BG'].GetXaxis().SetRangeUser(90., 100.)
             if not MCONLY:

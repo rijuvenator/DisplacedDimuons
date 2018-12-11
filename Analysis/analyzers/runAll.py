@@ -86,10 +86,11 @@ elif args.LXBATCH: MODE = 'LXBATCH'
 elif args.HEPHY  : MODE = 'HEPHY'
 else             : MODE = 'CONDOR'
 
-# ensure that FOLDER/SCRIPT exists
-if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
-    print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}.'.format(**locals())
-    exit()
+# ensure that FOLDER/SCRIPT exists, if FILE is not given
+if args.FILE == '':
+    if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
+        print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}.'.format(**locals())
+        exit()
 
 # ensure that FLAVOUR/QUEUE is an acceptable value
 if   MODE == 'CONDOR':

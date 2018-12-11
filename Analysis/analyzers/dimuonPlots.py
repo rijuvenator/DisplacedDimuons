@@ -5,6 +5,7 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria
 
+
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 CONFIG = {
     'pT'      : {'AXES':(1500,      0., 1500.  ), 'LAMBDA': lambda dim: dim.pt                            , 'PRETTY':'p_{T} [GeV]'           },
@@ -89,8 +90,10 @@ def analyze(self, E, PARAMS=None):
     PT        = '_PT'       in self.CUTS
     HLT       = '_HLT'      in self.CUTS
     PC        = '_PC'       in self.CUTS
+    LXYERR    = '_LXYE'     in self.CUTS
+    MASS      = '_M'        in self.CUTS
 
-    def boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
+    def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
         cutList = []
         if NSTATIONS:
             cutList.append('b_nStations')
@@ -100,7 +103,14 @@ def analyze(self, E, PARAMS=None):
             cutList.append('b_FPTE')
         if PT:
             cutList.append('b_pT')
-            cutList.append('b_eta')
+        return cutList
+
+    def boolsToDimuonCutList(LXYERR, MASS):
+        cutList = []
+        if LXYERR:
+            cutList.append('b_LxyErr')
+        if MASS:
+            cutList.append('b_mass')
         return cutList
 
     # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
@@ -137,7 +147,7 @@ def analyze(self, E, PARAMS=None):
         DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
 
         # figure out which cuts we actually care about
-        cutList = boolsToCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
+        cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
 
         # no selection
         if len(cutList) == 0:
@@ -152,16 +162,37 @@ def analyze(self, E, PARAMS=None):
     # apply HLT RECO matching
     if HLT:
         HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
-        HLTMuonMatches = matchedTrigger(HLTMuons, selectedDSAmuons)
+        DSAMuonsForHLTMatch = [mu for mu in selectedDSAmuons if abs(mu.eta) < 2.]
+        HLTMuonMatches = matchedTrigger(HLTMuons, DSAMuonsForHLTMatch)
         if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
 
     # apply pairing criteria and transform selectedDimuons
     if PC:
         selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
 
+    if PROMPT or NOPROMPT:
+        # compute all the baseline selection booleans
+        DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
+
+        # figure out which cuts we actually care about
+        cutList = boolsToDimuonCutList(LXYERR, MASS)
+
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        if len(cutList) > 0:
+            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
+
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if (PROMPT or NOPROMPT) and NSTATIONS:
         if len(selectedDimuons) == 0: return
+
+    # also filter selectedDSAmuons to only be of those indices that are in the final dimuons
+    if PROMPT or NOPROMPT:
+        selectedOIndices = []
+        for dim in selectedDimuons:
+            selectedOIndices.append(dim.idx1)
+            selectedOIndices.append(dim.idx2)
+        selectedOIndices = list(set(selectedOIndices))
+        selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
 
     # fill histograms for every dimuon
     for dimuon in selectedDimuons:
