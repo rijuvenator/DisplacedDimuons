@@ -141,7 +141,7 @@ def makeStackPlot(key, colorAxis, fs, sp):
 
     canvas.cleanup('pdfs/RA_{}-{}{}_HTo2XTo{}_{}.pdf'.format('StackMu' if colorAxis=='nMuons' else 'StackEff', key, ARGS.CUTSTRING, fs, sp if sp is not None else 'Global'))
 
-def makeLxyEffPlot(key, colorAxis, fs, sp):
+def makeLxyEffPlot(key, colorAxis, fs, sp, pTCut=''):
 
     config = {
         'Correct' : ('Correct', 'Matches' ),
@@ -149,8 +149,8 @@ def makeLxyEffPlot(key, colorAxis, fs, sp):
     if colorAxis == 'nMuons':
         num, den = config[key]
 
-        nums = ['Lxy_n'+num+'_'+m for m in mnames]
-        dens = ['Lxy_n'+den+'_'+m for m in mnames]
+        nums = ['Lxy'+pTCut+'_n'+num+'_'+m for m in mnames]
+        dens = ['Lxy'+pTCut+'_n'+den+'_'+m for m in mnames]
         tags = list(set(nums + dens))
         legs = {num:m if 'All' in m else m+' #mu' for num,m in zip(nums,mnames)}
         cols = {num:c for num,c in zip(nums,colors)}
@@ -189,7 +189,7 @@ def makeLxyEffPlot(key, colorAxis, fs, sp):
     canvas.makeLegend(lWidth=.275, pos='tr')
     canvas.legend.resizeHeight()
 
-    canvas.cleanup('pdfs/RA_{}-Lxy-{}{}_HTo2XTo{}_{}.pdf'.format('ComboMu' if colorAxis=='nMuons' else 'ComboEff', key, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
+    canvas.cleanup('pdfs/RA_{}-Lxy{}-{}{}_HTo2XTo{}_{}.pdf'.format('ComboMu' if colorAxis=='nMuons' else 'ComboEff', pTCut, key, ARGS.CUTSTRING, fs, SPStr(sp) if sp is not None else 'Global'))
 
 for fs in ('4Mu', '2Mu2J'):
     for sp in [None] + SIGNALPOINTS:
@@ -202,4 +202,6 @@ for fs in ('4Mu', '2Mu2J'):
         for key in mnames:
             makeStackPlot(key, 'Eff', fs, sp)
 
-        if fs == '2Mu2J': makeLxyEffPlot('Correct', 'nMuons', fs, sp)
+        if fs == '2Mu2J':
+            makeLxyEffPlot('Correct', 'nMuons', fs, sp)
+            makeLxyEffPlot('Correct', 'nMuons', fs, sp, '5')
