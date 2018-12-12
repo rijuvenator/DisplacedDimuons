@@ -3,8 +3,8 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
 
@@ -60,7 +60,7 @@ def makePerSamplePlots():
 
 # make stack plots
 def makeStackPlots(DataMC=False, logy=False):
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
         if 'VS' in hkey: continue
@@ -102,8 +102,7 @@ def makeStackPlots(DataMC=False, logy=False):
         fname = 'pdfs/{}{}_Stack{}{}{}.pdf'.format(hkey, CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
         if True:
@@ -159,7 +158,7 @@ def makeGenRecoPlots():
         colors = {'Matched':R.kRed, 'Closest':R.kBlue}
         KEYS = ('Matched', 'Closest')
 
-        for MUON in ('DSA', 'RSA', 'REF'):
+        for MUON in ('DSA', 'REF'):
             h, p = {}, {}
             for key in KEYS:
                 h[key] = HISTS[ref]['{}_{}_{}'.format(MUON, 'deltaRGR', key)].Clone()

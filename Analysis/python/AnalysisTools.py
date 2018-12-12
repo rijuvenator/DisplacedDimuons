@@ -272,7 +272,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
     # final return
     return dimuonMatches, muonMatches, exitcode
 
-def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
+def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
     HLTMuonMatches = {}
 
     # loop over unique pairs of HLT muons
@@ -286,7 +286,7 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
             mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
 
             # found a pair of muons that fired; now look for closest DSA muons
-            if mass > 10. and angle < 2.5:
+            if mass > 9.99996 and angle < 2.5:
                 HLTMuonMatches[(i, j)] = {}
                 # find all the matching DSA muons, sort them by deltaR...
                 matches = []
@@ -299,6 +299,7 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
                         if dR is not None:
                             matches.append({'hlt_idx':hltIdx, 'rec_idx':muon.idx, 'deltaR':dR})
                 matches = sorted(matches, key=lambda dic:dic['deltaR'])
+                if printAllMatches: print matches
 
                 # find the closest matches
                 # walk through the list of matches. the first one (0) is the best one for
@@ -332,15 +333,140 @@ def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.3):
                 else:
                     HLTMuonMatches[(i,j)]['matchFound'] = False
 
+            # sanity check for the 2016 trigger: make sure that there
+            # are no events with a single pair of HLT muons failing
+            # angular or mass cuts
+            else:
+                if nHLT == 2:
+                    print "+++ Warning in matchedTrigger: inconsistency in the trigger +++"
+                    print "found single online dimuon with mass = ", mass, "and angle =", angle
+                    print "hlt_idxs: ", i, j, "; list of HLT muons:"
+                    for hltmuon in HLTMuons:
+                        print(hltmuon)
+
     # return structure
     # if no triggering pair was found, this dictionary will be empty, otherwise keys are (i,j) indices of HLTMuons
-    # HLTMuonMatches['matchFound'] is True if 2 DSA muons matched 2 HLTMuons below given threshold (default 0.3)
+    # HLTMuonMatches['matchFound'] is True if 2 DSA muons matched 2 HLTMuons below given threshold (default 0.4)
     # HLTMuonMatches['bestMatches'] is a list of 0-2 match dictionaries containing hlt_idx, rec_idx (a.k.a. oIdx), and deltaR
     # If saveDeltaR is True, this list may contain deltaR values > threshold; otherwise, it definitely won't
     # To get the two closest deltaR's regardless of threshold, e.g., do matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=True)
     # Then do: for match in HLTMuonMatches['bestMatches']: dR = match['deltaR'] (can fill a histogram)
+    # Of course, to check if there are any matches at all, simply do any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches])
     return HLTMuonMatches
 
+def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, threshold=0.2, doDimuons=True):
+    # find matches for both pairs
+    matchLists = {'dim':[], 'mu0':[], 'mu1':[]}
+    for i, genMuonPair in enumerate(genMuonPairs):
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, dimuons, recoMuons=recoMuons, vertex=vertex, threshold=threshold, doDimuons=doDimuons)
+        if len(dimuonMatches) > 0:
+            for key, matchList in zip(['dim', 'mu0', 'mu1'], [dimuonMatches, muonMatches[0], muonMatches[1]]):
+                for match in matchList:
+                    match['pairIndex'] = i
+                matchLists[key].extend(matchList)
+
+    # sort everything by deltaR^2
+    # remember: matches is [matches_pair0 ... matches_pair1], and matches_pair0, e.g. is a list of dimuonMatches
+    # so a "column" of the table is matches_pair0 + matches_pair1. When they get sorted, the best ones
+    # will float to the top, and the "pairIndex" will help remember which pair they came from
+    if len(matchLists['dim']) > 0: # zip doesn't behave for zero length
+        sortTable = zip(matchLists['dim'], matchLists['mu0'], matchLists['mu1'])
+        sortTable.sort(key=lambda row:row[1]['deltaR']**2.+row[2]['deltaR']**2.)
+        dimuonMatches, muon0Matches, muon1Matches = zip(*sortTable)
+    else:
+        sortTable = []
+        dimuonMatches, muon0Matches, muon1Matches = [], [], []
+
+    # find the best two dimuon matches with non-overlapping muons
+    realMatches = {}
+    for dimMatch, mu0Match, mu1Match in sortTable:
+        # remember which pair
+        pairIndex = dimMatch['pairIndex']
+        # if there's nothing in realMatches, take this match
+        if len(realMatches) == 0:
+            realMatches[pairIndex] = dimMatch
+        # there's already something in realMatches
+        # if it's the same pair, keep going
+        # okay, it's the other pair. Great. But make sure the other pair
+        # has no muons in common with the pair that exists already (alreadyFound, alreadyIndices)
+        # if it does, keep going
+        # otherwise, bingo! we've found the other match. fill it and break.
+        else:
+            if pairIndex in realMatches: continue
+            alreadyFound = realMatches[realMatches.keys()[0]]['dim']
+            alreadyIndices = (alreadyFound.idx1, alreadyFound.idx2)
+            if dimMatch['dim'].idx1 in alreadyIndices or dimMatch['dim'].idx2 in alreadyIndices: continue
+            realMatches[pairIndex] = dimMatch
+
+    return realMatches, dimuonMatches, muon0Matches, muon1Matches
+
+# apply the pairing criteria recipe developed in the pairing criteria study
+# returns a list of 0, 1, or 2 dimuons, based on how many muons there are and the result of applying the recipe
+def applyPairingCriteria(muons, dimuons, doAMD=False):
+    # get the list of relevant dimuons
+    selectedOIndices = [mu.idx for mu in muons]
+    selectedDimuons  = [dim for dim in dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
+    # if there are any dimuons at all, there had to be >= 2 muons
+    # if there's 2, just return the one dimuon that was made
+    # if there's 3, return the dimuon with the lowest vertex chi^2/dof
+    # if there's 4, find all pairs of dimuons, sort the pairs by chi^2/dof sum, and return the lowest one (2 dimuons)
+    # with optional doAMD mode, return the lowest pair by mass difference instead if both dimuons have Lxy < 30 cm
+    # if there were no pairings with 4 muons, treat it like a 3 muon case
+    if len(selectedDimuons) > 0:
+        if   len(muons) == 2:
+            return selectedDimuons[0:1]
+        elif len(muons) == 3:
+            return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
+        elif len(muons) >= 4:
+            highestPTMuons = sorted(muons, key=lambda mu: mu.pt, reverse=True)[:4]
+            highestIndices = [mu.idx for mu in highestPTMuons]
+            HPDs = [d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
+
+            # find all unique non-overlapping pairs of dimuons
+            pairings = []
+            for dim1 in HPDs:
+                for dim2 in HPDs:
+                    if dim1.ID == dim2.ID: continue
+                    muonIDs = set(dim1.ID+dim2.ID)
+                    if len(muonIDs) == 4:
+                        pairings.append((dim1, dim2))
+
+            def C2S(pairing): return pairing[0].normChi2+pairing[1].normChi2
+            def AMD(pairing): return abs(pairing[0].mass-pairing[1].mass)
+
+            funcs = {'C2S':C2S, 'AMD':AMD}
+
+            # sort the pairings by a pairing criteria
+            if len(pairings) > 0:
+                candidateBestDimuons = {fkey:{} for fkey in funcs}
+                sortedPairings = {}
+                for fkey in funcs:
+                    sortedPairings[fkey] = sorted(pairings, key=funcs[fkey])
+                    for d in sortedPairings[fkey][0]:
+                        candidateBestDimuons[fkey][d.ID] = d
+
+                # try to use AMD for low Lxy
+                if doAMD:
+                    dims = candidateBestDimuons['AMD'].values()
+                    if dims[0].Lxy() < 30. and dims[1].Lxy() < 30.:
+                        bestDimuons = candidateBestDimuons['AMD']
+                    else:
+                        bestDimuons = candidateBestDimuons['C2S']
+                else:
+                    bestDimuons = candidateBestDimuons['C2S']
+                return bestDimuons.values()
+
+            # if there were NO pairings, there had to have been <=3 dimuons
+            # because any 4 dimuons can always make at least 1 pair
+            # this means 1 of the 4 muons formed no dimuons at all
+            # so treat this case like the 3 mu case
+            else:
+                return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
+
+    # there weren't any dimuons so return an empty list
+    else:
+        return []
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

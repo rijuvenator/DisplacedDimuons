@@ -19,15 +19,16 @@ Patterns = {
     'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
 }
 for sample in (
-    'DY10to50'  ,
-    'WJets'     ,
-    'WW'        ,
-    'WZ'        ,
-    'ZZ'        ,
-    'tW'        ,
-    'tbarW'     ,
-    'DY50toInf' ,
-    'ttbar'     ,
+    'DY10to50'     ,
+    'WJets'        ,
+    'WW'           ,
+    'WZ'           ,
+    'ZZ'           ,
+    'tW'           ,
+    'tbarW'        ,
+    'QCD20toInf-ME',
+    'DY50toInf'    ,
+    'ttbar'        ,
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 for sample in (
@@ -113,6 +114,7 @@ PlotData = (
     ('tW'                           , 'tW'                             , 66     ),
     ('tbarW'                        , '#bar{t}W'                       , 63     ),
     ('ttbar'                        , 't#bar{t}'                       , 4      ),
+    ('QCD20toInf-ME'                , 'QCD p_{T}(20, #infty)'          , R.kOrange),
     ('DoubleMuonRun2016B-07Aug17-v2', 'DoubleMuon2016B'                , 1      ),
     ('DoubleMuonRun2016C-07Aug17'   , 'DoubleMuon2016C'                , 1      ),
     ('DoubleMuonRun2016D-07Aug17'   , 'DoubleMuon2016D'                , 1      ),

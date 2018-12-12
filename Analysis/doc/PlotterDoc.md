@@ -42,7 +42,8 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 <a name="plotmethods"></a>
 ### Class Methods
 **factor** is a multiplicative scale factor.  
-**axes** is a string containing a possibly empty subset of `XYZ`. All axes must exist.
+**axes** is a string containing a possibly empty subset of `XYZ`, default `XY`. All axes must exist.
+**which** is a string containing a possibly empty subset of `LMF`, default `LM`.
 
 **scaleTitles** and **scaleLabels** scale the size of the axis titles and labels, respectively.  
 **scaleTitleOffsets** scales the distance between the axis title and the axis.  
@@ -54,6 +55,7 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 * Plot.scaleLabels       (factor, axes='XY')
 * Plot.scaleTitleOffsets (factor, axes='XY')
 * Plot.setTitles         (X=None, Y=None, Z=None)
+* Plot.setColor          (color, which='LM')
 ```
 
 
@@ -137,7 +139,8 @@ I've omitted some uninteresting defaults from the constructor doc.
   * Canvas                 (lumi=, extra=, logy=False, ratioFactor=0, cWidth=800, cHeight=600, fontcode=, fontscale=)
   * Canvas.addMainPlot     (Plot, addToPlotList=True, addS=False)
   * Canvas.makeLegend      (lWidth=0.125, pos='tr', fontscale=1., autoOrder=True)
-  * Canvas.setMaximum      (recompute=False)
+  * Canvas.setMaximum      (recompute=False, scale=1.05)
+  * Canvas.setMinimum      (recompute=False, scale=1.)
   * Canvas.addLegendEntry  (Plot)
   * Canvas.setFitBoxStyle  (owner, lWidth=0.3, lHeight=0.15, pos='tl', lOffset=0.05, fontscale=0.75)
   * Canvas.makeRatioPlot   (topHist, bottomHist, plusminus=0.5, option='', ytit='Data/MC', xtit='', drawLine=True)

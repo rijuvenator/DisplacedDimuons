@@ -3,8 +3,8 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
-import HistogramGetter
-import PlotterParser
+import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
+import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 
 ARGS = PlotterParser.PARSER.parse_args()
 
@@ -58,9 +58,10 @@ def makePerSamplePlots():
             canvas.cleanup(fname)
 
 # make stack plots
-def makeStackPlots(DataMC=False, logy=False):
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+def makeStackPlots(DataMC=False, logy=False, zoom=False):
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
+        if zoom and 'Dim_mass' not in hkey and 'Dim_LxyErr' not in hkey: continue
         if 'Matched' in hkey: continue
         if 'VS' in hkey: continue
 
@@ -83,7 +84,7 @@ def makeStackPlots(DataMC=False, logy=False):
         for key in BGORDER:
             h[key] = HISTS[key][hkey].Clone()
             RT.addFlows(h[key])
-            if h[key].GetNbinsX() > 100: h[key].Rebin(10)
+            if h[key].GetNbinsX() > 100 and not zoom: h[key].Rebin(10)
             h[key].Scale(PC[key]['WEIGHT'])
             PConfig[key] = (PC[key]['LATEX'], 'f', 'hist')
             h['BG'].Add(h[key])
@@ -92,17 +93,16 @@ def makeStackPlots(DataMC=False, logy=False):
             for era in ('C', 'D', 'E', 'F', 'G', 'H'):
                 h['Data'].Add(HISTS['DoubleMuonRun2016{}-07Aug17'.format(era)][hkey])
             RT.addFlows(h['Data'])
-            if h['Data'].GetNbinsX() > 100: h['Data'].Rebin(10)
+            if h['Data'].GetNbinsX() > 100 and not zoom: h['Data'].Rebin(10)
 
         p = {}
         for key in h:
             p[key] = Plotter.Plot(h[key], *PConfig[key])
 
-        fname = 'pdfs/{}{}_Stack{}{}{}.pdf'.format(hkey, CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
+        fname = 'pdfs/{}{}{}_Stack{}{}{}.pdf'.format(hkey, '' if not zoom else 'Zoom', CUTSTRING, 'MC' if MCONLY else '', '-Log' if logy else '', '-Rat' if DataMC else '')
 
         for key in BGORDER:
-            p[key].SetLineColor(PC[key]['COLOR'])
-            p[key].SetFillColor(PC[key]['COLOR'])
+            p[key].setColor(PC[key]['COLOR'], which='LF')
 
         canvas = Plotter.Canvas(ratioFactor=0. if not DataMC else 1./3., logy=logy, fontscale=1. if not DataMC else 1.+1./3.)
         if True:
@@ -110,6 +110,17 @@ def makeStackPlots(DataMC=False, logy=False):
         if not MCONLY:
             canvas.addMainPlot(p['Data'])
 #       canvas.addMainPlot(p['Signal'])
+
+        if 'Dim_mass' in hkey and zoom:
+            if True:
+                p['BG'].GetXaxis().SetRangeUser(0., 30.)
+            if not MCONLY:
+                p['Data'].GetXaxis().SetRangeUser(0., 30.)
+        if 'Dim_LxyErr' in hkey and zoom:
+            if True:
+                p['BG'].GetXaxis().SetRangeUser(90., 100.)
+            if not MCONLY:
+                p['Data'].GetXaxis().SetRangeUser(90., 100.)
 
         canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DataMC else 1.)
         if not MCONLY:
@@ -235,7 +246,7 @@ def makeSplitDeltaPhiPlots():
 # make split delta phi plots
 # this function is a combination of the stack plot code and the split delta phi code
 def makeSplitDeltaPhiStackPlots(logy=False):
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'DY10to50', 'DY50toInf')
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     for hkey in HISTS['DY50toInf']:
         if 'Matched' in hkey: continue
         if 'VSdeltaPhi' not in hkey: continue
@@ -274,8 +285,7 @@ def makeSplitDeltaPhiStackPlots(logy=False):
                 p[DeltaPhiRange][key] = Plotter.Plot(h[DeltaPhiRange][key], *PConfig[key])
 
             for key in BGORDER:
-                p[DeltaPhiRange][key].SetLineColor(PC[key]['COLOR'])
-                p[DeltaPhiRange][key].SetFillColor(PC[key]['COLOR'])
+                p[DeltaPhiRange][key].setColor(PC[key]['COLOR'], which='LF')
 
             canvas = Plotter.Canvas(logy=logy)
             canvas.addMainPlot(p[DeltaPhiRange]['BG'])
@@ -387,8 +397,16 @@ if True:
         makeStackPlots(True, True)
     else:
         makeStackPlots(False, True)
-    #makeSplitDeltaPhiStackPlots()
-    #makeSplitDeltaPhiStackPlots(True)
+
+    # zoomed versions of mass and LxyErr
+    makeStackPlots(False, False, True)
+    if not MCONLY:
+        makeStackPlots(True, True, True)
+    else:
+        makeStackPlots(False, True, True)
+
+    makeSplitDeltaPhiStackPlots()
+    makeSplitDeltaPhiStackPlots(True)
 if True:
     for q1 in ('Lxy', 'LxySig', 'LxyErr', 'deltaR', 'deltaEta', 'deltaphi', 'mass'):
         for q2 in ('Lxy', 'deltaPhi'):

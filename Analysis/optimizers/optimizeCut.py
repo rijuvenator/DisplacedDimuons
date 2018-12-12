@@ -173,8 +173,7 @@ def makeSummaryPlot(fs, quantity):
         canvas = Plotter.Canvas(lumi='(c#tau smaller from left to right)     ' + fs)
         canvas.addMainPlot(p[parameter])
 
-        p[parameter].SetLineColor(R.kOrange)
-        p[parameter].SetFillColor(R.kOrange)
+        p[parameter].setColor(R.kOrange, which='LF')
 
         m = 0.
         x = p[parameter].GetBinContent(p[parameter].GetMaximumBin())

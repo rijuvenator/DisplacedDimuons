@@ -23,26 +23,26 @@ class EventBranches : public BranchCollection
 		// members
 		static bool alreadyPrinted_;
 
-		int evt_run   ;
-		int evt_lumi  ;
-		int evt_event ;
-		int evt_bx    ;
+		unsigned int       evt_run   ;
+		unsigned int       evt_lumi  ;
+		unsigned long long evt_event ;
+		int                evt_bx    ;
 
 		// methods
 		void Declarations()
 		{
-			Declare("evt_run"  , evt_run  , "I");
-			Declare("evt_lumi" , evt_lumi , "I");
-			Declare("evt_event", evt_event, "I");
+			Declare("evt_run"  , evt_run  , "i");
+			Declare("evt_lumi" , evt_lumi , "i");
+			Declare("evt_event", evt_event, "l");
 			Declare("evt_bx"   , evt_bx   , "I");
 		}
 
 		void Reset()
 		{
-			evt_run   = -999;
-			evt_lumi  = -999;
-			evt_event = -999;
-			evt_bx    = -999;
+			evt_run   = -1;
+			evt_lumi  = -1;
+			evt_event = -1;
+			evt_bx    = -1;
 		}
 
 		void Fill(const edm::Event &iEvent);

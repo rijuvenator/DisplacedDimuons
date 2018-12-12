@@ -12,6 +12,8 @@ process.source.fileNames = [
 #- Interactive jobs only, for testing
 #- official Z+jets sample
 #    '/store/mc/RunIISummer16DR80Premix/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/AODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/110000/001AC973-60E2-E611-B768-001E67586A2F.root'
+#- muon-enriched sample
+    'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16DR80Premix/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/AODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/110000/001C11BE-46AE-E611-B88E-002590DE6E76.root'
 #- 2mu2jets signal
     # 'root://cms-xrd-global.cern.ch//store/user/escalant/HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8/crab_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v0/180513_123637/0000/EXO-RunIISummer17DR80_HTo2LongLivedTo2mu2jets_MH-1000_MFF-150_CTau-1000mm_TuneCUETP8M1_13TeV_pythia8_1.root'
 #- 4mu signal
