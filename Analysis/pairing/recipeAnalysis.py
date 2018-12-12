@@ -22,8 +22,9 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit(key, ';p_{T} Cut [GeV];Counts', len(PTCUTS), 0., float(len(PTCUTS)))
 
             if quantity not in ('Matches', 'Correct'): continue
-            self.HistInit('Lxy_' +key, ';L_{xy} [cm];Counts', 800, 0., 800.)
-            self.HistInit('Lxy5_'+key, ';L_{xy} [cm];Counts', 800, 0., 800.)
+            self.HistInit('Lxy_'  +key, ';L_{xy} [cm];Counts', 800, 0., 800.)
+            self.HistInit('Lxy5_' +key, ';L_{xy} [cm];Counts', 800, 0., 800.)
+            self.HistInit('Lxy10_'+key, ';L_{xy} [cm];Counts', 800, 0., 800.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -166,8 +167,11 @@ def fillHist(self, nMuons, quantity, pTCut):
 
 def fillLxyHist(self, nMuons, quantity, pTCut, Lxy):
     if nMuons is None: return
-    if pTCut != 0 and pTCut != 5: return
-    pStr = '' if pTCut == 0 else '5'
+    if pTCut not in (0, 5, 10): return
+    if pTCut == 0:
+        pStr = ''
+    else:
+        pStr = str(pTCut)
     self.HISTS['Lxy'+pStr+'_n'+quantity+'_All'    ].Fill(Lxy)
     self.HISTS['Lxy'+pStr+'_n'+quantity+'_'+nMuons].Fill(Lxy)
 
