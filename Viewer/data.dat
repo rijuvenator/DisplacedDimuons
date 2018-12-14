@@ -137,7 +137,7 @@ NAME Dim 1:2
 
 NAME DSA 1:1
 "pT"         "{PT}"
-"pTSig"      "{PT}/{SIGMA}{PT_S}"
+"pTSig"      "{SIGMA}{PT_S}/{PT}"
 "eta"        "{ETA}"
 "d0"         "{D0}"
 "d0Sig"      "|{D0}|/{SIGMA}{D0_S}"

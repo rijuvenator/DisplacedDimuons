@@ -33,7 +33,7 @@ PLOTTYPELABELS["SRR"] = [["DSA", "RSA", "REF", "REF+DSA"], [["p<sub>T</sub> Res.
 PLOTTYPELABELS["TCUM"] = ["L<sub>xy</sub>/&sigma;<sub>Lxy</sub>", "|d<sub>0</sub>|/&sigma;<sub>d0</sub>"];
 PLOTTYPELABELS["CutTable"] = [["Muon", "Dimuon"], ["Ind.", "Seq.", "N&minus;1"]];
 PLOTTYPELABELS["Gen"] = ["m<sub>H</sub>", "m<sub>X</sub>", "c&tau;", "p<sub>T</sub> H", "p<sub>T</sub> X", "p<sub>T</sub> &mu;", "&beta;", "&eta; &mu;", "&Delta;&phi;(&mu;&mu;)", "&Delta;&phi;(&mu;X)", "|&Delta;&Phi;|", "cos(&alpha;)", "L<sub>xy</sub>", "d<sub>0</sub>", "&Delta;R", "L<sub>xy</sub> vs. L<sub>z</sub>"];
-PLOTTYPELABELS["DSA"] = [["p<sub>T</sub>", "p<sub>T</sub>/&sigma;<sub>pT</sub>", "&eta;", "d<sub>0</sub>", "|d<sub>0</sub>|/&sigma;<sub>d0</sub>", "d<sub>z</sub>", "|d<sub>z</sub>|/&sigma;<sub>dz</sub>", "lin. d<sub>0</sub>", "lin. |d<sub>0</sub>|/&sigma;<sub>d0</sub>", "lin. d<sub>z</sub>", "lin. |d<sub>z</sub>|/&sigma;<sub>dz</sub>", "&chi;<sup>2</sup>/dof", "nMuonHits", "nCSC+DTHits", "nStations", "nMuon", "&Delta;R(g-r)", "fY vs. fX", "fR vs. fZ"]];
+PLOTTYPELABELS["DSA"] = [["p<sub>T</sub>", "&sigma;<sub>pT</sub>/p<sub>T</sub>", "&eta;", "d<sub>0</sub>", "|d<sub>0</sub>|/&sigma;<sub>d0</sub>", "d<sub>z</sub>", "|d<sub>z</sub>|/&sigma;<sub>dz</sub>", "lin. d<sub>0</sub>", "lin. |d<sub>0</sub>|/&sigma;<sub>d0</sub>", "lin. d<sub>z</sub>", "lin. |d<sub>z</sub>|/&sigma;<sub>dz</sub>", "&chi;<sup>2</sup>/dof", "nMuonHits", "nCSC+DTHits", "nStations", "nMuon", "&Delta;R(g-r)", "fY vs. fX", "fR vs. fZ"]];
 PLOTTYPEVALS["DSA"].push(PLOTTYPEVALS["Dim"][1]);
 PLOTTYPEVALS["RSA"] = PLOTTYPEVALS["DSA"];
 PLOTTYPEVALS["REF"] = PLOTTYPEVALS["DSA"];
