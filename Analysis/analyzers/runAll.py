@@ -8,7 +8,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 #### GLOBAL CONFIGURATION PARAMETERS ####
 #########################################
 
-# 7 + 136 + 72 = 215 background jobs
+# 8 + 136 + 72 = 216 background jobs
 BGSampleList = (
     ('DY10to50'     , None        ),
     ('WJets'        , None        ),
@@ -53,16 +53,21 @@ HOME         = os.environ['HOME']
 parser = argparse.ArgumentParser()
 parser.add_argument('SCRIPT'   ,                                         help='which script to run'                                            )
 parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'   , help='whether to run locally'                                         )
-parser.add_argument('--condor' , dest='CONDOR' , action='store_true'   , help='whether to run on condor instead of LXBATCH'                    )
-parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system instead of LXBATCH'        )
+parser.add_argument('--condor' , dest='CONDOR' , action='store_true'   , help='whether to run on condor'                                       )
+parser.add_argument('--lxbatch', dest='LXBATCH', action='store_true'   , help='whether to run on LXBATCH (LSF) batch system'                   )
+parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system'                           )
 parser.add_argument('--one'    , dest='ONE'    , action='store_true'   , help='whether to just do one job (e.g. for testing batch)'            )
 parser.add_argument('--samples', dest='SAMPLES', default='S2BD'        , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
 parser.add_argument('--file'   , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
-parser.add_argument('--folder' , dest='FOLDER' , default='analyzers'   , help='which folder the script is located in'                          )
+parser.add_argument('--folder' , dest='FOLDER' , default=None          , help='which folder the script is located in'                          )
 parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
 parser.add_argument('--flavour', dest='FLAVOUR', default='microcentury', help='which condor job flavour to use'                                )
 parser.add_argument('--queue'  , dest='QUEUE'  , default='1nh'         , help='which LSF job queue to use'                                     )
 args = parser.parse_args()
+
+# get current directory automatically
+if args.FOLDER is None:
+    args.FOLDER = os.path.basename(os.getcwd())
 
 # this is mostly so that **locals() works later on
 SCRIPT  = args.SCRIPT
@@ -72,18 +77,20 @@ FLAVOUR = args.FLAVOUR
 QUEUE   = args.QUEUE
 
 # set mode: local, lxbatch, hephy, or condor
-if (args.LOCAL, args.HEPHY, args.CONDOR).count(True) > 1:
-    print '[RUNALL ERROR]: Only one of --local, --hephy, or --condor may be set'
+# condor is now the default
+if (args.LOCAL, args.CONDOR, args.LXBATCH, args.HEPHY).count(True) > 1:
+    print '[RUNALL ERROR]: Only one of --local, --condor, --lxbatch, or --hephy may be set'
     exit()
-if   args.LOCAL : MODE = 'LOCAL'
-elif args.HEPHY : MODE = 'HEPHY'
-elif args.CONDOR: MODE = 'CONDOR'
-else            : MODE = 'LXBATCH'
+if   args.LOCAL  : MODE = 'LOCAL'
+elif args.LXBATCH: MODE = 'LXBATCH'
+elif args.HEPHY  : MODE = 'HEPHY'
+else             : MODE = 'CONDOR'
 
-# ensure that FOLDER/SCRIPT exists
-if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
-    print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}. Did you forget to use --folder?'.format(**locals())
-    exit()
+# ensure that FOLDER/SCRIPT exists, if FILE is not given
+if args.FILE == '':
+    if not os.path.isfile('{CMSSW_BASE}/src/DisplacedDimuons/Analysis/{FOLDER}/{SCRIPT}'.format(**locals())):
+        print '[RUNALL ERROR]: {SCRIPT} does not seem to exist in {FOLDER}.'.format(**locals())
+        exit()
 
 # ensure that FLAVOUR/QUEUE is an acceptable value
 if   MODE == 'CONDOR':

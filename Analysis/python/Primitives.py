@@ -638,17 +638,20 @@ class GenMuon(Muon, GenParticle):
             return self.BS.dz_
 
     # Lxy, cosAlpha, d0, dz, dR
-    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:6s}|\n'
-    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:6.2f}|\n'
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:7s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.3f}|{:8.2f}|{:8.2f}|{:7.2f}|\n'
 
     # so that we don't need an instance of the class to call this method
     @staticmethod
-    def headerstr():
-        # take care of the \n
-        return GenParticle.headerstr().strip('\n') + GenMuon.headerFormatPost.format('Lxy', 'cosAlpha', 'd0@BS', 'dz@BS', 'd0', 'dz', 'dR')
+    def headerstr(line=1):
+        if line == 1:
+            # take care of the \n
+            return GenParticle.headerstr().strip('\n') + GenMuon.headerFormatPost.format('Lxy', 'cosAlpha', 'd0', 'dz', 'dR')
 
     def datastr(self):
-        return GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.BS.d0_, self.BS.dz_, self.d0_, self.dz_, self.deltaR)
+        outstr = GenParticle.datastr(self).strip('\n') + GenMuon.dataFormatPost.format(self.Lxy_, self.cosAlpha, self.d0_, self.dz_, self.deltaR)
+        outstr += GenParticle.headerFormatPre.format('', '', 'bs') + self.BS.datastr().strip('\n') + GenMuon.dataFormatPost.format(-999.,-999., self.BS.d0_, self.BS.dz_,-999.)
+        return outstr
 
     def __str__(self):
         return GenMuon.headerstr() + self.datastr()
@@ -828,11 +831,18 @@ class Dimuon(Particle):
         self.idx1 = self.mu1.idx
         self.idx2 = self.mu2.idx
 
+        self.ID   = (self.mu1.idx, self.mu2.idx)
+
     def __getattr__(self, name):
         if name in ('Lxy', 'LxySig', 'LxyErr'):
             return getattr(self.Lxy_, name)
         raise AttributeError('\'Dimuon\' object has no attribute \''+name+'\'')
 
+    def isOC(self, DSAmuons=None):
+        if DSAmuons is None:
+            return self.mu1.charge != self.mu2.charge
+        else:
+            return DSAmuons[self.idx1].charge != DSAmuons[self.idx2].charge
 
     # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
     headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|\n'

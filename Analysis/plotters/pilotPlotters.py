@@ -50,6 +50,23 @@ python {plottingScriptName}.py {args}
 # list of configs. All of them will be run at the bottom of the file
 CONFIGS = []
 
+# section for signal plots with baseline cuts
+if False:
+    CONFIGS.append(Configuration(
+        'DimuonPlots',
+        'makeDimuonPlots',
+        'Trig_Prompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_Prompt'
+        )
+    )
+    CONFIGS.append(Configuration(
+        'DimuonPlots',
+        'makeDimuonPlots',
+        'Trig_NoPrompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_NoPrompt'
+        )
+    )
+
 # section for MC/Data type plots, e.g. dimuon, recoMuon, with
 # various sets of cuts, for prompt and not prompt, etc.
 # loops over bits of strings and puts them together in the right way
@@ -64,10 +81,15 @@ if False:
         ('NoPrompt', '_MCOnly'  ),
     )
     MCBGCutsets = (
-        ''           ,
-        '_NS'        ,
-        '_NS_NH'     ,
-        '_NS_NH_FPTE',
+        ''                            ,
+        '_NS'                         ,
+        '_NS_NH'                      ,
+        '_NS_NH_FPTE'                 ,
+        '_NS_NH_FPTE_PT'              ,
+        '_NS_NH_FPTE_PT_HLT'          ,
+        '_NS_NH_FPTE_PT_HLT_PC'       ,
+        '_NS_NH_FPTE_PT_HLT_PC_LXYE'  ,
+        '_NS_NH_FPTE_PT_HLT_PC_LXYE_M',
     )
     for ftagroot in FTAGS:
         ftag   = ftagroot+'Plots'

@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedTrigger, applyPairingCriteria
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 HEADERS = ('AXES', 'LAMBDA', 'PRETTY')
@@ -53,7 +53,7 @@ def declareHistograms(self, PARAMS=None):
 
         XTIT = CONFIG[KEY]['PRETTY']
 
-        for MUON in ('DSA', 'RSA', 'REF'):
+        for MUON in ('DSA', 'REF'):
             if True:
                 self.HistInit(MUON+'_'+KEY           , ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
@@ -61,7 +61,7 @@ def declareHistograms(self, PARAMS=None):
                 self.HistInit(MUON+'_'+KEY+'_Matched', ';'+XTIT+';Counts', *CONFIG[KEY]['AXES'])
 
     for KEY in EXTRACONFIG:
-        for MUON in ('DSA', 'RSA', 'REF'):
+        for MUON in ('DSA', 'REF'):
             if True:
                 self.HistInit(MUON+'_'+KEY           , EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
 
@@ -69,7 +69,7 @@ def declareHistograms(self, PARAMS=None):
                 self.HistInit(MUON+'_'+KEY+'_Matched', EXTRACONFIG[KEY]['TITLE'], *EXTRACONFIG[KEY]['AXES'])
 
 
-    for MUON in ('DSA', 'RSA', 'REF'):
+    for MUON in ('DSA', 'REF'):
         if True:
             self.HistInit(MUON+'_nMuon'           , ';Muon Multiplicity;Counts', 15  , 0., 15.)
 
@@ -84,7 +84,6 @@ def analyze(self, E, PARAMS=None):
         if not Selections.passedTrigger(E): return
     Event    = E.getPrimitives('EVENT')
     DSAmuons = E.getPrimitives('DSAMUON')
-    RSAmuons = E.getPrimitives('RSAMUON')
     Dimuons  = E.getPrimitives('DIMUON' )
 
     Primitives.CopyExtraRecoMuonInfo(Dimuons, DSAmuons)
@@ -95,90 +94,119 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    # whether to BLIND. Could depend on Analyzer parameters, which is why it's here.
-    ALL = True if 'All' in self.CUTS else False
-    PROMPT = True if '_Prompt' in self.CUTS else False
-    NOPROMPT = True if '_NoPrompt' in self.CUTS else False
-    NSTATIONS = True if '_NS' in self.CUTS else False
-    NMUONHITS = True if '_NH' in self.CUTS else False
-    FPTERR = True if '_FPTE' in self.CUTS else False
+    # decide what set of cuts to apply based on self.CUTS cut string
+    ALL       = 'All'       in self.CUTS
+    PROMPT    = '_Prompt'   in self.CUTS
+    NOPROMPT  = '_NoPrompt' in self.CUTS
+    NSTATIONS = '_NS'       in self.CUTS
+    NMUONHITS = '_NH'       in self.CUTS
+    FPTERR    = '_FPTE'     in self.CUTS
+    PT        = '_PT'       in self.CUTS
+    HLT       = '_HLT'      in self.CUTS
+    PC        = '_PC'       in self.CUTS
+    LXYERR    = '_LXYE'     in self.CUTS
+    MASS      = '_M'        in self.CUTS
+
+    def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
+        cutList = []
+        if NSTATIONS:
+            cutList.append('b_nStations')
+        if NMUONHITS:
+            cutList.append('b_nMuonHits')
+        if FPTERR:
+            cutList.append('b_FPTE')
+        if PT:
+            cutList.append('b_pT')
+        return cutList
+
+    def boolsToDimuonCutList(LXYERR, MASS):
+        cutList = []
+        if LXYERR:
+            cutList.append('b_LxyErr')
+        if MASS:
+            cutList.append('b_mass')
+        return cutList
 
     # require muons to pass all selections
     if ALL:
         DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
-        RSASelections    = [Selections.MuonSelection(muon) for muon in RSAmuons]
         selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-        selectedRSAmuons = [mu for idx,mu in enumerate(RSAmuons) if RSASelections[idx]]
         selectedDimuons  = Dimuons
-
-    # return if there are LxySig > 3
-    elif PROMPT:
-        highLxySigExists = False
-        for dimuon in Dimuons:
-            if dimuon.LxySig() > 3.:
-                highLxySigExists = True
-                break
-        if highLxySigExists:
-            return
-        if NSTATIONS and not NMUONHITS:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and not FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        else:
-            selectedDSAmuons = DSAmuons
-            selectedRSAmuons = RSAmuons
-            selectedDimuons  = Dimuons
-
-    # return if there are NO LxySig > 3 -- that's category 1
-    elif NOPROMPT:
-        highLxySigExists = False
-        for dimuon in Dimuons:
-            if dimuon.LxySig() > 3.:
-                highLxySigExists = True
-                break
-        if not highLxySigExists:
-            return
-        if NSTATIONS and not NMUONHITS:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and not FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        elif NSTATIONS and NMUONHITS and FPTERR:
-            selectedDSAmuons = [mu for mu in DSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedRSAmuons = [mu for mu in RSAmuons if mu.nDTStations+mu.nCSCStations>1 and mu.nCSCHits+mu.nDTHits>12 and mu.ptError/mu.pt<1.]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-        else:
-            selectedDSAmuons = DSAmuons
-            selectedRSAmuons = RSAmuons
-            selectedDimuons  = Dimuons
 
     # don't require reco muons to pass all selections
     else:
         selectedDSAmuons = DSAmuons
-        selectedRSAmuons = RSAmuons
         selectedDimuons  = Dimuons
+
+    # for PROMPT and NOPROMPT event selections
+    if PROMPT or NOPROMPT:
+        highLxySigExists = False
+        for dimuon in Dimuons:
+            if dimuon.LxySig() > 3.:
+                highLxySigExists = True
+                break
+
+        # return if there are LxySig > 3
+        if PROMPT:
+            if highLxySigExists:
+                return
+        # return if there are NO LxySig > 3 -- that's category 1
+        elif NOPROMPT:
+            if not highLxySigExists:
+                return
+
+    if PROMPT or NOPROMPT:
+        # compute all the baseline selection booleans
+        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
+
+        # figure out which cuts we actually care about
+        cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
+
+        # no selection
+        if len(cutList) == 0:
+            selectedDSAmuons = DSAmuons
+            selectedDimuons  = Dimuons
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        else:
+            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+
+    # apply HLT RECO matching
+    if HLT:
+        HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
+        DSAMuonsForHLTMatch = [mu for mu in selectedDSAmuons if abs(mu.eta) < 2.]
+        HLTMuonMatches = matchedTrigger(HLTMuons, DSAMuonsForHLTMatch)
+        if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
+
+    # apply pairing criteria and transform selectedDimuons
+    if PC:
+        selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
+
+    if PROMPT or NOPROMPT:
+        # compute all the baseline selection booleans
+        DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
+
+        # figure out which cuts we actually care about
+        cutList = boolsToDimuonCutList(LXYERR, MASS)
+
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        if len(cutList) > 0:
+            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if (PROMPT or NOPROMPT) and NSTATIONS:
         if len(selectedDimuons) == 0: return
-    
+
+    # also filter selectedDSAmuons to only be of those indices that are in the final dimuons
+    if PROMPT or NOPROMPT:
+        selectedOIndices = []
+        for dim in selectedDimuons:
+            selectedOIndices.append(dim.idx1)
+            selectedOIndices.append(dim.idx2)
+        selectedOIndices = list(set(selectedOIndices))
+        selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
+
     # all refitted muons
     allRefittedMuons = []
     for dimuon in selectedDimuons:
@@ -186,7 +214,7 @@ def analyze(self, E, PARAMS=None):
         allRefittedMuons.append(dimuon.mu2)
 
     # fill histograms for every reco muon
-    for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons), ('REF', allRefittedMuons)):
+    for MUON, recoMuons in (('DSA', selectedDSAmuons), ('REF', allRefittedMuons)):
         self.HISTS[MUON+'_nMuon'].Fill(len(recoMuons), eventWeight)
         for muon in recoMuons:
             for KEY in CONFIG:
@@ -207,14 +235,14 @@ def analyze(self, E, PARAMS=None):
             genMuons = (mu1, mu2)
             genMuonPairs = ((mu1, mu2),)
 
-        MuonMatches = {'DSA':[], 'RSA':[], 'REF':[]}
+        MuonMatches = {'DSA':[], 'REF':[]}
         # get matched reco muons
         for genMuon in genMuons:
             # cut genMuons outside the detector acceptance
             # don't do it for now
             #genMuonSelection = Selections.AcceptanceSelection(genMuon)
 
-            for MUON, recoMuons in (('DSA', selectedDSAmuons), ('RSA', selectedRSAmuons)):
+            for MUON, recoMuons in (('DSA', selectedDSAmuons),):
                 MuonMatches[MUON].append(matchedMuons(genMuon, recoMuons, vertex='BS'))
 
         # and for refitted muons for matched dimuons
@@ -228,7 +256,7 @@ def analyze(self, E, PARAMS=None):
         # for each major muon type,
         # MuonMatches contains 2 lists of matches corresponding to each gen muon
         # Each match in each of those 2 lists is a list of individual muon matches
-        for MUON in ('DSA', 'RSA', 'REF'):
+        for MUON in ('DSA', 'REF'):
             for matches in MuonMatches[MUON]:
                 for match in matches:
                     muon = match['muon']
@@ -252,6 +280,6 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'RSAMUON', 'GEN', 'TRIGGER', 'DIMUON'),
+        BRANCHKEYS  = ('EVENT', 'DSAMUON', 'GEN', 'TRIGGER', 'DIMUON'),
     )
     analyzer.writeHistograms('roots/RecoMuonPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
