@@ -205,13 +205,22 @@ class Plot(object):
 
     # sets multiple colors at once
     # which should be a subset of LMF -- line, marker, fill
-    def setColor(self, color, which='LM'):
-        if 'L' in which:
-            self.plot.SetLineColor(color)
-        if 'M' in which:
-            self.plot.SetMarkerColor(color)
-        if 'F' in which:
-            self.plot.SetFillColor(color)
+    # which is whether to use the alpha value
+    def setColor(self, color, which='LM', alpha=None):
+        if alpha is None:
+            if 'L' in which:
+                self.plot.SetLineColor(color)
+            if 'M' in which:
+                self.plot.SetMarkerColor(color)
+            if 'F' in which:
+                self.plot.SetFillColor(color)
+        else:
+            if 'L' in which:
+                self.plot.SetLineColorAlpha(color, alpha)
+            if 'M' in which:
+                self.plot.SetMarkerColorAlpha(color, alpha)
+            if 'F' in which:
+                self.plot.SetFillColorAlpha(color, alpha)
 
 # Enhances a TLegend, providing some much needed geometry functionality
 # X1, X2, Y1, Y2 construct the parent TLegend object; corner is a pos string (see Canvas)
