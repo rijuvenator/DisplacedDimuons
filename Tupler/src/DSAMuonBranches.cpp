@@ -23,7 +23,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
   {
     if (debug)
       muf.CompareTrackParams(mu, verticesHandle, beamspotHandle, propagator, magfield);
-    DisplacedMuon muon_cand = muf.Fill(mu, ttB, verticesHandle, beamspotHandle);
+    DisplacedMuon muon_cand = muf.Fill(mu, ttB, verticesHandle, beamspotHandle, false);
     muon_cand.idx = idx++;
     if (debug)
       std::cout << "DSA muon info:" << muon_cand;

@@ -19,7 +19,7 @@ void RSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle
 	DisplacedMuonFiller muf;
 	for (const auto &mu : muons)
   {
-    DisplacedMuon muon_cand = muf.Fill(mu, ttB, verticesHandle, beamspotHandle);
+    DisplacedMuon muon_cand = muf.Fill(mu, ttB, verticesHandle, beamspotHandle, false);
     muon_cand.idx = idx++;
     if (debug)
       std::cout << "RSA muon info:" << muon_cand;

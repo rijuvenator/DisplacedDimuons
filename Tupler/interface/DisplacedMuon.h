@@ -31,8 +31,7 @@ struct DisplacedMuon
   float y      ;
   float z      ;
 
-  // Position of the innermost hit on track (stored in
-  // reco::TrackExtra)
+  // Position of the innermost hit on track (stored in reco::TrackExtra)
   float x_fhit ;
   float y_fhit ;
   float z_fhit ;
@@ -40,7 +39,12 @@ struct DisplacedMuon
   float chi2 ;
   int   ndof ;
 
-  // Information from HitPattern
+  // Information from HitPattern: tracker (N/A for DSA and RSA)
+  int n_PxlHits;
+  int n_TrkHits;
+  int n_TrkLayers;
+
+  // Information from HitPattern: muon system
   int n_MuonHits    ;
   int n_DTHits      ;
   int n_CSCHits     ;
@@ -93,6 +97,10 @@ struct DisplacedMuon
     chi2   = -999.;
     ndof   = -999 ;
 
+    n_PxlHits     = -999;
+    n_TrkHits     = -999;
+    n_TrkLayers   = -999;
+
     n_MuonHits    = -999;
     n_DTHits      = -999;
     n_CSCHits     = -999;
@@ -129,6 +137,10 @@ struct DisplacedMuon
 	   << ";" << rhs.y         << ";" << rhs.z      << ")" << std::endl;
     output << "  (x; y; z) of the innermost hit:   (" << rhs.x_fhit
     	      << ";" << rhs.y_fhit << ";" << rhs.z_fhit << ")" << std::endl;
+
+    output << "  N(pixel hits) = "     << rhs.n_PxlHits
+	   << "; N(tracker hits) = "   << rhs.n_TrkHits
+	   << "; N(tracker layers) = " << rhs.n_TrkLayers << std::endl;
 
     output << "  N(mu hits) = "  << rhs.n_MuonHits
 	   << "; N(DT hits) = "  << rhs.n_DTHits

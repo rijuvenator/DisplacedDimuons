@@ -40,7 +40,7 @@
 #include "DisplacedDimuons/Tupler/interface/BeamspotBranches.h"
 #include "DisplacedDimuons/Tupler/interface/VertexBranches.h"
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
-#include "DisplacedDimuons/Tupler/interface/MuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/PATMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/RSAMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
@@ -77,7 +77,7 @@ class SimpleNTupler : public edm::EDAnalyzer
     BeamspotBranches beamspotData;
     VertexBranches   vertexData;
     GenBranches      genData;
-    MuonBranches     muonData;
+    PATMuonBranches  patMuonData;
     DSAMuonBranches  dsaMuonData;
     RSAMuonBranches  rsaMuonData;
     DimuonBranches   dimData;
@@ -115,7 +115,7 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   beamspotData(tree, source != "GEN"),
   vertexData  (tree, source != "GEN"),
   genData     (tree, isMC           ),
-  muonData    (tree, source == "PAT"),
+  patMuonData (tree, source == "PAT"),
   dsaMuonData (tree, source != "GEN"),
   rsaMuonData (tree, source != "GEN"),
   dimData     (tree, source != "GEN"),
@@ -248,20 +248,20 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     genData.Fill(gens, GEIP, pileupInfo, isSignal, finalState, beamspot, propagator, magfield);
   }
 
+  // ***** GET TRANSIENT TRACK BUILDER *****
+  edm::ESHandle<TransientTrackBuilder> ttB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
 
   // *********************
   // *** PAT MUON DATA ***
   // *********************
   if (source == "PAT")
   {
-    edm::Handle<pat::MuonCollection> muons;
-    iEvent.getByToken(muonToken, muons);
-    muonData.Fill(muons);
+    edm::Handle<pat::MuonCollection> patMuons;
+    iEvent.getByToken(muonToken, patMuons);
+    if (vertexData.isValid())
+      patMuonData.Fill(patMuons, ttB, vertices, beamspot, propagator, magfield);
   }
-
-  // ***** GET TRANSIENT TRACK BUILDER *****
-  edm::ESHandle<TransientTrackBuilder> ttB;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
 
   // *********************
   // *** DSA MUON DATA ***
