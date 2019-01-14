@@ -4,6 +4,8 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 bool DimuonBranches::alreadyPrinted_ = false;
 
 void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
@@ -23,7 +25,14 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
   // Primary vertex
   reco::Vertex pv = vertices.front();
 
-  // Setup Kalman vertex fitter and activate the refit of the tracks
+  // Setup Kalman vertex fitter and activate the refit of the tracks.
+  // Uncomment the next 4 lines if you want to change the default fitter
+  // parameters.
+  // edm::ParameterSet kvfPSet;
+  // kvfPSet.addParameter<double>("maxDistance", 0.01);   // default is 0.01
+  // kvfPSet.addParameter<int>("maxNbrOfIterations", 10); // default is 10
+  // KalmanVertexFitter kvf(kvfPSet, true);
+  // Default fitter settings
   KalmanVertexFitter kvf(true);
 
   DisplacedMuonFiller muf;
@@ -103,8 +112,8 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
         float dR = rt1_p4.DeltaR(rt2_p4);
 
         // refitted muon candidates
-        DisplacedMuon muon_cand1 = muf.Fill(rtt1.track(), ttB, verticesHandle, beamspotHandle);
-        DisplacedMuon muon_cand2 = muf.Fill(rtt2.track(), ttB, verticesHandle, beamspotHandle);
+        DisplacedMuon muon_cand1 = muf.Fill(rtt1.track(), ttB, verticesHandle, beamspotHandle, false);
+        DisplacedMuon muon_cand2 = muf.Fill(rtt2.track(), ttB, verticesHandle, beamspotHandle, false);
         muon_cand1.idx = i;
         muon_cand2.idx = j;
 
