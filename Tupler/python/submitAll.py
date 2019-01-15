@@ -2,14 +2,15 @@ import subprocess as bash
 import DisplacedDimuons.Common.DataHandler as DH
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
-# Monday November 19 2018 at 14:36 CET:
-# all HTo2XTo2Mu2J signal    PAT Tuples are available (33)
-# all HTo2XTo4Mu   signal    PAT Tuples are available (33)
-# all BG MC                  PAT Tuples are available (15) EXCEPT
+# Tuesday January 15 2019 at 11:40 CET:
+# all HTo2XTo2Mu2J  signal    PAT Tuples are available (33)
+# all HTo2XTo4Mu    signal    PAT Tuples are available (33)
+# all HTo2ZDTo2Mu2X signal    PAT Tuples are available (24)
+# all BG MC                   PAT Tuples are available (15) EXCEPT
 #   - most mass binned DY (we have 2 of them)
 #   - some pT binned QCD (we have 4 of them)
 # Note that WZ and ZZ extra samples will be merged after Tuples are made.
-# all DoubleMuon Run2016 B-H PAT Tuples are available (7)
+# all DoubleMuon Run2016 B-H  PAT Tuples are available (7)
 
 # change MODE to one of:
 #    --crab  (submit to CRAB)
@@ -28,6 +29,7 @@ Do_4Mu           = True
 Do_2Mu2J_GenOnly = False
 Do_2Mu2J_AODOnly = False
 Do_2Mu2J         = True
+Do_ZDark         = False
 Do_Background    = True
 Do_Data          = True
 
@@ -70,6 +72,12 @@ if Do_2Mu2J:
     for mH, mX, cTau in SIGNALPOINTS:
         verbose('SIGNAL {} : {} {} {}'.format('HTo2XTo2Mu2J', mH, mX, cTau))
         bash.call('python runNTupler.py HTo2XTo2Mu2J --signalpoint {mH} {mX} {cTau}           {MODE}'.format(**locals()), shell=True)
+
+# submit all HTo2ZDTo2Mu2X signal PAT Tuple jobs
+if Do_ZDark:
+    for mZD, epsilon in ZDSIGNALPOINTS:
+        verbose('SIGNAL {} : {} {}'.format('HTo2ZDTo2Mu2X', mZD, epsilon))
+        bash.call('python runNTupler.py HTo2ZDTo2Mu2X --signalpoint {mZD} {epsilon}           {MODE}'.format(**locals()), shell=True)
 
 # submit all background MC jobs
 if Do_Background:

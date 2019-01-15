@@ -7,6 +7,7 @@ from DisplacedDimuons.Common.Utilities import SPStr
 # in particular the default datasets don't have CLI parameters
 # so change them here if they're supposed to be different
 DEFAULT_SP          = (125, 20, 13)
+DEFAULT_ZDSP        = (60, '1e-07')
 DEFAULT_OUTDIR      = ''
 DEFAULT_OUTFILE     = 'ntuple_{}.root'
 
@@ -19,6 +20,7 @@ DEFAULT_OUTFILE     = 'ntuple_{}.root'
 DEFAULT_DATASETS = {
     'HTo2XTo4Mu'   : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
     'HTo2XTo2Mu2J' : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
+    'HTo2ZDTo2Mu2X': {'PAT':'PAT', 'GEN':'Dec2018-AOD-v1', 'AOD':'Dec2018-AOD-v1'},
     'DEFAULT'      : {'PAT':'PAT', 'GEN':'PAT'           , 'AOD':'EDM'           },
 }
 
@@ -32,7 +34,7 @@ def getConfiguration(returnArgs=False):
     parser = argparse.ArgumentParser()
 
     # name       : the name of the sample, as defined by the DataHandler, e.g. HTo2XTo4Mu or DY400to500 
-    # signalpoint: three integers defining the HTo2XTo4Mu signal point, e.g. 125 20 13
+    # signalpoint: 2-3 arguments defining the HTo* signal point, e.g. 125 20 13 or 60 1e-07
     # genonly    : whether or not to only run the Gen part of the nTuple, e.g. for GEN-SIM
     # aodonly    : whether or not to only run over AOD, instead of PAT
     # outdir     : output directory. Common paths should be stored in DisplacedDimuons.Common.Constants
@@ -45,7 +47,7 @@ def getConfiguration(returnArgs=False):
     # nosubmit   : don't actually submit the job, whether it's crab, lxbatch, or local. useful with verbose if just testing.
 
     parser.add_argument('NAME'         ,                                                            help='sample name'                       )
-    parser.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3, default=DEFAULT_SP, help='3 ints defining HTo2X signal point')
+    parser.add_argument('--signalpoint', dest='SIGNALPOINT', nargs='*', default=DEFAULT_SP,         help='2-3 args defining HTo*signal point')
     parser.add_argument('--genonly'    , dest='GENONLY'    , action='store_true',                   help='run on GEN only'                   )
     parser.add_argument('--aodonly'    , dest='AODONLY'    , action='store_true',                   help='run on AOD only'                   )
     parser.add_argument('--outdir'     , dest='OUTDIR'     , default=DEFAULT_OUTDIR,                help='output directory'                  )
@@ -61,6 +63,15 @@ def getConfiguration(returnArgs=False):
     # ['run.py', 'arg1', 'arg2' ... ]
     # So run as usual on sys.argv[1:]
     args = parser.parse_args(sys.argv[1:])
+
+    # SIGNALPOINT should be a tuple either of form (int, int, int) or (int, str)
+    if args.NAME == 'HTo2ZDTo2Mu2X':
+        if args.SIGNALPOINT == DEFAULT_SP:
+            args.SIGNALPOINT = DEFAULT_ZDSP
+        else:
+            args.SIGNALPOINT = (int(args.SIGNALPOINT[0]), args.SIGNALPOINT[1])
+    elif args.NAME.startswith('HTo2X') and args.SIGNALPOINT != DEFAULT_SP:
+        args.SIGNALPOINT = tuple(map(int, args.SIGNALPOINT))
 
     # make sure only one of --crab, --batch, and --test are set
     if (args.CRAB, args.BATCH, args.TEST).count(True) > 1:
@@ -114,7 +125,7 @@ def getConfiguration(returnArgs=False):
     CONFIG.DATA       = data
     CONFIG.SOURCE     = DKEY
 
-    # set the FINALSTATE, either 4Mu or 2Mu2J; does nothing if not signal
+    # set the FINALSTATE, either 4Mu or 2Mu2J; does nothing if not HTo2X signal
     CONFIG.FINALSTATE = ''
     if CONFIG.DATA.name.startswith('HTo2X'):
         if '4Mu' in CONFIG.DATA.name:
@@ -138,7 +149,7 @@ def getConfiguration(returnArgs=False):
 # get the list of samples and the Dataset object associated with the parameters
 def findSample(args):
     # signal
-    if args.NAME == 'HTo2XTo4Mu' or args.NAME == 'HTo2XTo2Mu2J':
+    if args.NAME == 'HTo2XTo4Mu' or args.NAME == 'HTo2XTo2Mu2J' or args.NAME == 'HTo2ZDTo2Mu2X':
         samples = getattr(DH, 'get'+args.NAME+'Samples')()
         SIGNALPOINT = tuple(args.SIGNALPOINT)
         DKEY = 'PAT'

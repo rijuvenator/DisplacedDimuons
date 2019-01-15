@@ -223,6 +223,45 @@ class SignalSample(MCSample):
     def signalPoint(self):
         return (self.mH, self.mX, self.cTau)
 
+# derived class for a dark photon signal sample
+# in this implementation, takes its input from a data file
+# so all of the inputs are in that file, and the code for running over the file is below
+# mostly a copy paste of the SignalSample class above, except with changed members
+class ZDSignalSample(MCSample):
+    def __init__(self, name, SP, nEvents, PATDataset, *PROC):
+        MCSample.__init__(self, name, '_', PATDataset)
+
+        mZD, epsilon = int(SP.split()[0]), SP.split()[1]
+
+        self.nEvents     = int(nEvents)
+        self.isSignal    = True
+        self.mZD         = mZD
+        self.epsilon     = epsilon
+        self.name        = self.name + '_' + '_'.join(map(str,(self.mZD, self.epsilon)))
+
+        # given a list of strings of the form "PROCESS <PROC> <DS>"
+        # and make sure that no keys get overwritten!
+        for arg in PROC:
+            header, proc, ds = arg.split()
+            if proc in self.datasets:
+                if proc + '_OW1' not in self.datasets:
+                    proc += '_OW1'
+                else:
+                    i = 1
+                    while proc + '_OW' + str(i) in datasets:
+                        i += 1
+                    proc += '_OW' + str(i)
+            self.datasets[proc] = ds
+            self.instances[proc] = 'prod/phys03'
+        assert len(PROC)+2 == len(self.datasets)
+
+        # set nTuple info
+        # note, at this point, self.name is HTo2ZDTo2Mu2X_(SP)
+        self.setNTupleInfo(self.name)
+
+    def signalPoint(self):
+        return (self.mZD, self.epsilon)
+
 # derived class for any data dataset
 # in this implementation, takes its input from a data file
 # so all of the inputs are in that file, and the code for running over the file is below
@@ -250,6 +289,7 @@ class DataSample(Dataset):
 def getSamples(TYPE):
     VARS = {
         'HTo2X'        : {'FILE' : 'SignalMCSamples.dat'     , 'CLASS' : globals()['SignalSample'    ]},
+        'HTo2ZD'       : {'FILE' : 'ZDSignalMCSamples.dat'   , 'CLASS' : globals()['ZDSignalSample'  ]},
         'BackgroundMC' : {'FILE' : 'BackgroundMCSamples.dat' , 'CLASS' : globals()['BackgroundSample']},
         'Data'         : {'FILE' : 'DataSamples.dat'         , 'CLASS' : globals()['DataSample'      ]}
     }
@@ -282,6 +322,11 @@ def getHTo2XTo2Mu2JSamples():
     return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J')]
 
 # aliased wrapper for convenience
+# get HTo2ZDTo2Mu2X MC samples
+def getHTo2ZDTo2Mu2XSamples():
+    return [s for s in getSamples('HTo2ZD') if s.name.startswith('HTo2ZDTo2Mu2X')]
+
+# aliased wrapper for convenience
 # get background MC samples
 def getBackgroundSamples():
     return getSamples('BackgroundMC')
@@ -294,7 +339,7 @@ def getDataSamples():
 # aliased wrapper for convenience
 # get all samples, return as dictionary
 def getAllSamples():
-    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getBackgroundSamples() + getDataSamples()}
+    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2ZDTo2Mu2XSamples() + getBackgroundSamples() + getDataSamples()}
 
 # get NTuple info
 # this loads the information in NTuples.dat into a dictionary at module level
@@ -329,6 +374,15 @@ if __name__ == '__main__':
     print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES-----\n\033[m'
     HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples()
     for ds in HTo2XTo2Mu2JSamples:
+        for process in ds.datasets:
+            if 'AOD' in process:
+                print process, ds.signalPoint()
+                print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
+        print '   ', ds.nTupleInfo
+
+    print '\n\033[32m-----HTO2ZDTO2MU2X SIGNAL SAMPLES-----\n\033[m'
+    HTo2ZDTo2Mu2XSamples = getHTo2ZDTo2Mu2XSamples()
+    for ds in HTo2ZDTo2Mu2XSamples:
         for process in ds.datasets:
             if 'AOD' in process:
                 print process, ds.signalPoint()
