@@ -32,6 +32,7 @@ The GEN-SIM samples were tested in CMSSW_7_1_32 and the final AOD are produced w
 
 ##### Grid
 The following dark photon - kinetic mixing was generated:
+
 | M_Zd [GeV] | Epsilon        |
 |------------|----------------|
 | 10  | 1e-06, 5e-07, 1e-07, 3e-08 |
