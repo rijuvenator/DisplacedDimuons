@@ -2,7 +2,7 @@
 
 Last updated: 29th January 2019
 
-This folder contains the pythia fragments used to generate the different signal samples used in the analysis. As of today, two different models are used in the analysis: The Hidden Abelian Higgs Model [HAHM](https://arxiv.org/abs/1412.0018) and the Benchmark Pythia model model.
+This folder contains the pythia fragments used to generate the different signal samples used in the analysis. As of today, two different models are used in the analysis: The Hidden Abelian Higgs Model [HAHM](https://arxiv.org/abs/1412.0018) and the Benchmark Pythia model.
 
 ## Benchmark Samples used in 2018 Trigger studies
 
@@ -35,10 +35,10 @@ The following dark photon - kinetic mixing was generated:
 
 | M_Zd [GeV] | Epsilon        |
 |------------|----------------|
-| 10  | 1e-06, 5e-07, 1e-07, 3e-08 |
+| 10 | 1e-06, 5e-07, 1e-07, 3e-08 |
 | 20 | 5e-07, 2e-07, 5e-08, 1e-08 |
 | 30 | 3e-07, 1e-07, 3e-08, 7e-09 | 
-| 40 | 2e-07, 6e-08, 1e-08, 4e-09 | 
+| 40 | 2e-07, 8e-08, 2e-08, 5e-09 | 
 | 50 | 2e-07, 6e-08, 1e-08, 4e-09 | 
 | 60 | 1e-07, 4e-08, 7e-09, 2e-09 | 
 
