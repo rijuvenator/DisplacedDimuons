@@ -267,11 +267,14 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *** DSA MUON DATA ***
   // *********************
   edm::Handle<reco::TrackCollection> dsaMuons;
+  edm::Handle<pat::MuonCollection>   patMuons;
   if (source != "GEN")
   {
     iEvent.getByToken(dsaMuonToken, dsaMuons);
+    iEvent.getByToken(muonToken,    patMuons);
+
     if (vertexData.isValid())
-      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield);
+      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield, patMuons);
   }
 
   // *********************
@@ -291,7 +294,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (source != "GEN")
   {
     if (dsaMuonData.isValid() && vertexData.isValid())
-      dimData.Fill(dsaMuons, ttB, vertices, beamspot);
+      dimData.Fill(iSetup, dsaMuons, ttB, vertices, beamspot, patMuons);
   }
 
   // Final tree fill

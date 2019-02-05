@@ -6,6 +6,7 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
@@ -80,6 +81,11 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu1_dzsig_bs     ;
 		std::vector<float> dim_mu1_dzsig_pv_lin ;
 		std::vector<float> dim_mu1_dzsig_bs_lin ;
+		// number of hits track has upstream of the vertex
+		std::vector<int  > dim_mu1_hitsbeforevtx;
+		// number of missing hits between the vertex position
+		// and the innermost valid hit on the track
+		std::vector<int  > dim_mu1_missinghitsaftervtx;
 
 		std::vector<int  > dim_mu2_idx          ;
 		std::vector<float> dim_mu2_px           ;
@@ -105,6 +111,8 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu2_dzsig_bs     ;
 		std::vector<float> dim_mu2_dzsig_pv_lin ;
 		std::vector<float> dim_mu2_dzsig_bs_lin ;
+		std::vector<int  > dim_mu2_hitsbeforevtx;
+		std::vector<int  > dim_mu2_missinghitsaftervtx;
 
 		// methods
 		void Declarations()
@@ -150,6 +158,8 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu1_dzsig_bs"    , dim_mu1_dzsig_bs    );
 			Declare("dim_mu1_dzsig_pv_lin", dim_mu1_dzsig_pv_lin);
 			Declare("dim_mu1_dzsig_bs_lin", dim_mu1_dzsig_bs_lin);
+			Declare("dim_mu1_hitsbeforevtx",dim_mu1_hitsbeforevtx);
+			Declare("dim_mu1_missinghitsaftervtx", dim_mu1_missinghitsaftervtx);
 
 			Declare("dim_mu2_idx"         , dim_mu2_idx         );
 			Declare("dim_mu2_px"          , dim_mu2_px          );
@@ -175,6 +185,8 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu2_dzsig_bs"    , dim_mu2_dzsig_bs    );
 			Declare("dim_mu2_dzsig_pv_lin", dim_mu2_dzsig_pv_lin);
 			Declare("dim_mu2_dzsig_bs_lin", dim_mu2_dzsig_bs_lin);
+			Declare("dim_mu2_hitsbeforevtx",dim_mu2_hitsbeforevtx);
+			Declare("dim_mu2_missinghitsaftervtx", dim_mu2_missinghitsaftervtx);
 		}
 
 		void Reset()
@@ -220,6 +232,8 @@ class DimuonBranches : public BranchCollection
 			dim_mu1_dzsig_bs    .clear();
 			dim_mu1_dzsig_pv_lin.clear();
 			dim_mu1_dzsig_bs_lin.clear();
+			dim_mu1_hitsbeforevtx.clear();
+			dim_mu1_missinghitsaftervtx.clear();
 
 			dim_mu2_idx         .clear();
 			dim_mu2_px          .clear();
@@ -245,12 +259,25 @@ class DimuonBranches : public BranchCollection
 			dim_mu2_dzsig_bs    .clear();
 			dim_mu2_dzsig_pv_lin.clear();
 			dim_mu2_dzsig_bs_lin.clear();
+			dim_mu2_hitsbeforevtx.clear();
+			dim_mu2_missinghitsaftervtx.clear();
+
 		}
 
-		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
+		void Fill(const edm::EventSetup& iSetup,
+			  const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
 			  const edm::ESHandle<TransientTrackBuilder>& ttB,
 			  const edm::Handle<reco::VertexCollection> &verticesHandle,
-			  const edm::Handle<reco::BeamSpot> &beamspotHandle);
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			  const edm::Handle<pat::MuonCollection> &patmuonsHandle);
+
+		void FillDimuon(int i, int j,
+				const reco::Track& tk1, const reco::Track& tk2,
+				const edm::EventSetup& iSetup,
+				const edm::ESHandle<TransientTrackBuilder>& ttB,
+				const edm::Handle<reco::VertexCollection> &verticesHandle,
+				const edm::Handle<reco::BeamSpot> &beamspotHandle,
+				bool debug);
 
 		reco::Vertex RefittedVertex(const edm::ESHandle<TransientTrackBuilder>& ttB,
 					    const reco::Vertex& pv,
