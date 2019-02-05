@@ -9,7 +9,7 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
 			   const edm::ESHandle<Propagator>& propagator,
 			   const edm::ESHandle<MagneticField>& magfield)
 {
-  static bool debug = true;
+  static bool debug = false;
 
   Reset();
 
@@ -25,8 +25,9 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     bool isStandalone = mu.isStandAloneMuon();
     bool isPF         = mu.isPFMuon();
 
-    // Only save global and tracker muons
-    if (!isGlobal && !isTracker) continue;
+    // Only save global and arbitrated tracker muons
+    if (!isGlobal && !(isTracker && mu.muonID("TrackerMuonArbitrated")))
+      continue;
 
     const reco::Track* tk = mu.tunePMuonBestTrack().get();
     if (!tk) {
@@ -39,9 +40,6 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
       muf.Fill(*tk, ttB, verticesHandle, beamspotHandle, true);
     muon_cand.idx = idx++;
 
-    // Number of muon stations with matched segments (tracker muons only)
-    int n_MatchedStations = mu.numberOfMatchedStations();
-
     // If tunePMuonBestTrack is a tracker track, muon hit variables
     // are not filled.  Get them from the corresponding global muon.
     if (tk->hitPattern().numberOfMuonHits() == 0 && isGlobal) {
@@ -53,6 +51,19 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
       muon_cand.n_CSCStations = tk_glb->hitPattern().cscStationsWithValidHits();
     }
 
+    // Detector-based isolation variables.
+    // The summed track pT in a cone of deltaR < 0.3
+    float trackIso = mu.trackIso();
+    // The summed ET of all recHits in the ECAL in a cone of deltaR <
+    // 0.3
+    float ecalIso  = mu.ecalIso();
+    // The summed ET of all caloTowers in the HCAL in a cone of deltaR
+    // < 0.4
+    float hcalIso  = mu.hcalIso();
+
+    // Number of muon stations with matched segments (tracker muons only)
+    int n_MatchedStations = mu.numberOfMatchedStations();
+
     if (debug) {
       std::cout << " PAT muon info:"
 		<< " global? "      << (isGlobal ?     "yes" : "no")
@@ -62,7 +73,9 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
 		<< std::endl;
       std::cout << " " << muon_cand;
       std::cout << "  N(matched muon stations) = " << n_MatchedStations
-		<< std::endl;
+		<< " track iso = " << mu.trackIso()
+		<< " ecal iso = "  << mu.ecalIso()
+		<< " hcal iso = "  << mu.hcalIso() << std::endl;
     }
 
     // Fill the Tree
@@ -92,6 +105,10 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     patmu_nDTStations     .push_back(muon_cand.n_DTStations);
     patmu_nCSCStations    .push_back(muon_cand.n_CSCStations);
     patmu_nMatchedStations.push_back(n_MatchedStations);
+
+    patmu_trackIso.push_back(trackIso);
+    patmu_ecalIso .push_back(ecalIso);
+    patmu_hcalIso .push_back(hcalIso);
 
     patmu_d0_pv       .push_back(fabs(muon_cand.d0_pv      ));
     patmu_d0_bs       .push_back(fabs(muon_cand.d0_bs      ));

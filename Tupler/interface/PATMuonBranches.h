@@ -55,6 +55,10 @@ class PATMuonBranches : public BranchCollection
   std::vector<int  > patmu_nCSCStations    ;
   std::vector<int  > patmu_nMatchedStations;
 
+  std::vector<float> patmu_trackIso;
+  std::vector<float> patmu_ecalIso ;
+  std::vector<float> patmu_hcalIso ;
+
   std::vector<float> patmu_d0_pv       ;
   std::vector<float> patmu_d0_bs       ;
   std::vector<float> patmu_d0_pv_lin   ;
@@ -114,6 +118,10 @@ class PATMuonBranches : public BranchCollection
     Declare("patmu_nCSCStations"     , patmu_nCSCStations     );
     Declare("patmu_nMatchedStations" , patmu_nMatchedStations );
 
+    Declare("patmu_trackIso", patmu_trackIso);
+    Declare("patmu_ecalIso" , patmu_ecalIso );
+    Declare("patmu_hcalIso" , patmu_hcalIso );
+
     Declare("patmu_d0_pv"        , patmu_d0_pv        );
     Declare("patmu_d0_bs"        , patmu_d0_bs        );
     Declare("patmu_d0_pv_lin"    , patmu_d0_pv_lin    );
@@ -172,6 +180,10 @@ class PATMuonBranches : public BranchCollection
     patmu_nDTStations     .clear();
     patmu_nCSCStations    .clear();
     patmu_nMatchedStations.clear();
+
+    patmu_trackIso.clear();
+    patmu_ecalIso .clear();
+    patmu_hcalIso .clear();
 
     patmu_d0_pv        .clear();
     patmu_d0_bs        .clear();
