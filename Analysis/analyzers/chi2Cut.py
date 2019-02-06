@@ -32,7 +32,8 @@ f.Close()
 
 print ''
 
-f = R.TFile.Open('../analyzers/roots/Main/DimuonPlots_NoPrompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_MCOnly.root')
+#f = R.TFile.Open('../analyzers/roots/Main/DimuonPlots_NoPrompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_MCOnly.root')
+f = R.TFile.Open('../analyzers/roots/Chi2Plots_MC.root')
 hkey = 'Dim_vtxChi2'
 BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
 PC = HistogramGetter.PLOTCONFIG

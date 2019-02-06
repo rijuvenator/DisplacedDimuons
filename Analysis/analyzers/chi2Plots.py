@@ -160,6 +160,11 @@ def analyze(self, E, PARAMS=None):
     for dimuon in selectedDimuons:
         for KEY in CONFIG:
             self.HISTS['Dim_'+KEY].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
+            if self.SP is None:
+                if CONFIG[KEY]['LAMBDA'](dimuon) > 50.:
+                    self.HISTS['Lxy2D'].Fill(50., dimuon.Lxy())
+                    if dimuon.LxySig() > 10.:
+                        self.HISTS['Lxy2D-LxySig10'].Fill(50., dimuon.Lxy())
 
     # get gen particles if this is a signal sample
     if self.SP is not None:
@@ -187,10 +192,15 @@ def analyze(self, E, PARAMS=None):
                     for KEY in CONFIG:
                         self.HISTS['Dim_'+KEY+'_Matched'].Fill(CONFIG[KEY]['LAMBDA'](dimuon), eventWeight)
                         if CONFIG[KEY]['LAMBDA'](dimuon) > 50.:
-                            #print Event, genMuonPair[0], genMuonPair[1], dimuon
                             self.HISTS['Lxy2D'].Fill(genMuonPair[0].Lxy(), dimuon.Lxy())
                             if dimuon.LxySig() > 10.:
                                 self.HISTS['Lxy2D-LxySig10'].Fill(genMuonPair[0].Lxy(), dimuon.Lxy())
+                                print '{:6.3f} {:6.3f} {:6.3f} {:6.3f}'.format(dimuon.Lxy(), genMuonPair[0].Lxy(), dimuon.LxyErr(), abs(dimuon.Lxy()-genMuonPair[0].Lxy())/dimuon.LxyErr())
+                                #print Event
+                                #print genMuonPair[0]
+                                #print genMuonPair[1]
+                                #print dimuon
+                                #print '=' * 20
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -202,4 +212,4 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('EVENT', 'GEN', 'DSAMUON', 'DIMUON', 'TRIGGER', 'VERTEX'),
     )
-    analyzer.writeHistograms('roots/Chi2Plots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('roots/mcbg/Chi2Plots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
