@@ -39,6 +39,8 @@ for sample in (
     'DoubleMuonRun2016F-07Aug17'   ,
     'DoubleMuonRun2016G-07Aug17'   ,
     'DoubleMuonRun2016H-07Aug17'   ,
+    'NoBPTXRun2016D_07Aug17'       ,
+    'NoBPTXRun2016E_07Aug17'       ,
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 

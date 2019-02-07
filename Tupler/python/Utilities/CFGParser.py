@@ -153,7 +153,7 @@ def findSample(args):
             exit()
 
     # data
-    elif args.NAME.startswith('DoubleMuon'):
+    elif args.NAME.startswith('DoubleMuon') or args.NAME.startswith('NoBPTX'):
         samples = DH.getDataSamples()
         for data in samples:
             if data.name == args.NAME:
