@@ -566,14 +566,14 @@ class GenParticle(Particle):
 # Muon classes
 # sets all the particle variables
 # base class for several "kinds" of muons, each with different additional branches
-# GenMuon        : gen muons from the GenParticle collection     (gen_)
+# GenMuon        : gen muons from the GenParticle collection      (gen_)
 # RecoMuon       : reco muons from a reco::Track collection
-#   ("DSA")      : reco DSA muons from displacedStandAloneMuons  (dsamu_)
-#   ("RSA")      : reco RSA muons from refittedStandAloneMuons   (rsamu_)
-#   ("PAT")      : reco PAT muons from patMuons                  (patmu_)
-#     .gen       : gen muon matched/attached to the PAT muon     (patmu_gen_)
-#   ("DIM_DSA1") : reco DSA muons from refitted dimuon tracks    (dim_mu1_)
-#   ("DIM_DSA2") : reco DSA muons from refitted dimuon tracks    (dim_mu2_)
+#   ("DSA")      : reco DSA muons from displacedStandAloneMuons   (dsamu_)
+#   ("RSA")      : reco RSA muons from refittedStandAloneMuons    (rsamu_)
+#   ("PAT")      : reco PAT muons from patMuons                   (patmu_)
+#     .gen       : gen muon matched/attached to the PAT muon      (patmu_gen_)
+#   ("DIM_REF1") : reco DSA/PAT muons from refitted dimuon tracks (dim_mu1_)
+#   ("DIM_REF2") : reco DSA/PAT muons from refitted dimuon tracks (dim_mu2_)
 class Muon(Particle):
     def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
@@ -657,11 +657,13 @@ class RecoMuon(Muon):
             'DSA'      : 'dsamu_',
             'RSA'      : 'rsamu_',
             'PAT'      : 'patmu_',
-            'DIM_DSA1' : 'dim_mu1_',
-            'DIM_DSA2' : 'dim_mu2_',
+            'DIM_REF1' : 'dim_mu1_',
+            'DIM_REF2' : 'dim_mu2_',
         }
         prefix = TAGDICT[tag]
         Muon.__init__(self, E, i, prefix)
+
+        self.tag = tag
 
         # all reco muons have idx, ptError, and impact parameter
         self.set('idx', E, prefix+'idx', i)
@@ -692,6 +694,9 @@ class RecoMuon(Muon):
             RENAME = dict(zip(('proxmatch_idx', 'segmmatch_idx', 'proxmatch_dr'), ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch')))
             for attr, realAttr in RENAME.iteritems():
                 self.set(realAttr, E, prefix+attr, i)
+            if self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
+            if self.idx_SegMatch     < 0   : self.idx_SegMatch     = None
+            if self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
 
     def __getattr__(self, name):
         if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):
@@ -840,8 +845,8 @@ class Dimuon(Particle):
             self.set(attr, E, 'dim_'+attr, i)
         self.Lxy_ = TransverseDecayLength(E, i, 'dim_')
 
-        self.mu1 = RecoMuon(E, i, 'DIM_DSA1')
-        self.mu2 = RecoMuon(E, i, 'DIM_DSA2')
+        self.mu1 = RecoMuon(E, i, 'DIM_REF1')
+        self.mu2 = RecoMuon(E, i, 'DIM_REF2')
 
         self.idx1 = self.mu1.idx
         self.idx2 = self.mu2.idx
