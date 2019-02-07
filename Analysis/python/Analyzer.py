@@ -118,7 +118,7 @@ class Analyzer(object):
 
         # set HNAME to NAME_SampleName
         # remember NAME is HTo2XTo**_SPStr for signal
-        HNAME = NAME+'_{}'.format(self.NAME)
+        HNAME = NAME+'_{}'.format(self.NAME.replace('-','_'))
 
         # declare the histogram
         self.HISTS[NAME] = getattr(R,HCLASS)(HNAME, *args)

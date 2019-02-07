@@ -278,7 +278,10 @@ class Event(Primitive):
         outstr = colorText(self.__class__.__name__) + '\n'
         maxAttrLen = max([len(attr) for attr in self.__dict__.keys()])
         for attr in ('run', 'lumi', 'event', 'bx', 'weight', 'nTruePV'):
-            data = self.__dict__[attr]
+            try:
+                data = self.__dict__[attr]
+            except KeyError:
+                continue
 
             # format booleans in a nice way
             if isinstance(data, bool):
@@ -306,7 +309,11 @@ class MET(Primitive):
     def __str__(self):
         outstr = colorText(self.__class__.__name__) + '   '
         for attr in ('pt', 'phi', 'gen_pt'):
-            outstr += '{}: {:3.3f}    '.format(attr, self.__dict__[attr])
+            try:
+                outstr += '{}: {:3.3f}    '.format(attr, self.__dict__[attr])
+            except KeyError:
+                continue
+
         outstr += '\n'
         return outstr
 
