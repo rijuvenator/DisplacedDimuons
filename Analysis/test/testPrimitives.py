@@ -36,7 +36,7 @@ KEYS = {
         'VERTEX'  : [-1, False],
         'BEAMSPOT': [-1, False],
         'GEN'     : [-1, False],
-        'MUON'    : [-1, False],
+        'PATMUON' : [-1, False],
         'DSAMUON' : [-1, False],
         'RSAMUON' : [-1, False],
         'DIMUON'  : [-1, False],

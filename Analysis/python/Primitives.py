@@ -36,7 +36,7 @@ BRANCHCONFIG = (
     ('BEAMSPOT' , 'bs_'   ),
     ('VERTEX'   , 'vtx_'  ),
     ('GEN'      , 'gen_'  ),
-    ('MUON'     , 'mu_'   ),
+    ('PATMUON'  , 'patmu_'),
     ('DSAMUON'  , 'dsamu_'),
     ('RSAMUON'  , 'rsamu_'),
     ('DIMUON'   , 'dim_'  ),
@@ -134,7 +134,7 @@ class ETree(object):
             # Background
             else:
                 return                [GenParticle(self, i        )        for i in range(len(self.gen_eta       ))]
-        if KEY == 'MUON'     : return [PATMuon    (self, i        )        for i in range(len(self.mu_eta        ))]
+        if KEY == 'PATMUON'  : return [RecoMuon   (self, i, 'PAT' )        for i in range(len(self.patmu_eta     ))]
         if KEY == 'DSAMUON'  : return [RecoMuon   (self, i, 'DSA' )        for i in range(len(self.dsamu_eta     ))]
         if KEY == 'RSAMUON'  : return [RecoMuon   (self, i, 'RSA' )        for i in range(len(self.rsamu_eta     ))]
         if KEY == 'DIMUON'   : return [Dimuon     (self, i        )        for i in range(len(self.dim_eta       ))]
@@ -191,7 +191,7 @@ class ETree(object):
                         outstr += particle.datastr()
                 outstr +='\n'
 
-            elif key == 'MUON':
+            elif key == 'PATMUON':
                 outstr += colorText('PAT Muons') + '\n'
                 if len(primitives) > 0:
                     outstr += PATMuon.headerstr()
@@ -566,26 +566,17 @@ class GenParticle(Particle):
 # Muon classes
 # sets all the particle variables
 # base class for several "kinds" of muons, each with different additional branches
-# PATMuon        : reco PAT muons from the reco::Muon collection (mu_)
-#   .gen         : gen muon matched/attached to the PAT muon     (mu_gen_)
 # GenMuon        : gen muons from the GenParticle collection     (gen_)
 # RecoMuon       : reco muons from a reco::Track collection
 #   ("DSA")      : reco DSA muons from displacedStandAloneMuons  (dsamu_)
 #   ("RSA")      : reco RSA muons from refittedStandAloneMuons   (rsamu_)
+#   ("PAT")      : reco PAT muons from patMuons                  (patmu_)
+#     .gen       : gen muon matched/attached to the PAT muon     (patmu_gen_)
 #   ("DIM_DSA1") : reco DSA muons from refitted dimuon tracks    (dim_mu1_)
 #   ("DIM_DSA2") : reco DSA muons from refitted dimuon tracks    (dim_mu2_)
 class Muon(Particle):
     def __init__(self, E, i, prefix):
         Particle.__init__(self, E, i, prefix)
-
-# PATMuon: see above
-# note that the gen muon attached to it is of type Muon
-class PATMuon(Muon):
-    def __init__(self, E, i):
-        Muon.__init__(self, E, i, 'mu_')
-        self.gen = Muon(E, i, 'mu_gen_')
-        for attr in ('isSlim',):
-            self.set(attr, E, 'mu_'+attr, i)
 
 # GenMuon: see above
 class GenMuon(Muon, GenParticle):
@@ -659,11 +650,13 @@ class GenMuon(Muon, GenParticle):
 # RecoMuon: see above
 # the ImpactParameter is a member variable allowing easy access to d0, dz
 # and the associated quantities. allow accessing its methods directly on the muon.
+# for PAT muons, note that the gen muon attached to it is of type Muon
 class RecoMuon(Muon):
     def __init__(self, E, i, tag):
         TAGDICT = {
             'DSA'      : 'dsamu_',
             'RSA'      : 'rsamu_',
+            'PAT'      : 'patmu_',
             'DIM_DSA1' : 'dim_mu1_',
             'DIM_DSA2' : 'dim_mu2_',
         }
@@ -675,12 +668,30 @@ class RecoMuon(Muon):
         self.set('ptError', E, prefix+'ptError', i)
         self.IP = ImpactParameter(E, i, prefix)
 
-        # only DSA and RSA have these attributes
-        if tag in ('DSA', 'RSA'):
-            for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof', 'x_fhit', 'y_fhit', 'z_fhit'):
+        # only PAT, DSA, and RSA have these attributes
+        if tag in ('DSA', 'RSA', 'PAT'):
+            for attr in ('nMuonHits', 'nDTHits', 'nCSCHits', 'nDTStations', 'nCSCStations', 'chi2', 'ndof'):
                 self.set(attr, E, prefix+attr, i)
             self.normChi2 = self.chi2/self.ndof if self.ndof != 0 else float('inf')
+        # only DSA and RSA have these attributes
+        if tag in ('DSA', 'RSA'):
+            for attr in ('x_fhit', 'y_fhit', 'z_fhit'):
+                self.set(attr, E, prefix+attr, i)
             self.fhit = R.TVector3(self.x_fhit, self.y_fhit, self.z_fhit)
+        # only PAT has these attributes
+        if tag in ('PAT',):
+            self.gen = None
+            if E.get('patmu_gen_energy', i) > 0.:
+                self.gen = Muon(E, i, 'patmu_gen_')
+            for attr in ('nMatchedStations', 'isGlobal', 'isTracker', 'nPixelHits', 'nTrackerHits', 'nTrackerLayers', 'trackIso', 'ecalIso', 'hcalIso'):
+                self.set(attr, E, prefix+attr, i)
+            for attr in ('isGlobal', 'isTracker'):
+                setattr(self, attr, bool(getattr(self, attr)))
+        # only DSA has these attributes
+        if tag in ('DSA',):
+            RENAME = dict(zip(('proxmatch_idx', 'segmmatch_idx', 'proxmatch_dr'), ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch')))
+            for attr, realAttr in RENAME.iteritems():
+                self.set(realAttr, E, prefix+attr, i)
 
     def __getattr__(self, name):
         if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):
@@ -719,8 +730,12 @@ class RecoMuon(Muon):
                    Particle.datastr(self).strip('\n')    +\
                    RecoMuon.dataFormatPost.format(self.ptError)
         elif line == 2:
-            return RecoMuon.dataFormatExtra.format(
-                self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations, self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
+            try:
+                return RecoMuon.dataFormatExtra.format(
+                    self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations, self.nCSCStations, self.chi2, self.ndof, self.x_fhit, self.y_fhit, self.z_fhit)
+            except:
+                return '|{:10d}|{:8d}|{:8d}|{:14d}|{:14d}|{:9.2f}|{:9.2f}|\n'.format(
+                    self.nMuonHits, self.nDTHits, self.nCSCHits, self.nDTStations, self.nCSCStations, self.chi2, self.ndof)
         elif line == 3:
             return self.IP.datastr()
         else:

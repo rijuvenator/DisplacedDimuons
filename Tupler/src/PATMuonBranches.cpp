@@ -3,11 +3,11 @@
 bool PATMuonBranches::alreadyPrinted_ = false;
 
 void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
-			   const edm::ESHandle<TransientTrackBuilder>& ttB,
-			   const edm::Handle<reco::VertexCollection> &verticesHandle,
-			   const edm::Handle<reco::BeamSpot> &beamspotHandle,
-			   const edm::ESHandle<Propagator>& propagator,
-			   const edm::ESHandle<MagneticField>& magfield)
+    const edm::ESHandle<TransientTrackBuilder>& ttB,
+    const edm::Handle<reco::VertexCollection> &verticesHandle,
+    const edm::Handle<reco::BeamSpot> &beamspotHandle,
+    const edm::ESHandle<Propagator>& propagator,
+    const edm::ESHandle<MagneticField>& magfield)
 {
   static bool debug = false;
 
@@ -32,7 +32,7 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     const reco::Track* tk = mu.tunePMuonBestTrack().get();
     if (!tk) {
       std::cout << "+++ PATMuonBranches::Fill warning: tuneP track for muon # "
-		<< idx << " is not found +++" << std::endl;
+        << idx << " is not found +++" << std::endl;
       continue;
     }
 
@@ -66,22 +66,20 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
 
     if (debug) {
       std::cout << " PAT muon info:"
-		<< " global? "      << (isGlobal ?     "yes" : "no")
-		<< "; tracker? "    << (isTracker ?    "yes" : "no")
-		<< "; standalone? " << (isStandalone ? "yes" : "no")
-		<< "; PF? "         << (isPF ?         "yes" : "no")
-		<< std::endl;
+        << " global? "      << (isGlobal ?     "yes" : "no")
+        << "; tracker? "    << (isTracker ?    "yes" : "no")
+        << "; standalone? " << (isStandalone ? "yes" : "no")
+        << "; PF? "         << (isPF ?         "yes" : "no")
+        << std::endl;
       std::cout << " " << muon_cand;
       std::cout << "  N(matched muon stations) = " << n_MatchedStations
-		<< " track iso = " << mu.trackIso()
-		<< " ecal iso = "  << mu.ecalIso()
-		<< " hcal iso = "  << mu.hcalIso() << std::endl;
+        << " track iso = " << mu.trackIso()
+        << " ecal iso = "  << mu.ecalIso()
+        << " hcal iso = "  << mu.hcalIso() << std::endl;
     }
 
     // Fill the Tree
     patmu_idx    .push_back(muon_cand.idx);
-    patmu_glbmu  .push_back(isGlobal);
-    patmu_trkmu  .push_back(isTracker);
     patmu_px     .push_back(muon_cand.px);
     patmu_py     .push_back(muon_cand.py);
     patmu_pz     .push_back(muon_cand.pz);
@@ -96,19 +94,22 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     patmu_y      .push_back(muon_cand.y);
     patmu_z      .push_back(muon_cand.z);
 
-    patmu_nPxlHits        .push_back(muon_cand.n_PxlHits);
-    patmu_nTrkHits        .push_back(muon_cand.n_TrkHits);
-    patmu_nTrkLayers      .push_back(muon_cand.n_TrkLayers);
     patmu_nMuonHits       .push_back(muon_cand.n_MuonHits);
     patmu_nDTHits         .push_back(muon_cand.n_DTHits);
     patmu_nCSCHits        .push_back(muon_cand.n_CSCHits);
     patmu_nDTStations     .push_back(muon_cand.n_DTStations);
     patmu_nCSCStations    .push_back(muon_cand.n_CSCStations);
-    patmu_nMatchedStations.push_back(n_MatchedStations);
 
-    patmu_trackIso.push_back(trackIso);
-    patmu_ecalIso .push_back(ecalIso);
-    patmu_hcalIso .push_back(hcalIso);
+    // these are unique to PAT muons
+    patmu_nMatchedStations.push_back(n_MatchedStations);
+    patmu_isGlobal        .push_back(isGlobal);
+    patmu_isTracker       .push_back(isTracker);
+    patmu_nPixelHits      .push_back(muon_cand.n_PxlHits);
+    patmu_nTrackerHits    .push_back(muon_cand.n_TrkHits);
+    patmu_nTrackerLayers  .push_back(muon_cand.n_TrkLayers);
+    patmu_trackIso        .push_back(trackIso);
+    patmu_ecalIso         .push_back(ecalIso);
+    patmu_hcalIso         .push_back(hcalIso);
 
     patmu_d0_pv       .push_back(fabs(muon_cand.d0_pv      ));
     patmu_d0_bs       .push_back(fabs(muon_cand.d0_bs      ));
@@ -130,30 +131,30 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
 
     const reco::GenParticle * gen = mu.genLepton();
     if (gen != 0)
-      {
-	patmu_gen_pdgID .push_back(gen->pdgId ());
-	patmu_gen_pt    .push_back(gen->pt    ());
-	patmu_gen_eta   .push_back(gen->eta   ());
-	patmu_gen_phi   .push_back(gen->phi   ());
-	patmu_gen_mass  .push_back(gen->mass  ());
-	patmu_gen_energy.push_back(gen->energy());
-	patmu_gen_charge.push_back(gen->charge());
-	patmu_gen_x     .push_back(gen->vx    ());
-	patmu_gen_y     .push_back(gen->vy    ());
-	patmu_gen_z     .push_back(gen->vz    ());
-      }
+    {
+      patmu_gen_pdgID .push_back(gen->pdgId ());
+      patmu_gen_pt    .push_back(gen->pt    ());
+      patmu_gen_eta   .push_back(gen->eta   ());
+      patmu_gen_phi   .push_back(gen->phi   ());
+      patmu_gen_mass  .push_back(gen->mass  ());
+      patmu_gen_energy.push_back(gen->energy());
+      patmu_gen_charge.push_back(gen->charge());
+      patmu_gen_x     .push_back(gen->vx    ());
+      patmu_gen_y     .push_back(gen->vy    ());
+      patmu_gen_z     .push_back(gen->vz    ());
+    }
     else
-      {
-	patmu_gen_pdgID .push_back(-999);
-	patmu_gen_pt    .push_back(-999);
-	patmu_gen_eta   .push_back(-999);
-	patmu_gen_phi   .push_back(-999);
-	patmu_gen_mass  .push_back(-999);
-	patmu_gen_energy.push_back(-999);
-	patmu_gen_charge.push_back(-999);
-	patmu_gen_x     .push_back(-999);
-	patmu_gen_y     .push_back(-999);
-	patmu_gen_z     .push_back(-999);
-      }
+    {
+      patmu_gen_pdgID .push_back(-999);
+      patmu_gen_pt    .push_back(-999);
+      patmu_gen_eta   .push_back(-999);
+      patmu_gen_phi   .push_back(-999);
+      patmu_gen_mass  .push_back(-999);
+      patmu_gen_energy.push_back(-999);
+      patmu_gen_charge.push_back(-999);
+      patmu_gen_x     .push_back(-999);
+      patmu_gen_y     .push_back(-999);
+      patmu_gen_z     .push_back(-999);
+    }
   }
 }
