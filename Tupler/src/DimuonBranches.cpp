@@ -257,8 +257,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu1_dzsig_bs    .push_back(     muon_cand1.dzsig_bs    );
   dim_mu1_dzsig_pv_lin.push_back(     muon_cand1.dzsig_pv_lin);
   dim_mu1_dzsig_bs_lin.push_back(     muon_cand1.dzsig_bs_lin);
-  dim_mu1_hitsbeforevtx.push_back(cand1_hitsInFrontOfVert    );
-  dim_mu1_missinghitsaftervtx.push_back(cand1_missHitsAfterVert);
+  dim_mu1_hitsBeforeVtx.push_back(cand1_hitsInFrontOfVert    );
+  dim_mu1_missingHitsAfterVtx.push_back(cand1_missHitsAfterVert);
 
   // second muon candidate resulting from the common-vertex fit
   dim_mu2_idx         .push_back(     muon_cand2.idx         );
@@ -285,8 +285,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu2_dzsig_bs    .push_back(     muon_cand2.dzsig_bs    );
   dim_mu2_dzsig_pv_lin.push_back(     muon_cand2.dzsig_pv_lin);
   dim_mu2_dzsig_bs_lin.push_back(     muon_cand2.dzsig_bs_lin);
-  dim_mu2_hitsbeforevtx.push_back(cand2_hitsInFrontOfVert    );
-  dim_mu2_missinghitsaftervtx.push_back(cand2_missHitsAfterVert);
+  dim_mu2_hitsBeforeVtx.push_back(cand2_hitsInFrontOfVert    );
+  dim_mu2_missingHitsAfterVtx.push_back(cand2_missHitsAfterVert);
 
   if (debug)
     {

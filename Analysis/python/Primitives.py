@@ -691,12 +691,16 @@ class RecoMuon(Muon):
                 setattr(self, attr, bool(getattr(self, attr)))
         # only DSA has these attributes
         if tag in ('DSA',):
-            RENAME = dict(zip(('proxmatch_idx', 'segmmatch_idx', 'proxmatch_dr'), ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch')))
-            for attr, realAttr in RENAME.iteritems():
-                self.set(realAttr, E, prefix+attr, i)
+            for attr in ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch'):
+                self.set(attr, E, prefix+attr, i)
             if self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
             if self.idx_SegMatch     < 0   : self.idx_SegMatch     = None
             if self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
+        # only refitted muons have these attributes
+        if 'REF' in tag:
+            if self.idx > 999:
+                for attr in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
+                    self.set(attr, E, prefix+attr, i)
 
     def __getattr__(self, name):
         if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):

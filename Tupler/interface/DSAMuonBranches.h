@@ -73,9 +73,9 @@ class DSAMuonBranches : public BranchCollection
   std::vector<float> dsamu_dzsig_pv_lin ;
   std::vector<float> dsamu_dzsig_bs_lin ;
 
-  std::vector<int>   dsamu_proxmatch_idx;
-  std::vector<int>   dsamu_segmmatch_idx;
-  std::vector<float> dsamu_proxmatch_dr ;
+  std::vector<int>   dsamu_idx_ProxMatch;
+  std::vector<int>   dsamu_idx_SegMatch ;
+  std::vector<float> dsamu_deltaR_ProxMatch ;
 
   // methods
   void Declarations()
@@ -122,9 +122,9 @@ class DSAMuonBranches : public BranchCollection
     Declare("dsamu_dzsig_pv_lin" , dsamu_dzsig_pv_lin );
     Declare("dsamu_dzsig_bs_lin" , dsamu_dzsig_bs_lin );
 
-    Declare("dsamu_proxmatch_idx", dsamu_proxmatch_idx);
-    Declare("dsamu_segmmatch_idx", dsamu_segmmatch_idx);
-    Declare("dsamu_proxmatch_dr" , dsamu_proxmatch_dr );
+    Declare("dsamu_idx_ProxMatch", dsamu_idx_ProxMatch);
+    Declare("dsamu_idx_SegMatch" , dsamu_idx_SegMatch );
+    Declare("dsamu_deltaR_ProxMatch" , dsamu_deltaR_ProxMatch );
   }
 
   void Reset()
@@ -171,9 +171,9 @@ class DSAMuonBranches : public BranchCollection
     dsamu_dzsig_pv_lin .clear();
     dsamu_dzsig_bs_lin .clear();
 
-    dsamu_proxmatch_idx.clear();
-    dsamu_segmmatch_idx.clear();
-    dsamu_proxmatch_dr .clear();
+    dsamu_idx_ProxMatch.clear();
+    dsamu_idx_SegMatch .clear();
+    dsamu_deltaR_ProxMatch .clear();
   }
 
   void Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHandle,

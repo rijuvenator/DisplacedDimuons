@@ -215,9 +215,9 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     dsamu_dzsig_pv_lin.push_back(     muon_cand.dzsig_pv_lin);
     dsamu_dzsig_bs_lin.push_back(     muon_cand.dzsig_bs_lin);
 
-    dsamu_proxmatch_idx.push_back(idx_patmu_matched_prox);
-    dsamu_proxmatch_dr .push_back(dR_min                );
-    dsamu_segmmatch_idx.push_back(idx_patmu_matched_segm);
+    dsamu_idx_ProxMatch.push_back(idx_patmu_matched_prox);
+    dsamu_deltaR_ProxMatch .push_back(dR_min                );
+    dsamu_idx_SegMatch .push_back(idx_patmu_matched_segm);
 
     if (debug) {
       std::cout << "DSA muon info:" << muon_cand;

@@ -82,10 +82,10 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu1_dzsig_pv_lin ;
 		std::vector<float> dim_mu1_dzsig_bs_lin ;
 		// number of hits track has upstream of the vertex
-		std::vector<int  > dim_mu1_hitsbeforevtx;
+		std::vector<int  > dim_mu1_hitsBeforeVtx;
 		// number of missing hits between the vertex position
 		// and the innermost valid hit on the track
-		std::vector<int  > dim_mu1_missinghitsaftervtx;
+		std::vector<int  > dim_mu1_missingHitsAfterVtx;
 
 		std::vector<int  > dim_mu2_idx          ;
 		std::vector<float> dim_mu2_px           ;
@@ -111,8 +111,8 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_mu2_dzsig_bs     ;
 		std::vector<float> dim_mu2_dzsig_pv_lin ;
 		std::vector<float> dim_mu2_dzsig_bs_lin ;
-		std::vector<int  > dim_mu2_hitsbeforevtx;
-		std::vector<int  > dim_mu2_missinghitsaftervtx;
+		std::vector<int  > dim_mu2_hitsBeforeVtx;
+		std::vector<int  > dim_mu2_missingHitsAfterVtx;
 
 		// methods
 		void Declarations()
@@ -158,8 +158,8 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu1_dzsig_bs"    , dim_mu1_dzsig_bs    );
 			Declare("dim_mu1_dzsig_pv_lin", dim_mu1_dzsig_pv_lin);
 			Declare("dim_mu1_dzsig_bs_lin", dim_mu1_dzsig_bs_lin);
-			Declare("dim_mu1_hitsbeforevtx",dim_mu1_hitsbeforevtx);
-			Declare("dim_mu1_missinghitsaftervtx", dim_mu1_missinghitsaftervtx);
+			Declare("dim_mu1_hitsBeforeVtx",dim_mu1_hitsBeforeVtx);
+			Declare("dim_mu1_missingHitsAfterVtx", dim_mu1_missingHitsAfterVtx);
 
 			Declare("dim_mu2_idx"         , dim_mu2_idx         );
 			Declare("dim_mu2_px"          , dim_mu2_px          );
@@ -185,8 +185,8 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_mu2_dzsig_bs"    , dim_mu2_dzsig_bs    );
 			Declare("dim_mu2_dzsig_pv_lin", dim_mu2_dzsig_pv_lin);
 			Declare("dim_mu2_dzsig_bs_lin", dim_mu2_dzsig_bs_lin);
-			Declare("dim_mu2_hitsbeforevtx",dim_mu2_hitsbeforevtx);
-			Declare("dim_mu2_missinghitsaftervtx", dim_mu2_missinghitsaftervtx);
+			Declare("dim_mu2_hitsBeforeVtx",dim_mu2_hitsBeforeVtx);
+			Declare("dim_mu2_missingHitsAfterVtx", dim_mu2_missingHitsAfterVtx);
 		}
 
 		void Reset()
@@ -232,8 +232,8 @@ class DimuonBranches : public BranchCollection
 			dim_mu1_dzsig_bs    .clear();
 			dim_mu1_dzsig_pv_lin.clear();
 			dim_mu1_dzsig_bs_lin.clear();
-			dim_mu1_hitsbeforevtx.clear();
-			dim_mu1_missinghitsaftervtx.clear();
+			dim_mu1_hitsBeforeVtx.clear();
+			dim_mu1_missingHitsAfterVtx.clear();
 
 			dim_mu2_idx         .clear();
 			dim_mu2_px          .clear();
@@ -259,8 +259,8 @@ class DimuonBranches : public BranchCollection
 			dim_mu2_dzsig_bs    .clear();
 			dim_mu2_dzsig_pv_lin.clear();
 			dim_mu2_dzsig_bs_lin.clear();
-			dim_mu2_hitsbeforevtx.clear();
-			dim_mu2_missinghitsaftervtx.clear();
+			dim_mu2_hitsBeforeVtx.clear();
+			dim_mu2_missingHitsAfterVtx.clear();
 
 		}
 
