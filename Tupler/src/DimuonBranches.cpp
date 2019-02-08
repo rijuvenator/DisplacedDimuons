@@ -67,6 +67,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
 
   // Dimuons made of one DSA muon and one global and/or tracker muon.
   // Again skip tracker muons with only one segment matched.
+  // Note that mu1 will ALWAYS be the DSA muon and mu2 will ALWAYS be the PAT muon
   for (i = 0, ptk = dsamuons.begin(); ptk != dsamuons.end(); ptk++, i++) {
     for (j = 0, qmu = patmuons_fltd.begin(); qmu != patmuons_fltd.end(); qmu++, j++) {
       if (!qmu->isGlobalMuon() && qmu->numberOfMatchedStations() <= 1)

@@ -468,6 +468,61 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     else:
         return []
 
+# function for replacing DSA Dimuons with PAT Dimuons or Hybrid Dimuons
+# The input Dimuons list should be the bare Primitives list, consisting of 3 embedded lists in order:
+# the DSA-DSA dimuons, the PAT-PAT dimuons, and the hybrid DSA-PAT dimuons
+# mode should be None, 'PAT', or 'HYBRID', corresponding to no replacement, PAT-PAT only, or PAT-PAT + DSA-PAT replacement
+# match should be 'PROX' or 'SEG', indicating whether to use the proximity match or the segment match as criteria
+# loose is either True or False, indicating, given match = SEG (PROX), whether to use PROX (SEG), if possible
+def replaceDSADimuons(Dimuons, DSAmuons, mode=None, match='SEG', loose=False):
+    if mode is None:
+        return Dimuons
+
+    if mode not in ('PAT', 'HYBRID'):
+        raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons mode should be None, 'PAT', or 'HYBRID'")
+    if match not in ('SEG', 'PROX'):
+        raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons match should be 'SEG' or 'PROX'")
+
+    DSADimuons = [dim for dim in Dimuons if       sum(dim.ID) < 999 ]
+    PATDimuons = [dim for dim in Dimuons if       sum(dim.ID) > 2000]
+    HYBDimuons = [dim for dim in Dimuons if 999 < sum(dim.ID) < 2000]
+
+    if match == 'SEG':
+        primaryIndex   = lambda mu: mu.idx_SegMatch
+        secondaryIndex = lambda mu: mu.idx_ProxMatch
+    else:
+        primaryIndex   = lambda mu: mu.idx_ProxMatch
+        secondaryIndex = lambda mu: mu.idx_SegMatch
+
+    replacedDimuons = []
+    for dim in DSADimuons:
+        replacement = None
+
+        candidate = (primaryIndex(DSAmuons[dim.idx1]), primaryIndex(DSAmuons[dim.idx2]))
+        if mode == 'PAT' and None in candidate and loose:
+            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
+            if None not in testCandidate:
+                candidate = testCandidate
+        if mode == 'HYBRID' and candidate.count(None) == 2 and loose:
+            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
+            if candidate.count(None) < 2:
+                candidate = testCandidate
+
+        if mode == 'PAT' and None in candidate:
+            replacedDimuons.append(dim)
+            continue
+        elif mode == 'PAT' and None not in candidate:
+            for pat in PATDimuons:
+                if candidate[0]+1000 in pat.ID and candidate[1]+1000 in pat.ID:
+                    replacedDimuons.append(pat)
+                    break
+            else:
+                replacedDimuons.append(dim)
+            continue
+
+        # unfinished, handle HYBRID right here
+
+
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
     PBi = R.TMath.BetaIncomplete(1./(1.+tau),nOn,nOff+1)

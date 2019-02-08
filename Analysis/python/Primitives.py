@@ -970,6 +970,8 @@ class TransverseDecayLength(Primitive):
 # The original Dimuons list will be modified
 def CopyExtraRecoMuonInfo(Dimuons, DSAmuons):
     for dimuon in Dimuons:
+        # hack for ignoring the PAT Dimuons and Hybrid Dimuons
+        if sum(dimuon.ID) > 999: continue
         for muNum in ('1', '2'):
             thisMu = getattr(dimuon, 'mu'+muNum)
             recoMu = DSAmuons[thisMu.idx]
