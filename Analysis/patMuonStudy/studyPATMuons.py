@@ -5,18 +5,18 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria, replaceDSADimuons
 
 QUANTITIES = {
-    'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
+#   'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
     'LxySig'  : {'AXES':(8000,      0., 2000.  ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
-    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
-    'vtxChi2' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
+#   'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
+    'vtxChi2' : {'AXES':(1000,      0., 200.   ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
 }
 
 CONFIG = {
     'DSA-LxySig'  : {'QKEY':'LxySig' },
-    'DSA-LxyErr'  : {'QKEY':'LxyErr' },
+#   'DSA-LxyErr'  : {'QKEY':'LxyErr' },
     'DSA-vtxChi2' : {'QKEY':'vtxChi2'},
     'PAT-LxySig'  : {'QKEY':'LxySig' },
-    'PAT-LxyErr'  : {'QKEY':'LxyErr' },
+#   'PAT-LxyErr'  : {'QKEY':'LxyErr' },
     'PAT-vtxChi2' : {'QKEY':'vtxChi2'},
 }
 
@@ -30,6 +30,9 @@ def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
         XTIT = QUANTITIES[CONFIG[KEY]['QKEY']]['PRETTY']
         self.HistInit(KEY, ';'+XTIT+';Counts', *QUANTITIES[CONFIG[KEY]['QKEY']]['AXES'])
+
+    self.HistInit('DSA-LxySigVSvtxChi2', ';vtx chi2;LxySig;Counts', *(QUANTITIES['vtxChi2']['AXES']+QUANTITIES['LxySig']['AXES']))
+    self.HistInit('PAT-LxySigVSvtxChi2', ';vtx chi2;LxySig;Counts', *(QUANTITIES['vtxChi2']['AXES']+QUANTITIES['LxySig']['AXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -180,11 +183,21 @@ def analyze(self, E, PARAMS=None):
         QKEY = KEY[4:]
         if 'DSA' in KEY:
             for dim in selectedDimuons:
-                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim))
+                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
         else:
             for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
                 if dim.ID in selectedIDs and wasrep:
-                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim))
+                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
+                    #if KEY == 'PAT-LxySig':
+                    #    if rdim.LxySig() > 10:
+                    #        print dim.ID, rdim.ID, dim.Lxy(), rdim.Lxy(), dim.LxySig(), rdim.LxySig(), dim.normChi2, rdim.normChi2
+
+    #DSA-LxySigVSvtxChi2
+    for dim in selectedDimuons:
+        self.HISTS['DSA-LxySigVSvtxChi2'].Fill(dim.normChi2, dim.LxySig(), eventWeight)
+    for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
+        if dim.ID in selectedIDs and wasrep:
+            self.HISTS['PAT-LxySigVSvtxChi2'].Fill(rdim.normChi2, rdim.LxySig(), eventWeight)
 
     self.COUNTS['selected'] += len(selectedIDs)
     self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
@@ -192,7 +205,10 @@ def analyze(self, E, PARAMS=None):
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
+    if self.SP is not None:
+        print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
+    else:
+        print '{:s} {:5d} {:5d} {:7.4f}'.format(self.NAME, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -213,4 +229,5 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    #analyzer.writeHistograms('roots/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('../analyzers/roots/mcbg/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

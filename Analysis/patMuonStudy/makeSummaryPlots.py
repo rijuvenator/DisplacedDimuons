@@ -1,7 +1,7 @@
 import DisplacedDimuons.Analysis.SummaryPlotter as SumPlotter
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 import DisplacedDimuons.Analysis.HistogramGetter as HG
-R, makeSummaryPlot, initializeData = SumPlotter.R, SumPlotter.makeSummaryPlot, SumPlotter.initializeData
+R, makeSummaryPlot, initializeData, Plotter = SumPlotter.R, SumPlotter.makeSummaryPlot, SumPlotter.initializeData, SumPlotter.Plotter
 
 DATA = initializeData()
 with open('replacePAT.txt') as f:
@@ -82,3 +82,25 @@ makeSummaryPlot(
     {'min':0., 'max':100.},
     'PAT_LxySig_Overflow_NoPrompt_2Mu2J.pdf',
 )
+
+##########
+f = R.TFile.Open('roots/PATMuonStudyPlots_NoPrompt_BS8_MC.root')
+BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
+PC = HG.PLOTCONFIG
+for hkey in ('PAT-LxySig', 'DSA-LxySig'):
+    h = HG.getHistogram(f, BGORDER[0], hkey).Clone()
+    h.Scale(PC[BGORDER[0]]['WEIGHT'])
+    for ref in BGORDER[1:]:
+        thisH = HG.getHistogram(f, ref, hkey).Clone()
+        thisH.Scale(PC[ref]['WEIGHT'])
+        h.Add(thisH)
+
+    print hkey, h.GetMean()
+    print hkey, 'Overflow', h.GetBinContent(h.GetNbinsX()+1)/h.Integral(0, h.GetNbinsX()+1)*100.
+
+    h.Rebin(10)
+    h.GetXaxis().SetRangeUser(0., 1000.)
+    p = Plotter.Plot(h, '', 'l', 'hist')
+    c = Plotter.Canvas(logy=True)
+    c.addMainPlot(p)
+    c.cleanup('plot_'+hkey+'.pdf')
