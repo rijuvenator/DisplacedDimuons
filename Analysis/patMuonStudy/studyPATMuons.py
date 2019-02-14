@@ -2,24 +2,45 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria, replaceDSADimuons
+
+QUANTITIES = {
+    'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
+    'LxySig'  : {'AXES':(8000,      0., 2000.  ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
+    'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
+    'vtxChi2' : {'AXES':(1000,      0., 50.    ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
+}
+
+CONFIG = {
+    'DSA-LxySig'  : {'QKEY':'LxySig' },
+    'DSA-LxyErr'  : {'QKEY':'LxyErr' },
+    'DSA-vtxChi2' : {'QKEY':'vtxChi2'},
+    'PAT-LxySig'  : {'QKEY':'LxySig' },
+    'PAT-LxyErr'  : {'QKEY':'LxyErr' },
+    'PAT-vtxChi2' : {'QKEY':'vtxChi2'},
+}
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    pass
+    self.COUNTS = {'selected':0, 'replaced':0}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    pass
+    for KEY in CONFIG:
+        XTIT = QUANTITIES[CONFIG[KEY]['QKEY']]['PRETTY']
+        self.HistInit(KEY, ';'+XTIT+';Counts', *QUANTITIES[CONFIG[KEY]['QKEY']]['AXES'])
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
-    # get dimuons
+    if self.TRIGGER and self.SP is not None:
+        if not Selections.passedTrigger(E): return
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
-    Dimuons  = E.getPrimitives('DIMUON')
+    Dimuons3 = E.getPrimitives('DIMUON')
     Event    = E.getPrimitives('EVENT')
+
+    Dimuons = [dim for dim in Dimuons3 if sum(dim.ID) < 999]
 
     if self.SP is not None:
         if '4Mu' in self.NAME:
@@ -31,6 +52,11 @@ def analyze(self, E, PARAMS=None):
             genMuons = (mu1, mu2)
             genMuonPairs = ((mu1, mu2),)
 
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
 
     # decide what set of cuts to apply based on self.CUTS cut string
     ALL       = 'All'       in self.CUTS
@@ -80,7 +106,7 @@ def analyze(self, E, PARAMS=None):
     # for PROMPT and NOPROMPT event selections
     if PROMPT or NOPROMPT:
         highLxySigExists = False
-        for dimuon in [d for d in Dimuons if sum(d.ID) < 999]:
+        for dimuon in Dimuons:
             if dimuon.LxySig() > 3.:
                 highLxySigExists = True
                 break
@@ -109,7 +135,7 @@ def analyze(self, E, PARAMS=None):
         else:
             selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
             selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices and sum(dim.ID) < 999]
+            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
 
     # apply HLT RECO matching
     if HLT:
@@ -146,55 +172,27 @@ def analyze(self, E, PARAMS=None):
         selectedOIndices = list(set(selectedOIndices))
         selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
 
-    #print '==== EVENT ===='
-    #for dim in Dimuons:
-    #    print '  ', dim.ID
-    #print '==============='
+    selectedIDs = [dim.ID for dim in selectedDimuons]
+    replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
+    replacedIDs = [dim.ID for dim,isReplaced in zip(Dimuons,wasReplaced) if isReplaced]
 
-    # loop over dimuons and fill if they pass their selection
-    for dimuon in selectedDimuons:
-        idx_PM = {1:None, 2:None}
-        idx_SM = {1:None, 2:None}
-        for num in (1, 2):
-            if DSAmuons[getattr(dimuon, 'mu'+str(num)).idx].idx_ProxMatch is not None:
-                idx_PM[num] = DSAmuons[getattr(dimuon, 'mu'+str(num)).idx].idx_ProxMatch
-            if DSAmuons[getattr(dimuon, 'mu'+str(num)).idx].idx_SegMatch is not None:
-                idx_SM[num] = DSAmuons[getattr(dimuon, 'mu'+str(num)).idx].idx_SegMatch
+    for KEY in CONFIG:
+        QKEY = KEY[4:]
+        if 'DSA' in KEY:
+            for dim in selectedDimuons:
+                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim))
+        else:
+            for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
+                if dim.ID in selectedIDs and wasrep:
+                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim))
 
-        #print 'Dimuon ({}, {}) prox matched ({}, {}) and seg matched ({}, {})'.format(
-        #        dimuon.idx1,
-        #        dimuon.idx2,
-        #        idx_PM[1],
-        #        idx_PM[2],
-        #        idx_SM[1],
-        #        idx_SM[2],
-        #)
-        if dimuon.idx1 == 3 and dimuon.idx2 == 4 and idx_PM[1] == 2 and idx_PM[2] == 0 and idx_SM[1] == 2 and idx_SM[2] == 0:
-            print Event
-            print 'Dimuon ({}, {}) prox matched ({}, {}) and seg matched ({}, {})'.format(
-                    dimuon.idx1,
-                    dimuon.idx2,
-                    idx_PM[1],
-                    idx_PM[2],
-                    idx_SM[1],
-                    idx_SM[2],
-            )
-            print genMuons[0]
-            print genMuons[1]
-            print dimuon
-            print DSAmuons[3]
-            print DSAmuons[4]
-            print PATmuons[2]
-            print PATmuons[0]
-            for d in Dimuons:
-                if 1002 in d.ID and 1000 in d.ID:
-                    print d
-            return
+    self.COUNTS['selected'] += len(selectedIDs)
+    self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
 
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    pass
+    print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -215,4 +213,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-#   analyzer.writeHistograms('roots/test{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
