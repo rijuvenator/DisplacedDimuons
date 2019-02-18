@@ -32,7 +32,21 @@ for sp in SIGNALPOINTS:
     DATA[fs][sp]['PAT-vtxChi2-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
 
     if DATA[fs][sp]['PAT-vtxChi2-Overflow'] > 0.:
-        print sp, DATA[fs][sp]['PAT-vtxChi2-Overflow'], '{:.4%}'.format(DATA[fs][sp]['PAT-vtxChi2-Overflow']/h.Integral(0, h.GetNbinsX()+1))
+        print '{:17s} {:5.0f} {:.4%}'.format(str(sp), DATA[fs][sp]['PAT-vtxChi2-Overflow'], DATA[fs][sp]['PAT-vtxChi2-Overflow']/h.Integral(0, h.GetNbinsX()+1))
+
+    h = HG.getHistogram(f, (fs, sp), 'PAT-LxyRes')
+    func = R.TF1('f', 'gaus', -.05, .05)
+    h.Fit('f', 'R')
+    DATA[fs][sp]['PAT-LxyRes-Mean'] = abs(func.GetParameter(1))
+    DATA[fs][sp]['PAT-LxyRes-StdDev'] = func.GetParameter(2)
+    #DATA[fs][sp]['PAT-LxyRes'] = h.GetStdDev()
+
+    h = HG.getHistogram(f, (fs, sp), 'DSA-LxyRes')
+    func = R.TF1('f', 'gaus', -5., 5.)
+    h.Fit('f', 'R')
+    DATA[fs][sp]['DSA-LxyRes-Mean'] = abs(func.GetParameter(1))
+    DATA[fs][sp]['DSA-LxyRes-StdDev'] = func.GetParameter(2)
+    #DATA[fs][sp]['DSA-LxyRes'] = h.GetStdDev()
 
 makeSummaryPlot(
     DATA,
@@ -42,7 +56,7 @@ makeSummaryPlot(
     {'repPct':'% replaced'},
     {'repPct':R.kRed},
     {'min':0., 'max':100.},
-    'PAT_percentReplaced_Combined_2Mu2J.pdf'
+    'pdfs/PAT_percentReplaced_Combined_2Mu2J.pdf'
 )
 
 makeSummaryPlot(
@@ -53,7 +67,7 @@ makeSummaryPlot(
     {'PAT-LxySig':'PAT', 'DSA-LxySig':'DSA'},
     {'PAT-LxySig':R.kRed, 'DSA-LxySig':R.kRed+2},
     {'min':0., 'max':2500.},
-    'PAT_LxySig_Mean_Combined_2Mu2J.pdf',
+    'pdfs/PAT_LxySig_Mean_Combined_2Mu2J.pdf',
     'tl'
 )
 
@@ -65,7 +79,7 @@ makeSummaryPlot(
 #    {'PAT-LxySig-Overflow':'PAT', 'DSA-LxySig-Overflow':'DSA'},
 #    {'PAT-LxySig-Overflow':R.kRed, 'DSA-LxySig-Overflow':R.kRed+2},
 #    {'min':0., 'max':500.},
-#    'PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
+#    'pdfs/PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
 #    'tl'
 #)
 
@@ -79,7 +93,7 @@ makeSummaryPlot(
 ##   {'min':0., 'max':1500.},
 ##   {'min':0., 'max':2300.},
 #    {'min':0., 'max':100.},
-#    'PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
+#    'pdfs/PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
 #)
 
 makeSummaryPlot(
@@ -90,7 +104,7 @@ makeSummaryPlot(
     {'Frac-LxySig-Overflow':'Overflow',},
     {'Frac-LxySig-Overflow':R.kRed,},
     {'min':0., 'max':100.},
-    'PAT_Frac-LxySig_Overflow_Combined_2Mu2J.pdf',
+    'pdfs/PAT_Frac-LxySig_Overflow_Combined_2Mu2J.pdf',
 )
 
 makeSummaryPlot(
@@ -101,8 +115,35 @@ makeSummaryPlot(
     {'PAT-vtxChi2':'chi2',},
     {'PAT-vtxChi2':R.kRed,},
     {'min':0., 'max':100.},
-    'PAT_vtxChi2_Combined_2Mu2J.pdf',
+    'pdfs/PAT_vtxChi2_Combined_2Mu2J.pdf',
 )
+
+makeSummaryPlot(
+    DATA,
+    '2Mu2J',
+    ('DSA-LxyRes-StdDev', 'PAT-LxyRes-StdDev'),
+    ';;Fitted Gaussian #sigma : gen L_{xy} #minus reco L_{xy}',
+    {'PAT-LxyRes-StdDev':'PAT', 'DSA-LxyRes-StdDev':'DSA'},
+    {'PAT-LxyRes-StdDev':R.kRed, 'DSA-LxyRes-StdDev':R.kRed+2},
+    {'min':1.e-3, 'max':100.},
+    'pdfs/PAT_LxyRes_StdDev_Combined_2Mu2J.pdf',
+    'tl',
+    True
+)
+
+makeSummaryPlot(
+    DATA,
+    '2Mu2J',
+    ('DSA-LxyRes-Mean', 'PAT-LxyRes-Mean'),
+    ';;Fitted Gaussian #mu : gen L_{xy} #minus reco L_{xy}',
+    {'PAT-LxyRes-Mean':'PAT', 'DSA-LxyRes-Mean':'DSA'},
+    {'PAT-LxyRes-Mean':R.kRed, 'DSA-LxyRes-Mean':R.kRed+2},
+    {'min':1.e-5, 'max':20.},
+    'pdfs/PAT_LxyRes_Mean_Combined_2Mu2J.pdf',
+    'tl',
+    True
+)
+
 
 ##########
 f = R.TFile.Open('roots/PATMuonStudyPlots_Combined_BS8_MC.root')
@@ -124,4 +165,4 @@ for hkey in ('PAT-LxySig', 'DSA-LxySig'):
     p = Plotter.Plot(h, '', 'l', 'hist')
     c = Plotter.Canvas(logy=True)
     c.addMainPlot(p)
-    c.cleanup('plot_'+hkey+'.pdf')
+    c.cleanup('pdfs/plot_'+hkey+'.pdf')

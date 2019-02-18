@@ -6,16 +6,18 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigg
 import DisplacedDimuons.Analysis.Selector as Selector
 
 QUANTITIES = {
-#   'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
+    'Lxy'     : {'AXES':(800 ,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
     'LxySig'  : {'AXES':(5000,      0., 5000.  ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
 #   'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
     'vtxChi2' : {'AXES':(2000,      0., 1000.  ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
 }
 
 CONFIG = {
+    'DSA-Lxy'     : {'QKEY':'Lxy'    },
     'DSA-LxySig'  : {'QKEY':'LxySig' },
 #   'DSA-LxyErr'  : {'QKEY':'LxyErr' },
     'DSA-vtxChi2' : {'QKEY':'vtxChi2'},
+    'PAT-Lxy'     : {'QKEY':'Lxy'    },
     'PAT-LxySig'  : {'QKEY':'LxySig' },
 #   'PAT-LxyErr'  : {'QKEY':'LxyErr' },
     'PAT-vtxChi2' : {'QKEY':'vtxChi2'},
@@ -32,6 +34,12 @@ def declareHistograms(self, PARAMS=None):
         XTIT = QUANTITIES[CONFIG[KEY]['QKEY']]['PRETTY']
         self.HistInit(KEY, ';'+XTIT+';Counts', *QUANTITIES[CONFIG[KEY]['QKEY']]['AXES'])
 
+    self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
+    self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
+
+    self.HistInit('PAT-LxyResVSgenLxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 800, 0., 800., 1000, -.05 , .05)
+    self.HistInit('DSA-LxyResVSgenLxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 800, 0., 800., 1000, -50. , 50.)
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.TRIGGER and self.SP is not None:
@@ -41,7 +49,38 @@ def analyze(self, E, PARAMS=None):
     Dimuons3 = E.getPrimitives('DIMUON')
     Event    = E.getPrimitives('EVENT')
 
+    eventWeight = 1.
+    try:
+        eventWeight = 1. if Event.weight > 0. else -1.
+    except:
+        pass
+
     Dimuons = [dim for dim in Dimuons3 if sum(dim.ID) < 999]
+
+    selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
+    if selectedDimuons is None: return
+
+    selectedIDs = [dim.ID for dim in selectedDimuons]
+    replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
+    replacedIDs = {dim.ID:rdim for dim, rdim, isReplaced in zip(Dimuons, replacedDimuons, wasReplaced) if isReplaced}
+
+    for KEY in CONFIG:
+        QKEY = KEY[4:]
+        if 'DSA' in KEY:
+            for dim in selectedDimuons:
+                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
+        else:
+            for dim in selectedDimuons:
+                if dim.ID in replacedIDs:
+                    rdim = replacedIDs[dim.ID]
+                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
+                    for attr in ('Tracker', 'Global'):
+                        for idx in ('1', '2'):
+                            if getattr(PATmuons[getattr(rdim, 'idx'+idx)-1000], 'is'+attr):
+                                self.COUNTS[attr.lower()+idx] += 1
+
+    self.COUNTS['selected'] += len(selectedIDs)
+    self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
 
     if self.SP is not None:
         if '4Mu' in self.NAME:
@@ -53,39 +92,36 @@ def analyze(self, E, PARAMS=None):
             genMuons = (mu1, mu2)
             genMuonPairs = ((mu1, mu2),)
 
-    eventWeight = 1.
-    try:
-        eventWeight = 1. if Event.weight > 0. else -1.
-    except:
-        pass
-
-    selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
-    if selectedDimuons is None: return
-
-    selectedIDs = [dim.ID for dim in selectedDimuons]
-    replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
-    replacedIDs = [dim.ID for dim,isReplaced in zip(Dimuons,wasReplaced) if isReplaced]
-
-    for KEY in CONFIG:
-        QKEY = KEY[4:]
-        if 'DSA' in KEY:
-            for dim in selectedDimuons:
-                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
+        # do the signal matching
+        if len(genMuonPairs) == 1:
+            genMuonPair = genMuonPairs[0]
+            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
+            if len(dimuonMatches) > 0:
+                realMatches = {0:dimuonMatches[0]}
+            else:
+                realMatches = {}
         else:
-            for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
-                if dim.ID in selectedIDs and wasrep:
-                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
-                    if PATmuons[rdim.idx1-1000].isTracker:
-                        self.COUNTS['tracker1'] += 1
-                    if PATmuons[rdim.idx2-1000].isTracker:
-                        self.COUNTS['tracker2'] += 1
-                    if PATmuons[rdim.idx1-1000].isGlobal:
-                        self.COUNTS['global1'] += 1
-                    if PATmuons[rdim.idx2-1000].isGlobal:
-                        self.COUNTS['global2'] += 1
+            realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
 
-    self.COUNTS['selected'] += len(selectedIDs)
-    self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
+        for pairIndex in realMatches:
+            matchedDimuon = realMatches[pairIndex]['dim']
+            if matchedDimuon.ID in replacedIDs:
+                dim = matchedDimuon
+                rdim = replacedIDs[matchedDimuon.ID]
+                #print '{:d} {:7d} {:9d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:8.2f} ==> {:8.2f} ::: {:7.3f} ==> {:7.3f}'.format(
+                #    Event.run, Event.lumi, Event.event,
+                #    dim.ID, rdim.ID,
+                #    dim.LxySig(), rdim.LxySig(),
+                #    dim.Lxy(), rdim.Lxy(),
+                #    dim.normChi2, rdim.normChi2,
+                #    genMuonPairs[pairIndex][0].Lxy()-dim.Lxy(), genMuonPairs[pairIndex][0].Lxy()-rdim.Lxy(),
+                #    )
+                if rdim.normChi2 < 50.:
+                    self.HISTS['DSA-LxyRes'].Fill( dim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
+                    self.HISTS['PAT-LxyRes'].Fill(rdim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
+
+                    self.HISTS['DSA-LxyResVSgenLxy'].Fill(genMuonPairs[pairIndex][0].Lxy(),  dim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
+                    self.HISTS['PAT-LxyResVSgenLxy'].Fill(genMuonPairs[pairIndex][0].Lxy(), rdim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
 
 
 # cleanup function for Analyzer class
