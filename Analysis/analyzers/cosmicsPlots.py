@@ -5,10 +5,8 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
-import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
-# DEBUG = False
 
 # define single muon quality cuts
 SINGLEMU_QUALITYCUTS = {
@@ -21,6 +19,9 @@ SINGLEMU_QUALITYCUTS = {
     'pTSig': Selections.Cut('pTSig',
         lambda muon: muon.ptError / muon.pt,
         operator.lt, 1.),
+    # 'eta': Selections.Cut('eta',
+    #     lambda muon: abs(muon.eta),
+    #     operator.lt, 1.2),
 }
 
 # define muon pair quality cuts
@@ -32,6 +33,8 @@ DIMUON_QUALITYCUTS = {
 
 
 PTTHRESHOLDS = [23., 25., 28.]  # pT threshold values for matched HLT objects
+
+L1THRESHOLDS = (0.0, 4.0, 5.0, 11.0, 12.0, 15.0)  # pT threshold values for L1 objects
 
 # list of d0 intervals to process, "(None, None)" gives the d0-inclusive results
 D0INTERVALS = (
@@ -47,15 +50,12 @@ D0INTERVALS = (
     (350,1000),
 )
 
-L1THRESHOLDS = (0.0, 4.0, 5.0, 11.0, 12.0, 15.0)  # pT threshold values for L1 objects
-
 matching_threshold_HLT = 0.2
-matching_threshold_L1 = 1.2  # TODO deprecate this!
-
 
 SINGLEMUVARIABLES = ['pT','eta','phi','charge','d0','x_fhit','y_fhit','z_fhit']
 PAIRVARIABLES = ['pTdiff','deltaR','mass','cosAlpha','alpha','dimuonPTOverM', 'pairPT', 'chargeprod']
-RESOLUTIONVARIABLES = ['L1pTres']
+L1RESOLUTIONVARIABLES = ['L1pTres']
+L2RESOLUTIONVARIABLES = ['L2pTres']
 DIMUONVARIABLES = ['dimLxy','dimMass']
 
 
@@ -77,9 +77,10 @@ VALUES  = (
     ('dimuonPTOverM', 'dimuon p_{T} / M', (1000,       0.,     20.), lambda (m1,m2): (m1.p4+m2.p4).Pt()/(m1.p4+m2.p4).M(), 'p_{T} / M'),
     ('pairPT',        'pair p_{T}',       (1000,       0.,   1000.), lambda (m1,m2): (m1.p4+m2.p4).Pt()                  , 'pair p_{T}'),
     ('chargeprod',    'q(#mu_{1})#times q(#mu_{2})',(  4, -2.,  2.), lambda (m1,m2): m1.charge*m2.charge                 , 'q(#mu_{1},#mu_{2})'),
-    ('L1pTres',       '(p_{T}^{DSA}-p_{T}^{L1})/p_{T}^{L1}', (1000, -2., 50.), lambda (dsamu,l1mu): (dsamu.pt-l1mu.pt)/l1mu.pt, '(p_{T}^{DSA}-p_{T}^{L1})/p_{T}^{L1}'),
-    ('dimLxy',           'dim. L_{xy} [cm]', (1000,    0.,    500.), lambda dimuon: dimuon.Lxy()                         , 'dim. L_{xy}'  ),
-    ('dimMass',           'dim. mass',    (1000,       0.,    500.), lambda dimuon: (dimuon.mu1.p4+dimuon.mu2.p4).M()    , 'dim. mass'  ),
+    ('dimLxy',        'dim. L_{xy} [cm]',    (1000,    0.,    500.), lambda dimuon: dimuon.Lxy()                         , 'dim. L_{xy}'  ),
+    ('dimMass',       'dim. mass',        (1000,       0.,    500.), lambda dimuon: (dimuon.mu1.p4+dimuon.mu2.p4).M()    , 'dim. mass'  ),
+    ('L1pTres',       '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1., 10.), lambda (dsamu,l1mu): (l1mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}'),
+    ('L2pTres',       '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1.,  5.), lambda (dsamu,l2mu): (l2mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}'),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -98,16 +99,14 @@ def declareHistograms(self, PARAMS=None):
         d0intervals_str = '__d0GT{}__d0LT{}'.format(d0min,d0max) if \
                 d0min is not None and d0max is not None else ''
 
-        self.HistInit('L1TObjectsPerHLTObject'+d0intervals_str, 'number of L1T muons per number of HLT muons', 40, 0, 10)
+        self.HistInit('L1TObjectsPerHLTObject_noSelections'+d0intervals_str, 'number of L1 muons per HLT muon (before selection)', 40, 0, 10)
+        self.HistInit('L1TObjectsPerHLTObject'+d0intervals_str, 'number of L1 muons per HLT muon (after selection)', 40, 0, 10)
         self.HistInit('skippedEvents'+d0intervals_str, 'skipped events', 7, -2, 5)
         self.HistInit('selectedMuons'+d0intervals_str, 'selected muons', 2, 0, 2)
         self.HistInit('selectedMuonPairs'+d0intervals_str, 'selected dimuons', 2, 0, 2)
         self.HistInit('lowerLegMu_HLTmatches'+d0intervals_str, 'HLT matches for lower leg muon', 2, 0, 2)
-        self.HistInit('lowerLegMu_L1matches'+d0intervals_str, 'L1 matches for lower leg muon', 2, 0, 2)
         self.HistInit('upperLegMu_HLTmatches'+d0intervals_str, 'HLT matches for upper leg muon', 2, 0, 2)
-        self.HistInit('upperLegMu_L1matches'+d0intervals_str, 'L1 matches for upper leg muon', 2, 0, 2)
         self.HistInit('lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str, 'HLT matches for both lower and upper leg muons', 2, 0, 2)
-        self.HistInit('lowerLegMu_HLTmatches_lowerLegMu_L1matches_upperLegMu_HLTmatches_upperLegMu_L1matches'+d0intervals_str, 'HLT and L1 matches for both lower and upper leg muons', 2, 0, 2)
         self.HistInit('identifiedDimuons'+d0intervals_str, 'identified dimuons', 2, 0, 2)
 
         for MUONTYPE in ('DSA',):
@@ -116,41 +115,41 @@ def declareHistograms(self, PARAMS=None):
                 BASETITLE = ';'+CONFIG[KEY]['XTITLE']+';'+MUONTYPE+' '
 
                 # define histograms for turn-on curves
-                self.HistInit(MUONTYPE+'_'+KEY+'EffDen'+d0intervals_str,
+                self.HistInit(MUONTYPE+'_'+KEY+'VAR'+'EffDen'+d0intervals_str,
                         BASETITLE+'Yield', *CONFIG[KEY]['AXES'])
 
                 for L1threshold in L1THRESHOLDS:
                     for threshold in PTTHRESHOLDS:
                         self.HistInit(MUONTYPE+'_pTGT{}'.format(
                             str(threshold).replace('.','p'))+'_L1pTGT{}'.format(
-                                str(L1threshold).replace('.','p'))+'_'+KEY+'EffNum'+d0intervals_str,
+                                str(L1threshold).replace('.','p'))+'_'+KEY+'VAR'+'EffNum'+d0intervals_str,
                             BASETITLE+'Efficiency', *CONFIG[KEY]['AXES'])
 
                 # define histograms for simple distributions
                 if KEY in PAIRVARIABLES:
-                    self.HistInit(MUONTYPE+'_'+KEY+d0intervals_str,
+                    self.HistInit(MUONTYPE+'_'+KEY+'VAR'+d0intervals_str,
                             BASETITLE+'Yield', *CONFIG[KEY]['AXES'])
 
-                    self.HistInit(MUONTYPE+'_oppositeCharges'+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                    self.HistInit(MUONTYPE+'_oppositeCharges'+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                                 *CONFIG[KEY]['AXES'])
-                    self.HistInit(MUONTYPE+'_equalCharges'+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                    self.HistInit(MUONTYPE+'_equalCharges'+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                                 *CONFIG[KEY]['AXES'])
 
                 elif KEY in SINGLEMUVARIABLES:
                     for HEMISPHERE in ('_upperHemisphere', '_lowerHemisphere', ''):
-                        self.HistInit(MUONTYPE+HEMISPHERE+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                        self.HistInit(MUONTYPE+HEMISPHERE+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                                 *CONFIG[KEY]['AXES'])
-                        self.HistInit(MUONTYPE+HEMISPHERE+'_posCharge'+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                        self.HistInit(MUONTYPE+HEMISPHERE+'_posCharge'+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                                 *CONFIG[KEY]['AXES'])
-                        self.HistInit(MUONTYPE+HEMISPHERE+'_negCharge'+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                        self.HistInit(MUONTYPE+HEMISPHERE+'_negCharge'+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                                 *CONFIG[KEY]['AXES'])
 
-                elif KEY in RESOLUTIONVARIABLES:
-                    self.HistInit(MUONTYPE+'_lowerHemisphere'+'_'+KEY+d0intervals_str, BASETITLE+'Yield',
+                elif KEY in L1RESOLUTIONVARIABLES or KEY in L2RESOLUTIONVARIABLES:
+                    self.HistInit(MUONTYPE+'_lowerHemisphere'+'_'+KEY+'VAR'+d0intervals_str, BASETITLE+'Yield',
                             *CONFIG[KEY]['AXES'])
 
                 elif KEY in DIMUONVARIABLES:
-                    self.HistInit(MUONTYPE+'_'+KEY+d0intervals_str,
+                    self.HistInit(MUONTYPE+'_'+KEY+'VAR'+d0intervals_str,
                             BASETITLE+'Yield', *CONFIG[KEY]['AXES'])
 
 # internal loop function for Analyzer class
@@ -164,27 +163,35 @@ def analyze(self, E, PARAMS=None):
 
     event = E.getPrimitives('EVENT')
 
-    # if True: #len(HLTmuons) != len(L1Tmuons):
-    #     print(event)
-    #     for HLTpath in HLTpaths: print(HLTpath)
-    #     for HLTmuon in HLTmuons:
-    #         print(HLTmuon)
+#     if len(HLTmuons) != len(L1Tmuons):
+#         print(event)
+#         for HLTpath in HLTpaths:
+#             print('----------------------------------------\n')
+#             print(HLTpath)
+#             for HLTmuon in HLTmuons:
+#                 if HLTmuon.idx == HLTpath.idx:
+#                     print('########## HLT muon:')
+#                     print(HLTmuon)
+#                     print('########## L1 muons:')
+#                     for L1Tmuon in L1Tmuons:
+#                         if L1Tmuon.idx == HLTmuon.idx:
+#                             print(L1Tmuon)
 
-    #     print('\n')
-    #     for L1Tmuon in L1Tmuons:
-    #         print(L1Tmuon)
+#                     temp_matches = matchedMuons(HLTmuon, DSAmuons, threshold=matching_threshold_HLT)
+#                     if len(temp_matches) > 0:
+#                         print('########## Matched DSA muon (dR=0.2):')
+#                         print(temp_matches[0]['muon'])
+#                     else:
+#                         print('########## [No DSA muon match for this HLT muon!]')
 
-    #     print('\n')
+#         print('\n')
 
-    #     print('##########\n\n')
+#         print('################################################################################\n\n')
 
     for d0min,d0max in D0INTERVALS:
-        # is_event_printed = False  # TODO remove temporary variable
 
         d0intervals_str = '__d0GT{}__d0LT{}'.format(d0min,d0max) if \
                 d0min is not None and d0max is not None else ''
-
-        self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str].Fill(1.*len(L1Tmuons)/len(HLTmuons))
 
         do_skip_event = False
 
@@ -197,6 +204,11 @@ def analyze(self, E, PARAMS=None):
         if do_skip_event:
             self.HISTS['skippedEvents'+d0intervals_str].Fill(0)
             return
+
+        for HLTmuon in HLTmuons:
+            nL1Tmuons = len([m for m in L1Tmuons if m.idx == HLTmuon.idx])
+            self.HISTS['L1TObjectsPerHLTObject_noSelections'+d0intervals_str].Fill(nL1Tmuons)
+        # self.HISTS['L1TObjectsPerHLTObject_noSelections'+d0intervals_str].Fill(1.*len(L1Tmuons)/len(HLTmuons))
 
         for MUONTYPE, MUONS in (('DSA', DSAmuons),):
 
@@ -279,7 +291,19 @@ def analyze(self, E, PARAMS=None):
                 self.HISTS['selectedMuonPairs'+d0intervals_str].Fill(1)
 
 
+            # # require both DSA to be matched to HLT objects
+            # muonMatches_m1 = matchedMuons(m1, HLTmuons, threshold=matching_threshold_HLT)
+            # muonMatches_m2 = matchedMuons(m2, HLTmuons, threshold=matching_threshold_HLT)
+            # if not (len(muonMatches_m1) > 0 and len(muonMatches_m2) > 0):
+            #     continue
+
             m1,m2 = selected_muonpair
+
+            for HLTmuon in HLTmuons:
+                nL1Tmuons = len([m for m in L1Tmuons if m.idx == HLTmuon.idx])
+                self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str].Fill(nL1Tmuons)
+                # self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str].Fill(1.*len(L1Tmuons)/len(HLTmuons))
+
 
             # check whether the selected two muons belong to a dimuon
             # (i.e., have a dimuon vertex)
@@ -310,43 +334,43 @@ def analyze(self, E, PARAMS=None):
                 F = CONFIG[KEY]['LAMBDA']
 
                 if KEY in PAIRVARIABLES:
-                    self.HISTS[MUONTYPE+'_'+KEY+d0intervals_str].Fill(F((m1,m2)))
+                    self.HISTS[MUONTYPE+'_'+KEY+'VAR'+d0intervals_str].Fill(F((m1,m2)))
 
                     if m1.charge * m2.charge < 0:
-                        self.HISTS[MUONTYPE+'_oppositeCharges'+'_'+KEY+d0intervals_str].Fill(
+                        self.HISTS[MUONTYPE+'_oppositeCharges'+'_'+KEY+'VAR'+d0intervals_str].Fill(
                                 F((m1, m2)))
                     else:
-                        self.HISTS[MUONTYPE+'_equalCharges'+'_'+KEY+d0intervals_str].Fill(
+                        self.HISTS[MUONTYPE+'_equalCharges'+'_'+KEY+'VAR'+d0intervals_str].Fill(
                                 F((m1,m2)))
 
                 elif KEY in SINGLEMUVARIABLES:
                     for muon in selected_muonpair:
-                        self.HISTS[MUONTYPE+'_'+KEY+d0intervals_str].Fill(F(muon))
+                        self.HISTS[MUONTYPE+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                         if muon.charge > 0:
-                            self.HISTS[MUONTYPE+'_posCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                            self.HISTS[MUONTYPE+'_posCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                         else:
-                            self.HISTS[MUONTYPE+'_negCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                            self.HISTS[MUONTYPE+'_negCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
 
                         if hemisphere(muon) == 'upper':
-                            self.HISTS[MUONTYPE+'_upperHemisphere'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                            self.HISTS[MUONTYPE+'_upperHemisphere'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                             if muon.charge > 0:
-                                self.HISTS[MUONTYPE+'_upperHemisphere'+'_posCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                                self.HISTS[MUONTYPE+'_upperHemisphere'+'_posCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                             else:
-                                self.HISTS[MUONTYPE+'_upperHemisphere'+'_negCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                                self.HISTS[MUONTYPE+'_upperHemisphere'+'_negCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                         else:
-                            self.HISTS[MUONTYPE+'_lowerHemisphere'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                            self.HISTS[MUONTYPE+'_lowerHemisphere'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                             if muon.charge > 0:
-                                self.HISTS[MUONTYPE+'_lowerHemisphere'+'_posCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                                self.HISTS[MUONTYPE+'_lowerHemisphere'+'_posCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
                             else:
-                                self.HISTS[MUONTYPE+'_lowerHemisphere'+'_negCharge'+'_'+KEY+d0intervals_str].Fill(F(muon))
+                                self.HISTS[MUONTYPE+'_lowerHemisphere'+'_negCharge'+'_'+KEY+'VAR'+d0intervals_str].Fill(F(muon))
 
                 elif KEY in DIMUONVARIABLES:
                     for dimuon in DIMUONS:
                         if (dimuon.idx1 == selected_muonpair[0].idx and dimuon.idx2 == selected_muonpair[1].idx) or \
                                 (dimuon.idx1 == selected_muonpair[1].idx and dimuon.idx2 == selected_muonpair[0].idx):
-                            self.HISTS[MUONTYPE+'_'+KEY+d0intervals_str].Fill(F(dimuon))
+                            self.HISTS[MUONTYPE+'_'+KEY+'VAR'+d0intervals_str].Fill(F(dimuon))
 
-                elif KEY in RESOLUTIONVARIABLES:
+                elif KEY in L1RESOLUTIONVARIABLES or KEY in L2RESOLUTIONVARIABLES:
                     pass  # resolution variables are processed further below
 
                 else:
@@ -363,71 +387,43 @@ def analyze(self, E, PARAMS=None):
                 is_matched_lowerHSmuon_HLT = True
                 self.HISTS['lowerLegMu_HLTmatches'+d0intervals_str].Fill(1)
 
-                # # TODO
-                # if len(HLTmuons) != len(L1Tmuons):
-                #     print('##################################################')
-                #     print(event)
-                #     print('\nselected DSA muon (lower HS):')
-                #     print(lowerHSmuon)
-                #     # print('d0 = {}'.format(lowerHSmuon.d0()))
-                #     for HLTpath in HLTpaths: print(HLTpath)
-                #     print('\nHLT muons:')
-                #     for HLTmuon in HLTmuons: print(HLTmuon)
-                #         # if all([SINGLEMU_QUALITYCUTS[var].apply(HLTmuon) for var in SINGLEMU_QUALITYCUTS.keys()]): print(HLTmuon)
-                #     print('\nL1 muons:')
-                #     for L1Tmuon in L1Tmuons: print(L1Tmuon)
-
                 lowerHSmuon_HLTmatch = muonMatches[0]['muon']
 
-                # find the associated L1 muon
-                muonMatches_L1 = matchedMuons(lowerHSmuon, L1Tmuons, threshold=matching_threshold_L1)
-                if len(muonMatches_L1) > 0:
-                    is_matched_lowerHSmuon_L1 = True
-                    self.HISTS['lowerLegMu_L1matches'+d0intervals_str].Fill(1)
-                    lowerHSmuon_L1muon = muonMatches_L1[0]['muon']
-                    # print('[INFO] L1 muon match found\n')
-                    # print('[DUMP] selected lower-HS DSA muon:')
-                    # print(lowerHSmuon)
-                    # print('\n[DUMP] available L1 muons (at least one of them is matched):')
-                    # for L1muon in L1Tmuons: print(L1muon)
-                    # print('\n[DUMP] available HLT paths:')
-                    # for HLTpath in HLTpaths: print(HLTpath)
+                for KEY in L2RESOLUTIONVARIABLES:
+                    self.HISTS[MUONTYPE+'_lowerHemisphere'+'_'+KEY+'VAR'+d0intervals_str].Fill(
+                            CONFIG[KEY]['LAMBDA']((lowerHSmuon, lowerHSmuon_HLTmatch)))
 
-                    for KEY in RESOLUTIONVARIABLES:
-                        self.HISTS[MUONTYPE+'_lowerHemisphere'+'_'+KEY+d0intervals_str].Fill(
-                                CONFIG[KEY]['LAMBDA']((lowerHSmuon, lowerHSmuon_L1muon)))
+                # find the associated L1 muon
+                # there can be more than one L1 object for a given HLT object
+                lowerHSmuon_L1muons = [L1Tmuon for L1Tmuon in L1Tmuons if L1Tmuon.idx == lowerHSmuon_HLTmatch.idx]
+                if len(lowerHSmuon_L1muons) > 0:
+                    for L1Tmuon in lowerHSmuon_L1muons:
+                        for KEY in L1RESOLUTIONVARIABLES:
+                            self.HISTS[MUONTYPE+'_lowerHemisphere'+'_'+KEY+'VAR'+d0intervals_str].Fill(
+                                    CONFIG[KEY]['LAMBDA']((lowerHSmuon, L1Tmuon)))
 
                 else:
-                    is_matched_lowerHSmuon_L1 = False
-                    self.HISTS['lowerLegMu_L1matches'+d0intervals_str].Fill(0)
-                    lowerHSmuon_L1muon = None
-                    # print('[INFO] L1 muon match NOT found\n')
-                    # print('[DUMP] selected lower-HS DSA muon:')
-                    # print(lowerHSmuon)
-                    # print('\n[DUMP] available L1 muons (none of them are matched):')
-                    # for L1muon in L1Tmuons: print(L1muon)
-                    # print('\n[DUMP] available HLT paths:')
-                    # for HLTpath in HLTpaths: print(HLTpath)
-
+                    pass
 
                 for KEY in CONFIG:
                     if KEY in SINGLEMUVARIABLES:
                         F = CONFIG[KEY]['LAMBDA']
-                        self.HISTS[MUONTYPE+'_'+KEY+'EffDen'+d0intervals_str].Fill(F(lowerHSmuon))
-                        for HLTthreshold in PTTHRESHOLDS:
-                            for L1threshold in L1THRESHOLDS:
-                                if lowerHSmuon_HLTmatch.pt > HLTthreshold:
-                                    passed_HLT = True
-                                else:
-                                    passed_HLT = False
+                        for lowerHSmuon_L1muon in lowerHSmuon_L1muons:
+                            self.HISTS[MUONTYPE+'_'+KEY+'VAR'+'EffDen'+d0intervals_str].Fill(F(lowerHSmuon))
+                            for HLTthreshold in PTTHRESHOLDS:
+                                for L1threshold in L1THRESHOLDS:
+                                    if lowerHSmuon_HLTmatch.pt > HLTthreshold:
+                                        passed_HLT = True
+                                    else:
+                                        passed_HLT = False
 
-                                if lowerHSmuon_L1muon is not None and lowerHSmuon_L1muon.pt > L1threshold:
-                                    passed_L1 = True
-                                else:
-                                    passed_L1 = False
+                                    if lowerHSmuon_L1muon.pt > L1threshold:
+                                        passed_L1 = True
+                                    else:
+                                        passed_L1 = False
 
-                                if passed_HLT and passed_L1:
-                                    self.HISTS[MUONTYPE+'_pTGT{}'.format(str(HLTthreshold).replace('.','p'))+'_L1pTGT{}'.format(str(L1threshold).replace('.','p'))+'_'+KEY+'EffNum'+d0intervals_str].Fill(F(lowerHSmuon))
+                                    if passed_HLT and passed_L1:
+                                        self.HISTS[MUONTYPE+'_pTGT{}'.format(str(HLTthreshold).replace('.','p'))+'_L1pTGT{}'.format(str(L1threshold).replace('.','p'))+'_'+KEY+'VAR'+'EffNum'+d0intervals_str].Fill(F(lowerHSmuon))
 
             else:
                 # print('No HLT match found. Printing event information...')
@@ -439,15 +435,9 @@ def analyze(self, E, PARAMS=None):
             muonMatches = matchedMuons(upperHSmuon, HLTmuons, threshold=matching_threshold_HLT)
             if len(muonMatches) > 0:
                 is_matched_upperHSmuon_HLT = True
-                self.HISTS['upperLegMu_HLTmatches'+d0intervals_str].Fill(1)
+                upperHSmuon_HLTmatch = muonMatches[0]['muon']
 
-                muonMatches_L1 = matchedMuons(upperHSmuon, L1Tmuons, threshold=matching_threshold_L1)
-                if len(muonMatches_L1) > 0:
-                    is_matched_upperHSmuon_L1 = True
-                    self.HISTS['upperLegMu_L1matches'+d0intervals_str].Fill(1)
-                else:
-                    is_matched_upperHSmuon_L1 = False
-                    self.HISTS['upperLegMu_L1matches'+d0intervals_str].Fill(0)
+                self.HISTS['upperLegMu_HLTmatches'+d0intervals_str].Fill(1)
 
             else:
                 is_matched_upperHSmuon_HLT = False
@@ -456,30 +446,8 @@ def analyze(self, E, PARAMS=None):
             if is_matched_lowerHSmuon_HLT and is_matched_upperHSmuon_HLT:
                 self.HISTS['lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str].Fill(1)
 
-                # # TODO
-                # if len(HLTmuons) != len(L1Tmuons):
-                #     print('##################################################')
-                #     print(event)
-                #     print('\nselected DSA muon (lower HS):')
-                #     print(lowerHSmuon)
-                #     print('\nselected DSA muon (upper HS):')
-                #     print(upperHSmuon)
-                #     # print('d0 = {}'.format(lowerHSmuon.d0()))
-                #     for HLTpath in HLTpaths: print(HLTpath)
-                #     print('\nHLT muons:')
-                #     for HLTmuon in HLTmuons: print(HLTmuon)
-                #         # if all([SINGLEMU_QUALITYCUTS[var].apply(HLTmuon) for var in SINGLEMU_QUALITYCUTS.keys()]): print(HLTmuon)
-                #     print('\nL1 muons:')
-                #     for L1Tmuon in L1Tmuons: print(L1Tmuon)
-
-
             else:
                 self.HISTS['lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str].Fill(0)
-
-            if is_matched_lowerHSmuon_HLT and is_matched_lowerHSmuon_L1 and is_matched_upperHSmuon_HLT and is_matched_upperHSmuon_L1:
-                self.HISTS['lowerLegMu_HLTmatches_lowerLegMu_L1matches_upperLegMu_HLTmatches_upperLegMu_L1matches'+d0intervals_str].Fill(1)
-            else:
-                self.HISTS['lowerLegMu_HLTmatches_lowerLegMu_L1matches_upperLegMu_HLTmatches_upperLegMu_L1matches'+d0intervals_str].Fill(0)
 
             # count accepted events
             self.HISTS['skippedEvents'+d0intervals_str].Fill(-1)
@@ -540,7 +508,7 @@ if __name__ == '__main__':
     )
 
     outputname = parse_filename(
-            path='roots/testing/',
+            path='roots/',
             prefix='test_cosmicsPlots')
 
     analyzer.writeHistograms(outputname)

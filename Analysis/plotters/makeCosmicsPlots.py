@@ -10,20 +10,18 @@ import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
 OUTPUT_PATH = 'pdfs/'
 
+L2RESOLUTIONVARIABLES = ['L2pTres']
 
-HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/test_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_NoBPTXRun2016E-07Aug17.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_NoBPTXRun2016E-07Aug17.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_2016E-full_withOHrequirement_maxAlphaPair_wAlphaCut_wTurnOnHistos_d0Binning-corrected.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_2016E-full_withOHrequirement_maxAlphaPair_wAlphaCut_wTurnOnHistos-corrected.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_2016E-full_withOHrequirement_maxAlphaPair_wAlphaCut_wTurnOnHistos.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_2016E-full_withOHrequirement_maxAlphaPair_noAlphaCut.root')
-# HISTS = HistogramGetter.getHistograms('../analyzers/roots/testing/cosmicsPlots_2016E-full_woOHrequirement_maxAlphaPair_noAlphaCut.root')
+
+# HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/lowerHSmuon_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_NoBPTXRun2016E-07Aug17.root')
 
 def makePerSamplePlots(selection=None, selection_exclude=None):
     ranges = {
-            'pTdiff': (-1.5, 30.),
-            'd0': (0., 500),
+        'pTdiff': (-1.5, 30.),
+        'd0'    : (0., 500),
+        'L1pTres': (-1., 5.),
+        'L2pTres': (-1., 5.),
     }
 
     h = {}
@@ -35,6 +33,9 @@ def makePerSamplePlots(selection=None, selection_exclude=None):
         for key in HISTS[ref]:
             if selection is not None and key not in selected_hists_names:
                 continue
+
+            # do not plot empty histograms in the interest of plotting time
+            if HISTS[ref][key].GetEntries() == 0: continue
 
             h = HISTS[ref][key].Clone()
             RT.addFlows(h)
@@ -84,12 +85,68 @@ def makePerSamplePlots(selection=None, selection_exclude=None):
                     canvas.legend.resizeHeight()
 
                 for var in ranges:
-                    if '_{}'.format(var) in key and not '__{}'.format(var) in key:
+                    if '_{}VAR'.format(var) in key:
                         canvas.firstPlot.GetXaxis().SetRangeUser(ranges[var][0],
                                 ranges[var][1])
 
                 p.SetLineColor(R.kBlue)
                 RT.addBinWidth(p)
+
+                # Gauss fit for L2 resolution plots
+                if any(['_{}VAR'.format(var) in key for var in L2RESOLUTIONVARIABLES]):
+                    fit_xmin = max(-1., h.GetXaxis().GetBinLowEdge(h.GetMaximumBin())-0.2)
+                    fit_xmax = h.GetXaxis().GetBinLowEdge(h.GetMaximumBin()+1)+0.2
+                    func = R.TF1('f'+key, 'gaus', fit_xmin, fit_xmax)
+                    R.SetOwnership(func,0)
+                    h.Fit('f'+key, 'RQN')
+
+                    pave_gaus = R.TPaveText(.6, .33, .9, .53, 'NDCNB')
+                    pave_gaus.SetTextAlign(13)
+                    pave_gaus.SetTextFont(42)
+                    # pave_gaus.SetTextSize(self.fontsize*.9)
+                    pave_gaus.SetMargin(0)
+                    pave_gaus.SetFillStyle(0)
+                    pave_gaus.SetFillColor(0)
+                    pave_gaus.SetLineStyle(0)
+                    pave_gaus.SetLineColor(0)
+                    pave_gaus.SetBorderSize(0)
+                    pave_gaus.AddText(0., 1., 'Gaussian fit around maximum:')
+                    pave_gaus.AddText(.1, .6, 'Mean = {:2.4f}'.format(func.GetParameter(1)))
+                    pave_gaus.AddText(.1, .4, 'Sigma = {:2.4f}'.format(func.GetParameter(2)))
+                    pave_gaus.Draw()
+
+                # find the corresponding d0 distribution in the given d0 bin
+                # and display its mean
+                current_var = re.findall(r'_(.+)VAR', key)
+                if len(current_var) == 1:
+                    current_var = current_var[0].split('_')[-1]
+                    if current_var != 'd0' and all([c in key for c in ('__d0GT','__d0LT')]):
+                        d0_histname = key.replace('_{}VAR'.format(current_var), '_d0VAR')
+                        d0_hist = getHistNames(ref, d0_histname)
+                        if len(d0_hist) > 1: print('[PLOTTER WARNING] Ambiguities in finding '
+                                'the corresponding d0 histogram! Current key: {}; '
+                                'found d0 histos: {}'.format(key, d0_hist))
+                        elif len(d0_hist) == 0:
+                            print('[PLOTTER WARNING] No d0_hist found - d0 '
+                            'info will be missing from canvas. Current key: {}'.format(key))
+                        else:
+                            d0_hist = d0_hist[0]
+                            d0_mean = HISTS[ref][d0_hist].GetMean()
+                            d0_min = re.findall(r'__d0GT(\d+)', d0_hist)[0]
+                            d0_max = re.findall(r'__d0LT(\d+)', d0_hist)[0]
+                            pave_d0info = R.TPaveText(.6, .55, .9, .62, 'NDCNB')
+                            pave_d0info.SetTextAlign(13)
+                            pave_d0info.SetTextFont(42)
+                            # pave_d0info.SetTextSize(self.fontsize*.9)
+                            pave_d0info.SetMargin(0)
+                            pave_d0info.SetFillStyle(0)
+                            pave_d0info.SetFillColor(0)
+                            pave_d0info.SetLineStyle(0)
+                            pave_d0info.SetLineColor(0)
+                            pave_d0info.SetBorderSize(0)
+                            pave_d0info.AddText(0., 1.,  '{} cm < d_{{0}} < {} cm'.format(d0_min, d0_max))
+                            pave_d0info.AddText(0., 0., '#LTd_{{0}}#GT = {:4.2f} cm'.format(d0_mean))
+                            pave_d0info.Draw()
 
                 pave = canvas.makeStatsBox(p, color=R.kBlue)
                 canvas.cleanup(fname)
@@ -121,11 +178,16 @@ def makeTurnOnPlots():
         g = {}
         for i,dataset in enumerate(HISTS):
             if d0min is None or d0max is None:
-                hnums = getHistNames(dataset, 'DSA','pTEffNum', exclude=['d0GT','d0LT'])
-                hdens = getHistNames(dataset, 'DSA','pTEffDen', exclude=['d0GT','d0LT'])
+                hnums = getHistNames(dataset, 'DSA','pTVAREffNum', exclude=['d0GT','d0LT'])
+                hdens = getHistNames(dataset, 'DSA','pTVAREffDen', exclude=['d0GT','d0LT'])
             else:
-                hnums = getHistNames(dataset, 'DSA','pTEffNum', 'd0GT'+str(d0min), 'd0LT'+str(d0max))
-                hdens = getHistNames(dataset, 'DSA','pTEffDen', 'd0GT'+str(d0min), 'd0LT'+str(d0max))
+                hnums = getHistNames(dataset, 'DSA','pTVAREffNum', 'd0GT'+str(d0min), 'd0LT'+str(d0max))
+                hdens = getHistNames(dataset, 'DSA','pTVAREffDen', 'd0GT'+str(d0min), 'd0LT'+str(d0max))
+
+            # for hnum in hnums: print(hnum)
+            # print('\n')
+            # print(hdens)
+            # raise Exception
 
 
             for hname in hnums:
@@ -158,9 +220,11 @@ def makeTurnOnPlots():
 
 
         if len(hden) > 1: raise NotImplementedError('Too many denumerator histos - not yet implemented')
+        elif len(hden) == 0: raise Exception('No denominator histogram found')
         hden = hden[hden.keys()[0]]
 
         for key in hnum:
+            # print('Processing {}'.format(key))
             canvas = Plotter.Canvas(lumi='NoBPTXRun2016E-07Aug17')
 
             g[key] = R.TGraphAsymmErrors(hnum[key], hden, 'cp')
@@ -194,6 +258,8 @@ def makeTurnOnPlots():
             L1pTcut = re.findall(r'_L1pTGT(\d+)p(\d+)', key)
             if len(L1pTcut) > 1:
                 raise Exception('Ambiguities in L1 pT threshold identification: {}'.format(L1pTcut))
+            elif len(L1pTcut) == 0:
+                raise Exception('No L1 pT threshold identified in {}'.format(key))
 
             L1pTcut = float('.'.join(L1pTcut[0]))
             pTthreshold_str = R.TLatex()
@@ -252,4 +318,5 @@ def getHistNames(dataset, *args, **kwargs):
 
 makePerSamplePlots()
 # makePerSamplePlots(['DSA','L1pTres'])
+# makePerSamplePlots(['DSA','L2pTres'])
 makeTurnOnPlots()
