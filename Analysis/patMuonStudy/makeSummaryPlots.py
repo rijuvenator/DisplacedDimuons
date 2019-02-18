@@ -14,26 +14,25 @@ with open('replacePAT.txt') as f:
         #DATA[fs][sp]['num'] = int(cols[5])
         DATA[fs][sp]['repPct'] = float(cols[6])
 
-#f = R.TFile.Open('roots/PATMuonStudyPlots_Trig_NoPrompt_BS8_2Mu2J.root')
-f = R.TFile.Open('roots/PATMuonStudyPlots_Trig_NoPrompt_BS8_2Mu2J_Extended.root')
+f = R.TFile.Open('roots/PATMuonStudyPlots_Trig_Combined_BS8_2Mu2J.root')
 fs = '2Mu2J'
 for sp in SIGNALPOINTS:
     h = HG.getHistogram(f, (fs, sp), 'DSA-LxySig')
     DATA[fs][sp]['DSA-LxySig'] = h.GetMean()
-#    DATA[fs][sp]['DSA-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
+    DATA[fs][sp]['DSA-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
 
     h = HG.getHistogram(f, (fs, sp), 'PAT-LxySig')
     DATA[fs][sp]['PAT-LxySig'] = h.GetMean()
-    DATA[fs][sp]['PAT-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)/h.Integral(0, h.GetNbinsX()+1)*100.
+    DATA[fs][sp]['PAT-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
 
-#    DATA[fs][sp]['PAT-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
-#
-#    try:
-#        DATA[fs][sp]['LxySig-Overflow'] = DATA[fs][sp]['PAT-LxySig-Overflow']/DATA[fs][sp]['DSA-LxySig-Overflow']
-#        print DATA[fs][sp]['LxySig-Overflow']
-#    except:
-#        DATA[fs][sp]['LxySig-Overflow'] = 1500.
-#        print sp
+    DATA[fs][sp]['Frac-LxySig-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)/h.Integral(0, h.GetNbinsX()+1)*100.
+
+    h = HG.getHistogram(f, (fs, sp), 'PAT-vtxChi2')
+    DATA[fs][sp]['PAT-vtxChi2'] = h.GetMean()
+    DATA[fs][sp]['PAT-vtxChi2-Overflow'] = h.GetBinContent(h.GetNbinsX()+1)
+
+    if DATA[fs][sp]['PAT-vtxChi2-Overflow'] > 0.:
+        print sp, DATA[fs][sp]['PAT-vtxChi2-Overflow'], '{:.4%}'.format(DATA[fs][sp]['PAT-vtxChi2-Overflow']/h.Integral(0, h.GetNbinsX()+1))
 
 makeSummaryPlot(
     DATA,
@@ -43,7 +42,7 @@ makeSummaryPlot(
     {'repPct':'% replaced'},
     {'repPct':R.kRed},
     {'min':0., 'max':100.},
-    'PAT_percentReplaced_NoPrompt_2Mu2J.pdf'
+    'PAT_percentReplaced_Combined_2Mu2J.pdf'
 )
 
 makeSummaryPlot(
@@ -53,8 +52,8 @@ makeSummaryPlot(
     ';;#LTL_{xy}/#sigma_{L_{xy}}#GT',
     {'PAT-LxySig':'PAT', 'DSA-LxySig':'DSA'},
     {'PAT-LxySig':R.kRed, 'DSA-LxySig':R.kRed+2},
-    {'min':0., 'max':1300.},
-    'PAT_LxySig_Mean_NoPrompt_2Mu2J.pdf',
+    {'min':0., 'max':2500.},
+    'PAT_LxySig_Mean_Combined_2Mu2J.pdf',
     'tl'
 )
 
@@ -66,25 +65,47 @@ makeSummaryPlot(
 #    {'PAT-LxySig-Overflow':'PAT', 'DSA-LxySig-Overflow':'DSA'},
 #    {'PAT-LxySig-Overflow':R.kRed, 'DSA-LxySig-Overflow':R.kRed+2},
 #    {'min':0., 'max':500.},
-#    'PAT_LxySig_Overflow_NoPrompt_2Mu2J.pdf',
+#    'PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
 #    'tl'
+#)
+
+#makeSummaryPlot(
+#    DATA,
+#    '2Mu2J',
+#    ('PAT-LxySig-Overflow',),
+#    ';;% overflow of L_{xy}/#sigma_{L_{xy}}',
+#    {'PAT-LxySig-Overflow':'Overflow',},
+#    {'PAT-LxySig-Overflow':R.kRed,},
+##   {'min':0., 'max':1500.},
+##   {'min':0., 'max':2300.},
+#    {'min':0., 'max':100.},
+#    'PAT_LxySig_Overflow_Combined_2Mu2J.pdf',
 #)
 
 makeSummaryPlot(
     DATA,
     '2Mu2J',
-    ('PAT-LxySig-Overflow',),
+    ('Frac-LxySig-Overflow',),
     ';;% overflow of L_{xy}/#sigma_{L_{xy}}',
-    {'PAT-LxySig-Overflow':'Overflow',},
-    {'PAT-LxySig-Overflow':R.kRed,},
-#   {'min':0., 'max':1500.},
-#   {'min':0., 'max':2300.},
+    {'Frac-LxySig-Overflow':'Overflow',},
+    {'Frac-LxySig-Overflow':R.kRed,},
     {'min':0., 'max':100.},
-    'PAT_LxySig_Overflow_NoPrompt_2Mu2J.pdf',
+    'PAT_Frac-LxySig_Overflow_Combined_2Mu2J.pdf',
+)
+
+makeSummaryPlot(
+    DATA,
+    '2Mu2J',
+    ('PAT-vtxChi2',),
+    ';;#LTvtx #chi^{2}/dof#GT',
+    {'PAT-vtxChi2':'chi2',},
+    {'PAT-vtxChi2':R.kRed,},
+    {'min':0., 'max':100.},
+    'PAT_vtxChi2_Combined_2Mu2J.pdf',
 )
 
 ##########
-f = R.TFile.Open('roots/PATMuonStudyPlots_NoPrompt_BS8_MC.root')
+f = R.TFile.Open('roots/PATMuonStudyPlots_Combined_BS8_MC.root')
 BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
 PC = HG.PLOTCONFIG
 for hkey in ('PAT-LxySig', 'DSA-LxySig'):

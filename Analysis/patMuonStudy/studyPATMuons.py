@@ -3,12 +3,13 @@ import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria, replaceDSADimuons
+import DisplacedDimuons.Analysis.Selector as Selector
 
 QUANTITIES = {
 #   'Lxy'     : {'AXES':(1000,      0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                         , 'PRETTY':'L_{xy} [cm]'           },
-    'LxySig'  : {'AXES':(8000,      0., 2000.  ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
+    'LxySig'  : {'AXES':(5000,      0., 5000.  ), 'LAMBDA': lambda dim: dim.LxySig()                      , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
 #   'LxyErr'  : {'AXES':(1000,      0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                      , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
-    'vtxChi2' : {'AXES':(1000,      0., 200.   ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
+    'vtxChi2' : {'AXES':(2000,      0., 1000.  ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
 }
 
 CONFIG = {
@@ -23,16 +24,13 @@ CONFIG = {
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    self.COUNTS = {'selected':0, 'replaced':0}
+    self.COUNTS = {'selected':0, 'replaced':0, 'tracker1':0, 'tracker2':0, 'global1':0, 'global2':0}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     for KEY in CONFIG:
         XTIT = QUANTITIES[CONFIG[KEY]['QKEY']]['PRETTY']
         self.HistInit(KEY, ';'+XTIT+';Counts', *QUANTITIES[CONFIG[KEY]['QKEY']]['AXES'])
-
-    self.HistInit('DSA-LxySigVSvtxChi2', ';vtx chi2;LxySig;Counts', *(QUANTITIES['vtxChi2']['AXES']+QUANTITIES['LxySig']['AXES']))
-    self.HistInit('PAT-LxySigVSvtxChi2', ';vtx chi2;LxySig;Counts', *(QUANTITIES['vtxChi2']['AXES']+QUANTITIES['LxySig']['AXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -61,119 +59,8 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    # decide what set of cuts to apply based on self.CUTS cut string
-    ALL       = 'All'       in self.CUTS
-    PROMPT    = '_Prompt'   in self.CUTS
-    NOPROMPT  = '_NoPrompt' in self.CUTS
-    NSTATIONS = '_NS'       in self.CUTS
-    NMUONHITS = '_NH'       in self.CUTS
-    FPTERR    = '_FPTE'     in self.CUTS
-    PT        = '_PT'       in self.CUTS
-    HLT       = '_HLT'      in self.CUTS
-    PC        = '_PC'       in self.CUTS
-    LXYERR    = '_LXYE'     in self.CUTS
-    MASS      = '_M'        in self.CUTS
-
-    def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT):
-        cutList = []
-        if NSTATIONS:
-            cutList.append('b_nStations')
-        if NMUONHITS:
-            cutList.append('b_nMuonHits')
-        if FPTERR:
-            cutList.append('b_FPTE')
-        if PT:
-            cutList.append('b_pT')
-        return cutList
-
-    def boolsToDimuonCutList(LXYERR, MASS):
-        cutList = []
-        if LXYERR:
-            cutList.append('b_LxyErr')
-        if MASS:
-            cutList.append('b_mass')
-        return cutList
-
-    # require DSA muons to pass all selections, and require dimuons to pass all selections except LxySig and deltaPhi
-    if ALL:
-        DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
-        DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
-        selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-        selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
-
-    # no cuts
-    else:
-        selectedDSAmuons = DSAmuons
-        selectedDimuons  = Dimuons
-
-    # for PROMPT and NOPROMPT event selections
-    if PROMPT or NOPROMPT:
-        highLxySigExists = False
-        for dimuon in Dimuons:
-            if dimuon.LxySig() > 3.:
-                highLxySigExists = True
-                break
-
-        # return if there are LxySig > 3
-        if PROMPT:
-            if highLxySigExists:
-                return
-        # return if there are NO LxySig > 3 -- that's category 1
-        elif NOPROMPT:
-            if not highLxySigExists:
-                return
-
-    if PROMPT or NOPROMPT:
-        # compute all the baseline selection booleans
-        DSASelections = [Selections.MuonSelection(muon, cutList='BaselineMuonCutList') for muon in DSAmuons]
-
-        # figure out which cuts we actually care about
-        cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR, PT)
-
-        # no selection
-        if len(cutList) == 0:
-            selectedDSAmuons = DSAmuons
-            selectedDimuons  = Dimuons
-        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        else:
-            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
-
-    # apply HLT RECO matching
-    if HLT:
-        HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
-        DSAMuonsForHLTMatch = [mu for mu in selectedDSAmuons if abs(mu.eta) < 2.]
-        HLTMuonMatches = matchedTrigger(HLTMuons, DSAMuonsForHLTMatch)
-        if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return
-
-    # apply pairing criteria and transform selectedDimuons
-    if PC:
-        selectedDimuons = applyPairingCriteria(selectedDSAmuons, selectedDimuons)
-
-    if PROMPT or NOPROMPT:
-        # compute all the baseline selection booleans
-        DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
-
-        # figure out which cuts we actually care about
-        cutList = boolsToDimuonCutList(LXYERR, MASS)
-
-        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        if len(cutList) > 0:
-            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
-
-    # for the MC/Data events, skip events with no dimuons, but not for "no selection"
-    if (PROMPT or NOPROMPT) and NSTATIONS:
-        if len(selectedDimuons) == 0: return
-
-    # also filter selectedDSAmuons to only be of those indices that are in the final dimuons
-    if PROMPT or NOPROMPT:
-        selectedOIndices = []
-        for dim in selectedDimuons:
-            selectedOIndices.append(dim.idx1)
-            selectedOIndices.append(dim.idx2)
-        selectedOIndices = list(set(selectedOIndices))
-        selectedDSAmuons = [mu for mu in selectedDSAmuons if mu.idx in selectedOIndices]
+    selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
+    if selectedDimuons is None: return
 
     selectedIDs = [dim.ID for dim in selectedDimuons]
     replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
@@ -188,16 +75,14 @@ def analyze(self, E, PARAMS=None):
             for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
                 if dim.ID in selectedIDs and wasrep:
                     self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
-                    #if KEY == 'PAT-LxySig':
-                    #    if rdim.LxySig() > 10:
-                    #        print dim.ID, rdim.ID, dim.Lxy(), rdim.Lxy(), dim.LxySig(), rdim.LxySig(), dim.normChi2, rdim.normChi2
-
-    #DSA-LxySigVSvtxChi2
-    for dim in selectedDimuons:
-        self.HISTS['DSA-LxySigVSvtxChi2'].Fill(dim.normChi2, dim.LxySig(), eventWeight)
-    for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
-        if dim.ID in selectedIDs and wasrep:
-            self.HISTS['PAT-LxySigVSvtxChi2'].Fill(rdim.normChi2, rdim.LxySig(), eventWeight)
+                    if PATmuons[rdim.idx1-1000].isTracker:
+                        self.COUNTS['tracker1'] += 1
+                    if PATmuons[rdim.idx2-1000].isTracker:
+                        self.COUNTS['tracker2'] += 1
+                    if PATmuons[rdim.idx1-1000].isGlobal:
+                        self.COUNTS['global1'] += 1
+                    if PATmuons[rdim.idx2-1000].isGlobal:
+                        self.COUNTS['global2'] += 1
 
     self.COUNTS['selected'] += len(selectedIDs)
     self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
@@ -206,9 +91,9 @@ def analyze(self, E, PARAMS=None):
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
     if self.SP is not None:
-        print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
+        print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f} {:5d} {:5d} {:5d} {:5d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100., self.COUNTS['tracker1'], self.COUNTS['tracker2'], self.COUNTS['global1'], self.COUNTS['global2'])
     else:
-        print '{:s} {:5d} {:5d} {:7.4f}'.format(self.NAME, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100.)
+        print '{:s} {:5d} {:5d} {:7.4f} {:5d} {:5d} {:5d} {:5d}'.format(self.NAME, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100., self.COUNTS['tracker1'], self.COUNTS['tracker2'], self.COUNTS['global1'], self.COUNTS['global2'])
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
