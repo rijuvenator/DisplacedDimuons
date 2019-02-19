@@ -1,8 +1,12 @@
 # Signal Samples
 
-Last updated: 29th January 2019
+Last updated: 18th February 2019
 
 This folder contains the pythia fragments used to generate the different signal samples used in the analysis. As of today, two different models are used in the analysis: The Hidden Abelian Higgs Model [HAHM](https://arxiv.org/abs/1412.0018) and the Benchmark Pythia model.
+
+## Benchmark Samples used in 2018 Analysis search
+
+The folder `2018Search/Fragments2018/` contains the Pythia8 fragments used for the search with 2018 data. The main change is the usage of a new tune: CP5, and the parton shower weights. As of today there are no published samples. Fragments tested with CMSSW_10_1_X.
 
 ## Benchmark Samples used in 2018 Trigger studies
 
@@ -21,6 +25,10 @@ The GEN-SIM samples were tested in CMSSW_7_1_32 and the final AOD are produced w
 [8_0_21_HTo2LongLivedTo4mu_AOD Samples](https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod%2Fphys03&input=dataset%3D%2FHTo2LongLivedTo4mu*_MH-*_MFF-*_CTau-*mm_TuneCUETP8M1_13TeV_pythia8%2Fescalant-crab_HTo2LongLivedTo*_MH-*_MFF-*_CTau-*mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v1-*%2F*USER)
 
 [8_0_21_HTo2LongLivedTo2mu2jets_AOD Samples](https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod%2Fphys03&input=dataset%3D%2FHTo2LongLivedTo2mu2jets*_MH-*_MFF-*_CTau-*mm_TuneCUETP8M1_13TeV_pythia8%2Fescalant-crab_HTo2LongLivedTo*_MH-*_MFF-*_CTau-*mm_TuneCUETP8M1_13TeV_pythia8_May2018-AOD-v1-*%2F*USER)
+
+## HAHM Samples used in 2018 Analysis search
+
+The folder `2018Search/FragmentsHAHM2018/` contains the Pythia8 fragments used for the search with 2018 data. The main change is the usage of a new tune: CP5, and the parton shower weights. As of today there are no published samples. Fragments tested with CMSSW_10_1_X. The gridpacks and madgraph cards did not changed wrt the 2016 production. 
 
 ## HAHM Samples used in 2016 Analysis search
 
