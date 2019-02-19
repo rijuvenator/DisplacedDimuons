@@ -34,15 +34,50 @@ for sp in SIGNALPOINTS:
     if DATA[fs][sp]['PAT-vtxChi2-Overflow'] > 0.:
         print '{:17s} {:5.0f} {:.4%}'.format(str(sp), DATA[fs][sp]['PAT-vtxChi2-Overflow'], DATA[fs][sp]['PAT-vtxChi2-Overflow']/h.Integral(0, h.GetNbinsX()+1))
 
+    FITRANGES = {
+            (1000, 150, 1000) : {'PAT' : (-.01, .01)},
+            (1000, 50, 400  ) : {'PAT' : (-.01, .01)},
+            (1000, 20, 20   ) : {'PAT' : (-.02, .02) ,
+                                 'DSA' : (-15., 15 )},
+            (1000, 20, 200  ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-20., 20.)},
+            (400, 150, 4000 ) : {'PAT' : (-.01, .01)},
+            (400, 50, 800   ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (400, 20, 40    ) : {'DSA' : (-15., 15 )},
+            (400, 20, 400   ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (200, 50, 2000  ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (200, 20, 700   ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (125, 50, 500   ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (125, 50, 5000  ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (125, 20, 130   ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+            (125, 20, 1300  ) : {'PAT' : (-.01, .01) ,
+                                 'DSA' : (-15., 15 )},
+    }
+
     h = HG.getHistogram(f, (fs, sp), 'PAT-LxyRes')
-    func = R.TF1('f', 'gaus', -.05, .05)
+    if sp in FITRANGES and 'PAT' in FITRANGES[sp]:
+        FR = FITRANGES[sp]['PAT']
+    else:
+        FR = (-.05, .05)
+    func = R.TF1('f', 'gaus', *FR)
     h.Fit('f', 'R')
     DATA[fs][sp]['PAT-LxyRes-Mean'] = abs(func.GetParameter(1))
     DATA[fs][sp]['PAT-LxyRes-StdDev'] = func.GetParameter(2)
     #DATA[fs][sp]['PAT-LxyRes'] = h.GetStdDev()
 
     h = HG.getHistogram(f, (fs, sp), 'DSA-LxyRes')
-    func = R.TF1('f', 'gaus', -5., 5.)
+    if sp in FITRANGES and 'DSA' in FITRANGES[sp]:
+        FR = FITRANGES[sp]['DSA']
+    else:
+        FR = (-5., 5.)
+    func = R.TF1('f', 'gaus', *FR)
     h.Fit('f', 'R')
     DATA[fs][sp]['DSA-LxyRes-Mean'] = abs(func.GetParameter(1))
     DATA[fs][sp]['DSA-LxyRes-StdDev'] = func.GetParameter(2)
@@ -122,7 +157,7 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-StdDev', 'PAT-LxyRes-StdDev'),
-    ';;Fitted Gaussian #sigma : gen L_{xy} #minus reco L_{xy}',
+    ';;Fitted Gaussian #sigma : reco L_{xy} #minus gen L_{xy}',
     {'PAT-LxyRes-StdDev':'PAT', 'DSA-LxyRes-StdDev':'DSA'},
     {'PAT-LxyRes-StdDev':R.kRed, 'DSA-LxyRes-StdDev':R.kRed+2},
     {'min':1.e-3, 'max':100.},
@@ -135,10 +170,10 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-Mean', 'PAT-LxyRes-Mean'),
-    ';;Fitted Gaussian #mu : gen L_{xy} #minus reco L_{xy}',
+    ';;Fitted Gaussian #mu : reco L_{xy} #minus gen L_{xy}',
     {'PAT-LxyRes-Mean':'PAT', 'DSA-LxyRes-Mean':'DSA'},
     {'PAT-LxyRes-Mean':R.kRed, 'DSA-LxyRes-Mean':R.kRed+2},
-    {'min':1.e-5, 'max':20.},
+    {'min':1.e-7, 'max':40.},
     'pdfs/PAT_LxyRes_Mean_Combined_2Mu2J.pdf',
     'tl',
     True

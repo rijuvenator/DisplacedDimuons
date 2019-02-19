@@ -37,6 +37,9 @@ def declareHistograms(self, PARAMS=None):
     self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
     self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
 
+    self.HistInit('PAT-genLxy', ';gen L_{xy} [cm];Counts', 800, 0., 800.)
+    self.HistInit('DSA-genLxy', ';gen L_{xy} [cm];Counts', 800, 0., 800.)
+
     self.HistInit('PAT-LxyResVSgenLxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 800, 0., 800., 1000, -.05 , .05)
     self.HistInit('DSA-LxyResVSgenLxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 800, 0., 800., 1000, -50. , 50.)
 
@@ -73,7 +76,10 @@ def analyze(self, E, PARAMS=None):
             for dim in selectedDimuons:
                 if dim.ID in replacedIDs:
                     rdim = replacedIDs[dim.ID]
-                    self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
+                    if KEY != 'PAT-Lxy':
+                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
+                    else:
+                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA']( dim), eventWeight)
                     for attr in ('Tracker', 'Global'):
                         for idx in ('1', '2'):
                             if getattr(PATmuons[getattr(rdim, 'idx'+idx)-1000], 'is'+attr):
@@ -104,24 +110,26 @@ def analyze(self, E, PARAMS=None):
             realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
 
         for pairIndex in realMatches:
-            matchedDimuon = realMatches[pairIndex]['dim']
-            if matchedDimuon.ID in replacedIDs:
-                dim = matchedDimuon
-                rdim = replacedIDs[matchedDimuon.ID]
+            genMuon = genMuonPairs[pairIndex][0]
+            dim = realMatches[pairIndex]['dim']
+            self.HISTS['DSA-genLxy'].Fill(genMuon.Lxy(), eventWeight)
+            if dim.ID in replacedIDs:
+                rdim = replacedIDs[dim.ID]
+                self.HISTS['PAT-genLxy'].Fill(genMuon.Lxy(), eventWeight)
                 #print '{:d} {:7d} {:9d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:8.2f} ==> {:8.2f} ::: {:7.3f} ==> {:7.3f}'.format(
                 #    Event.run, Event.lumi, Event.event,
                 #    dim.ID, rdim.ID,
                 #    dim.LxySig(), rdim.LxySig(),
                 #    dim.Lxy(), rdim.Lxy(),
                 #    dim.normChi2, rdim.normChi2,
-                #    genMuonPairs[pairIndex][0].Lxy()-dim.Lxy(), genMuonPairs[pairIndex][0].Lxy()-rdim.Lxy(),
+                #    genMuon.Lxy()-dim.Lxy(), genMuon.Lxy()-rdim.Lxy(),
                 #    )
                 if rdim.normChi2 < 50.:
-                    self.HISTS['DSA-LxyRes'].Fill( dim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
-                    self.HISTS['PAT-LxyRes'].Fill(rdim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
+                    self.HISTS['DSA-LxyRes'].Fill( dim.Lxy()-genMuon.Lxy(), eventWeight)
+                    self.HISTS['PAT-LxyRes'].Fill(rdim.Lxy()-genMuon.Lxy(), eventWeight)
 
-                    self.HISTS['DSA-LxyResVSgenLxy'].Fill(genMuonPairs[pairIndex][0].Lxy(),  dim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
-                    self.HISTS['PAT-LxyResVSgenLxy'].Fill(genMuonPairs[pairIndex][0].Lxy(), rdim.Lxy()-genMuonPairs[pairIndex][0].Lxy(), eventWeight)
+                    self.HISTS['DSA-LxyResVSgenLxy'].Fill(genMuon.Lxy(),  dim.Lxy()-genMuon.Lxy(), eventWeight)
+                    self.HISTS['PAT-LxyResVSgenLxy'].Fill(genMuon.Lxy(), rdim.Lxy()-genMuon.Lxy(), eventWeight)
 
 
 # cleanup function for Analyzer class
