@@ -74,7 +74,7 @@ class DSAMuonBranches : public BranchCollection
   std::vector<float> dsamu_dzsig_bs_lin    ;
 
   std::vector<int>   dsamu_idx_ProxMatch   ;
-  std::vector<int>   dsamu_idx_SegMatch    ;
+  std::vector<std::vector<int>>   dsamu_idx_SegMatch    ;
   std::vector<float> dsamu_deltaR_ProxMatch;
 
   // methods

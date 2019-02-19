@@ -64,12 +64,16 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     // Number of muon stations with matched segments (tracker muons only)
     int n_MatchedStations = mu.numberOfMatchedStations();
 
+    // Whether the track is "high purity" (i.e., good quality) or not
+    int isHighPurity = tk->quality(reco::TrackBase::TrackQuality::highPurity);
+
     if (debug) {
       std::cout << " PAT muon info:"
-        << " global? "      << (isGlobal ?     "yes" : "no")
-        << "; tracker? "    << (isTracker ?    "yes" : "no")
-        << "; standalone? " << (isStandalone ? "yes" : "no")
-        << "; PF? "         << (isPF ?         "yes" : "no")
+        << " global? "       << (isGlobal     ? "yes" : "no")
+        << "; tracker? "     << (isTracker    ? "yes" : "no")
+        << "; standalone? "  << (isStandalone ? "yes" : "no")
+        << "; PF? "          << (isPF         ? "yes" : "no")
+        << "; high purity? " << (isHighPurity ? "yes" : "no")
         << std::endl;
       std::cout << " " << muon_cand;
       std::cout << "  N(matched muon stations) = " << n_MatchedStations
@@ -110,6 +114,7 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     patmu_trackIso        .push_back(trackIso);
     patmu_ecalIso         .push_back(ecalIso);
     patmu_hcalIso         .push_back(hcalIso);
+    patmu_hpur            .push_back(isHighPurity);
 
     patmu_d0_pv       .push_back(fabs(muon_cand.d0_pv      ));
     patmu_d0_bs       .push_back(fabs(muon_cand.d0_bs      ));

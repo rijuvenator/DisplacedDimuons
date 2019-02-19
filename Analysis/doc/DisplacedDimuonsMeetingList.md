@@ -34,3 +34,12 @@ Date | Talks
 [2019   January 24](https://indico.cern.ch/event/792621/) | Alberto, Sebastian
 [2019   January 31](https://indico.cern.ch/event/794936/) | Suchita, Sebastian, Slava
 [2019  February 14](https://indico.cern.ch/event/798959/) | Riju, Sebastian
+
+
+## External Talks
+
+Date | Talks
+---|---
+[2018 September 14](https://indico.cern.ch/event/754333/) | Long-Lived EXO meeting (Riju)
+[2018 November 1](https://indico.cern.ch/event/754758/)   | CMS EXO workshop 2018, Athens (Alberto)
+[2019 February 11](https://indico.cern.ch/event/794061/)  | MC&I meeting (Suchita)

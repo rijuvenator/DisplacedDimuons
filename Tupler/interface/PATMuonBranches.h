@@ -58,6 +58,7 @@ class PATMuonBranches : public BranchCollection
   std::vector<float> patmu_trackIso        ;
   std::vector<float> patmu_ecalIso         ;
   std::vector<float> patmu_hcalIso         ;
+  std::vector<int  > patmu_hpur            ;
 
   std::vector<float> patmu_d0_pv           ;
   std::vector<float> patmu_d0_bs           ;
@@ -121,6 +122,7 @@ class PATMuonBranches : public BranchCollection
     Declare("patmu_trackIso"        , patmu_trackIso        );
     Declare("patmu_ecalIso"         , patmu_ecalIso         );
     Declare("patmu_hcalIso"         , patmu_hcalIso         );
+    Declare("patmu_hpur"            , patmu_hpur            );
 
     Declare("patmu_d0_pv"           , patmu_d0_pv           );
     Declare("patmu_d0_bs"           , patmu_d0_bs           );
@@ -165,6 +167,7 @@ class PATMuonBranches : public BranchCollection
     patmu_chi2            .clear();
     patmu_ndof            .clear();
 
+
     patmu_x               .clear();
     patmu_y               .clear();
     patmu_z               .clear();
@@ -184,6 +187,7 @@ class PATMuonBranches : public BranchCollection
     patmu_trackIso        .clear();
     patmu_ecalIso         .clear();
     patmu_hcalIso         .clear();
+    patmu_hpur            .clear();
 
     patmu_d0_pv           .clear();
     patmu_d0_bs           .clear();
