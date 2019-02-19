@@ -1,11 +1,11 @@
-import os
+import os, re
 import subprocess as bash
 import ROOT as R
 
 DIR = '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/'
 COMMAND = r'''echo 't=tt("SimpleNTupler/DDTree",_file0);cout << t->GetEntries() << endl;' | \root -l {FNAME}'''
 
-fileList = os.listdir(DIR)[2:]
+fileList = filter(lambda fname: re.match(r'ntuple_.*\.root', fname), os.listdir(DIR))
 tagList = [fname.replace('ntuple_','').replace('.root','') for fname in fileList]
 maxLen = max([len(t) for t in tagList])
 

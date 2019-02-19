@@ -1,6 +1,7 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Common.DataHandler as DH
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 # integrated luminosity for 2016
 INTEGRATED_LUMINOSITY_2016 = 35900.
@@ -88,6 +89,16 @@ def getHistogram(FILE, ref, key):
     else:
         hkey = '{}_{}'.format(key, ref)
     return FILE.Get(hkey)
+
+# get added signal histograms
+def getAddedSignalHistograms(FILE, fs, keylist):
+    HISTS = {}
+    for key in keylist:
+        HISTS[key] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
+    for sp in SIGNALPOINTS[1:]:
+        for key in keylist:
+            HISTS[key].Add(getHistogram(FILE, (fs, sp), key))
+    return HISTS
 
 ############################
 #### PLOT CONFIGURATION ####

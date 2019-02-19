@@ -200,7 +200,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
             muonMatches.append(matchedMuons(genMuon, recoMuons, vertex=vertex))
 
         if doDimuons and len(dimuons) != 0:
-            dimuonLookup = {(dim.idx1, dim.idx2):(dim, didx) for didx,dim in enumerate(dimuons)}
+            dimuonLookup = {dim.ID:(dim, didx) for didx,dim in enumerate(dimuons)}
             dimuonMatches = []
             for match1 in muonMatches[0]:
                 for match2 in muonMatches[1]:
@@ -467,6 +467,97 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     # there weren't any dimuons so return an empty list
     else:
         return []
+
+# function for replacing DSA Dimuons with PAT Dimuons or Hybrid Dimuons
+# The input Dimuons list should be the bare Primitives list, consisting of 3 embedded lists in order:
+# the DSA-DSA dimuons, the PAT-PAT dimuons, and the hybrid DSA-PAT dimuons
+# mode should be None, 'PAT', or 'HYBRID', corresponding to no replacement, PAT-PAT only, or PAT-PAT + DSA-PAT replacement
+# match should be 'PROX' or 'SEG', indicating whether to use the proximity match or the segment match as criteria
+# loose is either True or False, indicating, given match = SEG (PROX), whether to use PROX (SEG), if possible
+def replaceDSADimuons(Dimuons, DSAmuons, mode=None, match='SEG', loose=False):
+    if mode is None:
+        return Dimuons
+
+    if mode not in ('PAT', 'HYBRID'):
+        raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons mode should be None, 'PAT', or 'HYBRID'")
+    if match not in ('SEG', 'PROX'):
+        raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons match should be 'SEG' or 'PROX'")
+
+    DSADimuons = [dim for dim in Dimuons if       sum(dim.ID) < 999 ]
+    PATDimuons = [dim for dim in Dimuons if       sum(dim.ID) > 2000]
+    HYBDimuons = [dim for dim in Dimuons if 999 < sum(dim.ID) < 2000]
+
+    if match == 'SEG':
+        primaryIndex   = lambda mu: mu.idx_SegMatch
+        secondaryIndex = lambda mu: mu.idx_ProxMatch
+    else:
+        primaryIndex   = lambda mu: mu.idx_ProxMatch
+        secondaryIndex = lambda mu: mu.idx_SegMatch
+
+    # for adding None to a number which is an index
+    def IntWrapper(candIndex):
+        if candIndex is None:
+            return -2000
+        return candIndex
+
+    # the replacement logic is very similar for PAT and HYBRID
+    # the only difference is the input list ("sourceList") and whether one requires both ID ("and"/"all") or just one ("or"/"any")
+    # repList and wasReplaced are modified;
+    # repType specifies PAT or HYBRID (maps to "all" or "any"), defDim is the original DSA dimuon which won't be replaced
+    def ReplaceAdd(repList, boolList, sourceList, repType, defDim, candidate):
+        if sourceList is None:
+            repList.append(dim)
+            boolList.append(False)
+        else:
+            if repType == 'PAT':
+                comboFunc = all
+            elif repType == 'HYBRID':
+                comboFunc = any
+            for muon in sourceList:
+                if comboFunc([IntWrapper(candidate[0])+1000 in muon.ID, IntWrapper(candidate[1])+1000 in muon.ID]):
+                    repList.append(muon)
+                    boolList.append(True)
+                    break
+            else:
+                repList.append(dim)
+                boolList.append(False)
+
+
+    replacedDimuons = []
+    wasReplaced = []
+    for dim in DSADimuons:
+        candidate = (primaryIndex(DSAmuons[dim.idx1]), primaryIndex(DSAmuons[dim.idx2]))
+        if mode == 'PAT' and None in candidate and loose:
+            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
+            if None not in testCandidate:
+                candidate = testCandidate
+        if mode == 'HYBRID' and candidate.count(None) == 2 and loose:
+            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
+            if candidate.count(None) < 2:
+                candidate = testCandidate
+
+        # logic:
+        # if mode is PAT, and both muons did not match, use DSA
+        # else, look for the dimuon made of both PAT muons, replace if found, use DSA if not
+        # if mode is HYBRID, and no muons matched, use DSA
+        # if both muons matched, proceed as PAT above
+        # if only one muon matched, look for a dimuon made of one DSA and one PAT muons, replace if found, use DSA if not
+        if mode == 'PAT':
+            if None in candidate:
+                ReplaceAdd(replacedDimuons, wasReplaced, None, 'DEFAULT', dim, candidate)
+            elif None not in candidate:
+                ReplaceAdd(replacedDimuons, wasReplaced, PATDimuons, 'PAT', dim, candidate)
+
+        elif mode == 'HYBRID':
+            NoneMatches = candidate.count(None)
+            if NoneMatches == 2:
+                ReplaceAdd(replacedDimuons, wasReplaced, None, 'DEFAULT', dim, candidate)
+            elif NoneMatches == 0:
+                ReplaceAdd(replacedDimuons, wasReplaced, PATDimuons, 'PAT', dim, candidate)
+            elif NoneMatches == 1:
+                ReplaceAdd(replacedDimuons, wasReplaced, HYBDimuons, 'HYBRID', dim, candidate)
+
+    return replacedDimuons, wasReplaced
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

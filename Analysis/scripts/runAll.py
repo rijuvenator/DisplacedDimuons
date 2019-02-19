@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import os
 import re
 import subprocess as bash
@@ -8,7 +9,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 #### GLOBAL CONFIGURATION PARAMETERS ####
 #########################################
 
-# 8 + 136 + 72 = 216 background jobs
+# 8 + 136 + 73 = 217 background jobs
 BGSampleList = (
     ('DY10to50'     , None        ),
     ('WJets'        , None        ),
@@ -22,11 +23,11 @@ BGSampleList = (
 #   ('QCD50to80'    , None        ),
 #   ('QCD80to120'   , None        ),
     ('DY50toInf'    , (136, 50000)), # 6.76M events
-    ('ttbar'        , (72,  50000)), # 3.60M events
+    ('ttbar'        , (73,  50000)), # 3.65M events
 )
-# 257 data jobs
+# 291 data jobs
 DataSampleList = (
-    ('DoubleMuonRun2016B-07Aug17-v2', ( 9, 50000)), # 0.41M events
+    ('DoubleMuonRun2016B-07Aug17-v2', (43, 50000)), # 2.12M events
     ('DoubleMuonRun2016C-07Aug17'   , (20, 50000)), # 0.96M events
     ('DoubleMuonRun2016D-07Aug17'   , (34, 50000)), # 1.67M events
     ('DoubleMuonRun2016E-07Aug17'   , (32, 50000)), # 1.59M events

@@ -31,149 +31,149 @@ class DSAMuonBranches : public BranchCollection
   // members
   static bool alreadyPrinted_;
 
-  std::vector<int  > dsamu_idx          ;
-  std::vector<float> dsamu_px           ;
-  std::vector<float> dsamu_py           ;
-  std::vector<float> dsamu_pz           ;
-  std::vector<float> dsamu_ptError      ;
-  std::vector<float> dsamu_eta          ;
-  std::vector<float> dsamu_phi          ;
-  std::vector<int  > dsamu_charge       ;
-  std::vector<float> dsamu_chi2         ;
-  std::vector<int>   dsamu_ndof         ;
+  std::vector<int  > dsamu_idx             ;
+  std::vector<float> dsamu_px              ;
+  std::vector<float> dsamu_py              ;
+  std::vector<float> dsamu_pz              ;
+  std::vector<float> dsamu_ptError         ;
+  std::vector<float> dsamu_eta             ;
+  std::vector<float> dsamu_phi             ;
+  std::vector<int  > dsamu_charge          ;
+  std::vector<float> dsamu_chi2            ;
+  std::vector<int>   dsamu_ndof            ;
 
-  std::vector<float> dsamu_x            ;
-  std::vector<float> dsamu_y            ;
-  std::vector<float> dsamu_z            ;
-  std::vector<float> dsamu_x_fhit       ;
-  std::vector<float> dsamu_y_fhit       ;
-  std::vector<float> dsamu_z_fhit       ;
+  std::vector<float> dsamu_x               ;
+  std::vector<float> dsamu_y               ;
+  std::vector<float> dsamu_z               ;
+  std::vector<float> dsamu_x_fhit          ;
+  std::vector<float> dsamu_y_fhit          ;
+  std::vector<float> dsamu_z_fhit          ;
 
-  std::vector<int  > dsamu_nMuonHits    ;
-  std::vector<int  > dsamu_nDTHits      ;
-  std::vector<int  > dsamu_nCSCHits     ;
-  std::vector<int  > dsamu_nDTStations  ;
-  std::vector<int  > dsamu_nCSCStations ;
+  std::vector<int  > dsamu_nMuonHits       ;
+  std::vector<int  > dsamu_nDTHits         ;
+  std::vector<int  > dsamu_nCSCHits        ;
+  std::vector<int  > dsamu_nDTStations     ;
+  std::vector<int  > dsamu_nCSCStations    ;
 
-  std::vector<float> dsamu_d0_pv        ;
-  std::vector<float> dsamu_d0_bs        ;
-  std::vector<float> dsamu_d0_pv_lin    ;
-  std::vector<float> dsamu_d0_bs_lin    ;
-  std::vector<float> dsamu_d0sig_pv     ;
-  std::vector<float> dsamu_d0sig_bs     ;
-  std::vector<float> dsamu_d0sig_pv_lin ;
-  std::vector<float> dsamu_d0sig_bs_lin ;
+  std::vector<float> dsamu_d0_pv           ;
+  std::vector<float> dsamu_d0_bs           ;
+  std::vector<float> dsamu_d0_pv_lin       ;
+  std::vector<float> dsamu_d0_bs_lin       ;
+  std::vector<float> dsamu_d0sig_pv        ;
+  std::vector<float> dsamu_d0sig_bs        ;
+  std::vector<float> dsamu_d0sig_pv_lin    ;
+  std::vector<float> dsamu_d0sig_bs_lin    ;
 
-  std::vector<float> dsamu_dz_pv        ;
-  std::vector<float> dsamu_dz_bs        ;
-  std::vector<float> dsamu_dz_pv_lin    ;
-  std::vector<float> dsamu_dz_bs_lin    ;
-  std::vector<float> dsamu_dzsig_pv     ;
-  std::vector<float> dsamu_dzsig_bs     ;
-  std::vector<float> dsamu_dzsig_pv_lin ;
-  std::vector<float> dsamu_dzsig_bs_lin ;
+  std::vector<float> dsamu_dz_pv           ;
+  std::vector<float> dsamu_dz_bs           ;
+  std::vector<float> dsamu_dz_pv_lin       ;
+  std::vector<float> dsamu_dz_bs_lin       ;
+  std::vector<float> dsamu_dzsig_pv        ;
+  std::vector<float> dsamu_dzsig_bs        ;
+  std::vector<float> dsamu_dzsig_pv_lin    ;
+  std::vector<float> dsamu_dzsig_bs_lin    ;
 
-  std::vector<int>              dsamu_proxmatch_idx;
-  std::vector<std::vector<int>> dsamu_segmmatch_idx;
-  std::vector<float>            dsamu_proxmatch_dr ;
+  std::vector<int>   dsamu_idx_ProxMatch   ;
+  std::vector<std::vector<int>>   dsamu_idx_SegMatch    ;
+  std::vector<float> dsamu_deltaR_ProxMatch;
 
   // methods
   void Declarations()
   {
-    Declare("dsamu_idx"          , dsamu_idx          );
-    Declare("dsamu_px"           , dsamu_px           );
-    Declare("dsamu_py"           , dsamu_py           );
-    Declare("dsamu_pz"           , dsamu_pz           );
-    Declare("dsamu_ptError"      , dsamu_ptError      );
-    Declare("dsamu_eta"          , dsamu_eta          );
-    Declare("dsamu_phi"          , dsamu_phi          );
-    Declare("dsamu_charge"       , dsamu_charge       );
-    Declare("dsamu_chi2"         , dsamu_chi2         );
-    Declare("dsamu_ndof"         , dsamu_ndof         );
+    Declare("dsamu_idx"             , dsamu_idx             );
+    Declare("dsamu_px"              , dsamu_px              );
+    Declare("dsamu_py"              , dsamu_py              );
+    Declare("dsamu_pz"              , dsamu_pz              );
+    Declare("dsamu_ptError"         , dsamu_ptError         );
+    Declare("dsamu_eta"             , dsamu_eta             );
+    Declare("dsamu_phi"             , dsamu_phi             );
+    Declare("dsamu_charge"          , dsamu_charge          );
+    Declare("dsamu_chi2"            , dsamu_chi2            );
+    Declare("dsamu_ndof"            , dsamu_ndof            );
 
-    Declare("dsamu_x"            , dsamu_x            );
-    Declare("dsamu_y"            , dsamu_y            );
-    Declare("dsamu_z"            , dsamu_z            );
-    Declare("dsamu_x_fhit"       , dsamu_x_fhit       );
-    Declare("dsamu_y_fhit"       , dsamu_y_fhit       );
-    Declare("dsamu_z_fhit"       , dsamu_z_fhit       );
+    Declare("dsamu_x"               , dsamu_x               );
+    Declare("dsamu_y"               , dsamu_y               );
+    Declare("dsamu_z"               , dsamu_z               );
+    Declare("dsamu_x_fhit"          , dsamu_x_fhit          );
+    Declare("dsamu_y_fhit"          , dsamu_y_fhit          );
+    Declare("dsamu_z_fhit"          , dsamu_z_fhit          );
 
-    Declare("dsamu_nMuonHits"    , dsamu_nMuonHits    );
-    Declare("dsamu_nDTHits"      , dsamu_nDTHits      );
-    Declare("dsamu_nCSCHits"     , dsamu_nCSCHits     );
-    Declare("dsamu_nDTStations"  , dsamu_nDTStations  );
-    Declare("dsamu_nCSCStations" , dsamu_nCSCStations );
+    Declare("dsamu_nMuonHits"       , dsamu_nMuonHits       );
+    Declare("dsamu_nDTHits"         , dsamu_nDTHits         );
+    Declare("dsamu_nCSCHits"        , dsamu_nCSCHits        );
+    Declare("dsamu_nDTStations"     , dsamu_nDTStations     );
+    Declare("dsamu_nCSCStations"    , dsamu_nCSCStations    );
 
-    Declare("dsamu_d0_pv"        , dsamu_d0_pv        );
-    Declare("dsamu_d0_bs"        , dsamu_d0_bs        );
-    Declare("dsamu_d0_pv_lin"    , dsamu_d0_pv_lin    );
-    Declare("dsamu_d0_bs_lin"    , dsamu_d0_bs_lin    );
-    Declare("dsamu_d0sig_pv"     , dsamu_d0sig_pv     );
-    Declare("dsamu_d0sig_bs"     , dsamu_d0sig_bs     );
-    Declare("dsamu_d0sig_pv_lin" , dsamu_d0sig_pv_lin );
-    Declare("dsamu_d0sig_bs_lin" , dsamu_d0sig_bs_lin );
+    Declare("dsamu_d0_pv"           , dsamu_d0_pv           );
+    Declare("dsamu_d0_bs"           , dsamu_d0_bs           );
+    Declare("dsamu_d0_pv_lin"       , dsamu_d0_pv_lin       );
+    Declare("dsamu_d0_bs_lin"       , dsamu_d0_bs_lin       );
+    Declare("dsamu_d0sig_pv"        , dsamu_d0sig_pv        );
+    Declare("dsamu_d0sig_bs"        , dsamu_d0sig_bs        );
+    Declare("dsamu_d0sig_pv_lin"    , dsamu_d0sig_pv_lin    );
+    Declare("dsamu_d0sig_bs_lin"    , dsamu_d0sig_bs_lin    );
 
-    Declare("dsamu_dz_pv"        , dsamu_dz_pv        );
-    Declare("dsamu_dz_bs"        , dsamu_dz_bs        );
-    Declare("dsamu_dz_pv_lin"    , dsamu_dz_pv_lin    );
-    Declare("dsamu_dz_bs_lin"    , dsamu_dz_bs_lin    );
-    Declare("dsamu_dzsig_pv"     , dsamu_dzsig_pv     );
-    Declare("dsamu_dzsig_bs"     , dsamu_dzsig_bs     );
-    Declare("dsamu_dzsig_pv_lin" , dsamu_dzsig_pv_lin );
-    Declare("dsamu_dzsig_bs_lin" , dsamu_dzsig_bs_lin );
+    Declare("dsamu_dz_pv"           , dsamu_dz_pv           );
+    Declare("dsamu_dz_bs"           , dsamu_dz_bs           );
+    Declare("dsamu_dz_pv_lin"       , dsamu_dz_pv_lin       );
+    Declare("dsamu_dz_bs_lin"       , dsamu_dz_bs_lin       );
+    Declare("dsamu_dzsig_pv"        , dsamu_dzsig_pv        );
+    Declare("dsamu_dzsig_bs"        , dsamu_dzsig_bs        );
+    Declare("dsamu_dzsig_pv_lin"    , dsamu_dzsig_pv_lin    );
+    Declare("dsamu_dzsig_bs_lin"    , dsamu_dzsig_bs_lin    );
 
-    Declare("dsamu_proxmatch_idx", dsamu_proxmatch_idx);
-    Declare("dsamu_segmmatch_idx", dsamu_segmmatch_idx);
-    Declare("dsamu_proxmatch_dr" , dsamu_proxmatch_dr );
+    Declare("dsamu_idx_ProxMatch"   , dsamu_idx_ProxMatch   );
+    Declare("dsamu_idx_SegMatch"    , dsamu_idx_SegMatch    );
+    Declare("dsamu_deltaR_ProxMatch", dsamu_deltaR_ProxMatch);
   }
 
   void Reset()
   {
-    dsamu_idx          .clear();
-    dsamu_px           .clear();
-    dsamu_py           .clear();
-    dsamu_pz           .clear();
-    dsamu_ptError      .clear();
-    dsamu_eta          .clear();
-    dsamu_phi          .clear();
-    dsamu_charge       .clear();
-    dsamu_chi2         .clear();
-    dsamu_ndof         .clear();
+    dsamu_idx             .clear();
+    dsamu_px              .clear();
+    dsamu_py              .clear();
+    dsamu_pz              .clear();
+    dsamu_ptError         .clear();
+    dsamu_eta             .clear();
+    dsamu_phi             .clear();
+    dsamu_charge          .clear();
+    dsamu_chi2            .clear();
+    dsamu_ndof            .clear();
 
-    dsamu_x            .clear();
-    dsamu_y            .clear();
-    dsamu_z            .clear();
-    dsamu_x_fhit       .clear();
-    dsamu_y_fhit       .clear();
-    dsamu_z_fhit       .clear();
+    dsamu_x               .clear();
+    dsamu_y               .clear();
+    dsamu_z               .clear();
+    dsamu_x_fhit          .clear();
+    dsamu_y_fhit          .clear();
+    dsamu_z_fhit          .clear();
 
-    dsamu_nMuonHits    .clear();
-    dsamu_nDTHits      .clear();
-    dsamu_nCSCHits     .clear();
-    dsamu_nDTStations  .clear();
-    dsamu_nCSCStations .clear();
+    dsamu_nMuonHits       .clear();
+    dsamu_nDTHits         .clear();
+    dsamu_nCSCHits        .clear();
+    dsamu_nDTStations     .clear();
+    dsamu_nCSCStations    .clear();
 
-    dsamu_d0_pv        .clear();
-    dsamu_d0_bs        .clear();
-    dsamu_d0_pv_lin    .clear();
-    dsamu_d0_bs_lin    .clear();
-    dsamu_d0sig_pv     .clear();
-    dsamu_d0sig_bs     .clear();
-    dsamu_d0sig_pv_lin .clear();
-    dsamu_d0sig_bs_lin .clear();
+    dsamu_d0_pv           .clear();
+    dsamu_d0_bs           .clear();
+    dsamu_d0_pv_lin       .clear();
+    dsamu_d0_bs_lin       .clear();
+    dsamu_d0sig_pv        .clear();
+    dsamu_d0sig_bs        .clear();
+    dsamu_d0sig_pv_lin    .clear();
+    dsamu_d0sig_bs_lin    .clear();
 
-    dsamu_dz_pv        .clear();
-    dsamu_dz_bs        .clear();
-    dsamu_dz_pv_lin    .clear();
-    dsamu_dz_bs_lin    .clear();
-    dsamu_dzsig_pv     .clear();
-    dsamu_dzsig_bs     .clear();
-    dsamu_dzsig_pv_lin .clear();
-    dsamu_dzsig_bs_lin .clear();
+    dsamu_dz_pv           .clear();
+    dsamu_dz_bs           .clear();
+    dsamu_dz_pv_lin       .clear();
+    dsamu_dz_bs_lin       .clear();
+    dsamu_dzsig_pv        .clear();
+    dsamu_dzsig_bs        .clear();
+    dsamu_dzsig_pv_lin    .clear();
+    dsamu_dzsig_bs_lin    .clear();
 
-    dsamu_proxmatch_idx.clear();
-    dsamu_segmmatch_idx.clear();
-    dsamu_proxmatch_dr .clear();
+    dsamu_idx_ProxMatch   .clear();
+    dsamu_idx_SegMatch    .clear();
+    dsamu_deltaR_ProxMatch.clear();
   }
 
   void Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
