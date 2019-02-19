@@ -25,7 +25,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
   const pat::MuonCollection &patmuons = *patmuonsHandle;
 
   unsigned int idx = 0;
-  double dR_thr = 0.2;
+  double dR_thr = 0.4; // very generous, should probably be tightened downstream
   DisplacedMuonFiller muf;
   for (const auto &dsamu : dsamuons) {
     if (debug)
@@ -34,7 +34,8 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     muon_cand.idx = idx;
 
     // Look for a matched PAT (global or tracker) muon.
-    int idx_patmu_matched_prox = -999, idx_patmu_matched_segm = -999;
+    int idx_patmu_matched_prox = -999;
+    std::vector<int> idx_patmu_matched_segm;
     double dR_min = 999.;
     // Do not waste time trying to match DSA muons with no valid hits.
     if (muon_cand.n_MuonHits > 0) {
@@ -141,7 +142,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
 	  }
 	}
 	if (nsegments > 0 && nsegments == nmatches) {
-	  idx_patmu_matched_segm = idx_patmu;
+	  idx_patmu_matched_segm.push_back(idx_patmu);
 	  if (debug)
 	    std::cout << "DSA-PAT segment match found! DSA muon #" << idx
 		      << " PAT muon #" << idx_patmu
@@ -157,16 +158,29 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
 		    << " PAT muon #" << idx_patmu_matched_prox
 		    << " dR = " << dR_min << std::endl;
 
-	if (idx_patmu_matched_segm >= 0 || idx_patmu_matched_prox >= 0) {
-	  if (idx_patmu_matched_segm == idx_patmu_matched_prox) {
-	    std::cout << " Proximity and segment matches agree" << std::endl;
+	if (idx_patmu_matched_segm.size() > 0 || idx_patmu_matched_prox >= 0) {
+	  bool matches_agree = false;
+	  for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
+	    if (idx_patmu_matched_segm[itrk] == idx_patmu_matched_prox) {
+	      std::cout << " Proximity and segment matches agree" << std::endl;
+	      matches_agree = true;
+	      break;
+	    }
 	  }
-	  else {
+	  if (!matches_agree) {
 	    std::cout << " Proximity and segment matches do not agree\n"
 		      << "   DSA muon #" << idx
-		      << " proximity-matched PAT muon #" << idx_patmu_matched_prox
-		      << " segment-matched PAT muon #"   << idx_patmu_matched_segm
-		      << std::endl;
+		      << " proximity-matched PAT muon # " << idx_patmu_matched_prox
+		      << " segment-matched PAT muon #";
+	    if (idx_patmu_matched_segm.size() > 0) {
+	      for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
+		std::cout << " " << idx_patmu_matched_segm[itrk];
+	      }
+	    }
+	    else {
+	      std::cout << " -999";
+	    }
+	    std::cout << std::endl;
 	  }
 	}
       }
@@ -223,8 +237,16 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
       std::cout << "DSA muon info:" << muon_cand;
       std::cout << "  proximity-matched PAT muon: " << idx_patmu_matched_prox
 		<< " (dR = " << dR_min 
-		<< "); segment-matched PAT muon: "  << idx_patmu_matched_segm
-		<< std::endl;
+		<< "); segment-matched PAT muon:";
+      if (idx_patmu_matched_segm.size() > 0) {
+	for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
+	  std::cout << " " << idx_patmu_matched_segm[itrk];
+	}
+      }
+      else {
+	std::cout << " -999";
+      }
+      std::cout << std::endl;
     }
 
     idx++;

@@ -31,6 +31,7 @@ class PATMuonBranches : public BranchCollection
   std::vector<int  > patmu_idx    ;
   std::vector<int  > patmu_glbmu  ;
   std::vector<int  > patmu_trkmu  ;
+  std::vector<int  > patmu_hpur   ;
   std::vector<float> patmu_px     ;
   std::vector<float> patmu_py     ;
   std::vector<float> patmu_pz     ;
@@ -94,6 +95,7 @@ class PATMuonBranches : public BranchCollection
     Declare("patmu_idx"    , patmu_idx    );
     Declare("patmu_glbmu"  , patmu_glbmu  );
     Declare("patmu_trkmu"  , patmu_trkmu  );
+    Declare("patmu_hpur"   , patmu_hpur   );
     Declare("patmu_px"     , patmu_px     );
     Declare("patmu_py"     , patmu_py     );
     Declare("patmu_pz"     , patmu_pz     );
@@ -157,6 +159,7 @@ class PATMuonBranches : public BranchCollection
     patmu_idx    .clear();
     patmu_glbmu  .clear();
     patmu_trkmu  .clear();
+    patmu_hpur   .clear();
     patmu_px     .clear();
     patmu_py     .clear();
     patmu_pz     .clear();

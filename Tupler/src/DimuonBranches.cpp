@@ -296,7 +296,9 @@ void DimuonBranches::FillDimuon(int i, int j,
 		<< " mass = " << dimu_p4.M() << std::endl;
       std::cout << "  Common vertex: (x; y; z): ("
 		<< rv_x << ";" << rv_y << ";" << rv_z 
-		<< ") chi2/ndof = " << rv_normChi2 << std::endl;
+		<< ") chi2/ndof = "
+	// << rv.chi2() << "/" << rv.ndof() << " = "
+		<< rv_normChi2 << std::endl;
       std::cout << "  Lxy(PV) = "             << Lxy_pv
 		<< " Lxy(PV) significance = " << Lxysig_pv
 		<< " Lxy(BS) = "              << Lxy_bs
