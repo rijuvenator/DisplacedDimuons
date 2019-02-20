@@ -76,8 +76,12 @@ class ETree(object):
     # this function copies the contents of t into the ETree
     # and makes a Python list from a vector if appropriate
     def copyBranch(self, branch):
-        if 'vector' in type(getattr(self.TTree, branch)).__name__:
-            setattr(self, branch, list(getattr(self.TTree, branch)))
+        name = type(getattr(self.TTree, branch)).__name__
+        if 'vector' in name:
+            if 'vector<vector<' in name:
+                setattr(self, branch, [list(subvector) for subvector in list(getattr(self.TTree, branch))])
+            else:
+                setattr(self, branch, list(getattr(self.TTree, branch)))
         else:
             setattr(self, branch, getattr(self.TTree, branch))
 
@@ -687,15 +691,16 @@ class RecoMuon(Muon):
                 self.gen = Muon(E, i, 'patmu_gen_')
             for attr in ('nMatchedStations', 'isGlobal', 'isTracker', 'nPixelHits', 'nTrackerHits', 'nTrackerLayers', 'trackIso', 'ecalIso', 'hcalIso'):
                 self.set(attr, E, prefix+attr, i)
+            self.set('hitPurity', E, prefix+'hpur', i)
             for attr in ('isGlobal', 'isTracker'):
                 setattr(self, attr, bool(getattr(self, attr)))
         # only DSA has these attributes
         if tag in ('DSA',):
             for attr in ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch'):
                 self.set(attr, E, prefix+attr, i)
-            if self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
-            if self.idx_SegMatch     < 0   : self.idx_SegMatch     = None
-            if self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
+            if     self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
+            if len(self.idx_SegMatch)   == 0   : self.idx_SegMatch     = None
+            if     self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
         # only refitted muons have these attributes
         if 'REF' in tag:
             if self.idx > 999:

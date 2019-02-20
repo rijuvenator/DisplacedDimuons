@@ -474,25 +474,74 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
 # mode should be None, 'PAT', or 'HYBRID', corresponding to no replacement, PAT-PAT only, or PAT-PAT + DSA-PAT replacement
 # match should be 'PROX' or 'SEG', indicating whether to use the proximity match or the segment match as criteria
 # loose is either True or False, indicating, given match = SEG (PROX), whether to use PROX (SEG), if possible
-def replaceDSADimuons(Dimuons, DSAmuons, mode=None, match='SEG', loose=False):
+def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
     if mode is None:
-        return Dimuons
+        return Dimuons3
 
     if mode not in ('PAT', 'HYBRID'):
         raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons mode should be None, 'PAT', or 'HYBRID'")
     if match not in ('SEG', 'PROX'):
         raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons match should be 'SEG' or 'PROX'")
 
-    DSADimuons = [dim for dim in Dimuons if       sum(dim.ID) < 999 ]
-    PATDimuons = [dim for dim in Dimuons if       sum(dim.ID) > 2000]
-    HYBDimuons = [dim for dim in Dimuons if 999 < sum(dim.ID) < 2000]
+    # splits Dimuons3 into 3 pieces
+    DSADimuons = [dim for dim in Dimuons3 if       sum(dim.ID) < 999 ]
+    PATDimuons = [dim for dim in Dimuons3 if       sum(dim.ID) > 2000]
+    HYBDimuons = [dim for dim in Dimuons3 if 999 < sum(dim.ID) < 2000]
 
-    if match == 'SEG':
-        primaryIndex   = lambda mu: mu.idx_SegMatch
-        secondaryIndex = lambda mu: mu.idx_ProxMatch
-    else:
-        primaryIndex   = lambda mu: mu.idx_ProxMatch
-        secondaryIndex = lambda mu: mu.idx_SegMatch
+    # defines a SegMatch, returns a pair of indices (called candidate)
+    def lookForSegMatch(mu1, mu2):
+        candidate = []
+        for mu in mu1, mu2:
+            if mu.idx_SegMatch is None:
+                candidate.append(None)
+            elif len(mu.idx_SegMatch) > 1:
+                if mu.idx_ProxMatch in mu.idx_SegMatch:
+                    candidate.append(mu.idx_ProxMatch)
+                else:
+                    # take first entry
+                    # which is the smallest index = largest pT
+                    candidate.append(mu.idx_SegMatch[0])
+            else:
+                candidate.append(mu.idx_SegMatch[0])
+        return candidate
+
+    # defines a ProxMatch, returns a pair of indices (called candidate)
+    def lookForProxMatch(mu1, mu2):
+        return [mu1.idx_ProxMatch, mu2.idx_ProxMatch]
+
+    # if using the backup option (loose), defines when a dimuon match was not found
+    def matchNotFound(mode, candidate):
+        if mode == 'PAT'    : return None in candidate
+        if mode == 'HYBRID' : return candidate.count(None) == 2
+
+    # if using the backup option (loose), defines when the backup option is preferable
+    def backupCandidateIsBetter(mode, candidate):
+        if mode == 'PAT'    : return None not in candidate
+        if mode == 'HYBRID' : return candidate.count(None) < 2
+
+    # code for figuring out the best candidate
+    # note: this candidate is not guaranteed to be a dimuon
+    # perhaps if it is not found, we might want to double back somehow
+    def CandidateIndices(mode, match, dim, DSAmuons):
+        # define the first and backup match criteria
+        if match == 'SEG':
+            firstLook  = lookForSegMatch
+            backupLook = lookForProxMatch
+        elif match == 'PROX':
+            firstLook  = lookForProxMatch
+            backupLook = lookForSegMatch
+
+        # get the candidate
+        mu1, mu2 = DSAmuons[dim.idx1], DSAmuons[dim.idx2]
+        candidate = firstLook(mu1, mu2)
+
+        # replace with backup, if appropriate
+        if loose and matchNotFound(mode, candidate):
+            backupCandidate = backupLook(mu1, mu2)
+            if backupCandidateIsBetter(mode, backupCandidate):
+                candidate = backupCandidate
+
+        return candidate
 
     # for adding None to a number which is an index
     def IntWrapper(candIndex):
@@ -525,16 +574,11 @@ def replaceDSADimuons(Dimuons, DSAmuons, mode=None, match='SEG', loose=False):
 
     replacedDimuons = []
     wasReplaced = []
+
     for dim in DSADimuons:
-        candidate = (primaryIndex(DSAmuons[dim.idx1]), primaryIndex(DSAmuons[dim.idx2]))
-        if mode == 'PAT' and None in candidate and loose:
-            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
-            if None not in testCandidate:
-                candidate = testCandidate
-        if mode == 'HYBRID' and candidate.count(None) == 2 and loose:
-            testCandidate = (secondaryIndex(DSAmuons[dim.idx1]), secondaryIndex(DSAmuons[dim.idx2]))
-            if candidate.count(None) < 2:
-                candidate = testCandidate
+
+        # get candidate indices
+        candidate = CandidateIndices(mode, match, dim, DSAmuons)
 
         # logic:
         # if mode is PAT, and both muons did not match, use DSA
