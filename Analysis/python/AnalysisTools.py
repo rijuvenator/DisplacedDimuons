@@ -491,23 +491,28 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
     # defines a SegMatch, returns a pair of indices (called candidate)
     def lookForSegMatch(mu1, mu2):
         candidate = []
+        exitcode = []
         for mu in mu1, mu2:
             if mu.idx_SegMatch is None:
                 candidate.append(None)
+                exitcode.append(None)
             elif len(mu.idx_SegMatch) > 1:
                 if mu.idx_ProxMatch in mu.idx_SegMatch:
                     candidate.append(mu.idx_ProxMatch)
+                    exitcode.append(True)
                 else:
                     # take first entry
                     # which is the smallest index = largest pT
                     candidate.append(mu.idx_SegMatch[0])
+                    exitcode.append(False)
             else:
                 candidate.append(mu.idx_SegMatch[0])
-        return candidate
+                exitcode.append(None)
+        return candidate, exitcode
 
     # defines a ProxMatch, returns a pair of indices (called candidate)
     def lookForProxMatch(mu1, mu2):
-        return [mu1.idx_ProxMatch, mu2.idx_ProxMatch]
+        return [mu1.idx_ProxMatch, mu2.idx_ProxMatch], [None, None]
 
     # if using the backup option (loose), defines when a dimuon match was not found
     def matchNotFound(mode, candidate):
@@ -533,15 +538,15 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
 
         # get the candidate
         mu1, mu2 = DSAmuons[dim.idx1], DSAmuons[dim.idx2]
-        candidate = firstLook(mu1, mu2)
+        candidate, exitcode = firstLook(mu1, mu2)
 
         # replace with backup, if appropriate
         if loose and matchNotFound(mode, candidate):
-            backupCandidate = backupLook(mu1, mu2)
+            backupCandidate, backupExitcode = backupLook(mu1, mu2)
             if backupCandidateIsBetter(mode, backupCandidate):
-                candidate = backupCandidate
+                candidate, exitcode = backupCandidate, backupExitcode
 
-        return candidate
+        return candidate, exitcode
 
     # for adding None to a number which is an index
     def IntWrapper(candIndex):
@@ -553,32 +558,36 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
     # the only difference is the input list ("sourceList") and whether one requires both ID ("and"/"all") or just one ("or"/"any")
     # repList and wasReplaced are modified;
     # repType specifies PAT or HYBRID (maps to "all" or "any"), defDim is the original DSA dimuon which won't be replaced
-    def ReplaceAdd(repList, boolList, sourceList, repType, defDim, candidate):
+    def ReplaceAdd(repList, boolList, exitcodeList, sourceList, repType, defDim, candidate, exitcode):
         if sourceList is None:
-            repList.append(dim)
+            repList.append(defDim)
             boolList.append(False)
+            exitcodeList.append(exitcode)
         else:
             if repType == 'PAT':
                 comboFunc = all
             elif repType == 'HYBRID':
                 comboFunc = any
-            for muon in sourceList:
-                if comboFunc([IntWrapper(candidate[0])+1000 in muon.ID, IntWrapper(candidate[1])+1000 in muon.ID]):
-                    repList.append(muon)
+            for dimuon in sourceList:
+                if comboFunc([IntWrapper(candidate[0])+1000 in dimuon.ID, IntWrapper(candidate[1])+1000 in dimuon.ID]):
+                    repList.append(dimuon)
                     boolList.append(True)
+                    exitcodeList.append(exitcode)
                     break
             else:
-                repList.append(dim)
+                repList.append(defDim)
                 boolList.append(False)
+                exitcodeList.append(exitcode)
 
 
     replacedDimuons = []
     wasReplaced = []
+    exitcodes = []
 
     for dim in DSADimuons:
 
         # get candidate indices
-        candidate = CandidateIndices(mode, match, dim, DSAmuons)
+        candidate, exitcode = CandidateIndices(mode, match, dim, DSAmuons)
 
         # logic:
         # if mode is PAT, and both muons did not match, use DSA
@@ -588,20 +597,20 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
         # if only one muon matched, look for a dimuon made of one DSA and one PAT muons, replace if found, use DSA if not
         if mode == 'PAT':
             if None in candidate:
-                ReplaceAdd(replacedDimuons, wasReplaced, None, 'DEFAULT', dim, candidate)
+                ReplaceAdd(replacedDimuons, wasReplaced, exitcodes, None, 'DEFAULT', dim, candidate, exitcode)
             elif None not in candidate:
-                ReplaceAdd(replacedDimuons, wasReplaced, PATDimuons, 'PAT', dim, candidate)
+                ReplaceAdd(replacedDimuons, wasReplaced, exitcodes, PATDimuons, 'PAT', dim, candidate, exitcode)
 
         elif mode == 'HYBRID':
             NoneMatches = candidate.count(None)
             if NoneMatches == 2:
-                ReplaceAdd(replacedDimuons, wasReplaced, None, 'DEFAULT', dim, candidate)
+                ReplaceAdd(replacedDimuons, wasReplaced, exitcodes, None, 'DEFAULT', dim, candidate, exitcode)
             elif NoneMatches == 0:
-                ReplaceAdd(replacedDimuons, wasReplaced, PATDimuons, 'PAT', dim, candidate)
+                ReplaceAdd(replacedDimuons, wasReplaced, exitcodes, PATDimuons, 'PAT', dim, candidate, exitcode)
             elif NoneMatches == 1:
-                ReplaceAdd(replacedDimuons, wasReplaced, HYBDimuons, 'HYBRID', dim, candidate)
+                ReplaceAdd(replacedDimuons, wasReplaced, exitcodes, HYBDimuons, 'HYBRID', dim, candidate, exitcode)
 
-    return replacedDimuons, wasReplaced
+    return replacedDimuons, wasReplaced, exitcodes
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
