@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 R, makeSummaryPlot, initializeData, Plotter = SumPlotter.R, SumPlotter.makeSummaryPlot, SumPlotter.initializeData, SumPlotter.Plotter
 
 DATA = initializeData()
-with open('replacePAT.txt') as f:
+with open('text/replacePAT.txt') as f:
     for line in f:
         if '%' in line or '---' in line: continue
         cols = line.strip('\n').split()
@@ -157,7 +157,7 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-StdDev', 'PAT-LxyRes-StdDev'),
-    ';;Fitted Gaussian #sigma : reco L_{xy} #minus gen L_{xy}',
+    ';;Fitted Gaussian #sigma : reco L_{xy} #minus gen L_{xy} [cm]',
     {'PAT-LxyRes-StdDev':'PAT', 'DSA-LxyRes-StdDev':'DSA'},
     {'PAT-LxyRes-StdDev':R.kRed, 'DSA-LxyRes-StdDev':R.kRed+2},
     {'min':1.e-3, 'max':100.},
@@ -170,7 +170,7 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-Mean', 'PAT-LxyRes-Mean'),
-    ';;Fitted Gaussian #mu : reco L_{xy} #minus gen L_{xy}',
+    ';;Fitted Gaussian #mu : reco L_{xy} #minus gen L_{xy} [cm]',
     {'PAT-LxyRes-Mean':'PAT', 'DSA-LxyRes-Mean':'DSA'},
     {'PAT-LxyRes-Mean':R.kRed, 'DSA-LxyRes-Mean':R.kRed+2},
     {'min':1.e-7, 'max':40.},
@@ -200,4 +200,4 @@ for hkey in ('PAT-LxySig', 'DSA-LxySig'):
     p = Plotter.Plot(h, '', 'l', 'hist')
     c = Plotter.Canvas(logy=True)
     c.addMainPlot(p)
-    c.cleanup('pdfs/plot_'+hkey+'.pdf')
+    c.cleanup('pdfs/MC_'+hkey+'.pdf')
