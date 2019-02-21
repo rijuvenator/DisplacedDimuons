@@ -42,8 +42,10 @@ def makeLxyResVSLxyPlot(recoType):
 
     upperEdge = 35
     xPoints = map(lambda z: float(z)+0.5, range(upperEdge))
+    xError = [0.5] * len(xPoints)
 
     yPoints = []
+    yError = []
     for ibin in xrange(1,upperEdge+1):
         h = HISTS[key].ProjectionY('h'+str(ibin), ibin, ibin)
         #lims = .01
@@ -53,12 +55,16 @@ def makeLxyResVSLxyPlot(recoType):
         func = R.TF1('f', 'gaus', -lims, lims)
         h.Fit('f', 'R')
         yPoints.append(func.GetParameter(2))
+        yError.append(func.GetParError(2))
 
-    g = R.TGraph(len(xPoints), np.array(xPoints), np.array(yPoints))
+    g = R.TGraphErrors(len(xPoints), np.array(xPoints), np.array(yPoints), np.array(xError), np.array(yError))
     p = Plotter.Plot(g, '', '', 'pe')
-    p.setTitles(X='gen L_{xy} [cm]', Y='Fitted #sigma L_{xy} Res.')
+    p.setTitles(X='gen L_{xy} [cm]', Y='Fitted #sigma L_{xy} Res. [cm]')
 
     canvas = Plotter.Canvas(lumi=fs)
     canvas.addMainPlot(p)
-    canvas.cleanup('pdfs/ResVSLxy.pdf')
+    if recoType == 'PAT':
+        canvas.firstPlot.SetMaximum(0.018)
+        canvas.firstPlot.SetMinimum(0.002)
+    canvas.cleanup('pdfs/ResVSLxy_{}.pdf'.format(recoType))
 makeLxyResVSLxyPlot('PAT')
