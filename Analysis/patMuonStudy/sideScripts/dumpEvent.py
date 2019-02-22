@@ -3,6 +3,7 @@ import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria, replaceDSADimuons
+import DisplacedDimuons.Analysis.Selector as Selector
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -40,18 +41,19 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons = cutter.cut(E, self.CUTS, Dimuons, DSAmuons)
+    selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
     if selectedDimuons is None: return
 
     selectedIDs = [dim.ID for dim in selectedDimuons]
     replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
-    replacedIDs = [dim.ID for dim,isReplaced in zip(Dimuons,wasReplaced) if isReplaced]
+    replacedIDs = {dim.ID:rdim for dim, rdim, isReplaced in zip(Dimuons, replacedDimuons, wasReplaced) if isReplaced}
 
     # this script is for dumping Drell Yan events with Lxy Sig > 100
     # the output of this is used in badChi2.py
 
-    for dim, rdim, wasrep in zip(Dimuons, replacedDimuons, wasReplaced):
-        if dim.ID in selectedIDs and wasrep:
+    for dim in selectedDimuons:
+        if dim.ID in replacedIDs:
+            rdim = replacedIDs[dim.ID]
             if rdim.LxySig() > 100.:
                 print '{:d} {:7d} {:9d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:8.2f} ==> {:8.2f}'.format(
                     Event.run, Event.lumi, Event.event,

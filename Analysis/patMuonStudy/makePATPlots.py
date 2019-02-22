@@ -11,10 +11,8 @@ FILE = R.TFile.Open('roots/PATMuonStudyPlots_Trig_Combined_BS8_2Mu2J.root')
 fs = '2Mu2J'
 
 # plot of fraction of DSA dimuons that can be replaced
-def makePercentReplacedPlot(gen=False):
-    keylist = ['PAT-Lxy', 'DSA-Lxy']
-    if gen:
-        keylist = [i.replace('Lxy', 'genLxy') for i in keylist]
+def makePercentReplacedPlot():
+    keylist = ['PAT-genLxy', 'DSA-genLxy']
     HISTS = HG.getAddedSignalHistograms(FILE, fs, keylist)
     for key, h in HISTS.iteritems():
         pass
@@ -22,7 +20,7 @@ def makePercentReplacedPlot(gen=False):
     g = R.TGraphAsymmErrors(HISTS[keylist[0]], HISTS[keylist[1]], 'cp')
     p = Plotter.Plot(g, '', '', 'p')
 
-    p.setTitles(Y='% replaced selected DSA dimuons', X=('gen ' if gen else '')+'L_{xy} [cm]')
+    p.setTitles(Y='% replaced selected DSA dimuons', X='gen L_{xy} [cm]')
     #RT.addBinWidth(p)
 
     canvas = Plotter.Canvas(lumi=fs)
@@ -31,9 +29,8 @@ def makePercentReplacedPlot(gen=False):
     canvas.firstPlot.SetMinimum(0.)
     #canvas.firstPlot.SetMinimum(0.0001)
     canvas.firstPlot.SetMaximum(1.)
-    canvas.cleanup('pdfs/percentReplacedVS{}Lxy_{}.pdf'.format('gen' if gen else '', fs))
+    canvas.cleanup('pdfs/percentReplacedVSgenLxy_{}.pdf'.format(fs))
 makePercentReplacedPlot()
-makePercentReplacedPlot(True)
 
 # Lxy resolution vs Lxy
 def makeLxyResVSLxyPlot(recoType):
@@ -68,3 +65,62 @@ def makeLxyResVSLxyPlot(recoType):
         canvas.firstPlot.SetMinimum(0.002)
     canvas.cleanup('pdfs/ResVSLxy_{}.pdf'.format(recoType))
 makeLxyResVSLxyPlot('PAT')
+
+# MC plots of LxySig
+def makeMCPlots():
+    f = R.TFile.Open('roots/PATMuonStudyPlots_Combined_BS8_MC.root')
+    #f = R.TFile.Open('roots/PATMuonStudyPlots_Combined_BS8_MC_OldPATMatch.root')
+    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
+    PC = HG.PLOTCONFIG
+    for hkey in ('PAT-LxySig', 'DSA-LxySig', 'PAT-vtxChi2', 'DSA-vtxChi2'):
+        HISTS = {}
+        HISTS['stack'] = R.THStack('hStack', '')
+        PConfig = {'stack':('', '', 'hist')}
+        for ref in BGORDER:
+           HISTS[ref] = HG.getHistogram(f, ref, hkey).Clone()
+           #RT.addFlows(HISTS[ref])
+           HISTS[ref].Scale(PC[ref]['WEIGHT'])
+           HISTS[ref].Rebin(10)
+           HISTS['stack'].Add(HISTS[ref])
+           PConfig[ref] = (PC[ref]['LATEX'], 'f', 'hist')
+
+        PLOTS = {}
+        for key in BGORDER + ('stack',):
+            PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
+        canvas = Plotter.Canvas(logy=True)
+        for key in BGORDER:
+            PLOTS[key].setColor(PC[key]['COLOR'], which='LF')
+        canvas.addMainPlot(PLOTS['stack'])
+        # this has to be here because it has to be drawn first
+        if 'LxySig' in hkey:
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 1000.)
+            pass
+        if 'vtxChi2' in hkey:
+            #canvas.firstPlot.GetXaxis().SetRangeUser(0., 200.)
+            pass
+        canvas.firstPlot.setTitles(X=PLOTS[BGORDER[0]].GetXaxis().GetTitle(), Y='Normalized Counts')
+        canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+        for ref in reversed(BGORDER):
+            canvas.addLegendEntry(PLOTS[ref])
+        canvas.legend.resizeHeight()
+        RT.addBinWidth(canvas.firstPlot)
+
+        HISTS['sum'] = HISTS['stack'].GetStack().Last()
+        nBins = HISTS['sum'].GetNbinsX()
+
+        if 'LxySig' in hkey:
+            val = 100.
+        if 'vtxChi2' in hkey:
+            val = 50.
+        print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
+        print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
+        print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
+
+        if hkey == 'PAT-LxySig':
+            h = HG.getHistogram(f, 'DY50toInf', hkey).Clone()
+            print '{} DY50toInf    : {}'.format(hkey, h.Integral(h.FindBin(100.), h.GetNbinsX()+1))
+
+        canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
+        canvas.firstPlot.SetMinimum(1.)
+        canvas.cleanup('pdfs/MC_'+hkey+'.pdf')
+makeMCPlots()
