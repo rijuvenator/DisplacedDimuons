@@ -8,7 +8,7 @@ import DisplacedDimuons.Analysis.Selector as Selector
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    self.COUNTS = {'selected':0, 'replaced':0, 'tracker1':0, 'tracker2':0, 'global1':0, 'global2':0}
+    self.COUNTS = {'selected':0, 'replaced':0, 'results':{None:0, True:0, False:0}}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -36,82 +36,32 @@ def analyze(self, E, PARAMS=None):
 
     selectedIDs = [dim.ID for dim in selectedDimuons]
     replacedDimuons, wasReplaced, exitcodes = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
-    replacedIDs = {dim.ID:rdim for dim, rdim, isReplaced in zip(Dimuons, replacedDimuons, wasReplaced) if isReplaced}
-
-    # modify below this line
-    # exit codes works right now, so change things so that it counts how many trues or whatever
-
-    for KEY in CONFIG:
-        QKEY = KEY[4:]
-        if 'DSA' in KEY:
-            for dim in selectedDimuons:
-                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
-        else:
-            for dim in selectedDimuons:
-                if dim.ID in replacedIDs:
-                    rdim = replacedIDs[dim.ID]
-                    if KEY != 'PAT-Lxy':
-                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
-                    else:
-                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA']( dim), eventWeight)
-                    for attr in ('Tracker', 'Global'):
-                        for idx in ('1', '2'):
-                            if getattr(PATmuons[getattr(rdim, 'idx'+idx)-1000], 'is'+attr):
-                                self.COUNTS[attr.lower()+idx] += 1
+    replacedIDs = {dim.ID:{'rdim':rdim, 'exitcode':exitcode} for dim, rdim, isReplaced, exitcode in zip(Dimuons, replacedDimuons, wasReplaced, exitcodes) if isReplaced}
 
     self.COUNTS['selected'] += len(selectedIDs)
     self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])
 
-    if self.SP is not None:
-        if '4Mu' in self.NAME:
-            mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
-            genMuons = (mu11, mu12, mu21, mu22)
-            genMuonPairs = ((mu11, mu12), (mu21, mu22))
-        elif '2Mu2J' in self.NAME:
-            mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
-            genMuons = (mu1, mu2)
-            genMuonPairs = ((mu1, mu2),)
+    for dim in selectedDimuons:
+        if dim.ID in replacedIDs:
+            for result in replacedIDs[dim.ID]['exitcode']:
+                self.COUNTS['results'][result] += 1
 
-        # do the signal matching
-        if len(genMuonPairs) == 1:
-            genMuonPair = genMuonPairs[0]
-            dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
-            if len(dimuonMatches) > 0:
-                realMatches = {0:dimuonMatches[0]}
-            else:
-                realMatches = {}
-        else:
-            realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
-
-        for pairIndex in realMatches:
-            genMuon = genMuonPairs[pairIndex][0]
-            dim = realMatches[pairIndex]['dim']
-            self.HISTS['DSA-genLxy'].Fill(genMuon.Lxy(), eventWeight)
-            if dim.ID in replacedIDs:
-                rdim = replacedIDs[dim.ID]
-                self.HISTS['PAT-genLxy'].Fill(genMuon.Lxy(), eventWeight)
-                #print '{:d} {:7d} {:9d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:8.2f} ==> {:8.2f} ::: {:7.3f} ==> {:7.3f}'.format(
-                #    Event.run, Event.lumi, Event.event,
-                #    dim.ID, rdim.ID,
-                #    dim.LxySig(), rdim.LxySig(),
-                #    dim.Lxy(), rdim.Lxy(),
-                #    dim.normChi2, rdim.normChi2,
-                #    genMuon.Lxy()-dim.Lxy(), genMuon.Lxy()-rdim.Lxy(),
-                #    )
-                if rdim.normChi2 < 50.:
-                    self.HISTS['DSA-LxyRes'].Fill( dim.Lxy()-genMuon.Lxy(), eventWeight)
-                    self.HISTS['PAT-LxyRes'].Fill(rdim.Lxy()-genMuon.Lxy(), eventWeight)
-
-                    self.HISTS['DSA-LxyResVSgenLxy'].Fill(genMuon.Lxy(),  dim.Lxy()-genMuon.Lxy(), eventWeight)
-                    self.HISTS['PAT-LxyResVSgenLxy'].Fill(genMuon.Lxy(), rdim.Lxy()-genMuon.Lxy(), eventWeight)
-
+                #if result: # False and None both fail this
+                #    rdim = replacedIDs[dim.ID]['rdim']
+                #    print '{:d} {:7d} {:9d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:8.2f} ==> {:8.2f}'.format(
+                #        Event.run, Event.lumi, Event.event,
+                #        dim.ID, rdim.ID,
+                #        dim.LxySig(), rdim.LxySig(),
+                #        dim.Lxy(), rdim.Lxy(),
+                #        dim.normChi2, rdim.normChi2,
+                #        )
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
     if self.SP is not None:
-        print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:7.4f} {:5d} {:5d} {:5d} {:5d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100., self.COUNTS['tracker1'], self.COUNTS['tracker2'], self.COUNTS['global1'], self.COUNTS['global2'])
+        print '{:5s} {:4d} {:3d} {:4d} {:5d} {:5d} {:5d} {:5d} {:5d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['results'][None], self.COUNTS['results'][True], self.COUNTS['results'][False])
     else:
-        print '{:s} {:5d} {:5d} {:7.4f} {:5d} {:5d} {:5d} {:5d}'.format(self.NAME, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['replaced']/float(self.COUNTS['selected'])*100., self.COUNTS['tracker1'], self.COUNTS['tracker2'], self.COUNTS['global1'], self.COUNTS['global2'])
+        print '{:s} {:5d} {:5d} {:5d} {:5d} {:5d}'.format(self.NAME, self.COUNTS['selected'], self.COUNTS['replaced'], self.COUNTS['results'][None], self.COUNTS['results'][True], self.COUNTS['results'][False]) 
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
@@ -130,7 +80,3 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT'),
     )
-
-    # write plots
-    #analyzer.writeHistograms('roots/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/PATMuonStudyPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
