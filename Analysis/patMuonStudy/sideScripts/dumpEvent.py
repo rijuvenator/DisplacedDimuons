@@ -23,7 +23,7 @@ def analyze(self, E, PARAMS=None):
     Dimuons3 = E.getPrimitives('DIMUON')
     Event    = E.getPrimitives('EVENT')
 
-    Dimuons = [dim for dim in Dimuons3 if sum(dim.ID) < 999]
+    Dimuons = [dim for dim in Dimuons3 if dim.composition == 'DSA']
 
     if self.SP is not None:
         if '4Mu' in self.NAME:

@@ -53,7 +53,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    Dimuons = [dim for dim in Dimuons3 if sum(dim.ID) < 999]
+    Dimuons = [dim for dim in Dimuons3 if dim.composition == 'DSA']
 
     selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
     if selectedDimuons is None: return

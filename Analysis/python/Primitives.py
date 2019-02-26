@@ -862,6 +862,13 @@ class Dimuon(Particle):
 
         self.ID   = (self.mu1.idx, self.mu2.idx)
 
+        if         sum(self.ID) < 999 :
+            self.composition = 'DSA'
+        elif       sum(self.ID) > 2000:
+            self.composition = 'PAT'
+        elif 999 < sum(self.ID) < 2000:
+            self.composition = 'HYBRID'
+
     def __getattr__(self, name):
         if name in ('Lxy', 'LxySig', 'LxyErr'):
             return getattr(self.Lxy_, name)

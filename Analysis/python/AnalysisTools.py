@@ -272,9 +272,12 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
     # final return
     return dimuonMatches, muonMatches, exitcode
 
-def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
-    HLTMuonMatches = {}
+def matchedTrigger(HLTMuons, uncutDSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
 
+    # this selection should be here, instead of floating around
+    DSAMuons = [mu for mu in uncutDSAMuons if mu.pt > 10. and abs(mu.eta) < 2.]
+
+    HLTMuonMatches = {}
     # loop over unique pairs of HLT muons
     nHLT = len(HLTMuons)
     for i in xrange(nHLT):
@@ -484,9 +487,9 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
         raise ValueError("[ANALYSISTOOLS ERROR]: replaceDSADimuons match should be 'SEG' or 'PROX'")
 
     # splits Dimuons3 into 3 pieces
-    DSADimuons = [dim for dim in Dimuons3 if       sum(dim.ID) < 999 ]
-    PATDimuons = [dim for dim in Dimuons3 if       sum(dim.ID) > 2000]
-    HYBDimuons = [dim for dim in Dimuons3 if 999 < sum(dim.ID) < 2000]
+    DSADimuons = [dim for dim in Dimuons3 if dim.composition == 'DSA'   ]
+    PATDimuons = [dim for dim in Dimuons3 if dim.composition == 'PAT'   ]
+    HYBDimuons = [dim for dim in Dimuons3 if dim.composition == 'HYBRID']
 
     # defines a SegMatch, returns a pair of indices (called candidate)
     def lookForSegMatch(mu1, mu2):
@@ -602,6 +605,62 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
                 ReplaceAdd(replacedDimuons, wasReplaced, HYBDimuons, 'HYBRID', dim, candidate)
 
     return replacedDimuons, wasReplaced
+
+# this function does the above, but earlier, on a muon basis, in prep for doing other selections
+# for time's sake I will default a few of the options: mode is PAT, match is SEG, loose is False
+def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
+
+    # defines a SegMatch, returns a pair of indices (called candidate)
+    def lookForSegMatch(DSAmuon):
+        candidate = None
+        if DSAmuon.idx_SegMatch is None:
+            pass
+        elif len(DSAmuon.idx_SegMatch) > 1:
+            if DSAmuon.idx_ProxMatch in DSAmuon.idx_SegMatch:
+                candidate = DSAmuon.idx_ProxMatch
+            else:
+                # take first entry
+                # which is the smallest index = largest pT
+                candidate = DSAmuon.idx_SegMatch[0]
+        else:
+            candidate = DSAmuon.idx_SegMatch[0]
+        return candidate
+
+    # filter DSA muons based on whether there was a PAT match
+    # after this, there are two lists: PAT muons which replaced a DSA muon, and
+    # DSA muons which matched no PAT muon
+    selectedPATmuons = []
+    filteredDSAmuons = []
+    DSAIndices = []
+    PATIndices = []
+    for mu in selectedDSAmuons:
+        candidate = lookForSegMatch(mu)
+        if candidate is not None:
+            if candidate in alreadyAdded: continue
+            selectedPATmuons.append(PATmuons[candidate]) # be careful. PATmuons is the full list, here.
+            PATIndices.append(candidate)
+        else:
+            filteredDSAmuons.append(mu)
+            DSAIndices.append(mu.idx)
+
+    # possible indices for dimuons. Consider only DSA-DSA and PAT-PAT dimuons; skip HYBRID
+    # call the new list "filteredDimuons"
+    selectedIndices = {
+        'DSA':DSAIndices,
+        'PAT':PATIndices,
+    }
+
+    filteredDimuons = []
+    for dim in selectedDimuons:
+        if dim.composition == 'HYBRID': continue
+        if dim.idx1 in selectedIndices[dim.composition] and dim.idx2 in selectedIndices[dim.composition]:
+            filteredDimuons.append(dim)
+
+    # final return
+    # suitable for the following call:
+    # selectedDSAmuons, selectedPATmuons, selectedDimuons = replaceDSAmuons(selectedDSAmuons, PATmuons, selectedDimuons)
+    # where selectedDimuons is a Dimuons3 type list
+    return filteredDSAmuons, selectedPATmuons, filteredDimuons
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
