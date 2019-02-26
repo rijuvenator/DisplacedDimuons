@@ -169,7 +169,8 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
                 return failedReturnList
 
     # initialize selected objects
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Dimuons3, DSAmuons, PATmuons
+    selectedDimuons = Dimuons3
+    selectedMuons = {'DSA':DSAmuons, 'PAT':PATmuons}
 
     # DSA muon quality cuts
     if NSTATIONS or NMUONHITS or FPTERR:
@@ -181,38 +182,36 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
         # no selection
         if len(cutList) == 0:
-            selectedDSAmuons = DSAmuons
-            selectedDimuons  = Dimuons3
+            selectedMuons['DSA'] = DSAmuons
+            selectedDimuons      = Dimuons3
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         else:
-            selectedDSAmuons = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
-            selectedOIndices = [mu.idx for mu in selectedDSAmuons]
-            selectedDimuons  = [dim for dim in Dimuons3 if (dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices) or dim.composition != 'DSA']
+            selectedMuons['DSA'] = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedOIndices     = [mu.idx for mu in selectedMuons['DSA']]
+            selectedDimuons      = [dim for dim in Dimuons3 if set(dim.ID).issubset(selectedOIndices) or dim.composition != 'DSA']
 
     # apply HLT RECO matching
     # for HLT RECO matching only, apply a pT cut and eta cut; see matchedTrigger
     # a pT cut will be applied later
     if HLT:
         HLTPaths, HLTMuons, L1TMuons = E.getPrimitives('TRIGGER')
-        HLTMuonMatches = AnalysisTools.matchedTrigger(HLTMuons, selectedDSAmuons)
+        HLTMuonMatches = AnalysisTools.matchedTrigger(HLTMuons, selectedMuons['DSA'])
         if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return failedReturnList
 
     # PAT muon replacement
-    # from now on, the list of muons will be called selectedMuons
-    # anything that is PAT or DSA specific should be handled specially
-    selectedMuons = selectedDSAmuons
     if REP:
-        selectedDSAmuons, selectedPATmuons, selectedDimuons = AnalysisTools.replaceDSAmuons(selectedDSAmuons, PATmuons, selectedDimuons)
-        selectedMuons = selectedDSAmuons + selectedPATmuons
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], PATmuons, selectedDimuons)
 
     # pT cut
     # there is only one cut of this type right now, but if additional cuts are applied later,
     # do a CutList as above and add it to Selections
     # for now, just apply the pT cut directly
     if PT:
-        selectedMuons    = [mu for mu in selectedMuons if Selections.CUTS['r_pT'].apply(mu)]
-        selectedOIndices = [mu.idx for mu in selectedMuons]
-        selectedDimuons  = [dim for dim in selectedDimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['r_pT'].apply(mu)]
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+        selectedDimuons = [dim for dim in selectedDimuons if set(dim.ID).issubset(selectedIndices['DSA']) or set(dim.ID).issubset(selectedIndices['PAT'])]
 
     # apply pairing criteria and transform selectedDimuons
     # pairing criteria was developed with DSA muons and DSA-DSA dimuons in mind
@@ -221,7 +220,7 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     if PC:
         objects = {'DSA':{}, 'PAT':{}}
         for tag in objects:
-            objects[tag]['inputMuons'] = [mu for mu in selectedMuons if mu.tag == tag]
+            objects[tag]['inputMuons'] = selectedMuons[tag]
             objects[tag]['inputDims' ] = [dim for dim in selectedDimuons if dim.composition == tag]
             objects[tag]['outputDims'] = AnalysisTools.applyPairingCriteria(objects[tag]['inputMuons'], objects[tag]['inputDims' ])
         if len(objects['DSA']['outputDims']) + len(objects['PAT']['outputDims']) <= 2:
@@ -250,12 +249,12 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
     # also filter selectedMuons to only be of those indices that are in the final dimuons
     if True:
-        selectedOIndices = []
+        selectedIndices = {'DSA':set(), 'PAT':set()}
         for dim in selectedDimuons:
-            selectedOIndices.append(dim.idx1)
-            selectedOIndices.append(dim.idx2)
-        selectedOIndices = list(set(selectedOIndices))
-        selectedMuons = [mu for mu in selectedMuons if mu.idx in selectedOIndices]
+            selectedIndices[dim.composition].add(dim.idx1)
+            selectedIndices[dim.composition].add(dim.idx2)
+        for tag in selectedMuons:
+            selectedMuons[tag] = [mu for mu in selectedMuons[tag] if mu.idx in selectedIndices[tag]]
 
     # final return
-    return selectedDimuons, selectedMuons
+    return selectedDimuons, selectedMuons['DSA'], selectedMuons['PAT']

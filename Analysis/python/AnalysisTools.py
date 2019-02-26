@@ -558,20 +558,21 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
     # repType specifies PAT or HYBRID (maps to "all" or "any"), defDim is the original DSA dimuon which won't be replaced
     def ReplaceAdd(repList, boolList, sourceList, repType, defDim, candidate):
         if sourceList is None:
-            repList.append(dim)
+            repList.append(defDim)
             boolList.append(False)
         else:
             if repType == 'PAT':
                 comboFunc = all
             elif repType == 'HYBRID':
                 comboFunc = any
-            for muon in sourceList:
-                if comboFunc([IntWrapper(candidate[0])+1000 in muon.ID, IntWrapper(candidate[1])+1000 in muon.ID]):
-                    repList.append(muon)
+            for dimuon in sourceList:
+                # WARNING: deal with this for HYBRID
+                if comboFunc([IntWrapper(candidate[0]) in dimuon.ID, IntWrapper(candidate[1]) in dimuon.ID]):
+                    repList.append(dimuon)
                     boolList.append(True)
                     break
             else:
-                repList.append(dim)
+                repList.append(defDim)
                 boolList.append(False)
 
 
@@ -636,7 +637,7 @@ def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
     for mu in selectedDSAmuons:
         candidate = lookForSegMatch(mu)
         if candidate is not None:
-            if candidate in alreadyAdded: continue
+            if candidate in PATIndices: continue
             selectedPATmuons.append(PATmuons[candidate]) # be careful. PATmuons is the full list, here.
             PATIndices.append(candidate)
         else:

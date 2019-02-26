@@ -75,7 +75,7 @@ def analyze(self, E, PARAMS=None):
         rdim = replacedIDs[dim.ID]
         for attr in ('Tracker', 'Global'):
             for idx in ('1', '2'):
-                if getattr(PATmuons[getattr(rdim, 'idx'+idx)-1000], 'is'+attr):
+                if getattr(PATmuons[getattr(rdim, 'idx'+idx)], 'is'+attr):
                     self.COUNTS[attr.lower()+idx] += 1
 
         # fill histograms -- note the rdim
