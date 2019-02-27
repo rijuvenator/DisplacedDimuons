@@ -40,7 +40,7 @@ def makeLxyResVSLxyPlot(recoType):
     canvas.addMainPlot(p)
     if recoType == 'PAT':
         canvas.firstPlot.SetMaximum(0.018)
-        canvas.firstPlot.SetMinimum(0.002)
+        canvas.firstPlot.SetMinimum(0.000)
     canvas.cleanup('pdfs/ZEP_ResVSLxy_BS9_{}.pdf'.format(recoType))
 makeLxyResVSLxyPlot('PAT')
 

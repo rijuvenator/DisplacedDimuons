@@ -15,7 +15,7 @@ QUANTITIES = {
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    self.COUNTS = {}
+    self.COUNTS = {'events':0, 'debug_PC':0}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -25,19 +25,24 @@ def declareHistograms(self, PARAMS=None):
         for RTYPE in ('DSA', 'PAT'):
             self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *QUANTITIES[QKEY]['AXES'])
 
-    self.HistInit('PAT-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., .1 )
-    self.HistInit('DSA-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 50.)
+    if True:
+        self.HistInit('PAT-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., .1 )
+        self.HistInit('DSA-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 50.)
 
-    self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
-    self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
+        self.HistInit('PAT-LxyResVSPAT-LxyErr', ';reco PAT #sigma_{L_{xy}} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., .1 , 1000, -.05 , .05)
+        self.HistInit('DSA-LxyResVSDSA-LxyErr', ';reco DSA #sigma_{L_{xy}} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., 50., 1000, -50. , 50.)
 
-    self.HistInit('PAT-LxyPull', ';(reco PAT L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
-    self.HistInit('DSA-LxyPull', ';(reco DSA L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
+    if self.SP is not None:
+        self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
+        self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
 
-    self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+        self.HistInit('PAT-LxyPull', ';(reco PAT L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
+        self.HistInit('DSA-LxyPull', ';(reco DSA L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
 
-    self.HistInit('PAT-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -.05 , .05)
-    self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
+        self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+
+        self.HistInit('PAT-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -.05 , .05)
+        self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -54,8 +59,11 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons, debug_PC = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
+
+    self.COUNTS['events'] += 1
+    self.COUNTS['debug_PC'] += debug_PC
 
     for dim in selectedDimuons:
         RTYPE = dim.composition
@@ -89,16 +97,27 @@ def analyze(self, E, PARAMS=None):
             dim = realMatches[pairIndex]['dim']
             self.HISTS['GEN-Lxy'].Fill(genMuon.Lxy(), eventWeight)
             RTYPE = dim.composition
-            KEY = RTYPE+'-'+'LxyRes'
+
+            KEY = RTYPE + '-' + 'LxyRes'
             self.HISTS[KEY].Fill(dim.Lxy()-genMuon.Lxy(), eventWeight)
-            self.HISTS[KEY+'VSGEN-Lxy'].Fill(genMuon.Lxy(), dim.Lxy()-genMuon.Lxy(), eventWeight)
-            KEY = KEY.replace('Res', 'Pull')
+
+            KEY = RTYPE + '-' + 'LxyRes' + 'VSGEN-Lxy'
+            self.HISTS[KEY].Fill(genMuon.Lxy(), dim.Lxy()-genMuon.Lxy(), eventWeight)
+
+            KEY = RTYPE + '-' + 'LxyPull'
             self.HISTS[KEY].Fill((dim.Lxy()-genMuon.Lxy())/dim.LxyErr(), eventWeight)
+
+            KEY = RTYPE + '-' + 'LxyRes' + 'VS' + RTYPE + '-' + 'LxyErr'
+            self.HISTS[KEY].Fill(dim.LxyErr(), dim.Lxy()-genMuon.Lxy(), eventWeight)
 
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    pass
+    if self.SP is not None:
+        print '{:5s} {:4d} {:3d} {:4d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau),
+    else:
+        print '{:s}'.format(self.NAME),
+    print '{:5d} {:5d}'.format(self.COUNTS['events'], self.COUNTS['debug_PC'])
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

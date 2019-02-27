@@ -115,7 +115,7 @@ def SelectObjects(E, CUTS, Dimuons, DSAmuons):
 def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
     # failed return list
-    failedReturnList = None, None, None
+    failedReturnList = None, None, None, None
 
     # decide what set of cuts to apply based on CUTS cut string
     PROMPT    = '_Prompt'   in CUTS
@@ -201,6 +201,9 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     # PAT muon replacement
     if REP:
         selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], PATmuons, selectedDimuons)
+    else:
+        selectedMuons['PAT'] = []
+        selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
 
     # pT cut
     # there is only one cut of this type right now, but if additional cuts are applied later,
@@ -257,4 +260,4 @@ def SelectObjectsReordered(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             selectedMuons[tag] = [mu for mu in selectedMuons[tag] if mu.idx in selectedIndices[tag]]
 
     # final return
-    return selectedDimuons, selectedMuons['DSA'], selectedMuons['PAT']
+    return selectedDimuons, selectedMuons['DSA'], selectedMuons['PAT'], debug_PC

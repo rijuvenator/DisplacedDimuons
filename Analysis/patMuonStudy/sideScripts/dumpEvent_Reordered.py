@@ -23,8 +23,6 @@ def analyze(self, E, PARAMS=None):
     Dimuons3 = E.getPrimitives('DIMUON')
     Event    = E.getPrimitives('EVENT')
 
-    Dimuons = [dim for dim in Dimuons3 if dim.composition == 'DSA']
-
     if self.SP is not None:
         if '4Mu' in self.NAME:
             mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
@@ -41,27 +39,21 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons, debug_PC = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
-
-    selectedIDs = [dim.ID for dim in selectedDimuons]
-    replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
-    replacedIDs = {dim.ID:rdim for dim, rdim, isReplaced in zip(Dimuons, replacedDimuons, wasReplaced) if isReplaced}
 
     # this script is for dumping Drell Yan events with Lxy Sig > 100
     # the output of this is used in badChi2.py
 
     for dim in selectedDimuons:
-        if dim.ID in replacedIDs:
-            rdim = replacedIDs[dim.ID]
-            if rdim.LxySig() > 100.:
-                print '{:d} {:7d} {:10d} ::: {} ==> {} ::: {:9.4f} ==> {:9.4f} ::: {:8.4f} ==> {:8.4f} ::: {:10.2f} ==> {:10.2f}'.format(
-                    Event.run, Event.lumi, Event.event,
-                    dim.ID, rdim.ID,
-                    dim.LxySig(), rdim.LxySig(),
-                    dim.Lxy(), rdim.Lxy(),
-                    dim.normChi2, rdim.normChi2,
-                    )
+        if dim.composition == 'PAT' and dim.LxySig() > 100.:
+            print '{:d} {:7d} {:10d} ::: {} ::: {:9.4f} ::: {:8.4f} ::: {:10.2f}'.format(
+                Event.run, Event.lumi, Event.event,
+                dim.ID,
+                dim.LxySig(),
+                dim.Lxy(),
+                dim.normChi2,
+                )
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
