@@ -406,9 +406,22 @@ def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, thres
 # apply the pairing criteria recipe developed in the pairing criteria study
 # returns a list of 0, 1, or 2 dimuons, based on how many muons there are and the result of applying the recipe
 def applyPairingCriteria(muons, dimuons, doAMD=False):
+    if muons is None or dimuons is None:
+        return []
+
     # get the list of relevant dimuons
-    selectedOIndices = [mu.idx for mu in muons]
-    selectedDimuons  = [dim for dim in dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+    selectedMuons, selectedIndices = {}, {}
+    for tag in ('DSA', 'PAT'):
+        selectedMuons  [tag] = [mu for mu in muons if mu.tag == tag]
+        selectedIndices[tag] = [mu.idx for mu in selectedMuons[tag]]
+
+    def dimuonFilter(dim, selectedIndices):
+        if dim.composition != 'HYBRID':
+            return set(dim.ID).issubset(selectedIndices[dim.composition])
+        else:
+            return dim.idx1 in selectedIndices['DSA'] and dim.idx2 in selectedIndices['PAT']
+
+    selectedDimuons = [dim for dim in dimuons if dimuonFilter(dim, selectedIndices)]
 
     # if there are any dimuons at all, there had to be >= 2 muons
     # if there's 2, just return the one dimuon that was made
@@ -417,21 +430,29 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     # with optional doAMD mode, return the lowest pair by mass difference instead if both dimuons have Lxy < 30 cm
     # if there were no pairings with 4 muons, treat it like a 3 muon case
     if len(selectedDimuons) > 0:
-        if   len(muons) == 2:
+        combinedMuons = selectedMuons['DSA'] + selectedMuons['PAT']
+        nMuons = len(combinedMuons)
+        if   nMuons == 2:
             return selectedDimuons[0:1]
-        elif len(muons) == 3:
+        elif nMuons == 3:
             return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
-        elif len(muons) >= 4:
-            highestPTMuons = sorted(muons, key=lambda mu: mu.pt, reverse=True)[:4]
-            highestIndices = [mu.idx for mu in highestPTMuons]
-            HPDs = [d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
+        elif nMuons >= 4:
+            highestPTMuons = sorted(combinedMuons, key=lambda mu: mu.pt, reverse=True)[:4]
+            highestIndices = {}
+            for tag in ('DSA', 'PAT'):
+                highestIndices[tag] = [mu.idx for mu in highestPTMuons if mu.tag == tag]
+            HPDs = [d for d in selectedDimuons if dimuonFilter(d, highestIndices)]
 
             # find all unique non-overlapping pairs of dimuons
             pairings = []
             for dim1 in HPDs:
                 for dim2 in HPDs:
-                    if dim1.ID == dim2.ID: continue
-                    muonIDs = set(dim1.ID+dim2.ID)
+                    if dim1.ID == dim2.ID and dim1.composition == dim2.composition: continue
+                    muonIDs = set()
+                    for d in (dim1, dim2):
+                        for idx in '1', '2':
+                            mu = getattr(d, 'mu'+idx)
+                            muonIDs.add(('DSA' if 'DSA' in mu.tag else 'PAT', mu.idx))
                     if len(muonIDs) == 4:
                         pairings.append((dim1, dim2))
 
@@ -447,7 +468,7 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
                 for fkey in funcs:
                     sortedPairings[fkey] = sorted(pairings, key=funcs[fkey])
                     for d in sortedPairings[fkey][0]:
-                        candidateBestDimuons[fkey][d.ID] = d
+                        candidateBestDimuons[fkey][(d.composition, d.ID)] = d
 
                 # try to use AMD for low Lxy
                 if doAMD:
@@ -609,7 +630,7 @@ def replaceDSADimuons(Dimuons3, DSAmuons, mode=None, match='SEG', loose=False):
 
 # this function does the above, but earlier, on a muon basis, in prep for doing other selections
 # for time's sake I will default a few of the options: mode is PAT, match is SEG, loose is False
-def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
+def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons, keepHybrids=False):
 
     # defines a SegMatch, returns a pair of indices (called candidate)
     def lookForSegMatch(DSAmuon):
@@ -653,8 +674,16 @@ def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
 
     filteredDimuons = []
     for dim in selectedDimuons:
-        if dim.composition == 'HYBRID': continue
-        if dim.idx1 in selectedIndices[dim.composition] and dim.idx2 in selectedIndices[dim.composition]:
+        append = False
+        if dim.composition != 'HYBRID':
+            if set(dim.ID).issubset(selectedIndices[dim.composition]):
+                append = True
+        else:
+            if not keepHybrids: continue
+            if dim.idx1 in DSAIndices and dim.idx2 in PATIndices:
+                append = True
+
+        if append:
             filteredDimuons.append(dim)
 
     # final return

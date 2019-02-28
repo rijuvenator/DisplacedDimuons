@@ -1,13 +1,18 @@
 import ROOT as R
 import numpy as np
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import sys
+
+fname = 'text/DY50toInf_eventsWithLxySigAbove100.txt'
+if len(sys.argv) > 1:
+    fname = sys.argv[1]
 
 # this script takes DY events with Lxy Sig > 100 and plots the crappy chi^2
 # uses event lines from dumpEvent.py
 
 h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 200, np.logspace(-3., 8., 201))
 
-with open('text/DY50toInf_eventsWithLxySigAbove100.txt') as f:
+with open(fname) as f:
     for line in f:
         cols = line.strip('\n').split()
         chi2 = float(cols[-1])
