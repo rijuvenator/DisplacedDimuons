@@ -61,7 +61,7 @@ def makeLxyResVSLxyPlot(recoType):
     canvas = Plotter.Canvas(lumi=fs)
     canvas.addMainPlot(p)
     if recoType == 'PAT':
-        canvas.firstPlot.SetMaximum(0.018)
+        canvas.firstPlot.SetMaximum(0.020)
         canvas.firstPlot.SetMinimum(0.000)
     canvas.cleanup('pdfs/ResVSLxy_{}.pdf'.format(recoType))
 makeLxyResVSLxyPlot('PAT')

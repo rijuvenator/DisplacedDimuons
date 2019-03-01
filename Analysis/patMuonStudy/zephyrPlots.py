@@ -22,27 +22,35 @@ def declareHistograms(self, PARAMS=None):
     for QKEY in QUANTITIES:
         if QKEY == 'LxyErr': continue
         XTIT = QUANTITIES[QKEY]['PRETTY']
-        for RTYPE in ('DSA', 'PAT'):
+        for RTYPE in ('DSA', 'PAT', 'HYB'):
             self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *QUANTITIES[QKEY]['AXES'])
 
     if True:
         self.HistInit('PAT-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., .1 )
         self.HistInit('DSA-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 50.)
+        self.HistInit('HYB-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 25.)
 
         self.HistInit('PAT-LxyResVSPAT-LxyErr', ';reco PAT #sigma_{L_{xy}} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., .1 , 1000, -.05 , .05)
         self.HistInit('DSA-LxyResVSDSA-LxyErr', ';reco DSA #sigma_{L_{xy}} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., 50., 1000, -50. , 50.)
+        self.HistInit('HYB-LxyResVSHYB-LxyErr', ';reco HYB #sigma_{L_{xy}} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., 25., 1000, -25. , 25.)
 
     if self.SP is not None:
         self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
         self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
+        self.HistInit('HYB-LxyRes', ';reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -25. , 25.)
 
         self.HistInit('PAT-LxyPull', ';(reco PAT L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
         self.HistInit('DSA-LxyPull', ';(reco DSA L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
+        self.HistInit('HYB-LxyPull', ';(reco HYB L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
 
-        self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+        self.HistInit('GEN-Lxy'    , ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+        self.HistInit('GEN-Lxy-PAT', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+        self.HistInit('GEN-Lxy-DSA', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+        self.HistInit('GEN-Lxy-HYB', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
 
         self.HistInit('PAT-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -.05 , .05)
         self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
+        self.HistInit('HYB-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -25. , 25.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -59,14 +67,14 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons, debug_PC = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, keepHybrids=ARGS.HYBRIDS, option=ARGS.PCOPTION)
     if selectedDimuons is None: return
 
-    self.COUNTS['events'] += 1
-    self.COUNTS['debug_PC'] += debug_PC
+    #self.COUNTS['events'] += 1
+    #self.COUNTS['debug_PC'] += 0
 
     for dim in selectedDimuons:
-        RTYPE = dim.composition
+        RTYPE = dim.composition[:3]
         for QKEY in QUANTITIES:
             KEY = RTYPE+'-'+QKEY
             self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
@@ -96,7 +104,10 @@ def analyze(self, E, PARAMS=None):
             genMuon = genMuonPairs[pairIndex][0]
             dim = realMatches[pairIndex]['dim']
             self.HISTS['GEN-Lxy'].Fill(genMuon.Lxy(), eventWeight)
-            RTYPE = dim.composition
+
+            RTYPE = dim.composition[:3]
+            KEY = 'GEN-Lxy-'+RTYPE
+            self.HISTS[KEY].Fill(genMuon.Lxy(), eventWeight)
 
             KEY = RTYPE + '-' + 'LxyRes'
             self.HISTS[KEY].Fill(dim.Lxy()-genMuon.Lxy(), eventWeight)
@@ -113,14 +124,17 @@ def analyze(self, E, PARAMS=None):
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    if self.SP is not None:
-        print '{:5s} {:4d} {:3d} {:4d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau),
-    else:
-        print '{:s}'.format(self.NAME),
-    print '{:5d} {:5d}'.format(self.COUNTS['events'], self.COUNTS['debug_PC'])
+    pass
+    #if self.SP is not None:
+    #    print '{:5s} {:4d} {:3d} {:4d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau),
+    #else:
+    #    print '{:s}'.format(self.NAME),
+    #print '{:5d} {:5d}'.format(self.COUNTS['events'], self.COUNTS['debug_PC'])
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
+    Analyzer.PARSER.add_argument('--pcoption', dest='PCOPTION', type=int , default=3)
+    Analyzer.PARSER.add_argument('--hybrids' , dest='HYBRIDS' , action='store_true')
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
@@ -139,4 +153,4 @@ if __name__ == '__main__':
 
     # write plots
     #analyzer.writeHistograms('roots/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids' if ARGS.HYBRIDS else ''))

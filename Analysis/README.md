@@ -22,8 +22,8 @@ The `python/` directory contains the following libraries:
 
   * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT nor to simplify working with Python
   * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOnePlots.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
-    * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
-    * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
+    * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo2Mu2J` signal samples; `--name` modifies this, e.g. `DY100to200`
+    * `--signalpoint`: if `--name` is `HTo2XTo4Mu` or `HTo2XTo2Mu2J`, then use the signal point parameters for various purposes; defaults to `125 20 13`
     * `--splitting`: two numbers controlling splitting: the first is how many events per file, the second is what _job_ number this is (so that the _Analyzer_ knows which subset of the tree to run over)
     * `--test`: as in the _Tupler_, runs over 1000 events and creates `test.root` instead
     * `--maxevents`: if `--test` is set, run over this maximum number of events instead of 1000
@@ -93,6 +93,8 @@ Primitives.COLORON = False
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P** or **mu1, mu2, j1, j2, X, XP, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
     * The `addBinWidth` function takes in a plot and appends the bin width, with a "GeV" or "cm" as appropriate, to the *y*-axis. It has been added to all the plotters, so that it is now a standard part of all plots.
   * **Selections.py** is the central library for dealing with object and event selections. It defines _Cut_ objects, which are context-aware selections that take in objects and apply cuts; and _Selection_ objects, which are collections of _Cuts_ along with useful auxiliary functions. To apply the muon selection to a muon, one only needs to declare a _MuonSelection_ object, and all the booleans are automatically computed, along with functions to access any or all or none of them, and functions to increment counters in a systematic way. Any selections and cuts should be added here and imported to other functions.
+  * **Selector.py** is a library for actually performing the object and event selections. It uses the _Selections_ library, but requires the context of the interior of an `analyze()` function of an _Analyzer_. This isn't in the _Selections_ library because it actually does the full process of the analysis selection, and is more than just a few cuts -- it combines functions from _AnalysisTools_, as well. This code used to live in an _Analyzer_ -- it is the meat of it, after all -- but it is quite similar for many purposes, so into a library it goes.
+  * **SummaryPlotter.py** is a small library for making "summary plots". These are plots of a few numbers for entire signal points, e.g. the fitted &sigma; of the L<sub>xy</sub> distribution. Plotting them this way makes dependencies on the Higgs mass, the long-lived particle mass, and the lifetime more obvious, in a visual way.
 
 For **HistogramGetter** and **PlotterParser** see the **Plotters** section.
 

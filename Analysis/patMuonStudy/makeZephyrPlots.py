@@ -6,7 +6,11 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_2Mu2J.root')
+DRAW = False
+if DRAW:
+    R.gROOT.SetBatch(False)
+
+FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_Hybrids_2Mu2J.root')
 
 fs = '2Mu2J'
 
@@ -15,20 +19,31 @@ def makeLxyResVSLxyPlot(recoType):
     key = recoType + '-LxyResVSGEN-Lxy'
     HISTS = HG.getAddedSignalHistograms(FILE, fs, (key,))
 
-    upperEdge = 35
-    xPoints = map(lambda z: float(z)+0.5, range(upperEdge))
-    xError = [0.5] * len(xPoints)
+    config = {
+        'PAT' : (35 ,  1),
+        'HYB' : (70 ,  2),
+        'DSA' : (350, 10),
+    }
+
+    upperEdge = config[recoType][0]
+    step      = config[recoType][1]
+    xPoints   = map(lambda z: float(z)+float(step)/2., range(0, upperEdge, step))
+    xError    = [float(step)/2.] * len(xPoints)
 
     yPoints = []
     yError = []
     for ibin in xrange(1,upperEdge+1):
-        h = HISTS[key].ProjectionY('h'+str(ibin), ibin, ibin)
+        if (ibin+step/2)%step != 0: continue
+        binRange = (ibin-int(step/2.-1), ibin+int(step/2.))
+        h = HISTS[key].ProjectionY('h'+str(ibin), *binRange)
         #lims = .01
-        lims = 5. if recoType == 'DSA' else .05
+        #lims = 5. if recoType == 'DSA' else .05
+        lims = {'DSA':15., 'PAT':.05, 'HYB':5.}
+        lims = lims[recoType]
         if recoType == 'PAT' and ibin > 10:
             lims = lims/5.
         func = R.TF1('f', 'gaus', -lims, lims)
-        h.Fit('f', 'R')
+        h.Fit('f', 'Rq')
         yPoints.append(func.GetParameter(2))
         yError.append(func.GetParError(2))
 
@@ -38,15 +53,21 @@ def makeLxyResVSLxyPlot(recoType):
 
     canvas = Plotter.Canvas(lumi=fs)
     canvas.addMainPlot(p)
+    canvas.firstPlot.SetMinimum(0.)
     if recoType == 'PAT':
-        canvas.firstPlot.SetMaximum(0.018)
-        canvas.firstPlot.SetMinimum(0.000)
+        canvas.firstPlot.SetMaximum(0.02)
+    if recoType == 'HYB':
+        canvas.firstPlot.SetMaximum(5.)
+    if recoType == 'DSA':
+        canvas.firstPlot.SetMaximum(10.)
     canvas.cleanup('pdfs/ZEP_ResVSLxy_BS9_{}.pdf'.format(recoType))
 makeLxyResVSLxyPlot('PAT')
+makeLxyResVSLxyPlot('HYB')
+makeLxyResVSLxyPlot('DSA')
 
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
-    for recoType in ('DSA', 'PAT'):
+    for recoType in ('DSA', 'PAT', 'HYB'):
         for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull'):
             key = recoType + '-' + quantity
             HISTS = HG.getAddedSignalHistograms(FILE, fs, (key,))
