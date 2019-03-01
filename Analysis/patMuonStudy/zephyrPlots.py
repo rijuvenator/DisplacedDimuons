@@ -12,10 +12,18 @@ QUANTITIES = {
     'vtxChi2' : {'AXES':(2000,      0., 1000.  ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
 }
 
+MCQUANTITIES = {
+        'chi2'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda mu: mu.chi2                  , 'PRETTY':'trk #chi^{2}'     },
+        'nTrkLay'    : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: float(mu.nTrackerLayers) , 'PRETTY':'N(tracker layers)'},
+        'nPxlHit'    : {'AXES':(   5, 0.,   5.), 'LAMBDA': lambda mu: float(mu.nPixelHits    ) , 'PRETTY':'N(pixel hits)'    },
+        'highPurity' : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: float(mu.highPurity    ) , 'PRETTY':'high purity'      },
+        'isGlobal'   : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: float(mu.isGlobal      ) , 'PRETTY':'is global'        },
+}
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    self.COUNTS = {'events':0, 'debug_PC':0}
+    pass
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -52,6 +60,12 @@ def declareHistograms(self, PARAMS=None):
         self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
         self.HistInit('HYB-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -25. , 25.)
 
+    if self.SP is None:
+        for QKEY in MCQUANTITIES:
+            TIT = MCQUANTITIES[QKEY]['PRETTY']
+            AXES = MCQUANTITIES[QKEY]['AXES']
+            self.HistInit('PAT-12-LxySig100-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(AXES+AXES))
+
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
     if self.TRIGGER and self.SP is not None:
@@ -70,14 +84,24 @@ def analyze(self, E, PARAMS=None):
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, keepHybrids=ARGS.HYBRIDS, option=ARGS.PCOPTION)
     if selectedDimuons is None: return
 
-    #self.COUNTS['events'] += 1
-    #self.COUNTS['debug_PC'] += 0
-
     for dim in selectedDimuons:
         RTYPE = dim.composition[:3]
         for QKEY in QUANTITIES:
             KEY = RTYPE+'-'+QKEY
             self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
+
+        if self.SP is None and dim.composition == 'PAT' and dim.LxySig() > 100.:
+            mu1, mu2 = PATmuons[dim.idx1], PATmuons[dim.idx2]
+            for QKEY in MCQUANTITIES:
+                KEY = 'PAT-12-LxySig100-'+QKEY
+                F = MCQUANTITIES[QKEY]['LAMBDA']
+                self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
+            print '{:13s} {:d} {:7d} {:10d} ::: {:6.2f} {:2d} {:1d} {:1d} {:1d} {:6.2f} {:2d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f}'.format(
+                    self.NAME, Event.run, Event.lumi, Event.event,
+                    mu1.chi2, mu1.nTrackerLayers, mu1.nPixelHits, int(mu1.highPurity), int(mu1.isGlobal),
+                    mu2.chi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal),
+                    dim.LxySig(), dim.Lxy(), dim.normChi2
+            )
 
     if self.SP is not None:
         if '4Mu' in self.NAME:
@@ -129,7 +153,6 @@ def end(self, PARAMS=None):
     #    print '{:5s} {:4d} {:3d} {:4d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau),
     #else:
     #    print '{:s}'.format(self.NAME),
-    #print '{:5d} {:5d}'.format(self.COUNTS['events'], self.COUNTS['debug_PC'])
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
