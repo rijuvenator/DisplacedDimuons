@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, matchedTrigger, applyPairingCriteria, replaceDSADimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 
 QUANTITIES = {
@@ -86,7 +86,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjectsReordered(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, keepHybrids=ARGS.HYBRIDS, option=ARGS.PCOPTION)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
     for dim in selectedDimuons:
@@ -168,8 +168,6 @@ def end(self, PARAMS=None):
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
-    Analyzer.PARSER.add_argument('--pcoption', dest='PCOPTION', type=int , default=3)
-    Analyzer.PARSER.add_argument('--nohybrids' , dest='HYBRIDS' , action='store_false')
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
@@ -187,5 +185,5 @@ if __name__ == '__main__':
     )
 
     # write plots
-    #analyzer.writeHistograms('roots/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids' if ARGS.HYBRIDS else ''))
+    #analyzer.writeHistograms('../analyzers/roots/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids'))
+    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids'))
