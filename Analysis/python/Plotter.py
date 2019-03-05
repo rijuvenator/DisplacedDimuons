@@ -3,7 +3,7 @@ import numpy as n
 R.PyConfig.IgnoreCommandLineOptions = True
 R.gROOT.SetBatch(True)
 
-# Imporant note: any functions that manipulate things based on text size assume that
+# Important note: any functions that manipulate things based on text size assume that
 # the containing pad is wider than it is tall. In this case, the character height is
 # obtained as a fraction of the pad height, rather than the pad width. A tall, narrow
 # pad may cause unexpected behavior in this regard. All text defaults to 4% of height
@@ -204,7 +204,7 @@ class Plot(object):
     def setTitles(self, X=None, Y=None, Z=None, copy=None):
         for axis,title in zip(('X', 'Y', 'Z'),(X, Y, Z)):
             if title is not None:
-                if copy is None:
+                if copy is not None:
                     title = getattr(copy, 'Get'+axis+'axis')().GetTitle()
                 getattr(self, 'Get'+axis+'axis')().SetTitle(title)
 

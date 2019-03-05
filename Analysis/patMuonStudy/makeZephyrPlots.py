@@ -91,7 +91,7 @@ makeSinglePlots()
 
 #### MC PLOTS ####
 
-f = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_Hybrids_MC.root')
+FILE = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_Hybrids_MC.root')
 # MC plots of LxySig
 def makeMCPlots():
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
@@ -103,7 +103,7 @@ def makeMCPlots():
             HISTS['stack'] = R.THStack('hStack', '')
             PConfig = {'stack':('', '', 'hist')}
             for ref in BGORDER:
-               HISTS[ref] = HG.getHistogram(f, ref, hkey).Clone()
+               HISTS[ref] = HG.getHistogram(FILE, ref, hkey).Clone()
                #RT.addFlows(HISTS[ref])
                HISTS[ref].Scale(PC[ref]['WEIGHT'])
                HISTS[ref].Rebin(10)
@@ -144,7 +144,7 @@ def makeMCPlots():
             print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
 
             if hkey == 'PAT-LxySig':
-                h = HG.getHistogram(f, 'DY50toInf', hkey).Clone()
+                h = HG.getHistogram(FILE, 'DY50toInf', hkey).Clone()
                 print '{} DY50toInf    : {}'.format(hkey, h.Integral(h.FindBin(100.), h.GetNbinsX()+1))
 
             canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
@@ -169,11 +169,14 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
             R.gStyle.SetPaintTextFormat('g')
         hkey = 'PAT-12-LxySig100-'+quantity
         HISTS = {}
-        HISTS['stack'] = HG.getHistogram(f, BGORDER[0], hkey).Clone()
+        HISTS['stack'] = HG.getHistogram(FILE, BGORDER[0], hkey).Clone()
         HISTS['stack'].Scale(PC[BGORDER[0]]['WEIGHT'])
-        PConfig = {'stack':('', '', 'colz text')}
+        if quantity != 'chi2':
+            PConfig = {'stack':('', '', 'colz text')}
+        else:
+            PConfig = {'stack':('', '', 'colz')}
         for ref in BGORDER:
-           HISTS[ref] = HG.getHistogram(f, ref, hkey).Clone()
+           HISTS[ref] = HG.getHistogram(FILE, ref, hkey).Clone()
            #RT.addFlows(HISTS[ref])
            HISTS[ref].Scale(PC[ref]['WEIGHT'])
            #HISTS[ref].Rebin(10)
@@ -186,7 +189,11 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
             PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
         canvas = Plotter.Canvas(lumi=SUFFIX)
         canvas.addMainPlot(PLOTS['stack'])
-        HISTS['stack'].SetMarkerColor(R.kWhite)
+        canvas.firstPlot.SetMarkerColor(R.kWhite)
+
+        if quantity == 'chi2':
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
+            canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
 
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')
@@ -197,3 +204,37 @@ makeMC2DPlots(('ttbar',))
 makeMC2DPlots(('WJets',))
 makeMC2DPlots(('DY50toInf',))
 makeMC2DPlots(('QCD20toInf-ME',))
+
+FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_Hybrids_2Mu2J.root')
+def makeSignal2DPlots():
+    for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
+        if quantity == 'nTrkLay':
+            R.gStyle.SetPaintTextFormat('.1f')
+        else:
+            R.gStyle.SetPaintTextFormat('g')
+        hkey = 'PAT-12-'+quantity
+        HISTS = HG.getAddedSignalHistograms(FILE, fs, (hkey,))
+        for sp in SIGNALPOINTS:
+            HISTS[sp] = HG.getHistogram(FILE, (fs, sp), hkey).Clone()
+
+        if quantity != 'chi2':
+            opt = 'colz text'
+        else:
+            opt = 'colz'
+        PLOTS = {hkey:Plotter.Plot(HISTS[hkey], '', '', opt)}
+        for sp in SIGNALPOINTS:
+            PLOTS[sp] = Plotter.Plot(HISTS[sp], '', '', opt)
+
+        for sp in [hkey,] + SIGNALPOINTS:
+            canvas = Plotter.Canvas(lumi=fs if type(sp) != tuple else SPLumiStr(fs, *sp))
+            canvas.addMainPlot(PLOTS[sp])
+            canvas.firstPlot.SetMarkerColor(R.kWhite)
+
+            if quantity == 'chi2':
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
+                canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
+
+            canvas.scaleMargins(1.75, edges='R')
+            canvas.scaleMargins(0.8, edges='L')
+            canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}.pdf'.format(quantity, fs, 'Global' if type(sp) != tuple else SPStr(sp)))
+makeSignal2DPlots()

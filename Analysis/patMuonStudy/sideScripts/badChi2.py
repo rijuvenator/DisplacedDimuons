@@ -7,8 +7,9 @@ fname = 'text/DY50toInf_eventsWithLxySigAbove100.txt'
 if len(sys.argv) > 1:
     fname = sys.argv[1]
 
-# this script takes DY events with Lxy Sig > 100 and plots the crappy chi^2
-# uses event lines from dumpEvent.py
+# this script takes events with Lxy Sig > 100 and plots the crappy chi^2
+# really, it just needs a file with chi2 being the last column
+# there are many scripts that do the required event line printing
 
 h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 200, np.logspace(-3., 8., 201))
 
