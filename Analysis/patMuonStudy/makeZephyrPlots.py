@@ -124,7 +124,8 @@ def makeMCPlots():
             if 'vtxChi2' in hkey:
                 #canvas.firstPlot.GetXaxis().SetRangeUser(0., 200.)
                 pass
-            canvas.firstPlot.setTitles(X=PLOTS[BGORDER[0]].GetXaxis().GetTitle(), Y='Normalized Counts')
+            canvas.firstPlot.setTitles(X='', copy=PLOTS[BGORDER[0]])
+            canvas.firstPlot.setTitles(Y='Normalized Counts')
             canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
             for ref in reversed(BGORDER):
                 canvas.addLegendEntry(PLOTS[ref])
@@ -186,15 +187,6 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         canvas = Plotter.Canvas(lumi=SUFFIX)
         canvas.addMainPlot(PLOTS['stack'])
         HISTS['stack'].SetMarkerColor(R.kWhite)
-        #canvas.firstPlot.setTitles(X=PLOTS[BGORDER[0]].GetXaxis().GetTitle(), Y='Normalized Counts')
-        #canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
-        #for ref in reversed(BGORDER):
-        #    canvas.addLegendEntry(PLOTS[ref])
-        #canvas.legend.resizeHeight()
-        #RT.addBinWidth(canvas.firstPlot)
-
-        #HISTS['sum'] = HISTS['stack'].GetStack().Last()
-        #nBins = HISTS['sum'].GetNbinsX()
 
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')

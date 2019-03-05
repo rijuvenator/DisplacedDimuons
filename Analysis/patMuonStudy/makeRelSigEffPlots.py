@@ -47,10 +47,10 @@ canvas.cleanup('pdfs/ZEP_relSigMatchEff.pdf')
 plotKeys = {'':('PAT', 'DSA'), '_Hybrids':('PAT', 'DSA', 'HYB')}
 for fkey in plotKeys:
     h = {}
-    h['PAT'] = HISTS[fkey]['GEN-Lxy-PAT'].Clone()
-    h['DSA'] = HISTS[fkey]['GEN-Lxy-DSA'].Clone()
-    h['HYB'] = HISTS[fkey]['GEN-Lxy-HYB'].Clone()
-    h['DEN'] = HISTS[fkey]['GEN-Lxy'    ].Clone()
+    h['PAT'] = HISTS[fkey    ]['GEN-Lxy-PAT'].Clone()
+    h['DSA'] = HISTS[fkey    ]['GEN-Lxy-DSA'].Clone()
+    h['HYB'] = HISTS[fkey    ]['GEN-Lxy-HYB'].Clone()
+    h['DEN'] = HISTS['_NoRep']['GEN-Lxy'    ].Clone()
     for key in h:
         h[key].Rebin(5)
 
@@ -73,7 +73,7 @@ for fkey in plotKeys:
     canvas.legend.moveLegend(Y=.2)
     canvas.legend.SetMargin(0.15)
 
-    canvas.firstPlot.setTitles(Y='Fraction of gen matches')
+    canvas.firstPlot.setTitles(Y='Fraction of gen matches with DSA-DSA only')
     canvas.firstPlot.SetMinimum(0.)
     canvas.firstPlot.SetMaximum(1.05)
     canvas.firstPlot.GetXaxis().SetRangeUser(0., 400.)

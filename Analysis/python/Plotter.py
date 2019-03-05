@@ -199,9 +199,14 @@ class Plot(object):
         SCALE(self, 'TitleOffset', float(factor), Axes=axes)
     
     # sets axis titles
-    def setTitles(self, X=None, Y=None, Z=None):
+    # copy is an optional histogram from which to copy axis titles
+    # if using copy, set the desired axis args to something that isn't None
+    def setTitles(self, X=None, Y=None, Z=None, copy=None):
         for axis,title in zip(('X', 'Y', 'Z'),(X, Y, Z)):
-            if title is not None: getattr(self, 'Get'+axis+'axis')().SetTitle(title)
+            if title is not None:
+                if copy is None:
+                    title = getattr(copy, 'Get'+axis+'axis')().GetTitle()
+                getattr(self, 'Get'+axis+'axis')().SetTitle(title)
 
     # sets multiple colors at once
     # which should be a subset of LMF -- line, marker, fill
@@ -444,6 +449,8 @@ class Canvas(R.TCanvas):
         sbox.SetX2NDC(X2[pos[1]])
         sbox.SetY1NDC(Y1[pos[0]])
         sbox.SetY2NDC(Y2[pos[0]])
+
+        return sbox
 
     # makes ratio plot given a top hist and a bottom hist
     # plusminus is the window around 1, i.e. 0.5 means plot from 0.5 to 1.5

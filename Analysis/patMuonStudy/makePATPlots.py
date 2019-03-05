@@ -98,7 +98,8 @@ def makeMCPlots():
         if 'vtxChi2' in hkey:
             #canvas.firstPlot.GetXaxis().SetRangeUser(0., 200.)
             pass
-        canvas.firstPlot.setTitles(X=PLOTS[BGORDER[0]].GetXaxis().GetTitle(), Y='Normalized Counts')
+        canvas.firstPlot.setTitles(X='', copy=PLOTS[BGORDER[0]])
+        canvas.firstPlot.setTitles(Y='Normalized Counts')
         canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
         for ref in reversed(BGORDER):
             canvas.addLegendEntry(PLOTS[ref])
