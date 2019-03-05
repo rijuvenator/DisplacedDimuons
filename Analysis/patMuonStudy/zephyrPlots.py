@@ -13,7 +13,7 @@ QUANTITIES = {
 }
 
 MCQUANTITIES = {
-        'chi2'       : {'AXES':(1000, 0., 500.), 'LAMBDA': lambda mu: mu.chi2                  , 'PRETTY':'trk #chi^{2}'     },
+        'chi2'       : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda mu: mu.chi2                  , 'PRETTY':'trk #chi^{2}'     },
         'nTrkLay'    : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: float(mu.nTrackerLayers) , 'PRETTY':'N(tracker layers)'},
         'nPxlHit'    : {'AXES':(   5, 0.,   5.), 'LAMBDA': lambda mu: float(mu.nPixelHits    ) , 'PRETTY':'N(pixel hits)'    },
         'highPurity' : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: float(mu.highPurity    ) , 'PRETTY':'high purity'      },
@@ -59,6 +59,11 @@ def declareHistograms(self, PARAMS=None):
         self.HistInit('PAT-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -.05 , .05)
         self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
         self.HistInit('HYB-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -25. , 25.)
+
+        for QKEY in MCQUANTITIES:
+            TIT = MCQUANTITIES[QKEY]['PRETTY']
+            AXES = MCQUANTITIES[QKEY]['AXES']
+            self.HistInit('PAT-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(AXES+AXES))
 
     if self.SP is None:
         for QKEY in MCQUANTITIES:
@@ -145,6 +150,13 @@ def analyze(self, E, PARAMS=None):
             KEY = RTYPE + '-' + 'LxyRes' + 'VS' + RTYPE + '-' + 'LxyErr'
             self.HISTS[KEY].Fill(dim.LxyErr(), dim.Lxy()-genMuon.Lxy(), eventWeight)
 
+            if RTYPE != 'PAT': continue
+            mu1, mu2 = PATmuons[dim.idx1], PATmuons[dim.idx2]
+            for QKEY in MCQUANTITIES:
+                KEY = RTYPE + '-' + '12' + '-' + QKEY
+                F = MCQUANTITIES[QKEY]['LAMBDA']
+                self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
+
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
@@ -157,7 +169,7 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     Analyzer.PARSER.add_argument('--pcoption', dest='PCOPTION', type=int , default=3)
-    Analyzer.PARSER.add_argument('--hybrids' , dest='HYBRIDS' , action='store_true')
+    Analyzer.PARSER.add_argument('--nohybrids' , dest='HYBRIDS' , action='store_false')
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
