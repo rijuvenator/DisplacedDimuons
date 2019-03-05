@@ -38,18 +38,19 @@ canvas.legend.SetMargin(0.15)
 
 canvas.firstPlot.setTitles(Y='Gen matches with / without DSA replacement')
 canvas.firstPlot.SetMinimum(0.)
-canvas.firstPlot.SetMaximum(1.2)
+canvas.firstPlot.SetMaximum(1.1)
 canvas.firstPlot.GetXaxis().SetRangeUser(0., 400.)
 
 canvas.cleanup('pdfs/ZEP_relSigMatchEff.pdf')
 
 # breakdown
-plotKeys = {'':('PAT', 'DSA'), '_Hybrids':('PAT', 'DSA', 'HYB')}
+plotKeys = {'':('SUM', 'PAT', 'DSA'), '_Hybrids':('SUM', 'PAT', 'DSA', 'HYB')}
 for fkey in plotKeys:
     h = {}
     h['PAT'] = HISTS[fkey    ]['GEN-Lxy-PAT'].Clone()
     h['DSA'] = HISTS[fkey    ]['GEN-Lxy-DSA'].Clone()
     h['HYB'] = HISTS[fkey    ]['GEN-Lxy-HYB'].Clone()
+    h['SUM'] = HISTS[fkey    ]['GEN-Lxy'    ].Clone()
     h['DEN'] = HISTS['_NoRep']['GEN-Lxy'    ].Clone()
     for key in h:
         h[key].Rebin(5)
@@ -57,10 +58,11 @@ for fkey in plotKeys:
     h['PAT'].Divide(h['DEN'])
     h['HYB'].Divide(h['DEN'])
     h['DSA'].Divide(h['DEN'])
+    h['SUM'].Divide(h['DEN'])
 
     p = {}
-    config = {'PAT' : ('PAT-PAT', R.kRed), 'HYB' : ('DSA-PAT', R.kBlue), 'DSA' : ('DSA-DSA', R.kGreen), 'DEN' : ('Sum', R.kBlack)}
-    for key in h:
+    config = {'PAT' : ('PAT-PAT', R.kRed), 'HYB' : ('DSA-PAT', R.kBlue), 'DSA' : ('DSA-DSA', R.kGreen), 'SUM' : ('Sum', R.kBlack)}
+    for key in plotKeys[fkey]:
         p[key] = Plotter.Plot(h[key], config[key][0], 'lp', 'p')
 
     canvas = Plotter.Canvas(lumi='2Mu2J')
@@ -70,12 +72,12 @@ for fkey in plotKeys:
 
     canvas.makeLegend(pos='br', lWidth=.5)
     canvas.legend.resizeHeight()
-    canvas.legend.moveLegend(Y=.2)
+    canvas.legend.moveLegend(Y=.2-(0. if fkey == '' else .04))
     canvas.legend.SetMargin(0.15)
 
     canvas.firstPlot.setTitles(Y='Fraction of gen matches with DSA-DSA only')
     canvas.firstPlot.SetMinimum(0.)
-    canvas.firstPlot.SetMaximum(1.05)
+    canvas.firstPlot.SetMaximum(1.1)
     canvas.firstPlot.GetXaxis().SetRangeUser(0., 400.)
 
     canvas.cleanup('pdfs/ZEP_relSigMatchEff_breakdown{}.pdf'.format(fkey))
