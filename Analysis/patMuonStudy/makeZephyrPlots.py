@@ -89,12 +89,14 @@ def makeSinglePlots():
             canvas.cleanup('pdfs/ZEP_{}.pdf'.format(key))
 makeSinglePlots()
 
+#### MC PLOTS ####
+
+f = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_Hybrids_MC.root')
 # MC plots of LxySig
 def makeMCPlots():
-    f = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_MC.root')
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     PC = HG.PLOTCONFIG
-    for recoType in ('PAT', 'DSA'):
+    for recoType in ('PAT', 'DSA', 'HYB'):
         for quantity in ('LxySig', 'LxyErr', 'vtxChi2'):
             hkey = recoType + '-' + quantity
             HISTS = {}
@@ -148,3 +150,58 @@ def makeMCPlots():
             canvas.firstPlot.SetMinimum(1.)
             canvas.cleanup('pdfs/ZEP_MC_'+hkey+'.pdf')
 makeMCPlots()
+
+R.gStyle.SetPalette(55)
+def makeMC2DPlots(BGList=None, SUFFIX=None):
+    if BGList is None:
+        BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
+        SUFFIX = 'Full'
+    else:
+        BGORDER = BGList
+        if SUFFIX is None:
+            SUFFIX = BGList[0]
+    PC = HG.PLOTCONFIG
+    for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
+        if quantity == 'nTrkLay':
+            R.gStyle.SetPaintTextFormat('.1f')
+        else:
+            R.gStyle.SetPaintTextFormat('g')
+        hkey = 'PAT-12-LxySig100-'+quantity
+        HISTS = {}
+        HISTS['stack'] = HG.getHistogram(f, BGORDER[0], hkey).Clone()
+        HISTS['stack'].Scale(PC[BGORDER[0]]['WEIGHT'])
+        PConfig = {'stack':('', '', 'colz text')}
+        for ref in BGORDER:
+           HISTS[ref] = HG.getHistogram(f, ref, hkey).Clone()
+           #RT.addFlows(HISTS[ref])
+           HISTS[ref].Scale(PC[ref]['WEIGHT'])
+           #HISTS[ref].Rebin(10)
+           if ref != BGORDER[0]:
+               HISTS['stack'].Add(HISTS[ref])
+           PConfig[ref] = (PC[ref]['LATEX'], 'f', 'hist')
+
+        PLOTS = {}
+        for key in ('stack',):
+            PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
+        canvas = Plotter.Canvas(lumi=SUFFIX)
+        canvas.addMainPlot(PLOTS['stack'])
+        HISTS['stack'].SetMarkerColor(R.kWhite)
+        #canvas.firstPlot.setTitles(X=PLOTS[BGORDER[0]].GetXaxis().GetTitle(), Y='Normalized Counts')
+        #canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+        #for ref in reversed(BGORDER):
+        #    canvas.addLegendEntry(PLOTS[ref])
+        #canvas.legend.resizeHeight()
+        #RT.addBinWidth(canvas.firstPlot)
+
+        #HISTS['sum'] = HISTS['stack'].GetStack().Last()
+        #nBins = HISTS['sum'].GetNbinsX()
+
+        canvas.scaleMargins(1.75, edges='R')
+        canvas.scaleMargins(0.8, edges='L')
+        canvas.cleanup('pdfs/ZEP_MC2D_'+quantity+'_'+SUFFIX+'.pdf')
+makeMC2DPlots()
+makeMC2DPlots(('ttbar', 'QCD20toInf-ME', 'DY50toInf', 'WJets'), 'Major')
+makeMC2DPlots(('ttbar',))
+makeMC2DPlots(('WJets',))
+makeMC2DPlots(('DY50toInf',))
+makeMC2DPlots(('QCD20toInf-ME',))

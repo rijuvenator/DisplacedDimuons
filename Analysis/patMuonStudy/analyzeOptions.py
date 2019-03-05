@@ -12,7 +12,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 
 data = {}
 
-with open('matchesWithOptions.txt') as f:
+with open('text/matchesWithOptions.txt') as f:
     for line in f:
         cols = line.strip('\n').split()
         info = map(int, cols[1:])
