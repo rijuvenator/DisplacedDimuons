@@ -186,5 +186,5 @@ if __name__ == '__main__':
     )
 
     # write plots
-    #analyzer.writeHistograms('../analyzers/roots/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids'))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_Hybrids'))
+    #analyzer.writeHistograms('../analyzers/roots/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

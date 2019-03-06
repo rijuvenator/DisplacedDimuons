@@ -10,7 +10,7 @@ DRAW = False
 if DRAW:
     R.gROOT.SetBatch(False)
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_Hybrids_2Mu2J.root')
+FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_2Mu2J.root')
 
 fs = '2Mu2J'
 
@@ -91,7 +91,7 @@ makeSinglePlots()
 
 #### MC PLOTS ####
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_Hybrids_MC.root')
+FILE = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_MC.root')
 # MC plots of LxySig
 def makeMCPlots():
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
@@ -205,7 +205,7 @@ makeMC2DPlots(('WJets',))
 makeMC2DPlots(('DY50toInf',))
 makeMC2DPlots(('QCD20toInf-ME',))
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_Hybrids_2Mu2J.root')
+FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_2Mu2J.root')
 def makeSignal2DPlots():
     for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
         if quantity == 'nTrkLay':

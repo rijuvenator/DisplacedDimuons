@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
 
-FILES = {'':0, '_NoRep':0, '_Hybrids':0}
+FILES = {'_PATOnly':0, '_NoRep':0, '':0}
 HISTS = {}
 for key in FILES:
     FILES[key] = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9{}_2Mu2J.root'.format(key))
@@ -10,8 +10,8 @@ for key in FILES:
 
 # relative signal match eff
 h = {}
-h['PAT'] = HISTS[''        ]['GEN-Lxy'].Clone()
-h['HYB'] = HISTS['_Hybrids']['GEN-Lxy'].Clone()
+h['PAT'] = HISTS['_PATOnly']['GEN-Lxy'].Clone()
+h['HYB'] = HISTS[''        ]['GEN-Lxy'].Clone()
 h['DSA'] = HISTS['_NoRep'  ]['GEN-Lxy'].Clone()
 for key in h:
     h[key].Rebin(5)
@@ -44,7 +44,7 @@ canvas.firstPlot.GetXaxis().SetRangeUser(0., 400.)
 canvas.cleanup('pdfs/ZEP_relSigMatchEff.pdf')
 
 # breakdown
-plotKeys = {'':('SUM', 'PAT', 'DSA'), '_Hybrids':('SUM', 'PAT', 'DSA', 'HYB')}
+plotKeys = {'_PATOnly':('SUM', 'PAT', 'DSA'), '':('SUM', 'PAT', 'DSA', 'HYB')}
 for fkey in plotKeys:
     h = {}
     h['PAT'] = HISTS[fkey    ]['GEN-Lxy-PAT'].Clone()
@@ -72,7 +72,7 @@ for fkey in plotKeys:
 
     canvas.makeLegend(pos='br', lWidth=.5)
     canvas.legend.resizeHeight()
-    canvas.legend.moveLegend(Y=.2-(0. if fkey == '' else .04))
+    canvas.legend.moveLegend(Y=.2-(0. if fkey == '_PATOnly' else .04))
     canvas.legend.SetMargin(0.15)
 
     canvas.firstPlot.setTitles(Y='Fraction of gen matches with DSA-DSA only')
