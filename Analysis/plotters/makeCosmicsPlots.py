@@ -15,37 +15,42 @@ L2RESOLUTIONVARIABLES = ['L2pTres']
 L1T_info = 'L1_SingleMuOpen_NotBptxOR_3BX'
 HLT_info = 'HLT_L2Mu10_NoVertex_NoBPTX3BX'
 
+RANGES = {
+    'pTdiff': (-1.5, 30.),
+    'd0'    : (0., 500),
+    'L1pTres': (-1., 5.),
+    'L2pTres': (-1., 5.),
+    'dimVtxChi2': (0., 60.),
+    'dimLxySig': (0., 230.),
+    'chi2': (0., 30.),
+    'pTSig': (0., 2.),
+    'nStations': (0., 10.),
+    'nCSCDTHits': (10., 60.),
+}
 
 # HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/backgrEst_cosmicsPlots_nCSCDTHitsGT12_nStationsGT1_pTGT20p0_pTSigLT1p0_vtxChiSquLT50p0_pairL1pT5p0AND12p0_bothLegsMatched_requireDimVTx_noTurnOnHists_NoBPTXRun2016E-07Aug17.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/backgrEstimation_cosmicsPlots_nCSCDTHitsGT12_nStationsGT1_pTGT20p0_pTSigLT1p0_vtxChiSquLT50p0_pairL1pT5p0AND12p0_bothLegsMatched_requireDimVTx_noTurnOnHists_NoBPTXRun2016E-07Aug17.root')
 
 
 def makePerSamplePlots(selection=None):
-    ranges = {
-        'pTdiff': (-1.5, 30.),
-        'd0'    : (0., 500),
-        'L1pTres': (-1., 5.),
-        'L2pTres': (-1., 5.),
-    }
-
     h = {}
     p = {}
-    for ref in HISTS:
+    for dataset in HISTS:
         if selection is not None:
-            selected_hists_names = getHistNames(ref, *selection)
+            selected_hists_names = getHistNames(dataset, *selection)
         else:
-            selected_hists_names = HISTS[ref]
+            selected_hists_names = HISTS[dataset]
 
-        # for key in HISTS[ref]:
         for key in selected_hists_names:
 
             # do not plot empty histograms in the interest of plotting time
-            if HISTS[ref][key].GetEntries() == 0: continue
+            if HISTS[dataset][key].GetEntries() == 0: continue
 
-            h = HISTS[ref][key].Clone()
+            h = HISTS[dataset][key].Clone()
             RT.addFlows(h)
             if h.GetNbinsX() >= 1000:
-                h.Rebin(10)
+                # h.Rebin(10)
+                h.Rebin(15)
             elif h.GetNbinsX() >= 100:
                 h.Rebin(5)
             else:
@@ -89,10 +94,10 @@ def makePerSamplePlots(selection=None):
                     # canvas.legend.moveLegend()
                     canvas.legend.resizeHeight()
 
-                for var in ranges:
+                for var in RANGES:
                     if '__{}VAR'.format(var) in key:
-                        canvas.firstPlot.GetXaxis().SetRangeUser(ranges[var][0],
-                                ranges[var][1])
+                        canvas.firstPlot.GetXaxis().SetRangeUser(RANGES[var][0],
+                                RANGES[var][1])
 
                 p.SetLineColor(R.kBlue)
                 RT.addBinWidth(p)
@@ -183,7 +188,7 @@ def makePerSamplePlots(selection=None):
                         current_var = current_var[0].split('_')[-1]
                         if current_var != 'd0' and all([c in key for c in ('__d0GT','__d0LT')]):
                             d0_hist = key.replace('__{}VAR'.format(current_var), '__d0VAR')
-                            d0_mean = HISTS[ref][d0_hist].GetMean()
+                            d0_mean = HISTS[dataset][d0_hist].GetMean()
 
                             d0_min = re.findall(r'__d0GT(\d+)p(\d+)', d0_hist)
                             if len(d0_min) > 0:
@@ -439,7 +444,133 @@ def getHistNames(dataset, *args, **kwargs):
     return results
 
 
-makePerSamplePlots()
+def makeCombinedPlots(categories, selection=None, exclude=None, logic='and'):
+    rebinning_exceptions = ('pTSig','nCSCDTHits')
+    h = {}
+    p = {}
+    for dataset in HISTS:
+        if selection and exclude:
+            selected_hists_names = getHistNames(dataset, *selection,
+                    exclude=exclude, logic=logic)
+        elif selection and not exclude:
+            selected_hists_names = getHistNames(dataset, *selection, logic=logic)
+        elif not selection and exclude:
+            selected_hists_names = getHistNames(dataset, '', exclude=exclude, logic=logic)
+        else:
+            selected_hists_names = HISTS[dataset]
+
+
+        for key in selected_hists_names:
+            if not any([cat in key for cat,__ in categories]): continue
+
+            search_res = re.search(r'__(.+)VAR', key)
+            if search_res:
+                variable = search_res.group(1)
+            else:
+                print('Skipping {} (unidentifiable variable)...'.format(key))
+                continue
+
+            if variable not in h.keys():
+                h[variable] = {}
+
+            for category,__ in categories:
+                if not category in key: continue
+
+                h[variable][category] = HISTS[dataset][key].Clone()
+                RT.addFlows(h[variable][category])
+                
+                if h[variable][category].GetNbinsX() >= 1000:
+                    if variable in rebinning_exceptions:
+                        print('Do not rebin for variable {}'.format(variable))
+                        pass
+                    else:
+                        h[variable][category].Rebin(15)
+
+                elif h[variable][category].GetNbinsX() >= 100:
+                    if variable in rebinning_exceptions:
+                        print('Do not rebin for variable {}'.format(variable))
+                        pass
+                    else:
+                        h[variable][category].Rebin(10)
+
+                else:
+                    pass
+
+        for variable in h:
+            p[variable] = {}
+            key_fname = h[variable][category].GetName()
+
+            # find the best vertical axes ranges
+            realmin = float('inf')
+            realmax = -float('inf')
+
+            for category,category_name in categories:
+                p[variable][category] = Plotter.Plot(h[variable][category],
+                        category_name, 'l', 'hist')
+
+                key_fname = key_fname.replace(cat,'')
+
+                if p[variable][category].GetMaximum() > realmax:
+                    realmax = p[variable][category].GetMaximum()
+
+                if p[variable][category].GetMaximum() < realmin:
+                    realmin = p[variable][category].GetMinimum()
+
+                # for ibin in xrange(1, p[variable][category].GetNbinsX()+1):
+                #     if p[variable][category].GetBinContent(ibin) > realmax:
+                #         realmax = p[variable][category].GetBinContent(ibin)
+                #     if p[variable][category].GetBinContent(ibin) < realmin:
+                #         realmin = p[variable][category].GetBinContent(ibin)
+
+            for is_logy in (True, False):
+                palette = Plotter.ColorPalette([867,417,600,632])
+                fname = 'pdfs/comb_{}{}.pdf'.format(key_fname,
+                        ('_logy' if is_logy else ''))
+                canvas = Plotter.Canvas(logy=is_logy, lumi='NoBPTXRun2016E-07Aug17')
+                for category,category_name in categories:
+                    canvas.addMainPlot(p[variable][category])
+                    p[variable][category].SetLineColor(palette.getNextColor())
+                    RT.addBinWidth(p[variable][category])
+
+                if variable in RANGES:
+                    canvas.firstPlot.GetXaxis().SetRangeUser(
+                            RANGES[variable][0], RANGES[variable][1])
+
+                canvas.makeLegend(lWidth=.3, pos='tr', fontscale=0.65)
+                canvas.legend.resizeHeight()
+                canvas.legend.moveLegend(X=-.2, Y=-.13)
+
+                # trigger information for canvas
+                pave_triggerinfo = R.TPaveText(.4, .75, .72, .88, 'NDCNB')
+                pave_triggerinfo.SetTextAlign(13)
+                pave_triggerinfo.SetTextFont(42)
+                # pave_triggerinfo.SetTextSize(self.fontsize*.9)
+                pave_triggerinfo.SetMargin(0)
+                pave_triggerinfo.SetFillStyle(0)
+                pave_triggerinfo.SetFillColor(0)
+                pave_triggerinfo.SetLineStyle(0)
+                pave_triggerinfo.SetLineColor(0)
+                pave_triggerinfo.SetBorderSize(0)
+                pave_triggerinfo.AddText(0., 1., HLT_info)
+                pave_triggerinfo.AddText(0., .5, L1T_info)
+                pave_triggerinfo.Draw()
+
+                if is_logy and realmin == 0: realmin = 0.5
+                canvas.firstPlot.GetYaxis().SetRangeUser(realmin*.8, realmax*1.2)
+
+                canvas.cleanup(fname)
+
+
+alpha_categories = (
+    ('__0p0alpha0p3', '0 < #alpha < 0.3'),
+    ('__0p3alpha2p8', '0.3 < #alpha < 2.8'),
+    ('__2p8alphaPi', '2.8 < #alpha < #pi'),
+    ('__noOppositeMuonMatch_0p0alpha2p8', '0 < #alpha < 2.8 (no match with opposite muon)'),
+)
+
+makeCombinedPlots(alpha_categories, selection=['DSA__alphaVAR','DSA__nStationsVAR','DSA__nCSCDTHitsVAR','DSA__pTSigVAR','DSA__pTVAR','DSA__dimVtxChi2','DSA__dimCosAlpha','DSA__dimLxySig','DSA__chi2VAR'], logic='or', exclude=['__d0GT','__d0LT'])
+
+# makePerSamplePlots()
 # makePerSamplePlots(['DSA__alphaVAR'])
 # makePerSamplePlots(['DSA__dimCosAlphaVAR'])
 # makePerSamplePlots(['DSA__dimLxySigVAR'])
@@ -455,4 +586,4 @@ makePerSamplePlots()
 # makePerSamplePlots(['DSA','L2pTres'])
 
 
-makeTurnOnPlots()
+# makeTurnOnPlots()

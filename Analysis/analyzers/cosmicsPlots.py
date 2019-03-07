@@ -75,7 +75,7 @@ ALPHA_CATEGORIES = (
         (2.8, math.pi, '__2p8alphaPi'),
         (0.3, 2.8, '__0p3alpha2p8'),
         (0., 0.3, '__0p0alpha0p3'),
-        (0., 2.8, '__0p0alpha2p8_noOppositeMuonMatch'),
+        (0., 2.8, '__noOppositeMuonMatch_0p0alpha2p8'),
 )
 
 # list of d0 intervals to process, "(None, None)" gives the d0-inclusive results
@@ -108,10 +108,10 @@ VALUES  = (
     # ('x_fhit',        'x_{innermost hit}',(1000,    -800.,    800.), lambda muon: muon.x_fhit                            , 'x_{innermost hit}'),
     # ('y_fhit',        'y_{innermost hit}',(1000,    -800.,    800.), lambda muon: muon.y_fhit                            , 'y_{innermost hit}'),
     # ('z_fhit',        'z_{innermost hit}',(1000,   -1100.,   1100.), lambda muon: muon.z_fhit                            , 'z_{innermost hit}'),
-    ('chi2',          'muon #chi^{2}/ndof', (1000,     0.,    100.), lambda muon: muon.chi2/muon.ndof                    , 'muon #chi^{2}/ndof'),
-    ('nStations',     'nStations',        (  25,       0.,     25.), lambda muon: muon.nDTStations+muon.nCSCStations     , 'nStations'),
+    ('chi2',          'muon #chi^{2}/ndof', (1000,    -1.,    100.), lambda muon: muon.chi2/muon.ndof if muon.ndof != 0 else -1., 'muon #chi^{2}/ndof'),
+    ('nStations',     'nStations',        (  20,       0.,     20.), lambda muon: muon.nDTStations+muon.nCSCStations     , 'nStations'),
     ('nCSCDTHits',    'nCSC+DTHits',      ( 100,       0.,    100.), lambda muon: muon.nCSCHits+muon.nDTHits             , 'nCSC+DTHits'),
-    ('pTSig',         '#sigma_{p_{T}} / p_{T}', (1000, 0.,     50.), lambda muon: muon.ptError / muon.pt                , '#sigma_{p_{T}} / p_{T}'),
+    ('pTSig',         '#sigma_{p_{T}} / p_{T}', (1000, 0.,     10.), lambda muon: muon.ptError / muon.pt                , '#sigma_{p_{T}} / p_{T}'),
     ('pTdiff',        '(p_{T}^{upper}-p_{T}^{lower})/p_{T}^{lower}', (1000, -10., 100.), lambda (m1,m2): (m1.pt-m2.pt)/m2.pt, 'p_{T}^{upper}-p_{T}^{lower}/p_{T}^{lower}'),
     ('deltaR',        '#Delta R',         (1000,       0.,      5.), lambda (m1,m2): m1.p4.DeltaR(m2.p4)                 , '#DeltaR(#mu#mu)'),
     ('mass',          'M_{#mu#mu}',       (1000,       0.,    500.), lambda (m1,m2): (m1.p4+m2.p4).M()                   , 'M(#mu#mu) [GeV]'),
@@ -688,6 +688,6 @@ if __name__ == '__main__':
 
     outputname = parse_filename(
             path='roots/',
-            prefix='test_backgrEstimation_extraMuons_cosmicsPlots')
+            prefix='test_backgrEstimation_extraMuon_cosmicsPlots')
 
     analyzer.writeHistograms(outputname)
