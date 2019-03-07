@@ -68,6 +68,7 @@ CUTS = {
 ### BASELINE DIMUON CUTS ###
     'b_LxyErr'   : Cut('b_LxyErr'   , lambda dimuon: dimuon.LxyErr()                   , operator.lt,  99.      ),
     'b_mass'     : Cut('b_mass'     , lambda dimuon: dimuon.mass                       , operator.gt,   5.      ),
+    'b_vtxChi2'  : Cut('vtxChi2'    , lambda dimuon: dimuon.normChi2                   , operator.lt, 100.      ),
 
 ### DSA MUON QUALITY CUTS ###
     'q_nStations': Cut('q_nStations', lambda muon: muon.nCSCStations+muon.nDTStations  , operator.gt,   1       ),
@@ -85,7 +86,7 @@ CutLists = {
     'DimuonCutList'         : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList'     : ('a_pT', 'a_eta', 'a_Lxy'),
     'BaselineMuonCutList'   : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
-    'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass'),
+    'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass', 'b_vtxChi2'),
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
     'OtherMuonCutList'      : ('r_pT',),
 }

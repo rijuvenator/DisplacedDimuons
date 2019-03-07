@@ -19,6 +19,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
     MASS      = '_M'        in CUTS
+    CHI2      = '_CHI2'     in CUTS
 
     # determine muon cut list based on string values
     def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR):
@@ -32,12 +33,14 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         return cutList
 
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2):
         cutList = []
         if LXYERR:
             cutList.append('b_LxyErr')
         if MASS:
             cutList.append('b_mass')
+        if CHI2:
+            cutList.append('b_vtxChi2')
         return cutList
 
     # for PROMPT and NOPROMPT event selections
@@ -134,7 +137,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToDimuonCutList(LXYERR, MASS)
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:

@@ -1,6 +1,6 @@
 #### current cut string
 
-_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M
+_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M_CHI2
 
 
 #### combining PDFs so that we don't have a billion files ####
