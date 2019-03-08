@@ -52,6 +52,7 @@ class PATMuonBranches : public BranchCollection
   std::vector<int  > patmu_nMatchedStations;
   std::vector<int  > patmu_isGlobal        ;
   std::vector<int  > patmu_isTracker       ;
+  std::vector<int  > patmu_isMedium        ;
   std::vector<int  > patmu_nPixelHits      ;
   std::vector<int  > patmu_nTrackerHits    ;
   std::vector<int  > patmu_nTrackerLayers  ;
@@ -116,6 +117,7 @@ class PATMuonBranches : public BranchCollection
     Declare("patmu_nMatchedStations", patmu_nMatchedStations);
     Declare("patmu_isGlobal"        , patmu_isGlobal        );
     Declare("patmu_isTracker"       , patmu_isTracker       );
+    Declare("patmu_isMedium"        , patmu_isMedium        );
     Declare("patmu_nPixelHits"      , patmu_nPixelHits      );
     Declare("patmu_nTrackerHits"    , patmu_nTrackerHits    );
     Declare("patmu_nTrackerLayers"  , patmu_nTrackerLayers  );
@@ -180,7 +182,7 @@ class PATMuonBranches : public BranchCollection
 
     patmu_nMatchedStations.clear();
     patmu_isGlobal        .clear();
-    patmu_isTracker       .clear();
+    patmu_isMedium        .clear();
     patmu_nPixelHits      .clear();
     patmu_nTrackerHits    .clear();
     patmu_nTrackerLayers  .clear();
@@ -225,6 +227,8 @@ class PATMuonBranches : public BranchCollection
 	    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 	    const edm::ESHandle<Propagator>& propagator,
 	    const edm::ESHandle<MagneticField>& magfield);
+
+  bool isMediumMuon(const pat::Muon & mu);
 
   virtual bool alreadyPrinted() { return alreadyPrinted_; }
   virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
