@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 R, makeSummaryPlot, initializeData, Plotter = SumPlotter.R, SumPlotter.makeSummaryPlot, SumPlotter.initializeData, SumPlotter.Plotter
 
 DATA = initializeData()
-with open('replacePAT.txt') as f:
+with open('text/replaceSignal.txt') as f:
     for line in f:
         if '%' in line or '---' in line: continue
         cols = line.strip('\n').split()
@@ -157,7 +157,7 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-StdDev', 'PAT-LxyRes-StdDev'),
-    ';;Fitted Gaussian #sigma : reco L_{xy} #minus gen L_{xy}',
+    ';;Fitted Gaussian #sigma : reco L_{xy} #minus gen L_{xy} [cm]',
     {'PAT-LxyRes-StdDev':'PAT', 'DSA-LxyRes-StdDev':'DSA'},
     {'PAT-LxyRes-StdDev':R.kRed, 'DSA-LxyRes-StdDev':R.kRed+2},
     {'min':1.e-3, 'max':100.},
@@ -170,7 +170,7 @@ makeSummaryPlot(
     DATA,
     '2Mu2J',
     ('DSA-LxyRes-Mean', 'PAT-LxyRes-Mean'),
-    ';;Fitted Gaussian #mu : reco L_{xy} #minus gen L_{xy}',
+    ';;Fitted Gaussian #mu : reco L_{xy} #minus gen L_{xy} [cm]',
     {'PAT-LxyRes-Mean':'PAT', 'DSA-LxyRes-Mean':'DSA'},
     {'PAT-LxyRes-Mean':R.kRed, 'DSA-LxyRes-Mean':R.kRed+2},
     {'min':1.e-7, 'max':40.},
@@ -178,26 +178,3 @@ makeSummaryPlot(
     'tl',
     True
 )
-
-
-##########
-f = R.TFile.Open('roots/PATMuonStudyPlots_Combined_BS8_MC.root')
-BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
-PC = HG.PLOTCONFIG
-for hkey in ('PAT-LxySig', 'DSA-LxySig'):
-    h = HG.getHistogram(f, BGORDER[0], hkey).Clone()
-    h.Scale(PC[BGORDER[0]]['WEIGHT'])
-    for ref in BGORDER[1:]:
-        thisH = HG.getHistogram(f, ref, hkey).Clone()
-        thisH.Scale(PC[ref]['WEIGHT'])
-        h.Add(thisH)
-
-    print hkey, h.GetMean()
-    print hkey, 'Overflow', h.GetBinContent(h.GetNbinsX()+1)/h.Integral(0, h.GetNbinsX()+1)*100.
-
-    h.Rebin(10)
-    h.GetXaxis().SetRangeUser(0., 1000.)
-    p = Plotter.Plot(h, '', 'l', 'hist')
-    c = Plotter.Canvas(logy=True)
-    c.addMainPlot(p)
-    c.cleanup('pdfs/plot_'+hkey+'.pdf')

@@ -23,6 +23,9 @@ R.TLorentzVector.__iter__ = lambda self : iter([self[0], self[1], self[2], self[
 R.TVector2.__len__  = lambda self : 2
 R.TVector2.__iter__ = lambda self : iter([self.X(), self.Y()])
 
+# TVector2 doesn't implement indexing
+R.TVector2.__getitem__ = lambda self, index : [self.X(), self.Y()][index]
+
 # TVector2 doesn't do __mul__ correctly. Also, make Mag() return Mod().
 def fixedMul(self, second):
     try:

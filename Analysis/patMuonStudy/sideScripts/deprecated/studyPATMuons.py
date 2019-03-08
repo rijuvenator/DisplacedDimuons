@@ -12,16 +12,11 @@ QUANTITIES = {
     'vtxChi2' : {'AXES':(2000,      0., 1000.  ), 'LAMBDA': lambda dim: dim.normChi2                      , 'PRETTY':'vtx #chi^{2}/dof'      },
 }
 
-CONFIG = {
-    'DSA-Lxy'     : {'QKEY':'Lxy'    },
-    'DSA-LxySig'  : {'QKEY':'LxySig' },
-#   'DSA-LxyErr'  : {'QKEY':'LxyErr' },
-    'DSA-vtxChi2' : {'QKEY':'vtxChi2'},
-    'PAT-Lxy'     : {'QKEY':'Lxy'    },
-    'PAT-LxySig'  : {'QKEY':'LxySig' },
-#   'PAT-LxyErr'  : {'QKEY':'LxyErr' },
-    'PAT-vtxChi2' : {'QKEY':'vtxChi2'},
-}
+CONFIG = {}
+RTYPES = ('DSA', 'PAT')
+for RTYPE in RTYPES:
+    for QKEY in QUANTITIES:
+        CONFIG[RTYPE+'-'+QKEY] = {'QKEY':QKEY}
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -58,7 +53,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    Dimuons = [dim for dim in Dimuons3 if sum(dim.ID) < 999]
+    Dimuons = [dim for dim in Dimuons3 if dim.composition == 'DSA']
 
     selectedDimuons, selectedDSAmuons = Selector.SelectObjects(E, self.CUTS, Dimuons, DSAmuons)
     if selectedDimuons is None: return
@@ -67,23 +62,26 @@ def analyze(self, E, PARAMS=None):
     replacedDimuons, wasReplaced = replaceDSADimuons(Dimuons3, DSAmuons, mode='PAT')
     replacedIDs = {dim.ID:rdim for dim, rdim, isReplaced in zip(Dimuons, replacedDimuons, wasReplaced) if isReplaced}
 
-    for KEY in CONFIG:
-        QKEY = KEY[4:]
-        if 'DSA' in KEY:
-            for dim in selectedDimuons:
-                self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
-        else:
-            for dim in selectedDimuons:
-                if dim.ID in replacedIDs:
-                    rdim = replacedIDs[dim.ID]
-                    if KEY != 'PAT-Lxy':
-                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
-                    else:
-                        self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA']( dim), eventWeight)
-                    for attr in ('Tracker', 'Global'):
-                        for idx in ('1', '2'):
-                            if getattr(PATmuons[getattr(rdim, 'idx'+idx)-1000], 'is'+attr):
-                                self.COUNTS[attr.lower()+idx] += 1
+    for dim in selectedDimuons:
+        RTYPE = 'DSA'
+        # fill histograms -- note the dim
+        for QKEY in QUANTITIES:
+            KEY = RTYPE+'-'+QKEY
+            self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
+
+        if dim.ID not in replacedIDs: continue
+
+        RTYPE = 'PAT'
+        rdim = replacedIDs[dim.ID]
+        for attr in ('Tracker', 'Global'):
+            for idx in ('1', '2'):
+                if getattr(PATmuons[getattr(rdim, 'idx'+idx)], 'is'+attr):
+                    self.COUNTS[attr.lower()+idx] += 1
+
+        # fill histograms -- note the rdim
+        for QKEY in QUANTITIES:
+            KEY = RTYPE+'-'+QKEY
+            self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](rdim), eventWeight)
 
     self.COUNTS['selected'] += len(selectedIDs)
     self.COUNTS['replaced'] += len([ID for ID in selectedIDs if ID in replacedIDs])

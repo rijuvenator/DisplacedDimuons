@@ -69,6 +69,14 @@ CUTS = {
     'b_LxyErr'   : Cut('b_LxyErr'   , lambda dimuon: dimuon.LxyErr()                   , operator.lt,  99.      ),
     'b_mass'     : Cut('b_mass'     , lambda dimuon: dimuon.mass                       , operator.gt,   5.      ),
 
+### DSA MUON QUALITY CUTS ###
+    'q_nStations': Cut('q_nStations', lambda muon: muon.nCSCStations+muon.nDTStations  , operator.gt,   1       ),
+    'q_nMuonHits': Cut('q_nMuonHits', lambda muon: muon.nCSCHits+muon.nDTHits          , operator.gt,  12       ),
+    'q_FPTE'     : Cut('q_FPTE'     , lambda muon: muon.ptError/muon.pt                , operator.lt,   1.      ),
+
+### OTHER MUON CUTS ###
+    'r_pT'       : Cut('r_pT'       , lambda muon: muon.pt                             , operator.gt,  10.      ),
+
 }
 
 # CutLists for access convenience (and ordering)
@@ -78,6 +86,8 @@ CutLists = {
     'AcceptanceCutList'     : ('a_pT', 'a_eta', 'a_Lxy'),
     'BaselineMuonCutList'   : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
     'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass'),
+    'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
+    'OtherMuonCutList'      : ('r_pT',),
 }
 for prefix in ('Muon', 'Dimuon'):
     CutLists[prefix+'CutListPlusAll' ] =             CutLists[prefix+'CutList'] + ('all',)

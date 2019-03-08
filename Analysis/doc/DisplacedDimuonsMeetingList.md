@@ -1,4 +1,6 @@
-# Displaced Dimuons Private Meetings
+# Displaced Dimuons Meeting List
+
+## Private Internal Meetings
 
 [Indico Top](https://indico.cern.ch/category/5798/)
 
@@ -34,12 +36,12 @@ Date | Talks
 [2019   January 24](https://indico.cern.ch/event/792621/) | Alberto, Sebastian
 [2019   January 31](https://indico.cern.ch/event/794936/) | Suchita, Sebastian, Slava
 [2019  February 14](https://indico.cern.ch/event/798959/) | Riju, Sebastian
-
+[2019  February 21](https://indico.cern.ch/event/800782/) | Riju, Alberto
 
 ## External Talks
 
-Date | Talks
----|---
-[2018 September 14](https://indico.cern.ch/event/754333/) | Long-Lived EXO meeting (Riju)
-[2018 November 1](https://indico.cern.ch/event/754758/)   | CMS EXO workshop 2018, Athens (Alberto)
-[2019 February 11](https://indico.cern.ch/event/794061/)  | MC&I meeting (Suchita)
+Date | Talk | Speaker
+---|---|---
+[2018 September 14](https://indico.cern.ch/event/754333/) | Status Report @ LL EXO Meeting                | Riju
+[2018  November  1](https://indico.cern.ch/event/754758/) | Status Report @ CMS EXO Workshop 2018, Athens | Alberto
+[2019  February 11](https://indico.cern.ch/event/794061/) | MC Request @ MC&I Meeting                     | Suchita

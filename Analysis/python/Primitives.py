@@ -76,8 +76,12 @@ class ETree(object):
     # this function copies the contents of t into the ETree
     # and makes a Python list from a vector if appropriate
     def copyBranch(self, branch):
-        if 'vector' in type(getattr(self.TTree, branch)).__name__:
-            setattr(self, branch, list(getattr(self.TTree, branch)))
+        name = type(getattr(self.TTree, branch)).__name__
+        if 'vector' in name:
+            if 'vector<vector<' in name:
+                setattr(self, branch, [list(subvector) for subvector in list(getattr(self.TTree, branch))])
+            else:
+                setattr(self, branch, list(getattr(self.TTree, branch)))
         else:
             setattr(self, branch, getattr(self.TTree, branch))
 
@@ -663,12 +667,19 @@ class RecoMuon(Muon):
         prefix = TAGDICT[tag]
         Muon.__init__(self, E, i, prefix)
 
-        self.tag = tag
-
         # all reco muons have idx, ptError, and impact parameter
         self.set('idx', E, prefix+'idx', i)
         self.set('ptError', E, prefix+'ptError', i)
         self.IP = ImpactParameter(E, i, prefix)
+
+        # store the type of this refitted muon
+        self.tag = tag
+        if 'REF' in tag:
+            if self.idx > 999:
+                self.tag = 'DIM_PAT_REF' + tag[-1]
+                self.idx -= 1000
+            else:
+                self.tag = 'DIM_DSA_REF' + tag[-1]
 
         # only PAT, DSA, and RSA have these attributes
         if tag in ('DSA', 'RSA', 'PAT'):
@@ -687,18 +698,19 @@ class RecoMuon(Muon):
                 self.gen = Muon(E, i, 'patmu_gen_')
             for attr in ('nMatchedStations', 'isGlobal', 'isTracker', 'nPixelHits', 'nTrackerHits', 'nTrackerLayers', 'trackIso', 'ecalIso', 'hcalIso'):
                 self.set(attr, E, prefix+attr, i)
-            for attr in ('isGlobal', 'isTracker'):
+            self.set('highPurity', E, prefix+'hpur', i)
+            for attr in ('isGlobal', 'isTracker', 'highPurity'):
                 setattr(self, attr, bool(getattr(self, attr)))
         # only DSA has these attributes
         if tag in ('DSA',):
             for attr in ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch'):
                 self.set(attr, E, prefix+attr, i)
-            if self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
-            if self.idx_SegMatch     < 0   : self.idx_SegMatch     = None
-            if self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
-        # only refitted muons have these attributes
+            if     self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
+            if len(self.idx_SegMatch)   == 0   : self.idx_SegMatch     = None
+            if     self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
+        # only refitted PAT has these attributes
         if 'REF' in tag:
-            if self.idx > 999:
+            if 'PAT' in self.tag:
                 for attr in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
                     self.set(attr, E, prefix+attr, i)
 
@@ -856,6 +868,14 @@ class Dimuon(Particle):
         self.idx2 = self.mu2.idx
 
         self.ID   = (self.mu1.idx, self.mu2.idx)
+
+        tags = {1:self.mu1.tag, 2:self.mu2.tag}
+        if 'DSA' in tags[1] and 'DSA' in tags[2]:
+            self.composition = 'DSA'
+        elif 'PAT' in tags[1] and 'PAT' in tags[2]:
+            self.composition = 'PAT'
+        else:
+            self.composition = 'HYBRID'
 
     def __getattr__(self, name):
         if name in ('Lxy', 'LxySig', 'LxyErr'):
