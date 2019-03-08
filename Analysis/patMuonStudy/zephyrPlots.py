@@ -9,8 +9,8 @@ QUANTITIES = {
     'Lxy'     : {'AXES':(1600, 0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                           , 'PRETTY':'L_{xy} [cm]'           },
     'LxySig'  : {'AXES':(5000, 0., 5000.  ), 'LAMBDA': lambda dim: dim.LxySig()                        , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
     'LxyErr'  : {'AXES':(1000, 0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                        , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
-    'vtxChi2' : {'AXES':(500 , 0., 100.   ), 'LAMBDA': lambda dim: dim.normChi2                        , 'PRETTY':'vtx #chi^{2}/dof'      },
-    'd0Sig'   : {'AXES':(1000, 0., 1000.  ), 'LAMBDA': lambda dim: min(dim.mu1.d0Sig(),dim.mu2.d0Sig()), 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
+    'vtxChi2' : {'AXES':(2000, 0., 1000.  ), 'LAMBDA': lambda dim: dim.normChi2                        , 'PRETTY':'vtx #chi^{2}/dof'      },
+    'd0Sig'   : {'AXES':(1000, 0., 200.   ), 'LAMBDA': lambda dim: min(dim.mu1.d0Sig(),dim.mu2.d0Sig()), 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
 }
 
 MCQUANTITIES = {

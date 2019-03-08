@@ -97,7 +97,7 @@ def makeMCPlots():
     BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
     PC = HG.PLOTCONFIG
     for recoType in ('PAT', 'DSA', 'HYB'):
-        for quantity in ('LxySig', 'LxyErr', 'vtxChi2'):
+        for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'd0Sig'):
             hkey = recoType + '-' + quantity
             HISTS = {}
             HISTS['stack'] = R.THStack('hStack', '')
@@ -106,7 +106,7 @@ def makeMCPlots():
                HISTS[ref] = HG.getHistogram(FILE, ref, hkey).Clone()
                #RT.addFlows(HISTS[ref])
                HISTS[ref].Scale(PC[ref]['WEIGHT'])
-               HISTS[ref].Rebin(10)
+               if quantity != 'd0Sig': HISTS[ref].Rebin(10)
                HISTS['stack'].Add(HISTS[ref])
                PConfig[ref] = (PC[ref]['LATEX'], 'f', 'hist')
 
@@ -124,6 +124,8 @@ def makeMCPlots():
             if 'vtxChi2' in hkey:
                 #canvas.firstPlot.GetXaxis().SetRangeUser(0., 200.)
                 pass
+            if 'd0Sig' in hkey:
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
             canvas.firstPlot.setTitles(X='', copy=PLOTS[BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')
             canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
@@ -139,6 +141,11 @@ def makeMCPlots():
                 val = 100.
             if 'vtxChi2' in hkey:
                 val = 50.
+            if 'LxyErr' in hkey:
+                val = 10.
+            if 'd0Sig' in hkey:
+                val = 3.
+
             print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
             print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
             print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)

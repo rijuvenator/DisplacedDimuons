@@ -134,7 +134,7 @@ OK? [y/n] '''.format(
 if MODE == 'split':
     FOLDER = '' if len(DIRS) < 2 else DIRS[1]
     msg('cd to roots/{} and making {}'.format(FOLDER, DIRS[0]))
-    cd('roots/'+FOLDER)
+    cd(ROOTSDIR+FOLDER)
     dirs = DIRS[0]
     run(['mkdir', '-p', dirs])
     for tag in TAGS:
@@ -150,7 +150,7 @@ if MODE == 'split':
 # move data, MC, Signal files to subfolders
 elif MODE == 'move':
     msg('cd to roots/')
-    cd('roots/')
+    cd(ROOTSDIR)
     def CS(cs):
         return '' if cs == '' else '_'+cs
     for tag in TAGS:
@@ -191,7 +191,7 @@ elif MODE == 'move':
 # rehadd the Main files
 elif MODE == 'rehadd':
     msg('cd to roots/')
-    cd('roots/')
+    cd(ROOTSDIR)
     for tag in TAGS:
         files = []
         for dirs in DIRS:
