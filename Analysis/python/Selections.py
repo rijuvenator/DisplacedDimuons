@@ -13,7 +13,7 @@ def passedTrigger(E):
     return False
 
 # for printing purposes, mapping operators to strings
-OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264'}
+OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264', operator.eq:'='}
 
 # abstract cut object: name string, lambda expression to evaluate, comparison operator, and cut value
 # apply returns a bool of the applied cut given an object (or list of objects)
@@ -55,9 +55,9 @@ CUTS = {
     'LxySig'     : Cut('LxySig'     , lambda dimuon: dimuon.LxySig()                   , operator.gt, 12.       ),
 
 ### ACCEPTANCE CUTS ###
-    'a_pT'       : Cut('a_pT'       , lambda muon: muon.pt                            , operator.gt,  25.      ),
-    'a_eta'      : Cut('a_eta'      , lambda muon: abs(muon.eta)                      , operator.lt,   2.      ),
-    'a_Lxy'      : Cut('a_Lxy'      , lambda muon: muon.Lxy()                         , operator.lt, 500.      ),
+    'a_pT'       : Cut('a_pT'       , lambda muon: muon.pt                             , operator.gt,  25.      ),
+    'a_eta'      : Cut('a_eta'      , lambda muon: abs(muon.eta)                       , operator.lt,   2.      ),
+    'a_Lxy'      : Cut('a_Lxy'      , lambda muon: muon.Lxy()                          , operator.lt, 500.      ),
 
 ### BASELINE RECO MUON CUTS ###
     'b_nStations': Cut('b_nStations', lambda muon: muon.nCSCStations+muon.nDTStations  , operator.gt,   1       ),
@@ -68,12 +68,17 @@ CUTS = {
 ### BASELINE DIMUON CUTS ###
     'b_LxyErr'   : Cut('b_LxyErr'   , lambda dimuon: dimuon.LxyErr()                   , operator.lt,  99.      ),
     'b_mass'     : Cut('b_mass'     , lambda dimuon: dimuon.mass                       , operator.gt,   5.      ),
-    'b_vtxChi2'  : Cut('vtxChi2'    , lambda dimuon: dimuon.normChi2                   , operator.lt, 100.      ),
+    'b_vtxChi2'  : Cut('b_vtxChi2'  , lambda dimuon: dimuon.normChi2                   , operator.lt,   5.      ),
+    'b_d0Sig'    : Cut('b_d0Sig'    , lambda dim: min(dim.mu1.d0Sig(),dim.mu2.d0Sig()) , operator.gt,  10.      ),
 
 ### DSA MUON QUALITY CUTS ###
     'q_nStations': Cut('q_nStations', lambda muon: muon.nCSCStations+muon.nDTStations  , operator.gt,   1       ),
     'q_nMuonHits': Cut('q_nMuonHits', lambda muon: muon.nCSCHits+muon.nDTHits          , operator.gt,  12       ),
     'q_FPTE'     : Cut('q_FPTE'     , lambda muon: muon.ptError/muon.pt                , operator.lt,   1.      ),
+
+### PAT MUON QUALITY CUTS ###
+    'p_isGlobal' : Cut('p_isGlobal' , lambda muon: muon.isGlobal                       , operator.eq, True      ),
+    'p_nTrkLays' : Cut('p_nTrkLays' , lambda muon: muon.nTrackerLayers                 , operator.gt,   6       ),
 
 ### OTHER MUON CUTS ###
     'r_pT'       : Cut('r_pT'       , lambda muon: muon.pt                             , operator.gt,  10.      ),
@@ -86,8 +91,9 @@ CutLists = {
     'DimuonCutList'         : ('vtxChi2', 'deltaR', 'mass', 'deltaPhi', 'cosAlpha', 'LxySig'),
     'AcceptanceCutList'     : ('a_pT', 'a_eta', 'a_Lxy'),
     'BaselineMuonCutList'   : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
-    'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass', 'b_vtxChi2'),
+    'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass', 'b_vtxChi2', 'b_d0Sig'),
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
+    'PATQualityCutList'     : ('p_isGlobal', 'p_nTrkLays'),
     'OtherMuonCutList'      : ('r_pT',),
 }
 for prefix in ('Muon', 'Dimuon'):

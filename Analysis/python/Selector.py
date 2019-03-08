@@ -14,12 +14,15 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     NMUONHITS = '_NH'       in CUTS
     FPTERR    = '_FPTE'     in CUTS
     HLT       = '_HLT'      in CUTS
+    ISGLOBAL  = '_GLB'      in CUTS
+    NTRKLAYS  = '_NTL'      in CUTS
     REP       = '_REP'      in CUTS
     PT        = '_PT'       in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
     MASS      = '_M'        in CUTS
     CHI2      = '_CHI2'     in CUTS
+    D0SIG     = '_D0SIG'    in CUTS
 
     # determine muon cut list based on string values
     def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR):
@@ -32,8 +35,17 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             cutList.append('q_FPTE')
         return cutList
 
+    # determine PAT muon quality cuts based on string values
+    def boolsToPATMuonCutList(ISGLOBAL, NTRKLAYS):
+        cutList = []
+        if ISGLOBAL:
+            cutList.append('p_isGlobal')
+        if NTRKLAYS:
+            cutList.append('p_nTrkLays')
+        return cutList
+
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS, CHI2):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG):
         cutList = []
         if LXYERR:
             cutList.append('b_LxyErr')
@@ -41,6 +53,8 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             cutList.append('b_mass')
         if CHI2:
             cutList.append('b_vtxChi2')
+        if D0SIG:
+            cutList.append('b_d0Sig')
         return cutList
 
     # for PROMPT and NOPROMPT event selections
@@ -72,12 +86,8 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         # figure out which cuts we actually care about
         cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
 
-        # no selection
-        if len(cutList) == 0:
-            selectedMuons['DSA'] = DSAmuons
-            selectedDimuons      = Dimuons3
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        else:
+        if len(cutList) > 0:
             selectedMuons['DSA'] = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
             selectedOIndices     = [mu.idx for mu in selectedMuons['DSA']]
             selectedDimuons      = [dim for dim in Dimuons3 if set(dim.ID).issubset(selectedOIndices) or dim.composition != 'DSA']
@@ -90,9 +100,25 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         HLTMuonMatches = AnalysisTools.matchedTrigger(HLTMuons, selectedMuons['DSA'])
         if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return failedReturnList
 
+    # PAT muon quality cuts
+    if ISGLOBAL or NTRKLAYS:
+        # compute all the PAT quality selection booleans
+        PATSelections = [Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in PATmuons]
+
+        # figure out which cuts we actually care about
+        cutList = boolsToPATMuonCutList(ISGLOBAL, NTRKLAYS)
+
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        if len(cutList) > 0:
+            selectedMuons['PAT'] = [mu for i,mu in enumerate(PATmuons) if PATSelections[i].allOf(*cutList)]
+
+        # note: explicitly not filtered dimuons at this stage because it's not necessary
+        # either the replacement is next, and the dimuons will get filtered anyway
+        # or no replacement will be done, and again, the dimuons will get filtered anyway
+
     # PAT muon replacement
     if REP:
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], PATmuons, selectedDimuons)
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
@@ -137,7 +163,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2)
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
