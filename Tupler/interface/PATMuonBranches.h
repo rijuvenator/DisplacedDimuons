@@ -182,6 +182,7 @@ class PATMuonBranches : public BranchCollection
 
     patmu_nMatchedStations.clear();
     patmu_isGlobal        .clear();
+    patmu_isTracker       .clear();
     patmu_isMedium        .clear();
     patmu_nPixelHits      .clear();
     patmu_nTrackerHits    .clear();
