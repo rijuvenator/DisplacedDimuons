@@ -29,6 +29,9 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     if (!isGlobal && !(isTracker && mu.muonID("TrackerMuonArbitrated")))
       continue;
 
+    // "Medium" muon id
+    bool isMedium = isMediumMuon(mu);
+
     const reco::Track* tk = mu.tunePMuonBestTrack().get();
     if (!tk) {
       std::cout << "+++ PATMuonBranches::Fill warning: tuneP track for muon # "
@@ -73,6 +76,7 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
         << "; tracker? "     << (isTracker    ? "yes" : "no")
         << "; standalone? "  << (isStandalone ? "yes" : "no")
         << "; PF? "          << (isPF         ? "yes" : "no")
+        << "; medium? "      << (isMedium     ? "yes" : "no")
         << "; high purity? " << (isHighPurity ? "yes" : "no")
         << std::endl;
       std::cout << " " << muon_cand;
@@ -108,6 +112,7 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     patmu_nMatchedStations.push_back(n_MatchedStations);
     patmu_isGlobal        .push_back(isGlobal);
     patmu_isTracker       .push_back(isTracker);
+    patmu_isMedium        .push_back(isMedium);
     patmu_nPixelHits      .push_back(muon_cand.n_PxlHits);
     patmu_nTrackerHits    .push_back(muon_cand.n_TrkHits);
     patmu_nTrackerLayers  .push_back(muon_cand.n_TrkLayers);
@@ -162,4 +167,34 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
       patmu_gen_z     .push_back(-999);
     }
   }
+}
+
+// "Medium" muon id
+// Implementing according to the description in
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2
+bool PATMuonBranches::isMediumMuon(const pat::Muon & mu) {
+  static bool debug = false;
+
+  bool goodGlob = mu.isGlobalMuon() &&
+    mu.globalTrack()->normalizedChi2() < 3. &&
+    mu.combinedQuality().chi2LocalPosition < 12. &&
+    mu.combinedQuality().trkKink < 20.;
+
+  bool isMedium =
+    mu.isPFMuon() &&
+    (mu.isGlobalMuon() || (mu.isTrackerMuon() && mu.muonID("TrackerMuonArbitrated"))) &&
+    mu.innerTrack()->validFraction() > 0.8 &&
+    muon::segmentCompatibility(mu) > (goodGlob ? 0.303 : 0.451);
+
+  if (debug) {
+    std::cout << "  isMedium tests:"
+	      << " chi2/ndof = "       << (mu.isGlobalMuon() ? mu.globalTrack()->normalizedChi2() : -999.)
+	      << " trk-sta match = "   << mu.combinedQuality().chi2LocalPosition
+	      << " trk kink = "        << mu.combinedQuality().trkKink
+	      << " % of valid hits = " << mu.innerTrack()->validFraction()
+	      << " segm. comp. = "     << muon::segmentCompatibility(mu)
+	      << std::endl;
+  }
+
+  return isMedium;
 }
