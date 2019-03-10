@@ -12,10 +12,13 @@ def begin(self, PARAMS=None):
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    self.HistInit('pT-HP'   , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
-    self.HistInit('pT'      , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
-    self.HistInit('GM-pT-HP', ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
-    self.HistInit('GM-pT'   , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
+    if True:
+        self.HistInit('pT-HP'   , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
+        self.HistInit('pT'      , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
+
+    if self.SP is not None:
+        self.HistInit('GM-pT-HP', ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
+        self.HistInit('GM-pT'   , ';pre-refit PAT muon p_{T} [GeV];Counts', 1000, 0., 1000.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
