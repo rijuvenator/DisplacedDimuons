@@ -1,7 +1,8 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Common.DataHandler as DH
-from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+import DisplacedDimuons.Analysis.RootTools as RT
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS, BGORDER
 
 # integrated luminosity for 2016
 INTEGRATED_LUMINOSITY_2016 = 35900.
@@ -92,6 +93,11 @@ def getHistogram(FILE, ref, key):
 
 # get added signal histograms
 def getAddedSignalHistograms(FILE, fs, keylist):
+    # allow passing a string or a list
+    if type(keylist) == str:
+        keylist = [keylist]
+
+    # loop through the keys, add up all the signalpoints, return a dictionary of histograms
     HISTS = {}
     for key in keylist:
         HISTS[key] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
@@ -99,6 +105,45 @@ def getAddedSignalHistograms(FILE, fs, keylist):
         for key in keylist:
             HISTS[key].Add(getHistogram(FILE, (fs, sp), key))
     return HISTS
+
+# get added weighted background histograms
+def getBackgroundHistograms(FILE, keylist, stack=True, addFlows=True, rebin=None, rebinVeto=None):
+    # allow passing a string or a list
+    if type(keylist) == str:
+        keylist = [keylist]
+
+    # loop through the keys
+    # if stack, make a THStack; otherwise, get started by using the first histogram
+    # loop through the bg keys, addFlows if desired, scale, rebin if desired
+    # if stack, Add
+    # if not stack and this isn't the first, also Add
+    # if not stack and this is the first, clone ("get started")
+    # return dictionary of dictionary of histograms, and plot configs
+    HISTS = {}
+    PConfig = {}
+    for key in keylist:
+        HISTS[key] = {}
+        PConfig[key] = {'stack':('', '', 'hist')}
+        if stack:
+            HISTS[key]['stack'] = R.THStack('hStack', '')
+        for ref in BGORDER:
+            HISTS[key][ref] = getHistogram(FILE, ref, key).Clone()
+            if addFlows:
+                RT.addFlows(HISTS[key][ref])
+            HISTS[key][ref].Scale(PLOTCONFIG[ref]['WEIGHT'])
+            if rebin is not None and (rebinVeto is None or (rebinVeto is not None and key not in rebinVeto)):
+                is2D = 'TH2' in str(HISTS[key][ref].__class__)
+                if is2D:
+                    HISTS[key][ref].Rebin2D(*rebin)
+                else:
+                    HISTS[key][ref].Rebin(rebin)
+            PConfig[key][ref] = (PLOTCONFIG[ref]['LATEX'], 'f', 'hist')
+            if not stack and ref == BGORDER[0]:
+                HISTS[key]['stack'] = HISTS[key][ref].Clone()
+                continue
+            HISTS[key]['stack'].Add(HISTS[key][ref])
+
+    return HISTS, PConfig
 
 ############################
 #### PLOT CONFIGURATION ####
