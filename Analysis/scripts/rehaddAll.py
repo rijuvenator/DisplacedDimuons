@@ -41,6 +41,10 @@ def msg(string, col='red'):
 #             in rehadd mode, directories from which to look for tags and hadd together
 # cutstrings: in move mode, string in between tag and sample, i.e. tag_CS_sample.root
 #             specifies what directories to make, what files to move into them
+# suffix:     in rehadd mode, specifies the hadded suffix
+# noPlots:    flag, does not add "Plots" onto the end of a tag
+# batch:      flag, does not prompt (allows rehadding in a loop without pause)
+# noMove:     flag, does not move hadded files to ROOTSDIR
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode'      , dest='MODE'      ,            default='split'               , choices=['split', 'rehadd', 'move'])
@@ -51,6 +55,7 @@ parser.add_argument('--cutstrings', dest='CUTSTRINGS', nargs='+', default=[]    
 parser.add_argument('--suffix'    , dest='SUFFIX'    ,            default=''                                                         )
 parser.add_argument('--noPlots'   , dest='NOPLOTS'   ,                                            action='store_true'                )
 parser.add_argument('--batch'     , dest='BATCH'     ,                                            action='store_true'                )
+parser.add_argument('--noMove'    , dest='NOMOVE'    ,                                            action='store_true'                )
 ARGS = parser.parse_args()
 
 # for convenience
@@ -140,10 +145,10 @@ if MODE == 'split':
     for tag in TAGS:
         for sample in SAMPLES:
             msg('rehadding {} for {}'.format(sample, tag))
-            run('{}rehadd {}'.format(ROOTSDIR, tag+'_'+sample))
+            run('rehadd {}'.format(tag+'_'+sample))
             msg('moving {} for {} _* splits to {}'.format(sample, tag, dirs))
             run(['mv'] + glob.glob(tag+'_'+sample+'_*') + [dirs])
-            if FOLDER != '':
+            if FOLDER != '' and not ARGS.NOMOVE:
                 msg('moving hadded {} {} to roots/'.format(tag, sample))
                 run(['mv', tag+'_'+sample+'.root', ROOTSDIR])
 
