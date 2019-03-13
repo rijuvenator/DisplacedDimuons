@@ -156,7 +156,22 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         candidateDimuons = objects['DSA']['outputDims'] + objects['PAT']['outputDims'] + objects['HYBRID']['outputDims']
         candidateDimuons.sort(key = lambda dim: dim.normChi2)
 
-        selectedDimuons = candidateDimuons[:2]
+        # error: now that we have hybrids, we can't just take the two lowest chi2
+        # we need the two lowest chi2, *non-overlapping*
+        # selectedDimuons = candidateDimuons[:2]
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        selectedDimuons = []
+        for dim in candidateDimuons:
+            if len(selectedDimuons) == 2:
+                break
+            if dim.composition != 'HYBRID':
+                tag1, tag2 = dim.composition, dim.composition
+            else:
+                tag1, tag2 = 'DSA', 'PAT'
+            if dim.idx1 in selectedIndices[tag1] or dim.idx2 in selectedIndices[tag2]: continue
+            selectedIndices[tag1].add(dim.idx1)
+            selectedIndices[tag2].add(dim.idx2)
+            selectedDimuons.append(dim)
 
     if True:
         # compute all the baseline selection booleans
