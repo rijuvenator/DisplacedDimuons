@@ -1,23 +1,43 @@
 import ROOT as R
 import numpy as np
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import BGORDER as BGORDER_REAL
 import DisplacedDimuons.Analysis.Plotter as Plotter
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr 
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
+import DisplacedDimuons.Analysis.PlotterParser as PP
+
+ARGS = PP.PARSER.parse_args()
+CUTSTRING = ARGS.CUTSTRING
+
+if CUTSTRING == '':
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M'
+    print 'Defaulting to', CUTSTRING
+
+lumiExtra = {
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M'                    : '',
+    'NS_NH_FPTE_HLT_GLB_REP_PT_PC_LXYE_M'                : ' + #mu^{global}',
+    'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M'            : ' + #mu^{global} + N_{trk. lay.}',
+    'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M_CHI2'       : ' + #mu^{global} + N_{trk. lay.} + vtx. #chi^{2}',
+    'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M_CHI2_D0SIG' : ' + #mu^{global} + N_{trk. lay.} + vtx. #chi^{2} + d_{0} sig.',
+}
 
 DRAW = False
 if DRAW:
     R.gROOT.SetBatch(False)
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_2Mu2J.root')
+FILES = {
+    '2Mu2J' : R.TFile.Open('roots/ZephyrPlots_Trig_Combined_{}_HTo2XTo2Mu2J.root'.format(CUTSTRING)),
+    'MC'    : R.TFile.Open('roots/ZephyrPlots_Combined_{}_MC.root'               .format(CUTSTRING))
+}
 
 fs = '2Mu2J'
 
 # Lxy resolution vs Lxy
 def makeLxyResVSLxyPlot(recoType):
     key = recoType + '-LxyResVSGEN-Lxy'
-    HISTS = HG.getAddedSignalHistograms(FILE, fs, (key,))
+    HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
     config = {
         'PAT' : (35 ,  1),
@@ -51,7 +71,7 @@ def makeLxyResVSLxyPlot(recoType):
     p = Plotter.Plot(g, '', '', 'pe')
     p.setTitles(X='gen L_{xy} [cm]', Y='Fitted #sigma L_{xy} Res. [cm]')
 
-    canvas = Plotter.Canvas(lumi=fs)
+    canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType))
     canvas.addMainPlot(p)
     canvas.firstPlot.SetMinimum(0.)
     if recoType == 'PAT':
@@ -60,7 +80,7 @@ def makeLxyResVSLxyPlot(recoType):
         canvas.firstPlot.SetMaximum(5.)
     if recoType == 'DSA':
         canvas.firstPlot.SetMaximum(10.)
-    canvas.cleanup('pdfs/ZEP_ResVSLxy_BS9_{}.pdf'.format(recoType))
+    canvas.cleanup('pdfs/ZEP_ResVSLxy_{}_{}_{}.pdf'.format(recoType, CUTSTRING, fs))
 makeLxyResVSLxyPlot('PAT')
 makeLxyResVSLxyPlot('HYB')
 makeLxyResVSLxyPlot('DSA')
@@ -68,12 +88,12 @@ makeLxyResVSLxyPlot('DSA')
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
     for recoType in ('DSA', 'PAT', 'HYB'):
-        for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull'):
+        for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'd0Sig'):
             key = recoType + '-' + quantity
-            HISTS = HG.getAddedSignalHistograms(FILE, fs, (key,))
+            HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity == 'vtxChi2' else False)
             canvas.addMainPlot(p, addS=True)
             p.setColor(R.kBlue, which='L')
             nbox = canvas.makeStatsBox(p.plot, color=R.kBlue)
@@ -86,50 +106,47 @@ def makeSinglePlots():
                 canvas.setFitBoxStyle(p.plot, lWidth=0.275, pos='tl')
                 sbox = p.plot.FindObject('stats')
                 sbox.SetTextColor(R.kRed)
-            canvas.cleanup('pdfs/ZEP_{}.pdf'.format(key))
+
+            if 'vtxChi2' in key:
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
+                canvas.firstPlot.SetMaximum(40000.)
+            if 'd0Sig' in key:
+                canvas.firstPlot.SetMaximum(200. if recoType == 'PAT' else 900.)
+            if 'LxySig' in key:
+                canvas.firstPlot.SetMaximum(200. if recoType == 'PAT' else (1200. if recoType == 'DSA' else 2700.))
+            canvas.cleanup('pdfs/ZEP_{}_{}_{}_{}.pdf'.format(quantity, recoType, CUTSTRING, fs))
 makeSinglePlots()
 
 #### MC PLOTS ####
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Combined_BS9_MC.root')
 # MC plots of LxySig
 def makeMCPlots():
-    BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
-    PC = HG.PLOTCONFIG
     for recoType in ('PAT', 'DSA', 'HYB'):
         for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'd0Sig'):
             hkey = recoType + '-' + quantity
-            HISTS = {}
-            HISTS['stack'] = R.THStack('hStack', '')
-            PConfig = {'stack':('', '', 'hist')}
-            for ref in BGORDER:
-               HISTS[ref] = HG.getHistogram(FILE, ref, hkey).Clone()
-               #RT.addFlows(HISTS[ref])
-               HISTS[ref].Scale(PC[ref]['WEIGHT'])
-               if quantity != 'd0Sig': HISTS[ref].Rebin(10)
-               HISTS['stack'].Add(HISTS[ref])
-               PConfig[ref] = (PC[ref]['LATEX'], 'f', 'hist')
+            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=lambda key: 'd0Sig' in key or 'vtxChi2' in key)
+            HISTS = HISTS[hkey]
+            PConfig = PConfig[hkey]
 
             PLOTS = {}
-            for key in BGORDER + ('stack',):
+            for key in HG.BGORDER + ('stack',):
                 PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
-            canvas = Plotter.Canvas(logy=True)
-            for key in BGORDER:
-                PLOTS[key].setColor(PC[key]['COLOR'], which='LF')
+
+            canvas = Plotter.Canvas(lumi='MC'+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True)
+
+            for key in HG.BGORDER:
+                PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
+
             canvas.addMainPlot(PLOTS['stack'])
+
             # this has to be here because it has to be drawn first
-            if 'LxySig' in hkey:
-                canvas.firstPlot.GetXaxis().SetRangeUser(0., 1000.)
-                pass
             if 'vtxChi2' in hkey:
-                #canvas.firstPlot.GetXaxis().SetRangeUser(0., 200.)
-                pass
-            if 'd0Sig' in hkey:
-                canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
-            canvas.firstPlot.setTitles(X='', copy=PLOTS[BGORDER[0]])
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
+
+            canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')
             canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
-            for ref in reversed(BGORDER):
+            for ref in reversed(HG.BGORDER):
                 canvas.addLegendEntry(PLOTS[ref])
             canvas.legend.resizeHeight()
             RT.addBinWidth(canvas.firstPlot)
@@ -147,16 +164,20 @@ def makeMCPlots():
                 val = 3.
 
             print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
-            print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
-            print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins+1)/HISTS['sum'].Integral(0, nBins+1)*100.)
+            print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins)/HISTS['sum'].Integral(1, nBins)*100.)
+            print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins)/HISTS['sum'].Integral(1, nBins)*100.)
 
             if hkey == 'PAT-LxySig':
-                h = HG.getHistogram(FILE, 'DY50toInf', hkey).Clone()
-                print '{} DY50toInf    : {}'.format(hkey, h.Integral(h.FindBin(100.), h.GetNbinsX()+1))
+                h = HG.getHistogram(FILES['MC'], 'DY50toInf', hkey).Clone()
+                print '{} DY50toInf    : {}'.format(hkey, h.Integral(h.FindBin(100.), h.GetNbinsX()))
 
-            canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
+            doNotMaximize = True
+            canvas.firstPlot.SetMaximum({'DSA':1000., 'PAT':10.**7., 'HYB':2.*10.**5.}[recoType])
+
+            if not doNotMaximize:
+                canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
             canvas.firstPlot.SetMinimum(1.)
-            canvas.cleanup('pdfs/ZEP_MC_'+hkey+'.pdf')
+            canvas.cleanup('pdfs/ZEP_{}_{}_{}_MC.pdf'.format(quantity, recoType, CUTSTRING))
 makeMCPlots()
 
 R.gStyle.SetPalette(55)
@@ -168,33 +189,28 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         BGORDER = BGList
         if SUFFIX is None:
             SUFFIX = BGList[0]
-    PC = HG.PLOTCONFIG
     for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
             R.gStyle.SetPaintTextFormat('g')
-        hkey = 'PAT-12-LxySig100-'+quantity
-        HISTS = {}
-        HISTS['stack'] = HG.getHistogram(FILE, BGORDER[0], hkey).Clone()
-        HISTS['stack'].Scale(PC[BGORDER[0]]['WEIGHT'])
+
+        hkey = 'PAT-12-'+quantity
+        HG.BGORDER = BGORDER # don't do this, normally
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False, rebin=(10, 10), rebinVeto=lambda key: 'chi2' not in key)
+        HG.BGORDER = BGORDER_REAL
+        HISTS = HISTS[hkey]
+        PConfig = PConfig[hkey]
+
         if quantity != 'chi2':
-            PConfig = {'stack':('', '', 'colz text')}
+            PConfig['stack'] = ('', '', 'colz text')
         else:
-            PConfig = {'stack':('', '', 'colz')}
-        for ref in BGORDER:
-           HISTS[ref] = HG.getHistogram(FILE, ref, hkey).Clone()
-           #RT.addFlows(HISTS[ref])
-           HISTS[ref].Scale(PC[ref]['WEIGHT'])
-           #HISTS[ref].Rebin(10)
-           if ref != BGORDER[0]:
-               HISTS['stack'].Add(HISTS[ref])
-           PConfig[ref] = (PC[ref]['LATEX'], 'f', 'hist')
+            PConfig['stack'] = ('', '', 'colz')
 
         PLOTS = {}
         for key in ('stack',):
             PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
-        canvas = Plotter.Canvas(lumi=SUFFIX)
+        canvas = Plotter.Canvas(lumi=SUFFIX+lumiExtra.get(CUTSTRING))
         canvas.addMainPlot(PLOTS['stack'])
         canvas.firstPlot.SetMarkerColor(R.kWhite)
 
@@ -204,7 +220,7 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
 
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')
-        canvas.cleanup('pdfs/ZEP_MC2D_'+quantity+'_'+SUFFIX+'.pdf')
+        canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}_MC.pdf'.format(quantity, SUFFIX, CUTSTRING))
 makeMC2DPlots()
 makeMC2DPlots(('ttbar', 'QCD20toInf-ME', 'DY50toInf', 'WJets'), 'Major')
 makeMC2DPlots(('ttbar',))
@@ -212,17 +228,17 @@ makeMC2DPlots(('WJets',))
 makeMC2DPlots(('DY50toInf',))
 makeMC2DPlots(('QCD20toInf-ME',))
 
-FILE = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_BS9_2Mu2J.root')
 def makeSignal2DPlots():
     for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
             R.gStyle.SetPaintTextFormat('g')
+
         hkey = 'PAT-12-'+quantity
-        HISTS = HG.getAddedSignalHistograms(FILE, fs, (hkey,))
+        HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (hkey,))
         for sp in SIGNALPOINTS:
-            HISTS[sp] = HG.getHistogram(FILE, (fs, sp), hkey).Clone()
+            HISTS[sp] = HG.getHistogram(FILES[fs], (fs, sp), hkey).Clone()
 
         if quantity != 'chi2':
             opt = 'colz text'
@@ -233,7 +249,7 @@ def makeSignal2DPlots():
             PLOTS[sp] = Plotter.Plot(HISTS[sp], '', '', opt)
 
         for sp in [hkey,] + SIGNALPOINTS:
-            canvas = Plotter.Canvas(lumi=fs if type(sp) != tuple else SPLumiStr(fs, *sp))
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING) if type(sp) != tuple else SPLumiStr(fs, *sp))
             canvas.addMainPlot(PLOTS[sp])
             canvas.firstPlot.SetMarkerColor(R.kWhite)
 
@@ -243,5 +259,5 @@ def makeSignal2DPlots():
 
             canvas.scaleMargins(1.75, edges='R')
             canvas.scaleMargins(0.8, edges='L')
-            canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}.pdf'.format(quantity, fs, 'Global' if type(sp) != tuple else SPStr(sp)))
+            canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}_{}.pdf'.format(quantity, CUTSTRING, fs, 'Global' if type(sp) != tuple else SPStr(sp)))
 makeSignal2DPlots()

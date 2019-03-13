@@ -14,7 +14,7 @@ for key in ('', 'GM-'):
     c.addMainPlot(p)
     p.setTitles(X='pre-refit PAT muon p_{T} [GeV]', Y='High purity fraction')
     p.setColor(R.kBlue, which='LM')
-    c.cleanup('pdfs/HP_'+key+'HPFrac.pdf')
+    c.cleanup('pdfs/HP_2Mu2J_'+key+'HPFrac.pdf')
 
 f = R.TFile.Open('roots/HPPlots_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M_MC.root')
 h, pc = HG.getBackgroundHistograms(f, ('pT', 'pT-HP'), stack=False, rebin=5)

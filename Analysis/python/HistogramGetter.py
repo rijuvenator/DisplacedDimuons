@@ -107,6 +107,10 @@ def getAddedSignalHistograms(FILE, fs, keylist):
     return HISTS
 
 # get added weighted background histograms
+# keylist is a single key (string) or a list of keys
+# stack and addFlows are bools
+# rebin is a single int or a list of ints (for 2D plots)
+# rebinVeto is a lambda specifying which keys NOT to rebin, with the key as an input
 def getBackgroundHistograms(FILE, keylist, stack=True, addFlows=True, rebin=None, rebinVeto=None):
     # allow passing a string or a list
     if type(keylist) == str:
@@ -131,9 +135,12 @@ def getBackgroundHistograms(FILE, keylist, stack=True, addFlows=True, rebin=None
             if addFlows:
                 RT.addFlows(HISTS[key][ref])
             HISTS[key][ref].Scale(PLOTCONFIG[ref]['WEIGHT'])
-            if rebin is not None and (rebinVeto is None or (rebinVeto is not None and key not in rebinVeto)):
+            if rebin is not None and (rebinVeto is None or (rebinVeto is not None and not rebinVeto(key))):
                 is2D = 'TH2' in str(HISTS[key][ref].__class__)
                 if is2D:
+                    if not hasattr(rebin, '__iter__'):
+                        print '[HISTOGRAMGETTER ERROR]: For 2D plots, "rebin" must be a list of 2 rebin values'
+                        exit()
                     HISTS[key][ref].Rebin2D(*rebin)
                 else:
                     HISTS[key][ref].Rebin(rebin)
