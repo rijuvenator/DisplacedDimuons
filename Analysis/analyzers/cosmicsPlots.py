@@ -25,7 +25,7 @@ SINGLEMU_SELECTION = {
         operator.lt, 1.),
     'pT': Selections.Cut('pT',
         lambda muon: muon.pt,
-        operator.gt, 5.),
+        operator.gt, 20.),
     # 'eta': Selections.Cut('eta',
     #     lambda muon: abs(muon.eta),
     #     operator.lt, 1.2),
@@ -73,6 +73,8 @@ L1THRESHOLDS = (0.0, 4.0, 5.0, 11.0, 12.0, 15.0)
 ALPHA_CATEGORIES = (
         (None, None, ''),
         (2.8, math.pi, '__2p8alphaPi'),
+        (2.8, math.pi, '__SSpairs_2p8alphaPi'),
+        (2.8, math.pi, '__goodQuality_2p8alphaPi'),
         (0.3, 2.8, '__0p3alpha2p8'),
         (0., 0.3, '__0p0alpha0p3'),
         (0., 2.8, '__noOppositeMuonMatch_0p0alpha2p8'),
@@ -80,12 +82,12 @@ ALPHA_CATEGORIES = (
 
 # list of d0 intervals to process, "(None, None)" gives the d0-inclusive results
 D0INTERVALS = [(None,None)]
-# # 2.5-cm steps for small d0
-D0INTERVALS += ([(i,i+2.5) for i in np.arange(0., 30., 2.5)])
+# 2.5-cm steps for small d0
+# D0INTERVALS += ([(i,i+2.5) for i in np.arange(0., 30., 2.5)])
 # 5-cm steps for small d0
-D0INTERVALS += ([(i,i+5.0) for i in np.arange(0., 30., 5.)])
+# D0INTERVALS += ([(i,i+5.0) for i in np.arange(0., 30., 5.)])
 # 10-cm steps for the entire d0 range
-D0INTERVALS += ([(i,i+10.) for i in np.arange(0., 500., 10.)])
+# D0INTERVALS += ([(i,i+10.) for i in np.arange(0., 500., 10.)])
 # custom d0 bins
 # D0INTERVALS += ([(0,10),(10,50),(0,50),(50,100),(100,150),(150,250),(250,350),(250,1000),(350,1000)])
 
@@ -158,15 +160,12 @@ def declareHistograms(self, PARAMS=None):
         for __,__,alpha_category_name in ALPHA_CATEGORIES:
             alpha_categories_str = alpha_category_name
 
+            self.HistInit('cutFlow'+d0intervals_str+alpha_categories_str, ';applied cuts;number of events passing', 20,0,20)
             self.HistInit('L1TObjectsPerHLTObject_noSelections'+d0intervals_str+alpha_categories_str, ';number of L1 objects per HLT muon;Yield', 40, 0, 10)
             self.HistInit('L1TObjectsPerHLTObject'+d0intervals_str+alpha_categories_str, ';number of L1 objects per HLT muon;Yield', 40, 0, 10)
-            self.HistInit('skippedEvents'+d0intervals_str+alpha_categories_str, ';skipped events;Yield', 7, -2, 5)
-            self.HistInit('selectedMuons'+d0intervals_str+alpha_categories_str, ';selected muons;Yield', 2, 0, 2)
-            self.HistInit('selectedMuonPairs'+d0intervals_str+alpha_categories_str, ';selected dimuons;Yield', 2, 0, 2)
             self.HistInit('lowerLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for lower leg muon;Yield', 2, 0, 2)
             self.HistInit('upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for upper leg muon;Yield', 2, 0, 2)
             self.HistInit('lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for both lower and upper leg muons;Yield', 2, 0, 2)
-            self.HistInit('identifiedDimuons'+d0intervals_str+alpha_categories_str, ';identified dimuons;Yield', 2, 0, 2)
             self.HistInit('dimuonMultiplicity'+d0intervals_str+alpha_categories_str, ';dim. multiplicity;Yield', 10, 0, 10)
 
             for MUONTYPE in ('DSA',):
@@ -278,6 +277,9 @@ def analyze(self, E, PARAMS=None):
         for alpha_min,alpha_max,alpha_category_name in ALPHA_CATEGORIES:
             alpha_categories_str = alpha_category_name
 
+            # count events without any selections
+            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(0)
+
             do_skip_event = False
 
             # Accept only events that pass the following HLT triggers
@@ -287,8 +289,10 @@ def analyze(self, E, PARAMS=None):
                 do_skip_event = True
 
             if do_skip_event:
-                self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(0)
                 return
+            else:
+                # count events that pass the HLT paths filter
+                self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(1)
 
             for HLTmuon in HLTmuons:
                 nL1Tmuons = len([m for m in L1Tmuons if m.idx == HLTmuon.idx])
@@ -299,14 +303,30 @@ def analyze(self, E, PARAMS=None):
 
                 # discard events with too few reco muons
                 if len(MUONS) < 2:
-                    self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(1)
                     continue
+                else:
+                    # count events with at least two reco muons
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(2)
 
                 accepted_muons = []
                 accepted_matchedMuons = []
                 accepted_matchedHLTMuons = []
 
+                # check if there are any HLT-matched muons in the event (but do
+                # nothing else at the moment - everything else will be taken
+                # care of later on)
+                nHLTmatchedMuons = 0
                 for muon in MUONS:
+                    muonMatches = matchedMuons(muon, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
+                    if len(muonMatches) > 0:
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(3)
+                        break
+
+
+                for muon in MUONS:
+
+                    # count all muons in the events that have been selected so far
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(4)
 
                     # apply single muon cuts
                     do_skip_muon = False
@@ -320,8 +340,10 @@ def analyze(self, E, PARAMS=None):
                             do_skip_muon = True
 
                     if do_skip_muon:
-                        self.HISTS['selectedMuons'+d0intervals_str+alpha_categories_str].Fill(0)
                         continue
+                    else:
+                        # count muons remaining after single muon cuts
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(5)
 
                     # store muon
                     accepted_muons.append(muon)
@@ -334,8 +356,11 @@ def analyze(self, E, PARAMS=None):
 
                 # skip event if there are no HLT-matched muons at all
                 if len(accepted_matchedMuons) < 1: 
-                    self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(2)
+                    # self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(2)
                     continue
+                else:
+                    # count events with at least one HLT matched muon
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(6)
 
 
                 # further cleanup of the selected muons: find the most cosmic-like pair
@@ -347,15 +372,24 @@ def analyze(self, E, PARAMS=None):
                     selected_muonpairs = []
 
                 for m1,m2 in list(itertools.combinations(accepted_muons, 2)):
+                    # count muon pairs that have passed all previous selections
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(7)
+
                     # require at least one muon to be matched to an HLT object
-                    if DO_REQUIRE_ONE_LEG_MATCHED and \
-                            all([m not in accepted_matchedMuons for m in (m1,m2)]):
-                        continue
+                    if DO_REQUIRE_ONE_LEG_MATCHED:
+                        if all([m not in accepted_matchedMuons for m in (m1,m2)]):
+                            continue
+                        else:
+                            # count all muon pairs with >=1 HLT-matched leg
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(8)
 
                     # require the muons to be in different detector hemispheres
-                    if DO_REQUIRE_OPPOSITE_HEMISPHERES and \
-                            ([hemisphere(m1), hemisphere(m2)]).count('upper') != 1:
-                        continue
+                    if DO_REQUIRE_OPPOSITE_HEMISPHERES:
+                        if ([hemisphere(m1), hemisphere(m2)]).count('upper') != 1:
+                            continue
+                        else:
+                            # count muon pairs with legs in different hemispheres
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(9)
 
                     # find muon with the largest alpha(mu,mu)
                     if DO_SELECT_LARGEST_ALPHA_PAIR:
@@ -370,7 +404,7 @@ def analyze(self, E, PARAMS=None):
                                     selected_muonpairs = (m1,m2)
 
                             else:
-                                selected_muonspairs = (m1,m2)
+                                selected_muonpairs = (m1,m2)
 
                     else:
                         if alpha_min is not None and alpha_max is not None:
@@ -383,42 +417,69 @@ def analyze(self, E, PARAMS=None):
                         else:
                             selected_muonpairs.append((m1,m2))
 
+                # make everything compatible again
+                if DO_SELECT_LARGEST_ALPHA_PAIR: 
+                    selected_muonpairs = [selected_muonpairs]
 
                 # skip events without any selected muon pairs
                 if len(selected_muonpairs) == 0:
-                    self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(3)
-                    continue
-
-                # apply muon pair cuts
-                do_skip_muonpair = False
-                for var in MUONPAIR_SELECTION.keys():
-                    if not MUONPAIR_SELECTION[var].apply(
-                            (selected_muonpairs[0], selected_muonpairs[1])):
-                        do_skip_muonpair = True
-
-                # require both DSA to be matched to HLT objects
-                if DO_REQUIRE_BOTH_LEGS_MATCHED:
-                    muonMatches_m1 = matchedMuons(m1, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
-                    muonMatches_m2 = matchedMuons(m2, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
-                    if not (len(muonMatches_m1) > 0 and len(muonMatches_m2) > 0):
-                        do_skip_muonpair = True
-
-                if do_skip_muonpair:
-                    self.HISTS['selectedMuonPairs'+d0intervals_str+alpha_categories_str].Fill(0)
                     continue
                 else:
-                    self.HISTS['selectedMuonPairs'+d0intervals_str+alpha_categories_str].Fill(1)
+                    # count events with >=1 selected muon pair
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(10)
+
+                buffer_selected_muonpairs = []  # stores next subset of muon pairs
+
+                for m1,m2 in selected_muonpairs:
+                    # count all muon pairs selected so far
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(11)
+
+                    # apply muon pair cuts
+                    do_skip_muonpair = False
+                    for var in MUONPAIR_SELECTION.keys():
+                        if not MUONPAIR_SELECTION[var].apply((m1,m2)):
+                            do_skip_muonpair = True
+
+                    if do_skip_muonpair:
+                        continue
+                    else:
+                        # count muon pairs that pass the muon pairs selection
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(12)
+
+                    do_skip_muonpair = False
+                    # require both DSA to be matched to HLT objects
+                    if DO_REQUIRE_BOTH_LEGS_MATCHED:
+                        muonMatches_m1 = matchedMuons(m1, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
+                        muonMatches_m2 = matchedMuons(m2, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
+                        if not (len(muonMatches_m1) > 0 and len(muonMatches_m2) > 0):
+                            do_skip_muonpair = True
+
+                        # require matches to different HLT objects
+                        if len(muonMatches_m1) > 0 and len(muonMatches_m2) > 0 \
+                                and muonMatches_m1[0]['muon'] == muonMatches_m2[0]['muon']:
+                            do_skip_muonpair = True
+
+                    if do_skip_muonpair:
+                        continue
+                    else:
+                        # count muon pairs that have HLT matches for both legs
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(13)
+
+                    # if muon pair passed all the selections, store it for later
+                    buffer_selected_muonpairs.append((m1,m2))
+
+                selected_muonpairs = buffer_selected_muonpairs
+
 
                 for HLTmuon in HLTmuons:
                     nL1Tmuons = len([m for m in L1Tmuons if m.idx == HLTmuon.idx])
                     self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str+alpha_categories_str].Fill(nL1Tmuons)
-                    # self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str+alpha_categories_str].Fill(1.*len(L1Tmuons)/len(HLTmuons))
 
                 dimuon_multiplicity = 0
 
-                if DO_SELECT_LARGEST_ALPHA_PAIR: selected_muonpairs = [selected_muonpairs]
-
                 for m1,m2 in selected_muonpairs:
+                    # count all muon pairs selected so far
+                    self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(14)
 
                     # apply pT cuts on L1 muons pairs ("L1 seed emulation")
                     m1_passes_first_cut = any([mu.pt > L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m1.idx])
@@ -428,6 +489,9 @@ def analyze(self, E, PARAMS=None):
                     if not ((m1_passes_first_cut and m2_passes_second_cut) or \
                             (m1_passes_second_cut and m2_passes_first_cut)):
                         continue
+                    else:
+                        # count all muon pars that pass the L1 trigger cuts
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(15)
 
 
                     # check whether the selected two muons belong to a dimuon
@@ -437,6 +501,9 @@ def analyze(self, E, PARAMS=None):
                                 dimuon.idx1 == m2.idx and dimuon.idx2 == m1.idx:
                             is_dimuon = True
                             selected_dimuon = dimuon
+
+                            # count selected dimuons
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(16)
                             break
                     else:
                         is_dimuon = False
@@ -452,33 +519,52 @@ def analyze(self, E, PARAMS=None):
                             if not DIMUON_SELECTION[var].apply(selected_dimuon):
                                 do_skip_dimuon = True
 
-                    if do_skip_dimuon: continue
+                    if do_skip_dimuon:
+                        continue
+                    else:
+                        # count dimuons passing the dimuon selection
+                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(17)
 
                     # special treatment of some alpha categories
-                    do_skip_muonpair_duplicate = False
-                    if alpha_min is not None and alpha_max is not None:
-                        if 'noOppositeMuonMatch' in alpha_category_name and \
-                                not DO_SELECT_LARGEST_ALPHA_PAIR:
-                            # remove those dimuons which have a back-to-back muon
-                            # in the same event for at least one of their muons
-                            othermuons = [(om1,om2) for om1,om2 in selected_muonpairs if (om1,om2) != (m1,m2)]
-                            for thismuon in (m1,m2):
-                                alphas_with_othermuons = [CONFIG['alpha']['LAMBDA'](
-                                    (thismuon,othermuon)) for othermuon,__ in othermuons]
-                                alphas_with_othermuons += [CONFIG['alpha']['LAMBDA'](
-                                    (thismuon,othermuon)) for __,othermuon in othermuons]
+                    if 'noOppositeMuonMatch' in alpha_category_name and \
+                            not DO_SELECT_LARGEST_ALPHA_PAIR:
 
-                            if not any([a > 2.8 for a in alphas_with_othermuons]):
-                                do_skip_muonpair_duplicate = True
+                        do_skip_muonpair_duplicate = False
+                        # remove those dimuons which have a back-to-back muon
+                        # in the same event for at least one of their muons
+                        othermuons = [(om1,om2) for om1,om2 in selected_muonpairs if (om1,om2) != (m1,m2)]
+                        for thismuon in (m1,m2):
+                            alphas_with_othermuons = [CONFIG['alpha']['LAMBDA'](
+                                (thismuon,othermuon)) for othermuon,__ in othermuons]
+                            alphas_with_othermuons += [CONFIG['alpha']['LAMBDA'](
+                                (thismuon,othermuon)) for __,othermuon in othermuons]
 
-                    if do_skip_muonpair_duplicate: continue
+                        if not any([a > 2.8 for a in alphas_with_othermuons]):
+                            do_skip_muonpair_duplicate = True
 
+                        if do_skip_muonpair_duplicate:
+                            continue
+                        else:
+                            # count selected non-duplicate muon pairs
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(18)
+
+                    if 'SSpairs' in alpha_category_name:
+                        if m1.charge*m2.charge < 0:
+                            continue
+                        else:
+                            # count selected same-sign pairs
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(19)
+
+                    if 'goodQuality' in alpha_category_name:
+                        if DO_REQUIRE_DIMUON_VERTEX:
+                            if selected_dimuon.normChi2 > 4.0:
+                                continue
+                            else:
+                                # count dimuons with good-quality fit
+                                self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(20)
 
                     if is_dimuon:
                         dimuon_multiplicity += 1
-                        self.HISTS['identifiedDimuons'+d0intervals_str+alpha_categories_str].Fill(1)
-                    else:
-                        self.HISTS['identifiedDimuons'+d0intervals_str+alpha_categories_str].Fill(0)
 
                     # # print event info for edmPickEvents.py
                     # print('{}:{}:{}'.format(event.run, event.lumi, event.event))
@@ -688,6 +774,6 @@ if __name__ == '__main__':
 
     outputname = parse_filename(
             path='roots/',
-            prefix='test_backgrEstimation_extraMuon_cosmicsPlots')
+            prefix='test_backgrEst_diffHLTmatches_cosmicsPlots')
 
     analyzer.writeHistograms(outputname)
