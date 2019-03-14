@@ -89,27 +89,27 @@ def getHistNames(dataset, *args, **kwargs):
         exclude = re.compile('|'.join([e for e in exclude_list]))
 
     results = []
-    for dataset in HISTS:
-        for key in HISTS[dataset]:
-            if exclude is not None and exclude.search(key): continue
-            
-            is_match = False
-            if logic == 'and':
-                if all([re.search(a, key) is not None for a in args]):
-                    is_match = True
-                else:
-                    pass
-
-            elif logic == 'or':
-                if any([re.search(a, key) is not None for a in args]):
-                    is_match = True
-                else:
-                    pass
-
+    # for dataset in HISTS:
+    for key in HISTS[dataset]:
+        if exclude is not None and exclude.search(key): continue
+        
+        is_match = False
+        if logic == 'and':
+            if all([re.search(a, key) is not None for a in args]):
+                is_match = True
             else:
-                raise Exception('logic must be either \'and\' or \'or\'')
+                pass
 
-            if is_match: results.append(key)
+        elif logic == 'or':
+            if any([re.search(a, key) is not None for a in args]):
+                is_match = True
+            else:
+                pass
+
+        else:
+            raise Exception('logic must be either \'and\' or \'or\'')
+
+        if is_match: results.append(key)
 
     return results
 
