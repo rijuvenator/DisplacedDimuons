@@ -696,10 +696,10 @@ class RecoMuon(Muon):
             self.gen = None
             if E.get('patmu_gen_energy', i) > 0.:
                 self.gen = Muon(E, i, 'patmu_gen_')
-            for attr in ('nMatchedStations', 'isGlobal', 'isTracker', 'nPixelHits', 'nTrackerHits', 'nTrackerLayers', 'trackIso', 'ecalIso', 'hcalIso'):
+            for attr in ('nMatchedStations', 'isGlobal', 'isTracker', 'isMedium', 'nPixelHits', 'nTrackerHits', 'nTrackerLayers', 'trackIso', 'ecalIso', 'hcalIso'):
                 self.set(attr, E, prefix+attr, i)
             self.set('highPurity', E, prefix+'hpur', i)
-            for attr in ('isGlobal', 'isTracker', 'highPurity'):
+            for attr in ('isGlobal', 'isTracker', 'highPurity', 'isMedium'):
                 setattr(self, attr, bool(getattr(self, attr)))
         # only DSA has these attributes
         if tag in ('DSA',):

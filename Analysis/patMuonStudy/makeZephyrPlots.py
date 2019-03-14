@@ -107,9 +107,13 @@ def makeSinglePlots():
                 sbox = p.plot.FindObject('stats')
                 sbox.SetTextColor(R.kRed)
 
+            if not canvas.logy:
+                canvas.firstPlot.SetMinimum(0.)
+
             if 'vtxChi2' in key:
                 canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
                 canvas.firstPlot.SetMaximum(40000.)
+                canvas.firstPlot.SetMinimum(1.)
             if 'd0Sig' in key:
                 canvas.firstPlot.SetMaximum(200. if recoType == 'PAT' else 900.)
             if 'LxySig' in key:
@@ -189,7 +193,7 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         BGORDER = BGList
         if SUFFIX is None:
             SUFFIX = BGList[0]
-    for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
+    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVts', 'missingHitsAfterVtx'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
@@ -197,12 +201,12 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
 
         hkey = 'PAT-12-'+quantity
         HG.BGORDER = BGORDER # don't do this, normally
-        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False, rebin=(10, 10), rebinVeto=lambda key: 'chi2' not in key)
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False, rebin=(10, 10), rebinVeto=lambda key: 'normChi2' not in key)
         HG.BGORDER = BGORDER_REAL
         HISTS = HISTS[hkey]
         PConfig = PConfig[hkey]
 
-        if quantity != 'chi2':
+        if quantity != 'normChi2':
             PConfig['stack'] = ('', '', 'colz text')
         else:
             PConfig['stack'] = ('', '', 'colz')
@@ -214,7 +218,7 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         canvas.addMainPlot(PLOTS['stack'])
         canvas.firstPlot.SetMarkerColor(R.kWhite)
 
-        if quantity == 'chi2':
+        if quantity == 'normChi2':
             canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
             canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
 
@@ -229,7 +233,7 @@ makeMC2DPlots(('DY50toInf',))
 makeMC2DPlots(('QCD20toInf-ME',))
 
 def makeSignal2DPlots():
-    for quantity in ('chi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal'):
+    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVts', 'missingHitsAfterVtx'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
@@ -240,7 +244,7 @@ def makeSignal2DPlots():
         for sp in SIGNALPOINTS:
             HISTS[sp] = HG.getHistogram(FILES[fs], (fs, sp), hkey).Clone()
 
-        if quantity != 'chi2':
+        if quantity != 'normChi2':
             opt = 'colz text'
         else:
             opt = 'colz'
@@ -253,7 +257,7 @@ def makeSignal2DPlots():
             canvas.addMainPlot(PLOTS[sp])
             canvas.firstPlot.SetMarkerColor(R.kWhite)
 
-            if quantity == 'chi2':
+            if quantity == 'normChi2':
                 canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
                 canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
 

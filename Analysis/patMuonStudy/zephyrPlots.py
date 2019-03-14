@@ -6,19 +6,49 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 
 QUANTITIES = {
-    'Lxy'     : {'AXES':(1600, 0., 800.   ), 'LAMBDA': lambda dim: dim.Lxy()                           , 'PRETTY':'L_{xy} [cm]'           },
-    'LxySig'  : {'AXES':(1000, 0., 1000.  ), 'LAMBDA': lambda dim: dim.LxySig()                        , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
-    'LxyErr'  : {'AXES':(1000, 0., 100.   ), 'LAMBDA': lambda dim: dim.LxyErr()                        , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
-    'vtxChi2' : {'AXES':(2000, 0., 500.   ), 'LAMBDA': lambda dim: dim.normChi2                        , 'PRETTY':'vtx #chi^{2}/dof'      },
-    'd0Sig'   : {'AXES':(1000, 0., 200.   ), 'LAMBDA': lambda dim: min(dim.mu1.d0Sig(),dim.mu2.d0Sig()), 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
+    'Lxy'     : {'LAMBDA': lambda dim: dim.Lxy()                           , 'PRETTY':'L_{xy} [cm]'           },
+    'LxySig'  : {'LAMBDA': lambda dim: dim.LxySig()                        , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'},
+    'LxyErr'  : {'LAMBDA': lambda dim: dim.LxyErr()                        , 'PRETTY':'#sigma_{L_{xy}} [cm]'  },
+    'vtxChi2' : {'LAMBDA': lambda dim: dim.normChi2                        , 'PRETTY':'vtx #chi^{2}/dof'      },
+    'd0Sig'   : {'LAMBDA': lambda dim: min(dim.mu1.d0Sig(),dim.mu2.d0Sig()), 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
+}
+
+AXES = {
+    'DSA' : {
+        'Lxy'     : (1600,   0.  , 800.   ), # 0.5  cm bins
+        'LxySig'  : ( 600,   0.  , 300.   ), # 0.5     bins
+        'LxyErr'  : (1000,   0.  ,  50.   ), # 0.05 cm bins
+        'vtxChi2' : (1000,   0.  ,  50.   ), # 0.05    bins
+        'd0Sig'   : ( 800,   0.  ,  80.   ), # 0.1     bins
+        'LxyRes'  : (1000, -50.  ,  50.   ), # 0.1  cm bins
+    },
+    'PAT' : {
+        'Lxy'     : ( 140,   0.  ,   70.  ),
+        'LxySig'  : (1000,   0.  ,  500.  ),
+        'LxyErr'  : (1000,   0.  ,     .1 ), # 1e-4 cm bins
+        'vtxChi2' : (1000,   0.  ,   50.  ),
+        'd0Sig'   : (2000,   0.  ,  200.  ),
+        'LxyRes'  : (1000,   -.05,     .05), # 1e-4 cm bins
+    },
+    'HYB' : {
+        'Lxy'     : ( 140,   0.  ,  70.   ),
+        'LxySig'  : ( 600,   0.  , 300.   ),
+        'LxyErr'  : (1000,   0.  ,  25.   ), # 0.05 cm bins
+        'vtxChi2' : (1000,   0.  ,  50.   ),
+        'd0Sig'   : ( 800,   0.  ,  80.   ),
+        'LxyRes'  : (1000, -25.  ,  25.   ), # 0.05 cm bins
+    },
 }
 
 MCQUANTITIES = {
-        'chi2'       : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda mu: mu.chi2                  , 'PRETTY':'trk #chi^{2}'     },
-        'nTrkLay'    : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: float(mu.nTrackerLayers) , 'PRETTY':'N(tracker layers)'},
-        'nPxlHit'    : {'AXES':(   5, 0.,   5.), 'LAMBDA': lambda mu: float(mu.nPixelHits    ) , 'PRETTY':'N(pixel hits)'    },
-        'highPurity' : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: float(mu.highPurity    ) , 'PRETTY':'high purity'      },
-        'isGlobal'   : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: float(mu.isGlobal      ) , 'PRETTY':'is global'        },
+        'normChi2'            : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda mu: mu.normChi2            , 'PRETTY':'trk #chi^{2}/dof'         },
+        'nTrkLay'             : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: mu.nTrackerLayers      , 'PRETTY':'N(tracker layers)'        },
+        'nPxlHit'             : {'AXES':(   5, 0.,   5.), 'LAMBDA': lambda mu: mu.nPixelHits          , 'PRETTY':'N(pixel hits)'            },
+        'highPurity'          : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: mu.highPurity          , 'PRETTY':'high purity'              },
+        'isGlobal'            : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: mu.isGlobal            , 'PRETTY':'is global'                },
+        'isMedium'            : {'AXES':(   2, 0.,   2.), 'LAMBDA': lambda mu: mu.isMedium            , 'PRETTY':'is medium'                },
+        'hitsBeforeVtx'       : {'AXES':(  10, 0.,  10.), 'LAMBDA': lambda mu: mu.hitsBeforeVtx       , 'PRETTY':'N(hits before vtx)'       },
+        'missingHitsAfterVtx' : {'AXES':(  10, 0.,  10.), 'LAMBDA': lambda mu: mu.missingHitsAfterVtx , 'PRETTY':'N(missing hits after vtx)'},
 }
 
 #### CLASS AND FUNCTION DEFINITIONS ####
@@ -29,48 +59,28 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     for QKEY in QUANTITIES:
-        if QKEY == 'LxyErr': continue
         XTIT = QUANTITIES[QKEY]['PRETTY']
         for RTYPE in ('DSA', 'PAT', 'HYB'):
-            self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *QUANTITIES[QKEY]['AXES'])
+            self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
-    if True:
-        self.HistInit('PAT-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., .1 )
-        self.HistInit('DSA-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 50.)
-        self.HistInit('HYB-LxyErr', ';'+QUANTITIES['LxyErr']['PRETTY']+';Counts', 1000, 0., 25.)
+    for QKEY in MCQUANTITIES:
+        TIT = MCQUANTITIES[QKEY]['PRETTY']
+        A = MCQUANTITIES[QKEY]['AXES']
+        self.HistInit('PAT-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(A+A))
 
-        self.HistInit('PAT-LxyResVSPAT-LxyErr', ';reco PAT #sigma_{L_{xy}} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., .1 , 1000, -.05 , .05)
-        self.HistInit('DSA-LxyResVSDSA-LxyErr', ';reco DSA #sigma_{L_{xy}} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., 50., 1000, -50. , 50.)
-        self.HistInit('HYB-LxyResVSHYB-LxyErr', ';reco HYB #sigma_{L_{xy}} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1000, 0., 25., 1000, -25. , 25.)
+    LxyPull = (1000, -10., 10. )
+    GenLxy  = (1600,   0., 800.)
 
     if self.SP is not None:
-        self.HistInit('PAT-LxyRes', ';reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -.05 , .05)
-        self.HistInit('DSA-LxyRes', ';reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -50. , 50.)
-        self.HistInit('HYB-LxyRes', ';reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1000, -25. , 25.)
+        for RTYPE in ('DSA', 'PAT', 'HYB'):
+            AR = AXES[RTYPE]
+            self.HistInit('{R}-LxyRes'            .format(R=RTYPE),  ';reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                                     .format(R=RTYPE), *AR['LxyRes']               )
+            self.HistInit('{R}-LxyPull'           .format(R=RTYPE), ';(reco {R} L_{{xy}} #minus gen L_{{xy}})/#sigma_{{L_{{xy}}}};Counts'                     .format(R=RTYPE), *LxyPull                    )
+            self.HistInit('GEN-Lxy-{R}'           .format(R=RTYPE), ';gen L_{xy} [cm];Counts'                                                                                 , *GenLxy                     )
+            self.HistInit('{R}-LxyResVSGEN-Lxy'   .format(R=RTYPE), ';gen L_{{xy}} [cm];reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                    .format(R=RTYPE), *(GenLxy+AR['LxyRes'])      )
+            self.HistInit('{R}-LxyResVS{R}-LxyErr'.format(R=RTYPE), ';reco {R} #sigma_{{L_{{xy}}}} [cm];reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'    .format(R=RTYPE), *(AR['LxyErr']+AR['LxyRes']))
 
-        self.HistInit('PAT-LxyPull', ';(reco PAT L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
-        self.HistInit('DSA-LxyPull', ';(reco DSA L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
-        self.HistInit('HYB-LxyPull', ';(reco HYB L_{xy} #minus gen L_{xy})/#sigma_{L_{xy}};Counts', 1000, -10., 10.)
-
-        self.HistInit('GEN-Lxy'    , ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
-        self.HistInit('GEN-Lxy-PAT', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
-        self.HistInit('GEN-Lxy-DSA', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
-        self.HistInit('GEN-Lxy-HYB', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
-
-        self.HistInit('PAT-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco PAT L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -.05 , .05)
-        self.HistInit('DSA-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco DSA L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -50. , 50.)
-        self.HistInit('HYB-LxyResVSGEN-Lxy', ';gen L_{xy} [cm];reco HYB L_{xy} #minus gen L_{xy} [cm];Counts', 1600, 0., 800., 1000, -25. , 25.)
-
-        for QKEY in MCQUANTITIES:
-            TIT = MCQUANTITIES[QKEY]['PRETTY']
-            AXES = MCQUANTITIES[QKEY]['AXES']
-            self.HistInit('PAT-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(AXES+AXES))
-
-    if self.SP is None:
-        for QKEY in MCQUANTITIES:
-            TIT = MCQUANTITIES[QKEY]['PRETTY']
-            AXES = MCQUANTITIES[QKEY]['AXES']
-            self.HistInit('PAT-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(AXES+AXES))
+        self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -96,38 +106,41 @@ def analyze(self, E, PARAMS=None):
             KEY = RTYPE+'-'+QKEY
             self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
 
-        if self.SP is None:# and dim.composition == 'PAT' and dim.LxySig() > 100.:
+        if self.SP is None and dim.LxySig() > 50.:
             if dim.composition == 'PAT':
                 mu1, mu2 = PATmuons[dim.idx1], PATmuons[dim.idx2]
 
                 for QKEY in MCQUANTITIES:
                     KEY = 'PAT-12-'+QKEY
                     F = MCQUANTITIES[QKEY]['LAMBDA']
-                    self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
+                    if QKEY in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
+                        self.HISTS[KEY].Fill(F(dim.mu1), F(dim.mu2), eventWeight)
+                    else:
+                        self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
 
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2d} {:1d} {:1d} {:1d} {:6.2f} {:2d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
+                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
                         self.NAME, Event.run, Event.lumi, Event.event,
                         dim.composition[:3], dim.idx1, dim.idx2,
-                        mu1.chi2, mu1.nTrackerLayers, mu1.nPixelHits, int(mu1.highPurity), int(mu1.isGlobal),
-                        mu2.chi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal),
+                        mu1.normChi2, mu1.nTrackerLayers, mu1.nPixelHits, int(mu1.highPurity), int(mu1.isGlobal), int(mu1.isMedium),
+                        mu2.normChi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal), int(mu2.isMedium),
                         dim.LxySig(), dim.Lxy(), dim.normChi2, min(dim.mu1.d0Sig(),dim.mu2.d0Sig())
                 )
             elif dim.composition == 'DSA':
                 mu1, mu2 = DSAmuons[dim.idx1], DSAmuons[dim.idx2]
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:6.2f} {:2s} {:1s} {:1s} {:1s} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
+                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
                         self.NAME, Event.run, Event.lumi, Event.event,
                         dim.composition[:3], dim.idx1, dim.idx2,
-                        mu1.chi2, '-', '-', '-', '-',
-                        mu2.chi2, '-', '-', '-', '-',
+                        mu1.normChi2, '-', '-', '-', '-', '-',
+                        mu2.normChi2, '-', '-', '-', '-', '-',
                         dim.LxySig(), dim.Lxy(), dim.normChi2, min(dim.mu1.d0Sig(),dim.mu2.d0Sig())
                 )
             else:
                 mu1, mu2 = DSAmuons[dim.idx1], PATmuons[dim.idx2]
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:6.2f} {:2d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
+                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
                         self.NAME, Event.run, Event.lumi, Event.event,
                         dim.composition[:3], dim.idx1, dim.idx2,
-                        mu1.chi2, '-', '-', '-', '-',
-                        mu2.chi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal),
+                        mu1.normChi2, '-', '-', '-', '-', '-',
+                        mu2.normChi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal), int(mu2.isMedium),
                         dim.LxySig(), dim.Lxy(), dim.normChi2, min(dim.mu1.d0Sig(),dim.mu2.d0Sig())
                 )
 
@@ -178,7 +191,10 @@ def analyze(self, E, PARAMS=None):
             for QKEY in MCQUANTITIES:
                 KEY = RTYPE + '-' + '12' + '-' + QKEY
                 F = MCQUANTITIES[QKEY]['LAMBDA']
-                self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
+                if QKEY in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
+                    self.HISTS[KEY].Fill(F(dim.mu1), F(dim.mu2), eventWeight)
+                else:
+                    self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
 
 
 # cleanup function for Analyzer class
