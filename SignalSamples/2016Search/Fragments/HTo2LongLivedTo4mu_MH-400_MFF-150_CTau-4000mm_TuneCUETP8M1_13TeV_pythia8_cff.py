@@ -1,17 +1,13 @@
 CROSS_SECTION = 1 # pb
 MASS_HIGGS = 400 # in GeV 
-MASS_HIGGS = 400 # in GeV 
 WIDTH_HIGGS   = 0.027*MASS_HIGGS # Same as default for id=35
-MASS_X = 150 # in GeV 
 MASS_X = 150 # in GeV 
 CTAU_X = 4000 # in mm  
 
 import FWCore.ParameterSet.Config as cms
-
 from Configuration.Generator.Pythia8CommonSettings_cfi import *
 from Configuration.Generator.Pythia8CUEP8M1Settings_cfi import * #Old Pythia tune
 #from Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi import *
-
 generator = cms.EDFilter("Pythia8GeneratorFilter",
     pythiaPylistVerbosity = cms.untracked.int32(1),
     filterEfficiency = cms.untracked.double(1),
@@ -93,5 +89,4 @@ generator = cms.EDFilter("Pythia8GeneratorFilter",
         )
     )
 )
-
 #ProductionFilterSequence = cms.Sequence(generator) 

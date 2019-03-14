@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **3 December 2018**
+Last updated: **14 December 2018**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -8,8 +8,9 @@ This subpackage contains code to analyze nTuples produced by the _Tupler_ subpac
   * [Dumpers](#dumpers)
   * [Analyzers](#analyzers)
     * [runAll.py](#runall)
+    * [rehaddAll.py](#rehaddall)
   * [Plotters](#plotters)
-    * [HistogramGetter](#histogramgetter)
+    * [HistogramGetter and PlotterParser](#histogramgetter)
     * [convertone.sh](#convertone)
   * [Special](#special)
   * [Test](#test)
@@ -21,8 +22,8 @@ The `python/` directory contains the following libraries:
 
   * **AnalysisTools.py** contains physics analysis functions, i.e. not related to dealing with ROOT nor to simplify working with Python
   * **Analyzer.py** is a general purpose module with classes for setting up the boilerplate for running over trees. The intent is that a specific analyzer (e.g. `nMinusOnePlots.py` will import `Analyzer` and define the relevant functions, such as `analyze()` or `declareHistograms()`, then instantiate the object, which will run the analysis. It is set up to take several parameters as command-line arguments:
-    * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo4Mu` signal samples; `--name` modifies this, e.g. `DY100to200`
-    * `--signalpoint`: if `--name` is `HTo2XTo4Mu`, then use the signal point parameters for various purposes; defaults to `125 20 13`
+    * `--name`: by default the _Analyzer_ will try to run over `HTo2XTo2Mu2J` signal samples; `--name` modifies this, e.g. `DY100to200`
+    * `--signalpoint`: if `--name` is `HTo2XTo4Mu` or `HTo2XTo2Mu2J`, then use the signal point parameters for various purposes; defaults to `125 20 13`
     * `--splitting`: two numbers controlling splitting: the first is how many events per file, the second is what _job_ number this is (so that the _Analyzer_ knows which subset of the tree to run over)
     * `--test`: as in the _Tupler_, runs over 1000 events and creates `test.root` instead
     * `--maxevents`: if `--test` is set, run over this maximum number of events instead of 1000
@@ -75,10 +76,10 @@ Beamspot                                      = E.getPrimitives('BEAMSPOT')
 Vertex                                        = E.getPrimitives('VERTEX')
 mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
 mu1, mu2, j1, j2, X, XP, H, P, extramu        = E.getPrimitives('GEN')
-Muons                                         = E.getPrimitives('MUON')
+Muons                                         = E.getPrimitives('PATMUON')
 DSAMuons                                      = E.getPrimitives('DSAMUON')
 RSAMuons                                      = E.getPrimitives('RSAMUON')
-Dimuons                                       = E.getPrimitives('MUON')
+Dimuons                                       = E.getPrimitives('DIMUON')
 ```
 
   The _Primitives_ library contains extensive printing functionality, so that at any time, any object or even the entire _ETree_ can be printed in with neatly formatted output. This output is colored by default; to turn it off, one only needs to add the following line to the analysis script:
@@ -92,6 +93,10 @@ Primitives.COLORON = False
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P** or **mu1, mu2, j1, j2, X, XP, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
     * The `addBinWidth` function takes in a plot and appends the bin width, with a "GeV" or "cm" as appropriate, to the *y*-axis. It has been added to all the plotters, so that it is now a standard part of all plots.
   * **Selections.py** is the central library for dealing with object and event selections. It defines _Cut_ objects, which are context-aware selections that take in objects and apply cuts; and _Selection_ objects, which are collections of _Cuts_ along with useful auxiliary functions. To apply the muon selection to a muon, one only needs to declare a _MuonSelection_ object, and all the booleans are automatically computed, along with functions to access any or all or none of them, and functions to increment counters in a systematic way. Any selections and cuts should be added here and imported to other functions.
+  * **Selector.py** is a library for actually performing the object and event selections. It uses the _Selections_ library, but requires the context of the interior of an `analyze()` function of an _Analyzer_. This isn't in the _Selections_ library because it actually does the full process of the analysis selection, and is more than just a few cuts -- it combines functions from _AnalysisTools_, as well. This code used to live in an _Analyzer_ -- it is the meat of it, after all -- but it is quite similar for many purposes, so into a library it goes.
+  * **SummaryPlotter.py** is a small library for making "summary plots". These are plots of a few numbers for entire signal points, e.g. the fitted &sigma; of the L<sub>xy</sub> distribution. Plotting them this way makes dependencies on the Higgs mass, the long-lived particle mass, and the lifetime more obvious, in a visual way.
+
+For **HistogramGetter** and **PlotterParser** see the **Plotters** section.
 
 <a name="dumpers"></a>
 ## Dumpers
@@ -138,16 +143,31 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
 ### runAll.py
 **runAll.py** is a general batch/parallel submitter script for analyzers derived from _Analyzer.py_. It manages the command line arguments for the python script given as the first argument, and submits either
 
-  * to the LXPLUS batch system, LXBATCH (default)
-  * locally with GNU `parallel` (given the optional parameter `--local`)
+  * to the CONDOR submission system (default, or with `--condor`)
+  * to the LXPLUS batch system, LSF (given the optional parameter `--lxbatch`)
   * to the HEPHY batch system (given the optional parameter `--hephy`)
+  * locally with GNU `parallel` (given the optional parameter `--local`)
 
-The `--condor` parameter is used for submitting jobs to CONDOR (which works on lxplus). See the "CONDOR submission workflow for analyzers" example below for a demonstration of CONDOR usage.
+#### **Additional parameters**
+`--flavour <FLAVOUR>` specifies a CONDOR queue name ("flavour") representing the maximally-allowed _wall clock_ time per job. Can be one of
+  * `espresso` (20min),
+  * `microcentury` (1h) -- **default**
+  * `longlunch` (2h)
+  * `workday` (8h)
+  * `tomorrow` (1d)
+  * `testmatch` (3d)
+  * `nextweek` (1w)
 
-Additional parameter:
-  * `--flavour <FLAVOUR>`, with a suitable CONDOR queue name ("flavour") that specifies the maximally-allowed CPU time per job. Can be one of `espresso` (20min), **`microcentury`** (1h; the default value in this framework), `longlunch` (2h), `workday` (8h), `tomorrow` (1d), `testmatch` (3d), `nextweek` (1w)
+`--queue <QUEUE>` specifies an LSF queue name representing the maximally-allowed _CPU_ time per job. Can be one of the following, corresponding in order to the CONDOR flavours above:
+  * `8nm`
+  * `1nh`
+  * `8nh`
+  * `1nd`
+  * `2nd`
+  * `1nw`
+  * `2nw`
 
-The `--samples` parameter is a string subset of `S2BD`, controlling whether this particular instance should run on
+`--samples` is a string subset of `S2BD`, controlling whether this particular instance should run on
   * **S**ignal (`4Mu`)
   * Signal **2** (`2Mu2J`)
   * **B**ackground, or
@@ -169,21 +189,28 @@ At the top of _runAll.py_ are some configuration parameters defining exactly whi
 
 Additionally, there is a variable `SplittingVetoList`. This is a fixed list of scripts that should ignore the splitting parameter, as defined in the `BGSampleList` and `DataSampleList`. For example, `tailCumulativePlots.py` runs on a ROOT file of histograms, rather than as an event-by-event analyzer. It should not split jobs at all.
 
-The `--folder` parameter defaults to `analyzers`, the folder where most of the analyzers are stored. If the analyzer is stored somewhere else (e.g. `dumpers`), pass the folder name:
+By default, _runAll.py_ detects the current folder. If one wishes to submit an analyzer from some other folder (I don't know why you would do this), the `--folder` parameter can specify some other folder name, relative to _Analysis/_.
 
-```python
-python runAll.py cutEfficiencies.py --samples S2BD --folder dumpers
-```
+`--one` is for testing batch submissions by just submitting one job of the given sample types.
 
-The `--one` parameter is for testing batch submissions by just submitting one job of the given sample types.
+`--file` allows you to specify a specific file of job arguments. This is useful if, say, a few jobs fail. You extract the argument lists, put them in a file, and submit using `--file`.
 
 The `--extra` parameter should be passed last, if at all. It is for passing any additional arguments to the _Analyzer_ script, e.g. `--trigger` or `--cuts`. Everything after `--extra` will be passed directly to the given _Analyzer_, except that all instances of `__` will be replaced with `--`. This is necessary because if they are passed with `--`, the parser in _runAll.py_ will interpret them as options for itself, rather than additional options for the _Analyzer_. To do: this can probably be improved by requiring that the parameter be a single quoted string, but it works for now.
 
 ### CONDOR submission workflow for analyzers
 
-The following example suggests a workflow that can be used to run own analyzers on data samples using CONDOR. It demonstrates the combined use of many of the parameters described in this section.
+CONDOR mode will write all its log files to a folder `logs/`, organized in a useful way. Each call to `condor_submit` produces a new folder with the executable, the submission script, and all the log files. `getFailedCondorJobs.py` looks through these log files and reports useful information.
 
+Also useful is the command `condor_q -format "%s\n" Args`, which prints all the currently running jobs' arguments to the screen. It is suitable for, say,
+
+```bash
+condor_q -format "%s\n" Args > submitFile
+python runAll.py . --file submitFile --local &
 ```
+
+The following example suggests a workflow that can be used to run _Analyzers_ on samples using CONDOR. It demonstrates the combined use of many of the parameters described in this section.
+
+```bash
 # Run your own analysis script ("myAnalyzer.py") on signal, background and data
 # samples on CONDOR (using the "longlunch" queue) and passing custom arguments
 # to the analyzer
@@ -192,12 +219,12 @@ python runAll.py myAnalyzer.py --samples S2BD --condor --flavour longlunch \
 
 # monitor the submission status with `condor_q` and wait until all jobs have finished
 
-# Check which jobs have failed due to exceeding CPU Wall time (other errors are
-# not captured at this time)
-python getFailedCondorJobs.py
+# Check which jobs have failed due to exceeding CPU wall time
+# and which jobs have produced non-empty error files
+./getFailedCondorJobs.py
 
 # If there are failed jobs, the output might look like this:
-# 1 removed jobs found:
+# 1 overtime jobs found:
 #  run1/myAnalyzer_496
 #
 #  myAnalyzer.py --name DoubleMuonRun2016H-07Aug17 --splitting 50000 63
@@ -205,6 +232,10 @@ python getFailedCondorJobs.py
 # Run the failed job again locally before hadding all the new output files
 python myAnalyzer.py --name DoubleMuonRun2016H-07Aug17 --splitting 50000 63
 ```
+
+<a name="rehaddall"></a>
+### rehaddAll.py
+This script assists with hadding and organizing the many ROOT files that the various analyzers produce.
 
 <a name="plotters"></a>
 ## Plotters
@@ -229,11 +260,13 @@ The following plotters open a text file produced by a dumper and produce actual 
   * **makeCutTablePlots.py** makes plots from the text file output of **cutEfficiencies.py**
 
 <a name="histogramgetter"></a>
-### HistogramGetter
+### HistogramGetter and PlotterParser
 
 `HistogramGetter.py` is a small module designed for getting histograms from files in a systematic way (given the same naming convention), and for storing information about plotting (such as styles, e.g. colors and pretty TLatex names, as well as the relative sample weights).
 
 In other words, it's a simple Python module, but really important so that code is not duplicated and spread across several plotting scripts!
+
+`PlotterParser.py` is an even smaller module that contains a few common parameters, such as the cut string and whether this runs over trigger root files. They can be used to run a _Plotter_ in a programmatic way, and its functionality is used in `pilotPlotters.py`, which runs sets of plotters in a loop.
 
 <a name="convertone"></a>
 ### convertone.sh

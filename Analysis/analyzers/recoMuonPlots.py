@@ -4,7 +4,7 @@ import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedTrigger, applyPairingCriteria
+from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons, matchedTrigger, applyPairingCriteria, matchedDimuons
 
 # CONFIG stores the axis and function information so that histograms can be filled and declared in a loop
 HEADERS = ('AXES', 'LAMBDA', 'PRETTY')

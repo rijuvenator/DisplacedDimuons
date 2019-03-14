@@ -1,6 +1,6 @@
 # Documentation for `Plotter.py`
 
-Last updated: **20 September 2018**
+Last updated: **5 March 2019**
 
 Documention for my Plotter classes. Should be self-explanatory from the comments in the code for the most part, but this is a handy reference.
 
@@ -42,20 +42,22 @@ It is intended to be a general purpose plot and canvas handling module, incorpor
 <a name="plotmethods"></a>
 ### Class Methods
 **factor** is a multiplicative scale factor.  
-**axes** is a string containing a possibly empty subset of `XYZ`, default `XY`. All axes must exist.
+**axes** is a string containing a possibly empty subset of `XYZ`, default `XY`. All axes must exist.  
 **which** is a string containing a possibly empty subset of `LMF`, default `LM`.
 
 **scaleTitles** and **scaleLabels** scale the size of the axis titles and labels, respectively.  
 **scaleTitleOffsets** scales the distance between the axis title and the axis.  
-**setTitles** sets axis titles. The function expects strings for each of its arguments.
+**setTitles** sets axis titles. The function expects strings for each of its axis arguments.
+  * `copy` copies the axis titles (specify which with dummy args) from a given plot
+**setColor** sets plot colors. `alpha` sets a transparency value.  
 
 ```python
 * Plot                   (plot, legName='hist', legType='felp', option='')
 * Plot.scaleTitles       (factor, axes='XY')
 * Plot.scaleLabels       (factor, axes='XY')
 * Plot.scaleTitleOffsets (factor, axes='XY')
-* Plot.setTitles         (X=None, Y=None, Z=None)
-* Plot.setColor          (color, which='LM')
+* Plot.setTitles         (X=None, Y=None, Z=None, copy=None)
+* Plot.setColor          (color, which='LM', alpha=None)
 ```
 
 

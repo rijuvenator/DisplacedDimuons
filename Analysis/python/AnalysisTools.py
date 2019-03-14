@@ -200,7 +200,7 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
             muonMatches.append(matchedMuons(genMuon, recoMuons, vertex=vertex))
 
         if doDimuons and len(dimuons) != 0:
-            dimuonLookup = {(dim.idx1, dim.idx2):(dim, didx) for didx,dim in enumerate(dimuons)}
+            dimuonLookup = {dim.ID:(dim, didx) for didx,dim in enumerate(dimuons)}
             dimuonMatches = []
             for match1 in muonMatches[0]:
                 for match2 in muonMatches[1]:
@@ -272,9 +272,12 @@ def matchedDimuons(genMuonPair, dimuons, recoMuons=None, vertex=None, threshold=
     # final return
     return dimuonMatches, muonMatches, exitcode
 
-def matchedTrigger(HLTMuons, DSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
-    HLTMuonMatches = {}
+def matchedTrigger(HLTMuons, uncutDSAMuons, saveDeltaR=False, threshold=0.4, printAllMatches = False):
 
+    # this selection should be here, instead of floating around
+    DSAMuons = [mu for mu in uncutDSAMuons if mu.pt > 10. and abs(mu.eta) < 2.]
+
+    HLTMuonMatches = {}
     # loop over unique pairs of HLT muons
     nHLT = len(HLTMuons)
     for i in xrange(nHLT):
@@ -403,9 +406,22 @@ def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, thres
 # apply the pairing criteria recipe developed in the pairing criteria study
 # returns a list of 0, 1, or 2 dimuons, based on how many muons there are and the result of applying the recipe
 def applyPairingCriteria(muons, dimuons, doAMD=False):
+    if muons is None or dimuons is None:
+        return []
+
     # get the list of relevant dimuons
-    selectedOIndices = [mu.idx for mu in muons]
-    selectedDimuons  = [dim for dim in dimuons if dim.idx1 in selectedOIndices and dim.idx2 in selectedOIndices]
+    selectedMuons, selectedIndices = {}, {}
+    for tag in ('DSA', 'PAT'):
+        selectedMuons  [tag] = [mu for mu in muons if mu.tag == tag]
+        selectedIndices[tag] = [mu.idx for mu in selectedMuons[tag]]
+
+    def dimuonFilter(dim, selectedIndices):
+        if dim.composition != 'HYBRID':
+            return set(dim.ID).issubset(selectedIndices[dim.composition])
+        else:
+            return dim.idx1 in selectedIndices['DSA'] and dim.idx2 in selectedIndices['PAT']
+
+    selectedDimuons = [dim for dim in dimuons if dimuonFilter(dim, selectedIndices)]
 
     # if there are any dimuons at all, there had to be >= 2 muons
     # if there's 2, just return the one dimuon that was made
@@ -414,21 +430,29 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     # with optional doAMD mode, return the lowest pair by mass difference instead if both dimuons have Lxy < 30 cm
     # if there were no pairings with 4 muons, treat it like a 3 muon case
     if len(selectedDimuons) > 0:
-        if   len(muons) == 2:
+        combinedMuons = selectedMuons['DSA'] + selectedMuons['PAT']
+        nMuons = len(combinedMuons)
+        if   nMuons == 2:
             return selectedDimuons[0:1]
-        elif len(muons) == 3:
+        elif nMuons == 3:
             return sorted(selectedDimuons, key=lambda dim: dim.normChi2)[0:1]
-        elif len(muons) >= 4:
-            highestPTMuons = sorted(muons, key=lambda mu: mu.pt, reverse=True)[:4]
-            highestIndices = [mu.idx for mu in highestPTMuons]
-            HPDs = [d for d in selectedDimuons if d.idx1 in highestIndices and d.idx2 in highestIndices]
+        elif nMuons >= 4:
+            highestPTMuons = sorted(combinedMuons, key=lambda mu: mu.pt, reverse=True)[:4]
+            highestIndices = {}
+            for tag in ('DSA', 'PAT'):
+                highestIndices[tag] = [mu.idx for mu in highestPTMuons if mu.tag == tag]
+            HPDs = [d for d in selectedDimuons if dimuonFilter(d, highestIndices)]
 
             # find all unique non-overlapping pairs of dimuons
             pairings = []
             for dim1 in HPDs:
                 for dim2 in HPDs:
-                    if dim1.ID == dim2.ID: continue
-                    muonIDs = set(dim1.ID+dim2.ID)
+                    if dim1.ID == dim2.ID and dim1.composition == dim2.composition: continue
+                    muonIDs = set()
+                    for d in (dim1, dim2):
+                        for idx in '1', '2':
+                            mu = getattr(d, 'mu'+idx)
+                            muonIDs.add(('DSA' if 'DSA' in mu.tag else 'PAT', mu.idx))
                     if len(muonIDs) == 4:
                         pairings.append((dim1, dim2))
 
@@ -444,7 +468,7 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
                 for fkey in funcs:
                     sortedPairings[fkey] = sorted(pairings, key=funcs[fkey])
                     for d in sortedPairings[fkey][0]:
-                        candidateBestDimuons[fkey][d.ID] = d
+                        candidateBestDimuons[fkey][(d.composition, d.ID)] = d
 
                 # try to use AMD for low Lxy
                 if doAMD:
@@ -467,6 +491,76 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     # there weren't any dimuons so return an empty list
     else:
         return []
+
+# function for replacing DSA muons with PAT muons, and DSA dimuons with PAT or HYBRID dimuons
+# The input PATmuons list should be the bare list
+# The input selectedDSAmuons list is probably a list of DSA muons passing quality cuts
+# The input selectedDimuons list is probably a list of DSA dimuons made only of the selected DSA muons + PAT and HYBRID dimuons
+# By default this will look for a segment match (in a way that was defined previously) and will always consider HYBRID dimuons
+# For a few more details, take a look at an early March 2019 commit with the replaceDSADimuons function
+def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
+
+    # defines a SegMatch, returns a pair of indices (called candidate)
+    def lookForSegMatch(DSAmuon):
+        candidate = None
+        if DSAmuon.idx_SegMatch is None:
+            pass
+        elif len(DSAmuon.idx_SegMatch) > 1:
+            if DSAmuon.idx_ProxMatch in DSAmuon.idx_SegMatch:
+                candidate = DSAmuon.idx_ProxMatch
+            else:
+                # take first entry
+                # which is the smallest index = largest pT
+                candidate = DSAmuon.idx_SegMatch[0]
+        else:
+            candidate = DSAmuon.idx_SegMatch[0]
+        return candidate
+
+    # filter DSA muons based on whether there was a PAT match
+    # after this, there are two lists: PAT muons which replaced a DSA muon, and
+    # DSA muons which matched no PAT muon
+    selectedPATmuons = []
+    filteredDSAmuons = []
+    DSAIndices = []
+    PATIndices = []
+    for mu in selectedDSAmuons:
+        candidate = lookForSegMatch(mu)
+        if candidate is not None:
+            if candidate in PATIndices: continue
+            selectedPATmuons.append(PATmuons[candidate]) # be careful. PATmuons is the full list, here.
+            PATIndices.append(candidate)
+        else:
+            filteredDSAmuons.append(mu)
+            DSAIndices.append(mu.idx)
+
+    # possible indices for dimuons. Consider only DSA-DSA and PAT-PAT dimuons; skip HYBRID
+    # call the new list "filteredDimuons"
+    selectedIndices = {
+        'DSA':DSAIndices,
+        'PAT':PATIndices,
+    }
+
+    keepHybrids = True
+
+    filteredDimuons = []
+    for dim in selectedDimuons:
+        append = False
+        if dim.composition != 'HYBRID':
+            if set(dim.ID).issubset(selectedIndices[dim.composition]):
+                append = True
+        else:
+            if not keepHybrids: continue
+            if dim.idx1 in DSAIndices and dim.idx2 in PATIndices:
+                append = True
+
+        if append:
+            filteredDimuons.append(dim)
+
+    # final return
+    # suitable for the following call:
+    # selectedDSAmuons, selectedPATmuons, selectedDimuons = replaceDSAmuons(selectedDSAmuons, PATmuons, selectedDimuons)
+    # where selectedDimuons is a Dimuons3 type list
+    return filteredDSAmuons, selectedPATmuons, filteredDimuons
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

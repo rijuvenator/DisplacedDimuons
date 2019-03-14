@@ -27,7 +27,8 @@ class DisplacedMuonFiller
   DisplacedMuon Fill(const reco::Track& track,
 		     const edm::ESHandle<TransientTrackBuilder>& ttB,
 		     const edm::Handle<reco::VertexCollection> &verticesHandle,
-		     const edm::Handle<reco::BeamSpot> &beamspotHandle);
+		     const edm::Handle<reco::BeamSpot> &beamspotHandle,
+		     const bool patmuon);
 
   void CompareTrackParams(const reco::Track& track,
 			  const edm::Handle<reco::VertexCollection> &verticesHandle,
