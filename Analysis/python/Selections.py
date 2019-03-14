@@ -78,6 +78,7 @@ CUTS = {
 
 ### PAT MUON QUALITY CUTS ###
     'p_isGlobal' : Cut('p_isGlobal' , lambda muon: muon.isGlobal                       , operator.eq, True      ),
+    'p_isMedium' : Cut('p_isMedium' , lambda muon: muon.isMedium                       , operator.eq, True      ),
     'p_nTrkLays' : Cut('p_nTrkLays' , lambda muon: muon.nTrackerLayers                 , operator.gt,   6       ),
 
 ### OTHER MUON CUTS ###
@@ -93,7 +94,7 @@ CutLists = {
     'BaselineMuonCutList'   : ('b_nStations', 'b_nMuonHits', 'b_FPTE', 'b_pT'),
     'BaselineDimuonCutList' : ('b_LxyErr', 'b_mass', 'b_vtxChi2', 'b_d0Sig'),
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
-    'PATQualityCutList'     : ('p_isGlobal', 'p_nTrkLays'),
+    'PATQualityCutList'     : ('p_isGlobal', 'p_isMedium', 'p_nTrkLays'),
     'OtherMuonCutList'      : ('r_pT',),
 }
 for prefix in ('Muon', 'Dimuon'):

@@ -15,6 +15,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     FPTERR    = '_FPTE'     in CUTS
     HLT       = '_HLT'      in CUTS
     ISGLOBAL  = '_GLB'      in CUTS
+    ISMEDIUM  = '_MED'      in CUTS
     NTRKLAYS  = '_NTL'      in CUTS
     REP       = '_REP'      in CUTS
     PT        = '_PT'       in CUTS
@@ -36,10 +37,12 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         return cutList
 
     # determine PAT muon quality cuts based on string values
-    def boolsToPATMuonCutList(ISGLOBAL, NTRKLAYS):
+    def boolsToPATMuonCutList(ISGLOBAL, ISMEDIUM, NTRKLAYS):
         cutList = []
         if ISGLOBAL:
             cutList.append('p_isGlobal')
+        if ISMEDIUM:
+            cutList.append('p_isMedium')
         if NTRKLAYS:
             cutList.append('p_nTrkLays')
         return cutList
@@ -81,14 +84,14 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     # DSA muon quality cuts
     if NSTATIONS or NMUONHITS or FPTERR:
         # compute all the baseline selection booleans
-        DSASelections = [Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons]
+        DSASelections = {muon.idx:Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons}
 
         # figure out which cuts we actually care about
         cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
-            selectedMuons['DSA'] = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+            selectedMuons['DSA'] = [mu for mu in DSAmuons if DSASelections[mu.idx].allOf(*cutList)]
             selectedOIndices     = [mu.idx for mu in selectedMuons['DSA']]
             selectedDimuons      = [dim for dim in Dimuons3 if set(dim.ID).issubset(selectedOIndices) or dim.composition != 'DSA']
 
@@ -101,27 +104,34 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return failedReturnList
 
     # PAT muon quality cuts
-    if ISGLOBAL or NTRKLAYS:
+    # temporarily, always compute the booleans, for the purpose of getting useful information out of "info"
+    #if ISGLOBAL or ISMEDIUM or NTRKLAYS:
+    if True:
         # compute all the PAT quality selection booleans
-        PATSelections = [Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in PATmuons]
+        PATSelections = {muon.idx:Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in PATmuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToPATMuonCutList(ISGLOBAL, NTRKLAYS)
+        cutList = boolsToPATMuonCutList(ISGLOBAL, ISMEDIUM, NTRKLAYS)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        if len(cutList) > 0:
-            selectedMuons['PAT'] = [mu for i,mu in enumerate(PATmuons) if PATSelections[i].allOf(*cutList)]
+        # if len(cutList) > 0:
+        #     selectedMuons['PAT'] = [mu for mu in PATmuons if PATSelections[mu.idx].allOf(*cutList)]
 
         # note: explicitly not filtered dimuons at this stage because it's not necessary
         # either the replacement is next, and the dimuons will get filtered anyway
         # or no replacement will be done, and again, the dimuons will get filtered anyway
+    else:
+        PATSelections = None
+        cutList = []
 
     # PAT muon replacement
     if REP:
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons)
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
+
+    # TODO: apply PAT muon quality cuts again, and maybe filter the dimuons
 
     # pT cut
     # there is only one cut of this type right now, but if additional cuts are applied later,
