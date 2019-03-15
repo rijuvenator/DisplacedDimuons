@@ -507,9 +507,8 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # defines a SegMatch, returns a pair of indices (called candidate)
     # uses inputPATs, above
     def lookForSegMatch(DSAmuon):
-        info = False
         if DSAmuon.idx_SegMatch is None:
-            return None, info
+            return None
 
         # only consider segMatches that are selectedPATmuons
         # don't do this anymore
@@ -524,35 +523,18 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         # if it gets down to 2+, great -- prox will disambiguate
         # if it gets down to 0, the filtering would cause us to lose the match,
         # so pretend the filtering didn't happen
-
-        # modified logic for the purposes of getting useful info out of "info"
-        if len(DSAmuon.idx_SegMatch) > 1:
-            if len(cutList) == 0:
+        if len(DSAmuon.idx_SegMatch) > 1 and PATSelections is not None:
+            segMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf(*cutList)]
+            if len(segMatches) == 0:
                 segMatches = DSAmuon.idx_SegMatch
-            else:
-                segMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf(*cutList)]
-                if len(segMatches) == 0:
-                    segMatches = DSAmuon.idx_SegMatch
-
-            testSegMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf('p_isMedium', 'p_nTrkLays')]
-            if len(testSegMatches) != len(DSAmuon.idx_SegMatch):
-                info = True
         else:
             segMatches = DSAmuon.idx_SegMatch
-
-        # go back to this when info is no longer needed
-        #if len(DSAmuon.idx_SegMatch) > 1 and PATSelections is not None:
-        #    segMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf(*cutList)]
-        #    if len(segMatches) == 0:
-        #        segMatches = DSAmuon.idx_SegMatch
-        #else:
-        #    segMatches = DSAmuon.idx_SegMatch
 
         # if 0, no matches
         # if 1, take the match
         # if 2+, disambiguate using ProxMatch OR take the first entry, if ProxMatch is not a SegMatch
         if len(segMatches) == 0:
-            return None, info
+            return None
 
         if len(segMatches) > 1:
             if DSAmuon.idx_ProxMatch in segMatches:
@@ -564,7 +546,7 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         else:
             candidate = segMatches[0]
 
-        return candidate, info
+        return candidate
 
     # filter DSA muons based on whether there was a PAT match
     # after this, there are two lists: PAT muons which replaced a DSA muon, and
@@ -574,10 +556,9 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     DSAIndices = []
     PATIndices = []
     for mu in selectedDSAmuons:
-        candidate, info = lookForSegMatch(mu)
+        candidate = lookForSegMatch(mu)
         if candidate is not None:
             if candidate in PATIndices: continue
-            inputPATs[candidate].info = info
             filteredPATmuons.append(inputPATs[candidate])
             PATIndices.append(candidate)
         else:

@@ -63,11 +63,6 @@ def declareHistograms(self, PARAMS=None):
         for RTYPE in ('DSA', 'PAT', 'HYB'):
             self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
-    for QKEY in QUANTITIES:
-        XTIT = QUANTITIES[QKEY]['PRETTY']
-        for RTYPE in ('PAT', 'HYB'):
-            self.HistInit('Dis-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
-
     for QKEY in MCQUANTITIES:
         TIT = MCQUANTITIES[QKEY]['PRETTY']
         A = MCQUANTITIES[QKEY]['AXES']
@@ -105,23 +100,11 @@ def analyze(self, E, PARAMS=None):
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
-    infoDict = [mu.idx for mu in selectedPATmuons if mu.info]
-
     for dim in selectedDimuons:
-        fillMultiple = False
-        if (dim.composition == 'PAT' and (dim.idx1 in infoDict or dim.idx2 in infoDict)) or (dim.composition == 'HYBRID' and dim.idx2 in infoDict): fillMultiple = True
         RTYPE = dim.composition[:3]
         for QKEY in QUANTITIES:
             KEY = RTYPE+'-'+QKEY
             self.HISTS[KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
-            if fillMultiple:
-                self.HISTS['Dis-'+KEY].Fill(QUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
-                if QKEY == 'Lxy':
-                    print 'DIS {:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f}'.format(
-                        self.NAME, Event.run, Event.lumi, Event.event,
-                        dim.composition[:3], dim.idx1, dim.idx2,
-                        dim.LxySig(), dim.Lxy(), dim.normChi2, min(dim.mu1.d0Sig(),dim.mu2.d0Sig())
-                    )
 
         if self.SP is None and dim.LxySig() > 50.:
             if dim.composition == 'PAT':

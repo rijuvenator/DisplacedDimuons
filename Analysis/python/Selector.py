@@ -104,9 +104,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         if not any([HLTMuonMatches[ij]['matchFound'] for ij in HLTMuonMatches]): return failedReturnList
 
     # PAT muon quality cuts
-    # temporarily, always compute the booleans, for the purpose of getting useful information out of "info"
-    #if ISGLOBAL or ISMEDIUM or NTRKLAYS:
-    if True:
+    if ISGLOBAL or ISMEDIUM or NTRKLAYS:
         # compute all the PAT quality selection booleans
         PATSelections = {muon.idx:Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in PATmuons}
 
