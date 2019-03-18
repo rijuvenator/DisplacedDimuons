@@ -19,8 +19,8 @@ lumiExtra = {
     'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M'                    : '',
     'NS_NH_FPTE_HLT_GLB_REP_PT_PC_LXYE_M'                : ' + #mu^{global}',
     'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M'            : ' + #mu^{global} + N_{trk. lay.}',
-    'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M_CHI2'       : ' + #mu^{global} + N_{trk. lay.} + vtx. #chi^{2}',
-    'NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M_CHI2_D0SIG' : ' + #mu^{global} + N_{trk. lay.} + vtx. #chi^{2} + d_{0} sig.',
+    'NS_NH_FPTE_HLT_MED_REP_PT_PC_LXYE_M'                : ' + #mu^{medium}',
+    'NS_NH_FPTE_HLT_MED_NTL_REP_PT_PC_LXYE_M'            : ' + #mu^{medium} + N_{trk. lay.}',
 }
 
 DRAW = False
@@ -88,7 +88,7 @@ makeLxyResVSLxyPlot('DSA')
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
     for recoType in ('DSA', 'PAT', 'HYB'):
-        for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'd0Sig'):
+        for quantity in ('Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'd0Sig'):
             key = recoType + '-' + quantity
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
@@ -126,9 +126,9 @@ makeSinglePlots()
 # MC plots of LxySig
 def makeMCPlots():
     for recoType in ('PAT', 'DSA', 'HYB'):
-        for quantity in ('LxySig', 'LxyErr', 'vtxChi2', 'd0Sig'):
+        for quantity in ('Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'd0Sig'):
             hkey = recoType + '-' + quantity
-            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=lambda key: 'd0Sig' in key or 'vtxChi2' in key)
+            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=lambda key: 'Lxy' in key and 'Sig' not in key and 'Err' not in key)
             HISTS = HISTS[hkey]
             PConfig = PConfig[hkey]
 
@@ -166,6 +166,8 @@ def makeMCPlots():
                 val = 10.
             if 'd0Sig' in hkey:
                 val = 3.
+            if 'Lxy' == quantity:
+                val = 100.
 
             print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
             print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins)/HISTS['sum'].Integral(1, nBins)*100.)
@@ -184,7 +186,6 @@ def makeMCPlots():
             canvas.cleanup('pdfs/ZEP_{}_{}_{}_MC.pdf'.format(quantity, recoType, CUTSTRING))
 makeMCPlots()
 
-R.gStyle.SetPalette(55)
 def makeMC2DPlots(BGList=None, SUFFIX=None):
     if BGList is None:
         BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')
@@ -193,7 +194,7 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         BGORDER = BGList
         if SUFFIX is None:
             SUFFIX = BGList[0]
-    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVts', 'missingHitsAfterVtx'):
+    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVtx', 'missingHitsAfterVtx'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
@@ -201,14 +202,16 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
 
         hkey = 'PAT-12-'+quantity
         HG.BGORDER = BGORDER # don't do this, normally
-        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False, rebin=(10, 10), rebinVeto=lambda key: 'normChi2' not in key)
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False)
         HG.BGORDER = BGORDER_REAL
         HISTS = HISTS[hkey]
         PConfig = PConfig[hkey]
 
         if quantity != 'normChi2':
+            R.gStyle.SetPalette(55)
             PConfig['stack'] = ('', '', 'colz text')
         else:
+            R.gStyle.SetPalette(56)
             PConfig['stack'] = ('', '', 'colz')
 
         PLOTS = {}
@@ -219,8 +222,8 @@ def makeMC2DPlots(BGList=None, SUFFIX=None):
         canvas.firstPlot.SetMarkerColor(R.kWhite)
 
         if quantity == 'normChi2':
-            canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
-            canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 10.)
+            canvas.firstPlot.GetYaxis().SetRangeUser(0., 10.)
 
         canvas.scaleMargins(1.75, edges='R')
         canvas.scaleMargins(0.8, edges='L')
@@ -233,7 +236,7 @@ makeMC2DPlots(('DY50toInf',))
 makeMC2DPlots(('QCD20toInf-ME',))
 
 def makeSignal2DPlots():
-    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVts', 'missingHitsAfterVtx'):
+    for quantity in ('normChi2', 'nTrkLay', 'nPxlHit', 'highPurity', 'isGlobal', 'isMedium', 'hitsBeforeVtx', 'missingHitsAfterVtx'):
         if quantity == 'nTrkLay':
             R.gStyle.SetPaintTextFormat('.1f')
         else:
@@ -258,8 +261,8 @@ def makeSignal2DPlots():
             canvas.firstPlot.SetMarkerColor(R.kWhite)
 
             if quantity == 'normChi2':
-                canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
-                canvas.firstPlot.GetYaxis().SetRangeUser(0., 100.)
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 10.)
+                canvas.firstPlot.GetYaxis().SetRangeUser(0., 10.)
 
             canvas.scaleMargins(1.75, edges='R')
             canvas.scaleMargins(0.8, edges='L')
