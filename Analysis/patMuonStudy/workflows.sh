@@ -1,6 +1,6 @@
 #### current cut string
 
-_Combined_NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M_CHI2_D0SIG
+_Combined_NS_NH_FPTE_HLT_PQ1_REP_PT_PC_LXYE_M_CHI2
 
 # 5 sets of cuts
 
