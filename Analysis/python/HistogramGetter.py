@@ -92,19 +92,29 @@ def getHistogram(FILE, ref, key):
     return FILE.Get(hkey)
 
 # get added signal histograms
-def getAddedSignalHistograms(FILE, fs, keylist):
+def getAddedSignalHistograms(FILE, fs, keylist, getIndividuals=False):
     # allow passing a string or a list
     if type(keylist) == str:
         keylist = [keylist]
 
     # loop through the keys, add up all the signalpoints, return a dictionary of histograms
     HISTS = {}
+    INDIV = {}
     for key in keylist:
+        INDIV[key] = {}
         HISTS[key] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
+        if getIndividuals:
+            INDIV[key][SIGNALPOINTS[0]] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
     for sp in SIGNALPOINTS[1:]:
         for key in keylist:
             HISTS[key].Add(getHistogram(FILE, (fs, sp), key))
-    return HISTS
+            if getIndividuals:
+                INDIV[key][sp] = getHistogram(FILE, (fs, sp), key).Clone()
+
+    if not getIndividuals:
+        return HISTS
+    else:
+        return HISTS, INDIV
 
 # get added weighted background histograms
 # keylist is a single key (string) or a list of keys

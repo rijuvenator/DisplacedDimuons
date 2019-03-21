@@ -11,12 +11,14 @@ if len(sys.argv) > 1:
 # really, it just needs a file with chi2 being the last column
 # there are many scripts that do the required event line printing
 
-h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 200, np.logspace(-3., 8., 201))
+h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 100, np.logspace(-3., 8., 101))
 
 with open(fname) as f:
     for line in f:
+        if 'DY50' not in line: continue
+        if 'PAT' not in line: continue
         cols = line.strip('\n').split()
-        chi2 = float(cols[-1])
+        chi2 = float(cols[-2])
         h.Fill(chi2)
 
 p = Plotter.Plot(h, '', '', 'hist')
@@ -33,7 +35,7 @@ canvas.cleanup('pdfs/badChi2.pdf')
 cum = h.GetCumulative()
 cum.Scale(1./h.Integral(0, h.GetNbinsX()+1))
 
-findAt = 10.
+findAt = 50.
 for ibin in xrange(1, h.GetNbinsX()):
     if cum.GetXaxis().GetBinLowEdge(ibin) > findAt:
         print '{:.1f} : {:.4f}'.format(findAt, cum.GetBinContent(ibin))

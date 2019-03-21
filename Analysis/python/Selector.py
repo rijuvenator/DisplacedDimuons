@@ -14,8 +14,8 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     NMUONHITS = '_NH'       in CUTS
     FPTERR    = '_FPTE'     in CUTS
     HLT       = '_HLT'      in CUTS
-    PQ1       = '_PQ1'      in CUTS
     REP       = '_REP'      in CUTS
+    PQ1       = '_PQ1'      in CUTS
     ISMEDIUM  = '_MED'      in CUTS
     NTRKLAYS  = '_NTL'      in CUTS
     PT        = '_PT'       in CUTS
