@@ -10,7 +10,11 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 
 # toggle the creation of histograms related to turn-on curves
 DO_CREATE_SIMPLE_HISTS = True
-DO_CREATE_TURNON_HISTS = False
+DO_CREATE_TURNON_HISTS = True
+
+# accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_NoBPTX3BX']
+accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_CosmicSeed']
+# accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_pp']
 
 # define single muon cuts
 SINGLEMU_SELECTION = {
@@ -23,9 +27,9 @@ SINGLEMU_SELECTION = {
     'pTSig': Selections.Cut('pTSig',
         lambda muon: muon.ptError / muon.pt,
         operator.lt, 1.),
-    'pT': Selections.Cut('pT',
-        lambda muon: muon.pt,
-        operator.gt, 20.),
+    # 'pT': Selections.Cut('pT',
+    #     lambda muon: muon.pt,
+    #     operator.gt, 20.),
     # 'eta': Selections.Cut('eta',
     #     lambda muon: abs(muon.eta),
     #     operator.lt, 1.2),
@@ -33,29 +37,29 @@ SINGLEMU_SELECTION = {
 
 # define muon pair cuts
 MUONPAIR_SELECTION = {
-    # 'alpha': Selections.Cut(
-    #     'alpha', lambda (m1,m2): m1.p4.Angle(m2.p4.Vect()),
-    #     operator.gt, 2.9),
+    'alpha': Selections.Cut(
+        'alpha', lambda (m1,m2): m1.p4.Angle(m2.p4.Vect()),
+        operator.gt, 2.9),
 }
 
 # define dimuon cuts
 DIMUON_SELECTION = {
-    'vtxChiSqu': Selections.Cut('vtxChiSqu',
-        lambda dim: dim.normChi2,
-        operator.lt, 50.),
+    # 'vtxChiSqu': Selections.Cut('vtxChiSqu',
+    #     lambda dim: dim.normChi2,
+    #     operator.lt, 50.),
 }
 
 # pT cuts applied to muon pairs ("L1 seed emulation"):
 # (the first muon has to pass the first cut and the second muon has to pass the
 # second cut) OR (the first muon has to pass the second cut and the second muon
 # has to pass the first cut)
-L1_pairthresholds = (5.,12.)
+L1_pairthresholds = (0.,0.)
 
-DO_SELECT_LARGEST_ALPHA_PAIR = False
+DO_SELECT_LARGEST_ALPHA_PAIR = True
 DO_REQUIRE_OPPOSITE_HEMISPHERES = False
 DO_REQUIRE_ONE_LEG_MATCHED = True
-DO_REQUIRE_BOTH_LEGS_MATCHED = True
-DO_REQUIRE_DIMUON_VERTEX = True
+DO_REQUIRE_BOTH_LEGS_MATCHED = False
+DO_REQUIRE_DIMUON_VERTEX = False
 
 # deltaR matching threshold for reco-HLT matches
 MATCHING_THRESHOLD_HLT = 0.2
@@ -64,7 +68,7 @@ MATCHING_THRESHOLD_HLT = 0.2
 PTTHRESHOLDS = [23., 25., 28.]  
 
 # additional L1 pT cuts applied consecutively to the sets of turn-on curves
-L1THRESHOLDS = (0.0, 4.0, 5.0, 11.0, 12.0, 15.0)
+L1THRESHOLDS = (0.0, 5.0, 12.0, 15.0)
 
 # different dimuon populations, defined by their alpha(mu,mu) values
 # define tuples of (min,max,name), corresponding to min<alpha<max and the name
@@ -89,13 +93,13 @@ D0INTERVALS = [(None,None)]
 # 10-cm steps for the entire d0 range
 # D0INTERVALS += ([(i,i+10.) for i in np.arange(0., 500., 10.)])
 # custom d0 bins
-# D0INTERVALS += ([(0,10),(10,50),(0,50),(50,100),(100,150),(150,250),(250,350),(250,1000),(350,1000)])
+D0INTERVALS += ([(0,10),(10,50),(0,50),(50,100),(100,150),(150,250),(250,350),(250,1000),(350,1000)])
 
 # make sure that all of the values are actually floats
 D0INTERVALS = [(float(l), float(h)) if l is not None and h is not None else (l,h) for l,h in D0INTERVALS]
 
 SINGLEMUVARIABLES = ['pT','eta','phi','charge','d0','x_fhit','y_fhit','z_fhit','nStations','nCSCDTHits','pTSig','chi2']
-PAIRVARIABLES = ['pTdiff','deltaR','mass','cosAlpha','alpha','dimuonPTOverM', 'pairPT', 'chargeprod']
+PAIRVARIABLES = ['pTdiff','deltaR','mass','cosAlpha','alpha','dimuonPTOverM', 'pairPT', 'chargeprod', 'dNStations', 'dNCSCDTHits', 'dEta', 'dPhi', 'dD0', 'dChi2']
 DIMUONVARIABLES = ['dimLxy','dimMass','dimVtxChi2','dimCosAlpha','dimLxySig']
 L1RESOLUTIONVARIABLES = ['L1pTres']
 L2RESOLUTIONVARIABLES = ['L2pTres']
@@ -122,6 +126,11 @@ VALUES  = (
     # ('dimuonPTOverM', 'dimuon p_{T} / M', (1000,       0.,     20.), lambda (m1,m2): (m1.p4+m2.p4).Pt()/(m1.p4+m2.p4).M(), 'p_{T} / M'),
     # ('pairPT',        'pair p_{T}',       (1000,       0.,   1000.), lambda (m1,m2): (m1.p4+m2.p4).Pt()                  , 'pair p_{T}'),
     ('chargeprod',    'q(#mu_{1})#times q(#mu_{2})',(  4, -2.,  2.), lambda (m1,m2): m1.charge*m2.charge                 , 'q(#mu_{1},#mu_{2})'),
+    ('dNStations',    '|nStations(#mu_{1}) - nStations(#mu_{2})|', (10, 0., 10.), lambda (m1,m2): abs(m1.nDTStations+m1.nCSCStations-m2.nDTStations-m2.nCSCStations), '|nStations(#mu_{1}) - nStations(#mu_{2})|'),
+    ('dNCSCDTHits',   '|nCSC+DTHits(#mu_{1}) - nCSC+DTHits(#mu_{2})|', (50, 0., 50.), lambda (m1,m2): abs(m1.nCSCHits+m1.nDTHits-m2.nCSCHits-m2.nDTHits), '|nCSC+DTHits(#mu_{1}) - nCSC+DTHits(#mu_{2})|'),
+    ('dEta',          '|#eta(#mu_{1}) - #eta(#mu_{2})|', (1000, 0., 3.), lambda (m1,m2): abs(m1.eta-m2.eta)              , '|#eta(#mu_{1}) - #eta(#mu_{2})|'),
+    ('dPhi',          '|#phi(#mu_{1}) - #phi(#mu_{2})|', (1000, 0., 2*math.pi), lambda (m1,m2): abs(m1.phi-m2.phi)              , '|#phi(#mu_{1}) - #phi(#mu_{2})|'),
+    ('dChi2',         '|#chi^{2}/ndof(#mu_{1}) - #chi^{2}/ndof(#mu_{2})|', (1000, -1., 30.), lambda (m1,m2): abs(m1.chi2/m1.ndof-m2.chi2/m2.ndof) if m1.ndof != 0 and m2.ndof != 0 else -1. , '|#chi^{2}(#mu_{1}) - #chi^{2}(#mu_{2})|'),
     ('dimLxy',        'dim. L_{xy} [cm]',    (1000,    0.,    500.), lambda dimuon: dimuon.Lxy()                         , 'dim. L_{xy}'  ),
     ('dimMass',       'dim. mass',        (1000,       0.,    500.), lambda dimuon: (dimuon.mu1.p4+dimuon.mu2.p4).M()    , 'dim. mass'  ),
     ('dimVtxChi2',    'vertex #chi^{2}/dof', (1000,    0.,    200.), lambda dimuon: dimuon.normChi2                      , 'vertex #chi^{2}/dof'),
@@ -140,6 +149,11 @@ for VAL in VALUES:
 if DO_REQUIRE_BOTH_LEGS_MATCHED and not DO_REQUIRE_ONE_LEG_MATCHED:
     raise Exception('If DO_REQUIRE_BOTH_LEGS_MATCHED should be True, also '
             'DO_REQUIRE_ONE_LEG_MATCHED has to be True')
+
+if any([threshold > 0. for threshold in L1_pairthresholds]) and not \
+        DO_REQUIRE_BOTH_LEGS_MATCHED:
+    raise Exception('If L1 pair thresholds are >0, both legs must be required '
+            'to match a L2 muon')
 
 if len(L1_pairthresholds) != 2:
     raise Exception('\'L1_pairthresholds\' must hold exactly two values')
@@ -160,7 +174,7 @@ def declareHistograms(self, PARAMS=None):
         for __,__,alpha_category_name in ALPHA_CATEGORIES:
             alpha_categories_str = alpha_category_name
 
-            self.HistInit('cutFlow'+d0intervals_str+alpha_categories_str, ';applied cuts;number of events passing', 20,0,20)
+            self.HistInit('cutFlow'+d0intervals_str+alpha_categories_str, ';applied cuts;number of events passing', 30,0,30)
             self.HistInit('L1TObjectsPerHLTObject_noSelections'+d0intervals_str+alpha_categories_str, ';number of L1 objects per HLT muon;Yield', 40, 0, 10)
             self.HistInit('L1TObjectsPerHLTObject'+d0intervals_str+alpha_categories_str, ';number of L1 objects per HLT muon;Yield', 40, 0, 10)
             self.HistInit('lowerLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for lower leg muon;Yield', 2, 0, 2)
@@ -231,7 +245,9 @@ def analyze(self, E, PARAMS=None):
 
     HLTpaths, HLTmuons, L1Tmuons = E.getPrimitives('TRIGGER')
     DSAmuons = E.getPrimitives('DSAMUON')
-    DIMUONS = E.getPrimitives('DIMUON')
+    DIMUONS3 = E.getPrimitives('DIMUON')
+    # restore "old" (pre-January-2019) dimuon behavior
+    DIMUONS = [dim for dim in DIMUONS3 if dim.composition == 'DSA']
 
     event = E.getPrimitives('EVENT')
 
@@ -283,7 +299,6 @@ def analyze(self, E, PARAMS=None):
             do_skip_event = False
 
             # Accept only events that pass the following HLT triggers
-            accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_NoBPTX3BX']
             HLTpaths_list = [str(path) for path in HLTpaths]
             if not any([any([(accepted_path in HLTpath) for accepted_path in accepted_HLTpaths]) for HLTpath in HLTpaths_list]):
                 do_skip_event = True
@@ -356,7 +371,6 @@ def analyze(self, E, PARAMS=None):
 
                 # skip event if there are no HLT-matched muons at all
                 if len(accepted_matchedMuons) < 1: 
-                    # self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(2)
                     continue
                 else:
                     # count events with at least one HLT matched muon
@@ -395,15 +409,16 @@ def analyze(self, E, PARAMS=None):
                     if DO_SELECT_LARGEST_ALPHA_PAIR:
                         temp_alpha = CONFIG['alpha']['LAMBDA']((m1,m2))
                         if temp_alpha > temp_maxalpha:
-                            temp_maxalpha = temp_alpha
                             if alpha_min is not None and alpha_max is not None:
                                 # apply simple alpha cuts here, if applicable
                                 # treatment of some special cases for certain
                                 # alpha bins will be done further below
                                 if alpha_min < temp_alpha < alpha_max:
+                                    temp_maxalpha = temp_alpha
                                     selected_muonpairs = (m1,m2)
 
                             else:
+                                temp_maxalpha = temp_alpha
                                 selected_muonpairs = (m1,m2)
 
                     else:
@@ -419,7 +434,10 @@ def analyze(self, E, PARAMS=None):
 
                 # make everything compatible again
                 if DO_SELECT_LARGEST_ALPHA_PAIR: 
-                    selected_muonpairs = [selected_muonpairs]
+                    if len(selected_muonpairs) > 0:
+                        selected_muonpairs = [selected_muonpairs]
+                    else:
+                        selected_muonpairs = []
 
                 # skip events without any selected muon pairs
                 if len(selected_muonpairs) == 0:
@@ -482,16 +500,18 @@ def analyze(self, E, PARAMS=None):
                     self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(14)
 
                     # apply pT cuts on L1 muons pairs ("L1 seed emulation")
-                    m1_passes_first_cut = any([mu.pt > L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m1.idx])
-                    m1_passes_second_cut = any([mu.pt > L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m1.idx])
-                    m2_passes_first_cut = any([mu.pt > L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m2.idx])
-                    m2_passes_second_cut = any([mu.pt > L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m2.idx])
-                    if not ((m1_passes_first_cut and m2_passes_second_cut) or \
-                            (m1_passes_second_cut and m2_passes_first_cut)):
-                        continue
-                    else:
-                        # count all muon pars that pass the L1 trigger cuts
-                        self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(15)
+                    if DO_REQUIRE_BOTH_LEGS_MATCHED:
+                        m1_passes_first_cut = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m1.idx])
+                        m1_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m1.idx])
+                        m2_passes_first_cut = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m2.idx])
+                        m2_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m2.idx])
+
+                        if not ((m1_passes_first_cut and m2_passes_second_cut) or \
+                                (m1_passes_second_cut and m2_passes_first_cut)):
+                            continue
+                        else:
+                            # count all muon pars that pass the L1 trigger cuts
+                            self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(15)
 
 
                     # check whether the selected two muons belong to a dimuon
@@ -673,8 +693,6 @@ def analyze(self, E, PARAMS=None):
                                                     self.HISTS[MUONTYPE+'_pTGT{}'.format(str(HLTthreshold).replace('.','p'))+'_L1pTGT{}'.format(str(L1threshold).replace('.','p'))+'__'+KEY+'VAR'+'EffNum'+d0intervals_str+alpha_categories_str].Fill(F(lowerHSmuon))
 
                         else:
-                            # print('No HLT match found. Printing event information...')
-                            # print((event))
                             is_matched_lowerHSmuon_HLT = False
                             self.HISTS['lowerLegMu_HLTmatches'+d0intervals_str+alpha_categories_str].Fill(0)
 
@@ -695,10 +713,6 @@ def analyze(self, E, PARAMS=None):
 
                         else:
                             self.HISTS['lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str].Fill(0)
-
-                        # count accepted events
-                        self.HISTS['skippedEvents'+d0intervals_str+alpha_categories_str].Fill(-1)
-
 
                 self.HISTS['dimuonMultiplicity'+d0intervals_str+alpha_categories_str].Fill(dimuon_multiplicity)
 
@@ -747,7 +761,7 @@ def parse_filename(path='roots/', prefix='', suffix='', fext='.root'):
     if DO_REQUIRE_ONE_LEG_MATCHED and not DO_REQUIRE_BOTH_LEGS_MATCHED:
         filename += '_oneLegMatched'
     if DO_REQUIRE_BOTH_LEGS_MATCHED: filename += '_bothLegsMatched'
-    if DO_REQUIRE_DIMUON_VERTEX: filename += '_requireDimVTx'
+    if DO_REQUIRE_DIMUON_VERTEX: filename += '_requireDimVtx'
 
     if not DO_CREATE_SIMPLE_HISTS: filename += '_noSimpleHists'
     if not DO_CREATE_TURNON_HISTS: filename += '_noTurnOnHists'
@@ -774,6 +788,6 @@ if __name__ == '__main__':
 
     outputname = parse_filename(
             path='roots/',
-            prefix='test_backgrEst_diffHLTmatches_cosmicsPlots')
+            prefix='pp-seeded-HLTpath_backgrEst_cosmicsPlots')
 
     analyzer.writeHistograms(outputname)

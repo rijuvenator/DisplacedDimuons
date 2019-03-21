@@ -12,6 +12,8 @@ import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 L1RESOLUTIONVARIABLES = ['L1pTres']
 L2RESOLUTIONVARIABLES = ['L2pTres']
 
+# L1T_info = 'L1_SingleMuOpen'
+# HLT_info = 'HLT_L2Mu10_NoVertex_pp'
 L1T_info = 'L1_SingleMuOpen_NotBptxOR_3BX'
 HLT_info = 'HLT_L2Mu10_NoVertex_NoBPTX3BX'
 
@@ -30,7 +32,8 @@ RANGES = {
     'charge': (-1.,2.),
 }
 
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/cosmics-studies/background-estimation/backgrEst_incrStats_cosmicsPlots_nCSCDTHitsGT12_nStationsGT1_pTGT20p0_pTSigLT1p0_vtxChiSquLT50p0_oneLegMatched_requireDimVTx_noTurnOnHists.root')
+# HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/cosmic-seeded-HLTpath_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path.root')
 
 
 def makePerSamplePlots(selection=None):
@@ -152,7 +155,7 @@ def makePerSamplePlots(selection=None):
                 pave_triggerinfo.AddText(0., .5, L1T_info)
                 pave_triggerinfo.Draw()
 
-                fit_xmin, fit_xmax = findFitRange(h)
+                fit_xmin, fit_xmax = findFitRange(h[key])
                 func = R.TF1('f'+key, 'gaus', fit_xmin, fit_xmax)
                 func.SetParameters(10., -.1, .5)
                 func.SetLineStyle(2)
@@ -268,10 +271,11 @@ def makeTurnOnPlots():
 
     # these intervals must be equal (or a subset) of the ones defined in the
     # ../analyzers/cosmicsPlots.py script
-    d0intervals = []
+    d0intervals = [(None,None)]
     # d0intervals += [(i,i+2.5) for i in np.arange(0., 10., 2.5)]
-    d0intervals += [(i,i+5.0) for i in np.arange(0., 20., 5.0)]
-    d0intervals += [(i,i+10.0) for i in np.arange(20., 100., 10.0)]
+    # d0intervals += [(i,i+5.0) for i in np.arange(0., 20., 5.0)]
+    # d0intervals += [(i,i+10.0) for i in np.arange(20., 100., 10.0)]
+    d0intervals += ([(0,10),(10,50),(50,100),(100,150),(150,250),(250,350),(250,1000)])
 
     for d0min,d0max in d0intervals:
         hden = {}
@@ -280,15 +284,16 @@ def makeTurnOnPlots():
         g = {}
         for i,dataset in enumerate(HISTS):
             if d0min is None or d0max is None:
-                hnums = getHistNames(dataset, 'DSA','pTVAREffNum', exclude=['d0GT','d0LT'])
-                hdens = getHistNames(dataset, 'DSA','pTVAREffDen', exclude=['d0GT','d0LT'])
+                hnums = getHistNames(dataset, 'DSA','pTVAREffNum', exclude=['d0GT','d0LT','alpha'])
+                hdens = getHistNames(dataset, 'DSA','pTVAREffDen', exclude=['d0GT','d0LT','alpha'])
             else:
                 hnums = getHistNames(dataset, 'DSA','pTVAREffNum',
                         'd0GT'+str(d0min).replace('.','p'),
-                        'd0LT'+str(d0max).replace('.','p'))
+                        'd0LT'+str(d0max).replace('.','p'), exclude=['alpha'])
                 hdens = getHistNames(dataset, 'DSA','pTVAREffDen',
                     'd0GT'+str(d0min).replace('.','p'),
-                    'd0LT'+str(d0max).replace('.','p'))
+                    'd0LT'+str(d0max).replace('.','p'), exclude=['alpha'])
+                print(hdens)
 
             for hname in hnums:
                 current_hist = HISTS[dataset][hname].Clone()
@@ -324,7 +329,7 @@ def makeTurnOnPlots():
         hden = hden[hden.keys()[0]]
 
         for key in hnum:
-            canvas = Plotter.Canvas(lumi='NoBPTXRun2016E-07Aug17')
+            canvas = Plotter.Canvas(lumi='NoBPTXRun2016D-07Aug17')
 
             g[key] = R.TGraphAsymmErrors(hnum[key], hden, 'cp')
             g[key].SetNameTitle('g_'+key, ';'+hnum[key].GetXaxis().GetTitle()+';Efficiency')
@@ -337,6 +342,7 @@ def makeTurnOnPlots():
             canvas.legend.moveLegend(Y=.05)
             canvas.legend.resizeHeight()
             canvas.firstPlot.GetXaxis().SetRangeUser(0., 150.)
+            canvas.firstPlot.GetYaxis().SetRangeUser(0., 1.1)
 
             L2pTcut = re.findall(r'_pTGT(\d+)p(\d+)', key)
             if len(L2pTcut) > 1:
@@ -624,9 +630,11 @@ alpha_categories = (
     ('__noOppositeMuonMatch_0p0alpha2p8', '0 < #alpha < 2.8 (no match with opposite muon)'),
 )
 
-makeCombinedPlots(alpha_categories, selection=['DSA__alphaVAR','DSA__chargeVAR','DSA__nStationsVAR','DSA__nCSCDTHitsVAR','DSA__pTSigVAR','DSA__pTVAR','DSA__dimVtxChi2','DSA__dimCosAlpha','DSA__dimLxySig','DSA__chi2VAR','DSA__massVAR','DSA__chargeprodVAR','DSA__dimLxyVAR','DSA__pTdiffVAR','DSA__pairPTVAR'], logic='or', exclude=['__d0GT','__d0LT'])
+# makeCombinedPlots(alpha_categories, selection=['DSA__alphaVAR','DSA__chargeVAR','DSA__nStationsVAR','DSA__dNStationsVAR','DSA__nCSCDTHitsVAR','DSA__dNCSCDTHitsVAR','DSA__pSigVAR','DSA__pTVAR','DSA__dimVtxChi2','DSA__dimCosAlpha','DSA__dimLxySig','DSA__chi2VAR','DSA__massVAR','DSA__chargeprodVAR','DSA__dimLxyVAR','DSA__pTdiffVAR','DSA__pairPTVAR','DSA__dEtaVAR','DSA__dPhiVAR','DSA__dD0VAR','DSA__dChi2VAR'], logic='or', exclude=['__d0GT','__d0LT','Eff'])
 
-makePerSamplePlots()
+# makePerSamplePlots()
+# makePerSamplePlots(['DSA__dimLxyVAR'])
+# makePerSamplePlots(['DSA__dimMassVAR'])
 # makePerSamplePlots(['DSA__alphaVAR'])
 # makePerSamplePlots(['DSA__dimCosAlphaVAR'])
 # makePerSamplePlots(['DSA__dimLxySigVAR'])
@@ -638,8 +646,8 @@ makePerSamplePlots()
 # makePerSamplePlots(['DSA__nCSCDTHitsVAR'])
 # makePerSamplePlots(['DSA__pTSigVAR'])
 
-# makePerSamplePlots(['DSA','L1pTres'])
-# makePerSamplePlots(['DSA','L2pTres'])
+makePerSamplePlots(['DSA','L1pTres'])
+makePerSamplePlots(['DSA','L2pTres'])
 
 
-# makeTurnOnPlots()
+makeTurnOnPlots()
