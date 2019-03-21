@@ -11,9 +11,9 @@ FILES = {
     'MC'    : R.TFile.Open('roots/NM1Plots_MC.root'               )
 }
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'REP', 'PQ1', 'PT', 'PC', 'LXYE', 'M', 'CHI2')
-#PRETTY = ('n_{st}', 'n_{hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'PAT rep', 'PAT Q1', 'p_{T}', 'p.c.', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}')
-PRETTY = CUTS[:]
+CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'M', 'CHI2')
+PRETTY = ('n_{st}', 'n_{hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}')
+#PRETTY = CUTS[:]
 PRETTY = dict(zip(CUTS, PRETTY))
 
 def setBinLabels(canvas):
@@ -22,7 +22,7 @@ def setBinLabels(canvas):
     for ibin, cut in enumerate(CUTS):
         xaxis.SetBinLabel(ibin+2, PRETTY[cut])
 
-    canvas.firstPlot.scaleLabels(1.2, axes='X')
+    canvas.firstPlot.scaleLabels(1.4, axes='X')
 
 def makeIntegratedSEQMC():
     HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], 'SEQ')

@@ -5,7 +5,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'REP', 'PQ1', 'PT', 'PC', 'LXYE', 'M', 'CHI2')
+CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'M', 'CHI2')
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -42,14 +42,14 @@ def analyze(self, E, PARAMS=None):
         self.HISTS['SEQ'].Fill(0., eventWeight)
 
     for idx, omit in enumerate(CUTS):
-        CUTSTRING = '_Combined_' + '_'.join([c for c in CUTS if c != omit])
+        CUTSTRING = '_Combined_' + '_'.join([c for c in CUTS if c != omit]) + '_REP_PQ1_PC'
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons)
         if selectedDimuons is not None:
             self.omitCounts[omit] += 1
             self.HISTS['NM1'].Fill(idx+1., eventWeight)
 
     for idx in range(len(CUTS)):
-        CUTSTRING = '_Combined_' + '_'.join(CUTS[:idx+1])
+        CUTSTRING = '_Combined_' + '_'.join(CUTS[:idx+1]) + '_REP_PQ1_PC'
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons)
         if selectedDimuons is not None:
             self.seqCounts[CUTS[idx]] += 1
