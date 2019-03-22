@@ -1,10 +1,10 @@
 #### current cut string
 
-_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M_CHI2
+_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2
 
 # sets of cuts
 
-Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}
+Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}
 
 # rehadd
 
@@ -16,7 +16,7 @@ rehaddAll.py --mode split --tags ZephyrPlots_Combined_ --dirs tmp mcbg --samples
 
 # 10 MC -> one MC file
 
-for i in Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}
+for i in Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}
 do
     hadd ZephyrPlots${i}_MC.root ZephyrPlots_${i}_{DY10to50,DY50toInf,ttbar,tbarW,tW,WZ,ZZ,WW,WJets,QCD20toInf-ME}.root
     mv ZephyrPlots_${i}_{DY10to50,DY50toInf,ttbar,tbarW,tW,WZ,ZZ,WW,WJets,QCD20toInf-ME}.root tmp/
@@ -24,7 +24,7 @@ done
 
 # signal -> one file
 
-for i in Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}_HTo2XTo2Mu2J
+for i in Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}_HTo2XTo2Mu2J
 do
     rehadd ZephyrPlots_${i}
     mv ZephyrPlots_${i}_*.root tmp/
@@ -36,16 +36,16 @@ do
     for qt in LxySig d0Sig vtxChi2
     do
         for pt in 2Mu2J MC
-        do pdfunite NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}/ZEP_${qt}_${rt}_*_${pt}.pdf Combo_${qt}_${rt}_${pt}.pdf
+        do pdfunite NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}/ZEP_${qt}_${rt}_*_${pt}.pdf Combo_${qt}_${rt}_${pt}.pdf
         done
     done
 done
 
 # parallel plots + organize into subdirectories
 
-parallel python makeZephyrPlots.py --cutstring ::: NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}
+parallel python makeZephyrPlots.py --cutstring ::: NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}
 
-for cs in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2};
+for cs in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2};
 do
     mkdir -p pdfs/${cs}/
     mv pdfs/ZEP*${cs}_{MC,2Mu2J}*.pdf pdfs/${cs}/
@@ -64,7 +64,7 @@ do
     for k in {Full,Major,DY50toInf,QCD20toInf-ME,WJets,ttbar}
     do
         z=''
-        for i in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}
+        for i in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}
         do
             z=$z" "${i}/ZEP_2D_${j}_${k}_${i}_MC.pdf
         done
@@ -75,7 +75,7 @@ do
     for k in 2Mu2J_Global
     do
         z=''
-        for i in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M{,_CHI2}
+        for i in NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS{,_CHI2}
         do
             z=$z" "${i}/ZEP_2D_${j}_${i}_${k}.pdf
         done

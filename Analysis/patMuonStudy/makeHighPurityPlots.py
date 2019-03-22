@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
 
-f = R.TFile.Open('roots/HPPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M_2Mu2J.root')
+f = R.TFile.Open('roots/HPPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_2Mu2J.root')
 h = HG.getAddedSignalHistograms(f, '2Mu2J', ('pT', 'GM-pT', 'pT-HP', 'GM-pT-HP'))
 
 for key in ('', 'GM-'):
@@ -16,7 +16,7 @@ for key in ('', 'GM-'):
     p.setColor(R.kBlue, which='LM')
     c.cleanup('pdfs/HP_2Mu2J_'+key+'HPFrac.pdf')
 
-f = R.TFile.Open('roots/HPPlots_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M_MC.root')
+f = R.TFile.Open('roots/HPPlots_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_MC.root')
 h, pc = HG.getBackgroundHistograms(f, ('pT', 'pT-HP'), stack=False, rebin=5)
 
 for key in ('stack', 'DY50toInf'):

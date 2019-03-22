@@ -30,11 +30,11 @@ def analyze(self, E, PARAMS=None):
         pass
 
     CutStrings = {
-        ''   : '_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_M',
-        'G'  : '_Combined_NS_NH_FPTE_HLT_GLB_REP_PT_PC_LXYE_M',
-        'GN' : '_Combined_NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_M',
-        'M'  : '_Combined_NS_NH_FPTE_HLT_MED_REP_PT_PC_LXYE_M',
-        'MN' : '_Combined_NS_NH_FPTE_HLT_MED_NTL_REP_PT_PC_LXYE_M',
+        ''   : '_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS',
+        'G'  : '_Combined_NS_NH_FPTE_HLT_GLB_REP_PT_PC_LXYE_MASS',
+        'GN' : '_Combined_NS_NH_FPTE_HLT_GLB_NTL_REP_PT_PC_LXYE_MASS',
+        'M'  : '_Combined_NS_NH_FPTE_HLT_MED_REP_PT_PC_LXYE_MASS',
+        'MN' : '_Combined_NS_NH_FPTE_HLT_MED_NTL_REP_PT_PC_LXYE_MASS',
     }
     CutStringKeys = ('', 'G', 'GN', 'M', 'MN')
     selectedDimuons, selectedDSAmuons, selectedPATmuons = {}, {}, {}

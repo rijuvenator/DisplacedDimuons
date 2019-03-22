@@ -12,12 +12,12 @@ ARGS = PP.PARSER.parse_args()
 CUTSTRING = ARGS.CUTSTRING
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M'                : '',
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_M_CHI2'           : ' + vtx #chi^{2}',
+    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS'      : '',
+    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : ' + vtx #chi^{2}',
 }
 
 DRAW = False

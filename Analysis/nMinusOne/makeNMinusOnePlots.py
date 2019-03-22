@@ -11,7 +11,7 @@ FILES = {
     'MC'    : R.TFile.Open('roots/NM1Plots_MC.root'               )
 }
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'M', 'CHI2')
+CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2')
 PRETTY = ('n_{st}', 'n_{hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}')
 #PRETTY = CUTS[:]
 PRETTY = dict(zip(CUTS, PRETTY))
