@@ -337,11 +337,21 @@ def ListPrint(List, title=True, header=True, lines=None, alt=None, dimuonDetails
                 alt = 'AltGen'
 
     for line in lines:
+        prev = ''
         for i, obj in enumerate(List):
+            this = obj.__class__.__name__
             if i == 0:
                 Print(obj, title and line==lines[0], header, (line,), alt)
             else:
-                Print(obj, False, False, (line,), alt)
+                # this lets you mix reco muons of different types together in the ListPrint input
+                # it prints the header of line 3 if the obj.tag for RecoMuon changed
+                if this == 'RecoMuon' and line == 3 and obj.tag != prev:
+                    Print(obj, False, header, (line,), alt)
+                else:
+                    Print(obj, False, False, (line,), alt)
+
+            if this == 'RecoMuon':
+                prev = obj.tag
 
     if dimuonDetails and len(List) > 0 and className == 'Dimuon':
         for i, obj in enumerate(List):
