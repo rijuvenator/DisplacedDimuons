@@ -556,6 +556,7 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
 
         # require that the proximity match be global
         if not inputPATs[DSAmuon.idx_ProxMatch].isGlobal: return None
+        if inputPATs[DSAmuon.idx_ProxMatch].isTracker: return None
 
         # require that the proximity match be within deltaR of 0.1
         if DSAmuon.deltaR_ProxMatch < 0.1:
