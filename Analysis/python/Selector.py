@@ -1,7 +1,7 @@
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.AnalysisTools as AnalysisTools
 
-def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False):
+def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False, DSAVetoTracker=True):
 
     # failed return list
     failedReturnList = None, None, None
@@ -114,7 +114,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False):
         else:
             PATSelections = None
             cutList = []
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList, DSAProxMatch)
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList, DSAProxMatch, DSAVetoTracker)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']

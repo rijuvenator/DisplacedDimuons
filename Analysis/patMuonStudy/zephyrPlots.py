@@ -27,6 +27,8 @@ DSAQUANTITIES = {
 
 PATQUANTITIES = {
     'pT'        : {'LAMBDA': lambda mu: mu.pt             , 'PRETTY':'p_{T} [GeV]'           },
+    'eta'       : {'LAMBDA': lambda mu: mu.eta            , 'PRETTY':'#eta'                  },
+    'phi'       : {'LAMBDA': lambda mu: mu.phi            , 'PRETTY':'#phi'                  },
     'relTrkIso' : {'LAMBDA': lambda mu: mu.trackIso/mu.pt , 'PRETTY':'rel. track iso.'       },
     'd0Sig'     : {'LAMBDA': lambda mu: mu.d0Sig()        , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
     'trkChi2'   : {'LAMBDA': lambda mu: mu.normChi2       , 'PRETTY':'trk #chi^{2}/dof'      },
@@ -64,6 +66,8 @@ AXES = {
         'LxyRes'   : (1000,   -.05,     .05 ), # 1e-4 cm bins
 
         'pT'       : (1000,   0.  , 1000.   ),
+        'eta'      : ( 600,  -3.  ,    3.   ),
+        'phi'      : ( 200, -PI   ,   PI    ),
         'relTrkIso': (1000,   0.  ,     .5  ), # 5e-4    bins
         'd0Sig'    : (2000,   0.  ,  200.   ),
         'trkChi2'  : ( 500,   0.  ,   50.   ),
@@ -147,7 +151,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, False)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, self.ARGS.DSAPROXMATCH, self.ARGS.DSAVETOTRACKER)
     if selectedDimuons is None: return
 
     def getOriginalMuons(dim):
@@ -288,6 +292,8 @@ def end(self, PARAMS=None):
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
+    Analyzer.PARSER.add_argument('--dsaproxmatch', dest='DSAPROXMATCH', action='store_true')
+    Analyzer.PARSER.add_argument('--dsavetotracker', dest='DSAVETOTRACKER', action='store_false')
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
