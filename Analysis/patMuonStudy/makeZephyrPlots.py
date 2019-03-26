@@ -12,12 +12,11 @@ ARGS = PP.PARSER.parse_args()
 CUTSTRING = ARGS.CUTSTRING
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS'      : '',
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : ' + vtx #chi^{2}',
+    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : '',
 }
 
 DRAW = False
@@ -84,16 +83,24 @@ makeLxyResVSLxyPlot('DSA')
 
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
+    quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi']
+    for recoType in quantities: quantities[recoType].extend(dimQuantities)
+
+    quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['PAT'].extend(['pT', 'relTrkIso', 'd0Sig', 'trkChi2'])
+
     for recoType in ('DSA', 'PAT', 'HYB'):
-        for quantity in ('Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'd0Sig'):
+        for quantity in quantities[recoType]:
             key = recoType + '-' + quantity
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity == 'vtxChi2' else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso') else False)
             canvas.addMainPlot(p, addS=True)
             p.setColor(R.kBlue, which='L')
             nbox = canvas.makeStatsBox(p.plot, color=R.kBlue)
+
             if quantity == 'LxyPull':
                 func = R.TF1('f', 'gaus', -4., 4.)
                 HISTS[key].Fit('f', 'R')
@@ -111,10 +118,13 @@ def makeSinglePlots():
                 canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
                 canvas.firstPlot.SetMaximum(40000.)
                 canvas.firstPlot.SetMinimum(1.)
-            if 'd0Sig' in key:
+            if 'mind0Sig' in key:
                 canvas.firstPlot.SetMaximum(200. if recoType == 'PAT' else 900.)
             if 'LxySig' in key:
                 canvas.firstPlot.SetMaximum(200. if recoType == 'PAT' else (1200. if recoType == 'DSA' else 2700.))
+            if 'relTrkIso' in key:
+                canvas.firstPlot.SetMaximum(2000.)
+
             canvas.cleanup('pdfs/ZEP_{}_{}_{}_{}.pdf'.format(quantity, recoType, CUTSTRING, fs))
 makeSinglePlots()
 
@@ -122,10 +132,27 @@ makeSinglePlots()
 
 # MC plots of LxySig
 def makeMCPlots():
-    for recoType in ('PAT', 'DSA', 'HYB'):
-        for quantity in ('Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'd0Sig'):
+    quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi']
+    for recoType in quantities: quantities[recoType].extend(dimQuantities)
+
+    quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['PAT'].extend(['pT', 'relTrkIso', 'd0Sig', 'trkChi2'])
+
+    # for the massZoomed plots, add mass to rebinVeto and uncomment the axis range
+    # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
+
+    def rebinVeto(key):
+        if 'Lxy' in key and 'Sig' not in key and 'Err' not in key and 'DSA' not in key: return True
+        if 'deltaPhi' in key or 'phi' in key: return True
+        #if 'mass' in key: return True
+        if 'nStations' in key: return True
+        return False
+
+    for recoType in ('DSA', 'PAT', 'HYB'):
+        for quantity in quantities[recoType]:
             hkey = recoType + '-' + quantity
-            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=lambda key: 'Lxy' in key and 'Sig' not in key and 'Err' not in key)
+            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto)
             HISTS = HISTS[hkey]
             PConfig = PConfig[hkey]
 
@@ -144,6 +171,10 @@ def makeMCPlots():
             if 'vtxChi2' in hkey:
                 canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
 
+            if 'mass' in hkey:
+                pass
+                #canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
+
             canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')
             canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
@@ -155,20 +186,22 @@ def makeMCPlots():
             HISTS['sum'] = HISTS['stack'].GetStack().Last()
             nBins = HISTS['sum'].GetNbinsX()
 
+            val = None
             if 'LxySig' in hkey:
                 val = 100.
             if 'vtxChi2' in hkey:
                 val = 50.
             if 'LxyErr' in hkey:
                 val = 10.
-            if 'd0Sig' in hkey:
+            if 'mind0Sig' in hkey:
                 val = 3.
             if 'Lxy' == quantity:
                 val = 100.
 
-            print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
-            print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins)/HISTS['sum'].Integral(1, nBins)*100.)
-            print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins)/HISTS['sum'].Integral(1, nBins)*100.)
+            if val is not None:
+                print '{} Mean         : {}'.format(hkey,      HISTS['sum'].GetMean())
+                print '{} Overflow   % : {}'.format(hkey,      HISTS['sum'].GetBinContent(                           nBins)/HISTS['sum'].Integral(1, nBins)*100.)
+                print '{} > {:<8.0f} % : {}'.format(hkey, val, HISTS['sum'].Integral     (HISTS['sum'].FindBin(val), nBins)/HISTS['sum'].Integral(1, nBins)*100.)
 
             if hkey == 'PAT-LxySig':
                 h = HG.getHistogram(FILES['MC'], 'DY50toInf', hkey).Clone()
@@ -176,6 +209,12 @@ def makeMCPlots():
 
             doNotMaximize = True
             canvas.firstPlot.SetMaximum({'DSA':1000., 'PAT':10.**7., 'HYB':2.*10.**5.}[recoType])
+
+            if recoType == 'DSA' and quantity in ['eta', 'phi', 'FPTE', 'd0Sig']:
+                canvas.firstPlot.SetMaximum(10.**5.)
+
+            #if recoType == 'PAT' and 'deltaPhi' in quantity:
+            #    canvas.firstPlot.SetMaximum(11.**5.)
 
             if not doNotMaximize:
                 canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
