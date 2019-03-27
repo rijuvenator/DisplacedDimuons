@@ -39,11 +39,11 @@ PI = R.TMath.Pi()
 AXES = {
     'DSA' : {
         'Lxy'      : (1600,   0.  ,  800.   ), # 0.5  cm bins
-        'LxySig'   : ( 600,   0.  ,  300.   ), # 0.5     bins
+        'LxySig'   : ( 100,   0.  ,   50.   ), # 0.5     bins
         'LxyErr'   : (1000,   0.  ,   50.   ), # 0.05 cm bins
         'vtxChi2'  : (1000,   0.  ,   50.   ), # 0.05    bins
         'mass'     : (1000,   0.  , 1000.   ), # 1   GeV bins
-        'mind0Sig' : ( 800,   0.  ,   80.   ), # 0.1     bins
+        'mind0Sig' : ( 500,   0.  ,   50.   ), # 0.1     bins
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
         'LxyRes'   : (1000, -50.  ,   50.   ), # 0.1  cm bins
 
@@ -57,12 +57,12 @@ AXES = {
     },
     'PAT' : {
         'Lxy'      : ( 140,   0.  ,   70.   ),
-        'LxySig'   : (1000,   0.  ,  500.   ),
+        'LxySig'   : ( 500,   0.  ,  250.   ),
         'LxyErr'   : (1000,   0.  ,     .1  ), # 1e-4 cm bins
         'vtxChi2'  : (1000,   0.  ,   50.   ),
         'mass'     : (1000,   0.  , 1000.   ),
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
-        'mind0Sig' : (2000,   0.  ,  200.   ),
+        'mind0Sig' : ( 500,   0.  ,   50.   ),
         'LxyRes'   : (1000,   -.05,     .05 ), # 1e-4 cm bins
 
         'pT'       : (1000,   0.  , 1000.   ),
@@ -74,12 +74,12 @@ AXES = {
     },
     'HYB' : {
         'Lxy'      : ( 140,   0.  ,   70.   ),
-        'LxySig'   : ( 600,   0.  ,  300.   ),
+        'LxySig'   : ( 300,   0.  ,  150.   ),
         'LxyErr'   : (1000,   0.  ,   25.   ), # 0.05 cm bins
         'vtxChi2'  : (1000,   0.  ,   50.   ),
         'mass'     : (1000,   0.  , 1000.   ),
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
-        'mind0Sig' : ( 800,   0.  ,   80.   ),
+        'mind0Sig' : ( 500,   0.  ,   50.   ),
         'LxyRes'   : (1000, -25.  ,   25.   ), # 0.05 cm bins
     },
 }

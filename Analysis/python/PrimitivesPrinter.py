@@ -137,7 +137,7 @@ def RecoMuonPrint(obj, title=True, header=True, lines=(1, 2, 3), alt=None):
                 'd0-PV-MAG', 'd0Sig-PV-MAG', 'd0-PV-LIN', 'd0Sig-PV-LIN', 
                 'dz-BS-MAG', 'dzSig-BS-MAG', 'dz-BS-LIN', 'dzSig-BS-LIN', 
                 'dz-PV-MAG', 'dzSig-PV-MAG', 'dz-PV-LIN', 'dzSig-PV-LIN']:
-                data.append(obj.IP.getValue(key[:2], None if 'SIG' not in key else 'SIG', 'BS' if 'BS' in key else 'PV', None if 'MAG' in key else 'LIN'))
+                data.append(obj.IP.getValue(key[:2], None if 'Sig' not in key else 'SIG', 'BS' if 'BS' in key else 'PV', None if 'MAG' in key else 'LIN'))
             outstr += DataStrings['ImpactParameter'].format(*data)
 
         # Line 3: type-specific info (nStations, isGlobal, etc.)

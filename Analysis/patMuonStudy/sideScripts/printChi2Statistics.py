@@ -5,7 +5,7 @@ import argparse
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--quantity' , dest='QUANTITY' , default='vtxChi2')
-PARSER.add_argument('--cutstring', dest='CUTSTRING', default='Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS')
+PARSER.add_argument('--cutstring', dest='CUTSTRING', default='Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS')
 PARSER.add_argument('--cut'      , dest='CUT'      , default=50., type=float)
 PARSER.add_argument('--rtypes'   , dest='RTYPES'   , default='DPH')
 ARGS = PARSER.parse_args()
