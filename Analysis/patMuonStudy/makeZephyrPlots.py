@@ -17,6 +17,7 @@ if CUTSTRING == '':
 
 lumiExtra = {
     'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : '',
+    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH' : ' + DSA Prox',
 }
 
 DRAW = False
@@ -88,7 +89,7 @@ def makeSinglePlots():
     for recoType in quantities: quantities[recoType].extend(dimQuantities)
 
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['PAT'].extend(['pT', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     for recoType in ('DSA', 'PAT', 'HYB'):
         for quantity in quantities[recoType]:
@@ -96,7 +97,7 @@ def makeSinglePlots():
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso') else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2') else False)
             canvas.addMainPlot(p, addS=True)
             p.setColor(R.kBlue, which='L')
             nbox = canvas.makeStatsBox(p.plot, color=R.kBlue)
@@ -137,7 +138,7 @@ def makeMCPlots():
     for recoType in quantities: quantities[recoType].extend(dimQuantities)
 
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['PAT'].extend(['pT', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     # for the massZoomed plots, add mass to rebinVeto and uncomment the axis range
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
@@ -210,7 +211,7 @@ def makeMCPlots():
             doNotMaximize = True
             canvas.firstPlot.SetMaximum({'DSA':1000., 'PAT':10.**7., 'HYB':2.*10.**5.}[recoType])
 
-            if recoType == 'DSA' and quantity in ['eta', 'phi', 'FPTE', 'd0Sig']:
+            if recoType == 'DSA' and quantity in ['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations']:
                 canvas.firstPlot.SetMaximum(10.**5.)
 
             #if recoType == 'PAT' and 'deltaPhi' in quantity:
