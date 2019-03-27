@@ -198,11 +198,27 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False, DSA
         DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
+        #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
+
+        # the d0Sig cut should be applied to original muons, so comment out the "dimuon" version of the d0Sig cut
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, False)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
             selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
+
+    # d0Sig cut
+    # this cut is in the MuonCutList, but it is applied later so I'm just going to recompute it
+    # and apply it directly
+    # note that this is a MultiCut, so it will behave differently depending on the muon type
+    if D0SIG:
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_d0Sig'].apply(mu)]
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
+
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if NSTATIONS:

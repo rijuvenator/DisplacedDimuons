@@ -81,6 +81,8 @@ CUTS = {
 
 ### MUON CUTS ###
     'm_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         10.      ),
+    'm_d0Sig'    : MultiCut('d0Sig'    , lambda mu : mu.d0Sig()                     , operator.gt, {'DSA':  3.       ,
+                                                                                                    'PAT': 10.      }, lambda mu: mu.tag              ),
 
 ### DIMUON CUTS ###
     'd_LxyErr'   :      Cut('LxyErr'   , lambda dim: dim.LxyErr()                   , operator.lt,         99.      ),
@@ -114,7 +116,7 @@ CutLists = {
     'AcceptanceCutList'     : ('a_pT', 'a_eta', 'a_Lxy'),
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
     'PATQualityCutList'     : ('p_isGlobal', 'p_isMedium', 'p_nTrkLays'),
-    'AllMuonCutList'        : ('m_pT',),
+    'AllMuonCutList'        : ('m_pT', 'm_d0Sig'),
     'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_d0Sig'),
     'Run1MuonCutList'       : ('8_pT', '8_eta', '8_normChi2', '8_nMuonHits', '8_nStations', '8_d0Sig'),
     'Run1DimuonCutList'     : ('8_vtxChi2', '8_deltaR', '8_mass', '8_deltaPhi', '8_cosAlpha', '8_LxySig'),
