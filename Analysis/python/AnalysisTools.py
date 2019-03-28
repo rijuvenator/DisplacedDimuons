@@ -559,8 +559,8 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         if DSAVetoTracker:
             if inputPATs[DSAmuon.idx_ProxMatch].isTracker: return None
 
-        # require that the proximity match be within deltaR of 0.1
-        if DSAmuon.deltaR_ProxMatch < 0.1:
+        # require that the proximity match be within deltaR of 0.05
+        if DSAmuon.deltaR_ProxMatch < 0.05:
             return DSAmuon.idx_ProxMatch
 
         return None

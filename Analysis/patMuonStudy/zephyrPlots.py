@@ -12,6 +12,8 @@ DIMQUANTITIES = {
     'vtxChi2' : {'LAMBDA': lambda dim: dim.normChi2                  , 'PRETTY':'vtx #chi^{2}/dof'          },
     'mass'    : {'LAMBDA': lambda dim: dim.mass                      , 'PRETTY':'M(#mu#mu) [GeV]'           },
     'deltaPhi': {'LAMBDA': lambda dim: dim.deltaPhi                  , 'PRETTY':'|#Delta#Phi|'              },
+    'deltaR'  : {'LAMBDA': lambda dim: dim.deltaR                    , 'PRETTY':'#DeltaR(#mu#mu)'           },
+    'cosAlpha': {'LAMBDA': lambda dim: dim.cosAlpha                  , 'PRETTY':'cos(#alpha)'               },
     'mind0Sig': {'LAMBDA': lambda m1, m2: min(m1.d0Sig(),m2.d0Sig()) , 'PRETTY':'min |d_{0}|/#sigma_{d_{0}}'},
 }
 
@@ -45,6 +47,8 @@ AXES = {
         'mass'     : (1000,   0.  , 1000.   ), # 1   GeV bins
         'mind0Sig' : ( 500,   0.  ,   50.   ), # 0.1     bins
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'   : (1000,   0.  ,    5.   ), # 5e-3    bins
+        'cosAlpha' : ( 200,  -1.  ,    1.   ), # 0.01    bins
         'LxyRes'   : (1000, -50.  ,   50.   ), # 0.1  cm bins
 
         'pT'       : (1000,   0.  , 1000.   ), # 1 GeV   bins
@@ -62,6 +66,8 @@ AXES = {
         'vtxChi2'  : (1000,   0.  ,   50.   ),
         'mass'     : (1000,   0.  , 1000.   ),
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'   : (1000,   0.  ,    5.   ),
+        'cosAlpha' : ( 200,  -1.  ,    1.   ),
         'mind0Sig' : ( 500,   0.  ,   50.   ),
         'LxyRes'   : (1000,   -.05,     .05 ), # 1e-4 cm bins
 
@@ -79,6 +85,8 @@ AXES = {
         'vtxChi2'  : (1000,   0.  ,   50.   ),
         'mass'     : (1000,   0.  , 1000.   ),
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'   : (1000,   0.  ,    5.   ),
+        'cosAlpha' : ( 200,  -1.  ,    1.   ),
         'mind0Sig' : ( 500,   0.  ,   50.   ),
         'LxyRes'   : (1000, -25.  ,   25.   ), # 0.05 cm bins
     },
@@ -117,6 +125,10 @@ def declareHistograms(self, PARAMS=None):
         for RTYPE in ('PAT',):
             self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
+    # temporary 2D histograms
+    MCQ=MCQUANTITIES
+    self.HistInit('PAT-normChi2VSisMedium', ';'+MCQ['isMedium']['PRETTY']+';'+MCQ['normChi2']['PRETTY']+';Counts', *(MCQ['isMedium']['AXES'] + MCQ['normChi2']['AXES']))
+
     for QKEY in MCQUANTITIES:
         TIT = MCQUANTITIES[QKEY]['PRETTY']
         A = MCQUANTITIES[QKEY]['AXES']
@@ -135,6 +147,10 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit('{R}-LxyResVS{R}-LxyErr'.format(R=RTYPE), ';reco {R} #sigma_{{L_{{xy}}}} [cm];reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'    .format(R=RTYPE), *(AR['LxyErr']+AR['LxyRes']))
 
         self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
+
+        # temporary 2D histograms
+        self.HistInit('PAT-normChi2VSGEN-Lxy', ';gen L_{xy} [cm];'+MCQ['normChi2']['PRETTY']+';Counts', *(GenLxy + MCQ['normChi2']['AXES']))
+        self.HistInit('PAT-isMediumVSGEN-Lxy', ';gen L_{xy} [cm];'+MCQ['isMedium']['PRETTY']+';Counts', *(GenLxy + MCQ['isMedium']['AXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -193,6 +209,14 @@ def analyze(self, E, PARAMS=None):
             for QKEY in PATQUANTITIES:
                 KEY = 'PAT'+'-'+QKEY
                 self.HISTS[KEY].Fill(PATQUANTITIES[QKEY]['LAMBDA'](PATmu), eventWeight)
+
+        # temporary 2D histograms
+        if dim.composition != 'DSA':
+            mu1, mu2 = getOriginalMuons(dim)
+            FC2, FMED = MCQUANTITIES['normChi2']['LAMBDA'], MCQUANTITIES['isMedium']['LAMBDA']
+
+            for mu in (mu1, mu2) if RTYPE == 'PAT' else (mu2,):
+                self.HISTS['PAT-normChi2VSisMedium'].Fill(FMED(mu), FC2(mu), eventWeight)
 
         if self.SP is None and dim.LxySig() > 20.:
             mu1, mu2 = getOriginalMuons(dim)
@@ -271,6 +295,17 @@ def analyze(self, E, PARAMS=None):
             KEY = RTYPE + '-' + 'LxyRes' + 'VS' + RTYPE + '-' + 'LxyErr'
             self.HISTS[KEY].Fill(dim.LxyErr(), dim.Lxy()-genMuon.Lxy(), eventWeight)
 
+            # temporary 2D histograms
+            if RTYPE == 'DSA': continue
+
+            mu1, mu2 = getOriginalMuons(dim)
+            FC2, FMED = MCQUANTITIES['normChi2']['LAMBDA'], MCQUANTITIES['isMedium']['LAMBDA']
+
+            for mu in (mu1, mu2) if RTYPE == 'PAT' else (mu2,):
+                self.HISTS['PAT-normChi2VSGEN-Lxy'].Fill(genMuon.Lxy(), FC2(mu), eventWeight)
+                self.HISTS['PAT-isMediumVSGEN-Lxy'].Fill(genMuon.Lxy(), FMED(mu), eventWeight)
+
+            # permanent
             if RTYPE != 'PAT': continue
             mu1, mu2 = PATmuons[dim.idx1], PATmuons[dim.idx2]
             for QKEY in MCQUANTITIES:
@@ -285,10 +320,6 @@ def analyze(self, E, PARAMS=None):
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
     pass
-    #if self.SP is not None:
-    #    print '{:5s} {:4d} {:3d} {:4d}'.format('4Mu' if '4Mu' in self.NAME else '2Mu2J', self.SP.mH, self.SP.mX, self.SP.cTau),
-    #else:
-    #    print '{:s}'.format(self.NAME),
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
