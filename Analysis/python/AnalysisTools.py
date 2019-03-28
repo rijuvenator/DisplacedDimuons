@@ -556,12 +556,24 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
 
         # require that the proximity match be global
         if not inputPATs[DSAmuon.idx_ProxMatch].isGlobal: return None
-        if DSAVetoTracker:
-            if inputPATs[DSAmuon.idx_ProxMatch].isTracker: return None
 
-        # require that the proximity match be within deltaR of 0.05
-        if DSAmuon.deltaR_ProxMatch < 0.05:
-            return DSAmuon.idx_ProxMatch
+        # if the proximity match is not a tracker muon,
+        # this is an understood case, so
+        # require that the proximity match be within deltaR of 0.1
+        # and take it if it passes
+        if not inputPATs[DSAmuon.idx_ProxMatch].isTracker:
+
+            # require that the proximity match be within deltaR of 0.1
+            if DSAmuon.deltaR_ProxMatch < 0.1:
+                return DSAmuon.idx_ProxMatch
+
+        # if the proximity match IS a tracker muon
+        # if we're vetoing tracker muons, immediately return None
+        # otherwise, try a deltaR of 0.05
+        else:
+            if DSAVetoTracker: return None
+            if DSAmuon.deltaR_ProxMatch < 0.05:
+                return DSAmuon.idx_ProxMatch
 
         return None
 
