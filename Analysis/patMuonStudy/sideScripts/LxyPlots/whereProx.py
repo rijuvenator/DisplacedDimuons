@@ -2,8 +2,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
 
-fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_HTo2XTo2Mu2J.root')
-fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
+#fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_HTo2XTo2Mu2J.root')
+#fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
+
+fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
+fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DPT_HTo2XTo2Mu2J.root')
 
 def deleteHistogram(HIST):
     R.gROOT.ProcessLine('delete gROOT->FindObject("'+HIST.GetName()+'")')
@@ -41,5 +44,6 @@ p.setColor(R.kBlue, which='LM')
 p.GetXaxis().SetRangeUser(0., 350.)
 p.SetMinimum(.95)
 p.SetMaximum(1.01)
-p.setTitles(X='gen L_{xy} [cm]', Y='After DSA Prox Match / Before DSA Prox Match')
+#p.setTitles(X='gen L_{xy} [cm]', Y='After DSA Prox Match / Before DSA Prox Match')
+p.setTitles(X='gen L_{xy} [cm]', Y='DSA Prox Match With / Without Tracker Muons')
 c.cleanup('DSAProxLxy.pdf')

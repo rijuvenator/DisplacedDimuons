@@ -500,7 +500,7 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
 # cutList is used along with PATSelections
 # By default this will look for a segment match (in a way that was defined previously) and will always consider HYBRID dimuons
 # For a few more details, take a look at an early March 2019 commit with the replaceDSADimuons function
-def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSelections, cutList, DSAProxMatch=False, DSAVetoTracker=True):
+def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSelections, cutList):
 
     inputPATs = {mu.idx:mu for mu in selectedPATmuons}
 
@@ -547,6 +547,11 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
             candidate = segMatches[0]
 
         return candidate
+
+    # always do the last-resort DSA proximity match
+    # always consider tracker muons
+    DSAProxMatch = True
+    DSAVetoTracker = False
 
     # as a last resort, use the proximity match in certain cases
     def lookForProximityMatch(DSAmuon):

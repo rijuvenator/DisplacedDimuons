@@ -86,7 +86,7 @@ CUTS = {
 
 ### DIMUON CUTS ###
     'd_LxyErr'   :      Cut('LxyErr'   , lambda dim: dim.LxyErr()                   , operator.lt,         99.      ),
-    'd_mass'     :      Cut('mass'     , lambda dim: dim.mass                       , operator.gt,          5.      ),
+    'd_mass'     :      Cut('mass'     , lambda dim: dim.mass                       , operator.gt,         10.      ),
     'd_vtxChi2'  : MultiCut('vtxChi2'  , lambda dim: dim.normChi2                   , operator.lt, {'DSA': 50.       ,
                                                                                                     'PAT': 50.       ,
                                                                                                     'HYB': 50.      }, lambda dim: dim.composition[:3]),

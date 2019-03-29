@@ -18,6 +18,7 @@ if CUTSTRING == '':
 lumiExtra = {
     'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : '',
     'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH' : ' + DSA Prox',
+    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DPT'          : ' + DSA Prox + Trk #DeltaR < 0.05',
 }
 
 DRAW = False
@@ -85,7 +86,7 @@ makeLxyResVSLxyPlot('DSA')
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
     for recoType in quantities: quantities[recoType].extend(dimQuantities)
 
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
@@ -126,6 +127,7 @@ def makeSinglePlots():
             if 'relTrkIso' in key:
                 canvas.firstPlot.SetMaximum(2000.)
 
+            RT.addBinWidth(canvas.firstPlot)
             canvas.cleanup('pdfs/ZEP_{}_{}_{}_{}.pdf'.format(quantity, recoType, CUTSTRING, fs))
 makeSinglePlots()
 
@@ -134,7 +136,7 @@ makeSinglePlots()
 # MC plots of LxySig
 def makeMCPlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
     for recoType in quantities: quantities[recoType].extend(dimQuantities)
 
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
@@ -148,6 +150,8 @@ def makeMCPlots():
         if 'deltaPhi' in key or 'phi' in key: return True
         #if 'mass' in key: return True
         if 'nStations' in key: return True
+        if 'cosAlpha' in key: return True
+        if 'LxySig' in key and 'DSA' in key: return True
         return False
 
     for recoType in ('DSA', 'PAT', 'HYB'):
@@ -175,6 +179,10 @@ def makeMCPlots():
             if 'mass' in hkey:
                 pass
                 #canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
+
+            if 'mind0Sig' in hkey and 'DSA' in hkey:
+                pass
+                #canvas.firstPlot.GetXaxis().SetRangeUser(0., 5.)
 
             canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')

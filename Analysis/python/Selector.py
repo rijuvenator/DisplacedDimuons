@@ -1,7 +1,7 @@
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.AnalysisTools as AnalysisTools
 
-def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False, DSAVetoTracker=True):
+def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
     # failed return list
     failedReturnList = None, None, None
@@ -15,15 +15,20 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False, DSA
     FPTERR    = '_FPTE'     in CUTS
     HLT       = '_HLT'      in CUTS
     REP       = '_REP'      in CUTS
-    PQ1       = '_PQ1'      in CUTS
-    ISMEDIUM  = '_MED'      in CUTS
-    NTRKLAYS  = '_NTL'      in CUTS
     PT        = '_PT'       in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
     MASS      = '_MASS'     in CUTS
     CHI2      = '_CHI2'     in CUTS
+
+    # not yet used
     D0SIG     = '_D0SIG'    in CUTS
+    ISMEDIUM  = '_MED'      in CUTS
+    NTRKLAYS  = '_NTL'      in CUTS
+
+    # always apply PAT quality cuts when doing replacement
+    # PQ1 = '_PQ1' in CUTS
+    PQ1 = True
 
     # determine muon cut list based on string values
     def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR):
@@ -114,7 +119,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, DSAProxMatch=False, DSA
         else:
             PATSelections = None
             cutList = []
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList, DSAProxMatch, DSAVetoTracker)
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']

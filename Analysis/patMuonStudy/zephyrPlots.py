@@ -45,7 +45,7 @@ AXES = {
         'LxyErr'   : (1000,   0.  ,   50.   ), # 0.05 cm bins
         'vtxChi2'  : (1000,   0.  ,   50.   ), # 0.05    bins
         'mass'     : (1000,   0.  , 1000.   ), # 1   GeV bins
-        'mind0Sig' : ( 500,   0.  ,   50.   ), # 0.1     bins
+        'mind0Sig' : (  50,   0.  ,    5.   ), # 0.1     bins
         'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
         'deltaR'   : (1000,   0.  ,    5.   ), # 5e-3    bins
         'cosAlpha' : ( 200,  -1.  ,    1.   ), # 0.01    bins
@@ -106,7 +106,7 @@ MCQUANTITIES = {
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    pass
+    self.DATACOUNTER = {'all':0, 'selected':0}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -156,10 +156,18 @@ def declareHistograms(self, PARAMS=None):
 def analyze(self, E, PARAMS=None):
     if self.TRIGGER and self.SP is not None:
         if not Selections.passedTrigger(E): return
+
+    Event = E.getPrimitives('EVENT')
+
+    # take 10% of data: event numbers ending in 7
+    if 'DoubleMuon' in self.NAME:
+        self.DATACOUNTER['all'] += 1
+        if Event.event % 10 != 7: return
+        self.DATACOUNTER['selected'] += 1
+
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
     Dimuons3 = E.getPrimitives('DIMUON')
-    Event    = E.getPrimitives('EVENT')
 
     eventWeight = 1.
     try:
@@ -167,7 +175,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, self.ARGS.DSAPROXMATCH, self.ARGS.DSAVETOTRACKER)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
     def getOriginalMuons(dim):
@@ -319,12 +327,11 @@ def analyze(self, E, PARAMS=None):
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    pass
+    if 'DoubleMuon' in self.NAME:
+        print 'DATA {n:1s} {all:5d} {selected:5d}'.format(n=self.NAME[17], **self.DATACOUNTER)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
-    Analyzer.PARSER.add_argument('--dsaproxmatch', dest='DSAPROXMATCH', action='store_true')
-    Analyzer.PARSER.add_argument('--dsavetotracker', dest='DSAVETOTRACKER', action='store_false')
     # get arguments
     ARGS = Analyzer.PARSER.parse_args()
 
