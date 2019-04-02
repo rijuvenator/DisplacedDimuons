@@ -1,9 +1,14 @@
+import numpy as np
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
+
+# the usual histogram configuration dictionaries, except
+# axes are split off into their own containers so that they can be
+# different for each dimuon/muon type
 
 DIMQUANTITIES = {
     'Lxy'     : {'LAMBDA': lambda dim: dim.Lxy()                     , 'PRETTY':'L_{xy} [cm]'               },
@@ -56,7 +61,7 @@ AXES = {
         'phi'      : ( 200, -PI   ,   PI    ), # pi/100  bins
         'FPTE'     : (1000,   0.  ,    1.   ), # 1e-3    bins
         'd0Sig'    : ( 800,   0.  ,   80.   ), # 0.1     bins
-        'trkChi2'  : ( 500,   0.  ,   50.   ), # 0.1     bins
+        'trkChi2'  : ( 150,   0.  ,   15.   ), # 0.1     bins
         'nStations': (  15,   0.  ,   15.   ),
     },
     'PAT' : {
@@ -76,7 +81,7 @@ AXES = {
         'phi'      : ( 200, -PI   ,   PI    ),
         'relTrkIso': (1000,   0.  ,     .5  ), # 5e-4    bins
         'd0Sig'    : (2000,   0.  ,  200.   ),
-        'trkChi2'  : ( 500,   0.  ,   50.   ),
+        'trkChi2'  : ( 150,   0.  ,   15.   ),
     },
     'HYB' : {
         'Lxy'      : ( 140,   0.  ,   70.   ),
@@ -95,7 +100,9 @@ AXES = {
 AXES['HYB-DSA'] = {key:AXES['DSA'][key] for key in DSAQUANTITIES}
 AXES['HYB-PAT'] = {key:AXES['PAT'][key] for key in PATQUANTITIES}
 
-MCQUANTITIES = {
+# 2D histograms
+
+PAT2DQUANTITIES = {
         'normChi2'            : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda mu: mu.normChi2            , 'PRETTY':'trk #chi^{2}/dof'         },
         'nTrkLay'             : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: mu.nTrackerLayers      , 'PRETTY':'N(tracker layers)'        },
         'nPxlHit'             : {'AXES':(   5, 0.,   5.), 'LAMBDA': lambda mu: mu.nPixelHits          , 'PRETTY':'N(pixel hits)'            },
@@ -106,6 +113,12 @@ MCQUANTITIES = {
         'missingHitsAfterVtx' : {'AXES':(  10, 0.,  10.), 'LAMBDA': lambda mu: mu.missingHitsAfterVtx , 'PRETTY':'N(missing hits after vtx)'},
 }
 
+DSA2DQUANTITIES = {
+        'pT'      : {'AXES':AXES['DSA']['pT'     ], 'LAMBDA': DSAQUANTITIES['pT'     ]['LAMBDA'], 'PRETTY':DSAQUANTITIES['pT'     ]['PRETTY']},
+        'trkChi2' : {'AXES':AXES['DSA']['trkChi2'], 'LAMBDA': DSAQUANTITIES['trkChi2']['LAMBDA'], 'PRETTY':DSAQUANTITIES['trkChi2']['PRETTY']},
+        'eta'     : {'AXES':AXES['DSA']['eta'    ], 'LAMBDA': DSAQUANTITIES['eta'    ]['LAMBDA'], 'PRETTY':DSAQUANTITIES['eta'    ]['PRETTY']},
+}
+
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
@@ -113,6 +126,12 @@ def begin(self, PARAMS=None):
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
+    # dimuon multiplicity
+    self.HistInit('nDimuon', ';N(dimuons);Counts', 2, 1., 3.)
+
+    # for Bob
+    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE', ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
+
     for QKEY in DIMQUANTITIES:
         XTIT = DIMQUANTITIES[QKEY]['PRETTY']
         for RTYPE in ('DSA', 'PAT', 'HYB'):
@@ -131,13 +150,18 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit('HYB-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
     # temporary 2D histograms
-    MCQ=MCQUANTITIES
-    self.HistInit('PAT-normChi2VSisMedium', ';'+MCQ['isMedium']['PRETTY']+';'+MCQ['normChi2']['PRETTY']+';Counts', *(MCQ['isMedium']['AXES'] + MCQ['normChi2']['AXES']))
+    PAT2DQ=PAT2DQUANTITIES
+    self.HistInit('PAT-normChi2VSisMedium', ';'+PAT2DQ['isMedium']['PRETTY']+';'+PAT2DQ['normChi2']['PRETTY']+';Counts', *(PAT2DQ['isMedium']['AXES'] + PAT2DQ['normChi2']['AXES']))
 
-    for QKEY in MCQUANTITIES:
-        TIT = MCQUANTITIES[QKEY]['PRETTY']
-        A = MCQUANTITIES[QKEY]['AXES']
+    for QKEY in PAT2DQUANTITIES:
+        TIT = PAT2DQUANTITIES[QKEY]['PRETTY']
+        A = PAT2DQUANTITIES[QKEY]['AXES']
         self.HistInit('PAT-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(A+A))
+
+    for QKEY in DSA2DQUANTITIES:
+        TIT = DSA2DQUANTITIES[QKEY]['PRETTY']
+        A = DSA2DQUANTITIES[QKEY]['AXES']
+        self.HistInit('DSA-12-'+QKEY, ';#mu_{{1}} {};#mu_{{2}} {};Counts'.format(TIT, TIT), *(A+A))
 
     LxyPull = (1000, -10., 10. )
     GenLxy  = (1600,   0., 800.)
@@ -154,8 +178,8 @@ def declareHistograms(self, PARAMS=None):
         self.HistInit('GEN-Lxy', ';gen L_{xy} [cm];Counts', 1600, 0., 800.)
 
         # temporary 2D histograms
-        self.HistInit('PAT-normChi2VSGEN-Lxy', ';gen L_{xy} [cm];'+MCQ['normChi2']['PRETTY']+';Counts', *(GenLxy + MCQ['normChi2']['AXES']))
-        self.HistInit('PAT-isMediumVSGEN-Lxy', ';gen L_{xy} [cm];'+MCQ['isMedium']['PRETTY']+';Counts', *(GenLxy + MCQ['isMedium']['AXES']))
+        self.HistInit('PAT-normChi2VSGEN-Lxy', ';gen L_{xy} [cm];'+PAT2DQ['normChi2']['PRETTY']+';Counts', *(GenLxy + PAT2DQ['normChi2']['AXES']))
+        self.HistInit('PAT-isMediumVSGEN-Lxy', ';gen L_{xy} [cm];'+PAT2DQ['isMedium']['PRETTY']+';Counts', *(GenLxy + PAT2DQ['isMedium']['AXES']))
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -182,6 +206,11 @@ def analyze(self, E, PARAMS=None):
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
+
+    for dim in selectedDimuons:
+        if dim.composition == 'DSA':
+            self.HISTS['nDimuon'].Fill(len(selectedDimuons))
+            break
 
     def getOriginalMuons(dim):
         if dim.composition == 'PAT':
@@ -226,17 +255,28 @@ def analyze(self, E, PARAMS=None):
         # temporary 2D histograms
         if dim.composition != 'DSA':
             mu1, mu2 = getOriginalMuons(dim)
-            FC2, FMED = MCQUANTITIES['normChi2']['LAMBDA'], MCQUANTITIES['isMedium']['LAMBDA']
+            FC2, FMED = PAT2DQUANTITIES['normChi2']['LAMBDA'], PAT2DQUANTITIES['isMedium']['LAMBDA']
 
             for mu in (mu1, mu2) if RTYPE == 'PAT' else (mu2,):
                 self.HISTS['PAT-normChi2VSisMedium'].Fill(FMED(mu), FC2(mu), eventWeight)
 
+        if dim.composition == 'DSA':
+            mu1, mu2 = getOriginalMuons(dim)
+            for QKEY in DSA2DQUANTITIES:
+                KEY = 'DSA-12-'+QKEY
+                F = DSA2DQUANTITIES[QKEY]['LAMBDA']
+                self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
+
+            F = DSAQUANTITIES['FPTE']['LAMBDA']
+            self.HISTS['REF-DSA-FPTE'].Fill(F(dim.mu1), eventWeight)
+            self.HISTS['REF-DSA-FPTE'].Fill(F(dim.mu2), eventWeight)
+
         if self.SP is None and dim.LxySig() > 20.:
             mu1, mu2 = getOriginalMuons(dim)
             if dim.composition == 'PAT':
-                for QKEY in MCQUANTITIES:
+                for QKEY in PAT2DQUANTITIES:
                     KEY = 'PAT-12-'+QKEY
-                    F = MCQUANTITIES[QKEY]['LAMBDA']
+                    F = PAT2DQUANTITIES[QKEY]['LAMBDA']
                     if QKEY in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
                         self.HISTS[KEY].Fill(F(dim.mu1), F(dim.mu2), eventWeight)
                     else:
@@ -312,7 +352,7 @@ def analyze(self, E, PARAMS=None):
             if RTYPE == 'DSA': continue
 
             mu1, mu2 = getOriginalMuons(dim)
-            FC2, FMED = MCQUANTITIES['normChi2']['LAMBDA'], MCQUANTITIES['isMedium']['LAMBDA']
+            FC2, FMED = PAT2DQUANTITIES['normChi2']['LAMBDA'], PAT2DQUANTITIES['isMedium']['LAMBDA']
 
             for mu in (mu1, mu2) if RTYPE == 'PAT' else (mu2,):
                 self.HISTS['PAT-normChi2VSGEN-Lxy'].Fill(genMuon.Lxy(), FC2(mu), eventWeight)
@@ -321,9 +361,9 @@ def analyze(self, E, PARAMS=None):
             # permanent
             if RTYPE != 'PAT': continue
             mu1, mu2 = PATmuons[dim.idx1], PATmuons[dim.idx2]
-            for QKEY in MCQUANTITIES:
+            for QKEY in PAT2DQUANTITIES:
                 KEY = RTYPE + '-' + '12' + '-' + QKEY
-                F = MCQUANTITIES[QKEY]['LAMBDA']
+                F = PAT2DQUANTITIES[QKEY]['LAMBDA']
                 if QKEY in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
                     self.HISTS[KEY].Fill(F(dim.mu1), F(dim.mu2), eventWeight)
                 else:
