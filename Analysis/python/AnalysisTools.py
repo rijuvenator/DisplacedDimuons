@@ -549,9 +549,7 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         return candidate
 
     # always do the last-resort DSA proximity match
-    # always consider tracker muons
     DSAProxMatch = True
-    DSAVetoTracker = False
 
     # as a last resort, use the proximity match in certain cases
     def lookForProximityMatch(DSAmuon):
@@ -559,26 +557,15 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         if DSAmuon.idx_SegMatch is not None: return None
         if DSAmuon.idx_ProxMatch is None: return None
 
-        # require that the proximity match be global
-        if not inputPATs[DSAmuon.idx_ProxMatch].isGlobal: return None
+        # option 1: proximity match is global ONLY and within deltaR of 0.1
+        if         inputPATs[DSAmuon.idx_ProxMatch].isGlobal  \
+           and not inputPATs[DSAmuon.idx_ProxMatch].isTracker \
+           and     DSAmuon.deltaR_ProxMatch < 0.1:
+            return DSAmuon.idx_ProxMatch
 
-        # if the proximity match is not a tracker muon,
-        # this is an understood case, so
-        # require that the proximity match be within deltaR of 0.1
-        # and take it if it passes
-        if not inputPATs[DSAmuon.idx_ProxMatch].isTracker:
-
-            # require that the proximity match be within deltaR of 0.1
-            if DSAmuon.deltaR_ProxMatch < 0.1:
-                return DSAmuon.idx_ProxMatch
-
-        # if the proximity match IS a tracker muon
-        # if we're vetoing tracker muons, immediately return None
-        # otherwise, try a deltaR of 0.05
-        else:
-            if DSAVetoTracker: return None
-            if DSAmuon.deltaR_ProxMatch < 0.05:
-                return DSAmuon.idx_ProxMatch
+        # option 2: proximity match is within deltaR of 0.05
+        if DSAmuon.deltaR_ProxMatch < 0.05:
+            return DSAmuon.idx_ProxMatch
 
         return None
 

@@ -36,7 +36,12 @@ def EventPrint(obj, title=True):
     outstr = ''
     if title:
         outstr += '\n' + colorText(TitleStrings['Event'], 'boldblue') + '\n'
-    return outstr + DataStrings['Event'].format(**obj.__dict__)
+
+    d = dict(obj.__dict__)
+    d['weight']  = float('inf') if 'weight' not in d else d['weight']
+    d['nTruePV'] = float('inf') if 'nTruePV' not in d else d['nTruePV']
+
+    return outstr + DataStrings['Event'].format(**d)
 
 def METPrint(obj, title=True):
     outstr = ''

@@ -200,7 +200,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
     if True:
         # compute all the baseline selection booleans
-        DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
+        DimuonSelections = {(dim.ID, dim.composition):Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
         #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
@@ -210,7 +210,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
-            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
+            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
 
     # d0Sig cut
     # this cut is in the MuonCutList, but it is applied later so I'm just going to recompute it

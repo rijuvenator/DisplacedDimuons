@@ -8,17 +8,17 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 
+DATASCALE = 1433921./14334550.
+
 ARGS = PP.PARSER.parse_args()
 CUTSTRING = ARGS.CUTSTRING
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2' : '',
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH' : ' + DSA Prox',
-    'NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DPT'          : ' + DSA Prox + Trk #DeltaR < 0.05',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2' : '',
 }
 
 DRAW = False
@@ -27,7 +27,8 @@ if DRAW:
 
 FILES = {
     '2Mu2J' : R.TFile.Open('roots/ZephyrPlots_Trig_Combined_{}_HTo2XTo2Mu2J.root'.format(CUTSTRING)),
-    'MC'    : R.TFile.Open('roots/ZephyrPlots_Combined_{}_MC.root'               .format(CUTSTRING))
+    'MC'    : R.TFile.Open('roots/ZephyrPlots_Combined_{}_MC.root'               .format(CUTSTRING)),
+    'Data'  : R.TFile.Open('roots/ZephyrPlots_Combined_{}_DATA.root'             .format(CUTSTRING)),
 }
 
 fs = '2Mu2J'
@@ -92,10 +93,14 @@ def makeSinglePlots():
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
     quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
+    LXYZOOMEDFULL = True
+
     for recoType in ('DSA', 'PAT', 'HYB'):
         for quantity in quantities[recoType]:
             key = recoType + '-' + quantity
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
+
+            LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
             canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2') else False)
@@ -127,8 +132,11 @@ def makeSinglePlots():
             if 'relTrkIso' in key:
                 canvas.firstPlot.SetMaximum(2000.)
 
+            if 'Lxy' == quantity and LXYZOOMED:
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
+
             RT.addBinWidth(canvas.firstPlot)
-            canvas.cleanup('pdfs/ZEP_{}_{}_{}_{}.pdf'.format(quantity, recoType, CUTSTRING, fs))
+            canvas.cleanup('pdfs/ZEP_{}_{}_{}_{}.pdf'.format(quantity + ('Zoomed' if quantity == 'Lxy' and LXYZOOMED else ''), recoType, CUTSTRING, fs))
 makeSinglePlots()
 
 #### MC PLOTS ####
@@ -142,43 +150,64 @@ def makeMCPlots():
     quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
     quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
-    # for the massZoomed plots, add mass to rebinVeto and uncomment the axis range
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
+
+    # for the massZoomed plots, add mass to rebinVeto and uncomment the axis range
+    MASSZOOMED = True
 
     def rebinVeto(key):
         if 'Lxy' in key and 'Sig' not in key and 'Err' not in key and 'DSA' not in key: return True
         if 'deltaPhi' in key or 'phi' in key: return True
-        #if 'mass' in key: return True
+        if 'mass' in key and MASSZOOMED: return True
         if 'nStations' in key: return True
         if 'cosAlpha' in key: return True
         if 'LxySig' in key and 'DSA' in key: return True
+        if 'mind0Sig' in key and 'DSA' in key: return True
         return False
 
     for recoType in ('DSA', 'PAT', 'HYB'):
         for quantity in quantities[recoType]:
             hkey = recoType + '-' + quantity
-            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto)
+            DODATA = recoType == 'DSA'
+
+            if DODATA:
+                HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto, extraScale=DATASCALE)
+                DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto)
+            else:
+                HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto)
+
             HISTS = HISTS[hkey]
             PConfig = PConfig[hkey]
+
+            if DODATA:
+                DATAHISTS = DATAHISTS[hkey]
+                PConfig['data'] = DataPConfig[hkey]['data']
 
             PLOTS = {}
             for key in HG.BGORDER + ('stack',):
                 PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
 
-            canvas = Plotter.Canvas(lumi='MC'+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True)
+            if DODATA:
+                PLOTS['data'] = Plotter.Plot(DATAHISTS['data'], *PConfig['data'])
+
+            canvas = Plotter.Canvas(lumi=('MC' if not DODATA else 'MC + Data')+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True,
+                    ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
 
             for key in HG.BGORDER:
                 PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
 
             canvas.addMainPlot(PLOTS['stack'])
 
+            if DODATA:
+                canvas.addMainPlot(PLOTS['data'])
+
             # this has to be here because it has to be drawn first
             if 'vtxChi2' in hkey:
                 canvas.firstPlot.GetXaxis().SetRangeUser(0., 50.)
 
             if 'mass' in hkey:
-                pass
-                #canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
+                if MASSZOOMED:
+                    canvas.firstPlot.GetXaxis().SetRangeUser(0., 100.)
 
             if 'mind0Sig' in hkey and 'DSA' in hkey:
                 pass
@@ -186,7 +215,9 @@ def makeMCPlots():
 
             canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')
-            canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+            canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DODATA else 1.)
+            if DODATA:
+                canvas.addLegendEntry(PLOTS['data'])
             for ref in reversed(HG.BGORDER):
                 canvas.addLegendEntry(PLOTS[ref])
             canvas.legend.resizeHeight()
@@ -216,6 +247,15 @@ def makeMCPlots():
                 h = HG.getHistogram(FILES['MC'], 'DY50toInf', hkey).Clone()
                 print '{} DY50toInf    : {}'.format(hkey, h.Integral(h.FindBin(100.), h.GetNbinsX()))
 
+            if DODATA:
+                canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
+                canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+                canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+
+                if 'mass' in hkey:
+                    if MASSZOOMED:
+                        canvas.rat.GetXaxis().SetRangeUser(0., 100.)
+
             doNotMaximize = True
             canvas.firstPlot.SetMaximum({'DSA':1000., 'PAT':10.**7., 'HYB':2.*10.**5.}[recoType])
 
@@ -228,7 +268,10 @@ def makeMCPlots():
             if not doNotMaximize:
                 canvas.firstPlot.SetMaximum(HISTS['sum'].GetMaximum()*1.05)
             canvas.firstPlot.SetMinimum(1.)
-            canvas.cleanup('pdfs/ZEP_{}_{}_{}_MC.pdf'.format(quantity, recoType, CUTSTRING))
+            #canvas.cleanup('pdfs/ZEP_{}_{}_{}_MC.pdf'.format(quantity, recoType, CUTSTRING))
+            canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
+            canvas.save('pdfs/ZEP_{}_{}_{}_MC.pdf'.format(quantity + ('Zoomed' if 'mass' in quantity and MASSZOOMED else ''), recoType, CUTSTRING))
+            canvas.deleteCanvas()
 makeMCPlots()
 
 def makeMC2DPlots(BGList=None, SUFFIX=None):

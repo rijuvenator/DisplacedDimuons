@@ -40,7 +40,7 @@ PI = R.TMath.Pi()
 
 AXES = {
     'DSA' : {
-        'Lxy'      : (1600,   0.  ,  800.   ), # 0.5  cm bins
+        'Lxy'      : ( 800,   0.  ,  400.   ), # 0.5  cm bins
         'LxySig'   : ( 100,   0.  ,   50.   ), # 0.5     bins
         'LxyErr'   : (1000,   0.  ,   50.   ), # 0.05 cm bins
         'vtxChi2'  : (1000,   0.  ,   50.   ), # 0.05    bins
@@ -92,6 +92,9 @@ AXES = {
     },
 }
 
+AXES['HYB-DSA'] = {key:AXES['DSA'][key] for key in DSAQUANTITIES}
+AXES['HYB-PAT'] = {key:AXES['PAT'][key] for key in PATQUANTITIES}
+
 MCQUANTITIES = {
         'normChi2'            : {'AXES':(1000, 0., 100.), 'LAMBDA': lambda mu: mu.normChi2            , 'PRETTY':'trk #chi^{2}/dof'         },
         'nTrkLay'             : {'AXES':(  20, 0.,  20.), 'LAMBDA': lambda mu: mu.nTrackerLayers      , 'PRETTY':'N(tracker layers)'        },
@@ -118,12 +121,14 @@ def declareHistograms(self, PARAMS=None):
     for QKEY in DSAQUANTITIES:
         XTIT = DSAQUANTITIES[QKEY]['PRETTY']
         for RTYPE in ('DSA',):
-            self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+            self.HistInit(       RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+            self.HistInit('HYB-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
     for QKEY in PATQUANTITIES:
         XTIT = PATQUANTITIES[QKEY]['PRETTY']
         for RTYPE in ('PAT',):
-            self.HistInit(RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+            self.HistInit(       RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+            self.HistInit('HYB-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
 
     # temporary 2D histograms
     MCQ=MCQUANTITIES
@@ -211,11 +216,11 @@ def analyze(self, E, PARAMS=None):
             DSAmu, PATmu = getOriginalMuons(dim)
 
             for QKEY in DSAQUANTITIES:
-                KEY = 'DSA'+'-'+QKEY
+                KEY = 'HYB-DSA'+'-'+QKEY
                 self.HISTS[KEY].Fill(DSAQUANTITIES[QKEY]['LAMBDA'](DSAmu), eventWeight)
 
             for QKEY in PATQUANTITIES:
-                KEY = 'PAT'+'-'+QKEY
+                KEY = 'HYB-PAT'+'-'+QKEY
                 self.HISTS[KEY].Fill(PATQUANTITIES[QKEY]['LAMBDA'](PATmu), eventWeight)
 
         # temporary 2D histograms
@@ -237,24 +242,24 @@ def analyze(self, E, PARAMS=None):
                     else:
                         self.HISTS[KEY].Fill(F(mu1), F(mu2), eventWeight)
 
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f} {:6.2f}'.format(
-                        self.NAME, Event.run, Event.lumi, Event.event,
+                print '{:13s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.2f} {:6.2f}'.format(
+                        self.NAME, Event.run, Event.lumi, Event.event, int(eventWeight),
                         dim.composition[:3], dim.idx1, dim.idx2,
                         mu1.normChi2, mu1.nTrackerLayers, mu1.nPixelHits, int(mu1.highPurity), int(mu1.isGlobal), int(mu1.isMedium),
                         mu2.normChi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal), int(mu2.isMedium),
                         dim.LxySig(), dim.Lxy(), dim.normChi2, mu1.d0Sig(), mu2.d0Sig()
                 )
             elif dim.composition == 'DSA':
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f} {:6.2f}'.format(
-                        self.NAME, Event.run, Event.lumi, Event.event,
+                print '{:13s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} ::: {:9.4f} {:8.4f} {:5.2f} {:6.2f} {:6.2f}'.format(
+                        self.NAME, Event.run, Event.lumi, Event.event, int(eventWeight),
                         dim.composition[:3], dim.idx1, dim.idx2,
                         mu1.normChi2, '-', '-', '-', '-', '-',
                         mu2.normChi2, '-', '-', '-', '-', '-',
                         dim.LxySig(), dim.Lxy(), dim.normChi2, mu1.d0Sig(), mu2.d0Sig()
                 )
             else:
-                print '{:13s} {:d} {:7d} {:10d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:10.2f} {:6.2f} {:6.2f}'.format(
-                        self.NAME, Event.run, Event.lumi, Event.event,
+                print '{:13s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:6.2f} {:2s} {:1s} {:1s} {:1s} {:1s} {:6.2f} {:2d} {:1d} {:1d} {:1d} {:1d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.2f} {:6.2f}'.format(
+                        self.NAME, Event.run, Event.lumi, Event.event, int(eventWeight),
                         dim.composition[:3], dim.idx1, dim.idx2,
                         mu1.normChi2, '-', '-', '-', '-', '-',
                         mu2.normChi2, mu2.nTrackerLayers, mu2.nPixelHits, int(mu2.highPurity), int(mu2.isGlobal), int(mu2.isMedium),
