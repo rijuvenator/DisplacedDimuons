@@ -130,7 +130,7 @@ def declareHistograms(self, PARAMS=None):
     self.HistInit('nDimuon', ';N(dimuons);Counts', 2, 1., 3.)
 
     # for Bob
-    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE', ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
+    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
 
     for QKEY in DIMQUANTITIES:
         XTIT = DIMQUANTITIES[QKEY]['PRETTY']
@@ -390,7 +390,7 @@ if __name__ == '__main__':
     # declare analyzer
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT'),
+        BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT', 'FILTER'),
     )
 
     # write plots

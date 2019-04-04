@@ -10,6 +10,9 @@ import DisplacedDimuons.Analysis.PlotterParser as PP
 
 DATASCALE = 1433921./14334550.
 
+LXYZOOMEDFULL = True
+MASSZOOMED = True
+
 ARGS = PP.PARSER.parse_args()
 CUTSTRING = ARGS.CUTSTRING
 
@@ -86,18 +89,27 @@ makeLxyResVSLxyPlot('DSA')
 
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
-    quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
+    quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
     dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
-    for recoType in quantities: quantities[recoType].extend(dimQuantities)
+    for recoType in quantities:
+        if 'HYB-' in recoType: continue
+        quantities[recoType].extend(dimQuantities)
 
-    quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
-    LXYZOOMEDFULL = True
+    #quantities['REF-DSA'] = ['FPTE']
+    quantities[''] = ['nDimuon']
 
-    for recoType in ('DSA', 'PAT', 'HYB'):
+    for recoType in ('DSA', 'PAT'):
+        quantities[recoType].extend(quantities['HYB-'+recoType])
+
+    for recoType in quantities:
         for quantity in quantities[recoType]:
             key = recoType + '-' + quantity
+            if key[0] == '-':
+                key = quantity
+                recoType = 'Any'
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
             LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
@@ -143,17 +155,22 @@ makeSinglePlots()
 
 # MC plots of LxySig
 def makeMCPlots():
-    quantities = {'DSA':[], 'PAT':[], 'HYB':[]}
+    quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
     dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
-    for recoType in quantities: quantities[recoType].extend(dimQuantities)
+    for recoType in quantities:
+        if 'HYB-' in recoType: continue
+        quantities[recoType].extend(dimQuantities)
 
-    quantities['DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
+
+    for recoType in ('DSA', 'PAT'):
+        quantities[recoType].extend(quantities['HYB-'+recoType])
+
+    #quantities['REF-DSA'] = ['FPTE']
+    quantities[''] = ['nDimuon']
 
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
-
-    # for the massZoomed plots, add mass to rebinVeto and uncomment the axis range
-    MASSZOOMED = True
 
     def rebinVeto(key):
         if 'Lxy' in key and 'Sig' not in key and 'Err' not in key and 'DSA' not in key: return True
@@ -163,11 +180,17 @@ def makeMCPlots():
         if 'cosAlpha' in key: return True
         if 'LxySig' in key and 'DSA' in key: return True
         if 'mind0Sig' in key and 'DSA' in key: return True
+        if 'trkChi2' in key: return True
+        if 'nDimuon' in key: return True
         return False
 
-    for recoType in ('DSA', 'PAT', 'HYB'):
+    for recoType in quantities:
         for quantity in quantities[recoType]:
             hkey = recoType + '-' + quantity
+            if hkey[0] == '-':
+                hkey = quantity
+                recoType = 'Any'
+
             DODATA = recoType == 'DSA'
 
             if DODATA:
@@ -192,6 +215,9 @@ def makeMCPlots():
 
             canvas = Plotter.Canvas(lumi=('MC' if not DODATA else 'MC + Data')+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True,
                     ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
+
+            if hkey == 'REF-DSA-FPTE':
+                canvas.mainPad.SetLogx()
 
             for key in HG.BGORDER:
                 PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
@@ -257,7 +283,13 @@ def makeMCPlots():
                         canvas.rat.GetXaxis().SetRangeUser(0., 100.)
 
             doNotMaximize = True
-            canvas.firstPlot.SetMaximum({'DSA':1000., 'PAT':10.**7., 'HYB':2.*10.**5.}[recoType])
+            canvas.firstPlot.SetMaximum({'DSA'    :1000.     ,
+                                         'PAT'    :10.**7.   ,
+                                         'HYB'    :2.*10.**5.,
+                                         'HYB-DSA':2.*10.**5.,
+                                         'HYB-PAT':2.*10.**5.,
+                                         'REF-DSA':1000.     ,
+                                         'Any'    :1000.      }[recoType])
 
             if recoType == 'DSA' and quantity in ['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations']:
                 canvas.firstPlot.SetMaximum(10.**5.)
