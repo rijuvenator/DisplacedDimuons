@@ -10,18 +10,20 @@ import DisplacedDimuons.Analysis.PlotterParser as PP
 
 DATASCALE = 1433921./14334550.
 
-LXYZOOMEDFULL = True
-MASSZOOMED = True
-
+PP.PARSER.add_argument('--zoomed', dest='ZOOMED', action='store_true')
 ARGS = PP.PARSER.parse_args()
 CUTSTRING = ARGS.CUTSTRING
+LXYZOOMEDFULL = ARGS.ZOOMED
+MASSZOOMED = ARGS.ZOOMED
 
 if CUTSTRING == '':
     CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2' : '',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'          : '',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX'      : ' + P.V.',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA' : ' + P.V. + cos(#alpha)',
 }
 
 DRAW = False
@@ -98,7 +100,7 @@ def makeSinglePlots():
     quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
     quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
-    #quantities['REF-DSA'] = ['FPTE']
+    quantities['REF-DSA'] = ['FPTE']
     quantities[''] = ['nDimuon']
 
     for recoType in ('DSA', 'PAT'):
@@ -109,13 +111,17 @@ def makeSinglePlots():
             key = recoType + '-' + quantity
             if key[0] == '-':
                 key = quantity
-                recoType = 'Any'
+                recoType = 'DSAPlus'
             HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (key,))
 
             LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2') else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon') else False)
+
+            if key == 'REF-DSA-FPTE':
+                canvas.mainPad.SetLogx()
+
             canvas.addMainPlot(p, addS=True)
             p.setColor(R.kBlue, which='L')
             nbox = canvas.makeStatsBox(p.plot, color=R.kBlue)
@@ -167,7 +173,7 @@ def makeMCPlots():
     for recoType in ('DSA', 'PAT'):
         quantities[recoType].extend(quantities['HYB-'+recoType])
 
-    #quantities['REF-DSA'] = ['FPTE']
+    quantities['REF-DSA'] = ['FPTE']
     quantities[''] = ['nDimuon']
 
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
@@ -182,6 +188,7 @@ def makeMCPlots():
         if 'mind0Sig' in key and 'DSA' in key: return True
         if 'trkChi2' in key: return True
         if 'nDimuon' in key: return True
+        if 'REF-DSA-FPTE' in key: return True
         return False
 
     for recoType in quantities:
@@ -189,9 +196,9 @@ def makeMCPlots():
             hkey = recoType + '-' + quantity
             if hkey[0] == '-':
                 hkey = quantity
-                recoType = 'Any'
+                recoType = 'DSAPlus'
 
-            DODATA = recoType == 'DSA'
+            DODATA = recoType == 'DSA' or recoType == 'REF-DSA'
 
             if DODATA:
                 HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto, extraScale=DATASCALE)
@@ -282,6 +289,9 @@ def makeMCPlots():
                     if MASSZOOMED:
                         canvas.rat.GetXaxis().SetRangeUser(0., 100.)
 
+                if 'REF-DSA-FPTE' in hkey:
+                    canvas.ratPad.SetLogx()
+
             doNotMaximize = True
             canvas.firstPlot.SetMaximum({'DSA'    :1000.     ,
                                          'PAT'    :10.**7.   ,
@@ -289,7 +299,7 @@ def makeMCPlots():
                                          'HYB-DSA':2.*10.**5.,
                                          'HYB-PAT':2.*10.**5.,
                                          'REF-DSA':1000.     ,
-                                         'Any'    :1000.      }[recoType])
+                                         'DSAPlus':1000.      }[recoType])
 
             if recoType == 'DSA' and quantity in ['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations']:
                 canvas.firstPlot.SetMaximum(10.**5.)
@@ -388,3 +398,64 @@ def makeSignal2DPlots():
             canvas.scaleMargins(0.8, edges='L')
             canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}_{}.pdf'.format(quantity, CUTSTRING, fs, 'Global' if type(sp) != tuple else SPStr(sp)))
 makeSignal2DPlots()
+
+### temporary: new functions for the DSA 2D histograms
+# easier than carefully adapting the above
+
+def makeDSAMC2DPlots():
+    for quantity in ('pT', 'eta', 'trkChi2'):
+
+        hkey = 'DSA-12-'+quantity
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, stack=False, addFlows=False, rebin=(10, 10), rebinVeto=lambda key: 'trkChi2' in key)
+        HISTS = HISTS[hkey]
+        PConfig = PConfig[hkey]
+
+        R.gStyle.SetPalette(56)
+        PConfig['stack'] = ('', '', 'colz')
+        #PConfig['stack'] = ('', '', 'scat=0.2')
+
+        PLOTS = {}
+        for key in ('stack',):
+            PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
+        canvas = Plotter.Canvas(lumi='MC'+lumiExtra.get(CUTSTRING))
+        canvas.addMainPlot(PLOTS['stack'])
+        canvas.mainPad.SetLogz()
+
+        if quantity == 'trkChi2':
+            canvas.firstPlot.GetXaxis().SetRangeUser(0., 10.)
+            canvas.firstPlot.GetYaxis().SetRangeUser(0., 10.)
+
+        canvas.scaleMargins(1.75, edges='R')
+        canvas.scaleMargins(0.8, edges='L')
+        canvas.cleanup('pdfs/ZEP_2D_{}_{}_MC.pdf'.format(quantity, CUTSTRING))
+makeDSAMC2DPlots()
+
+def makeDSASignal2DPlots():
+    for quantity in ('pT', 'eta', 'trkChi2'):
+
+        hkey = 'DSA-12-'+quantity
+        HISTS = HG.getAddedSignalHistograms(FILES[fs], fs, (hkey,))
+        if 'trkChi2' not in hkey: HISTS[hkey].Rebin2D(10, 10)
+        for sp in SIGNALPOINTS:
+            HISTS[sp] = HG.getHistogram(FILES[fs], (fs, sp), hkey).Clone()
+            if 'trkChi2' not in hkey: HISTS[sp].Rebin2D(10, 10)
+
+        opt = 'colz'
+        #opt = 'scat=0.2'
+        PLOTS = {hkey:Plotter.Plot(HISTS[hkey], '', '', opt)}
+        for sp in SIGNALPOINTS:
+            PLOTS[sp] = Plotter.Plot(HISTS[sp], '', '', opt)
+
+        for sp in [hkey,] + SIGNALPOINTS:
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING) if type(sp) != tuple else SPLumiStr(fs, *sp))
+            canvas.addMainPlot(PLOTS[sp])
+            canvas.mainPad.SetLogz()
+
+            if quantity == 'trkChi2':
+                canvas.firstPlot.GetXaxis().SetRangeUser(0., 10.)
+                canvas.firstPlot.GetYaxis().SetRangeUser(0., 10.)
+
+            canvas.scaleMargins(1.75, edges='R')
+            canvas.scaleMargins(0.8, edges='L')
+            canvas.cleanup('pdfs/ZEP_2D_{}_{}_{}_{}.pdf'.format(quantity, CUTSTRING, fs, 'Global' if type(sp) != tuple else SPStr(sp)))
+makeDSASignal2DPlots()

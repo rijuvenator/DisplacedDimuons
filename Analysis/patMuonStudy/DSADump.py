@@ -82,5 +82,5 @@ if __name__ == '__main__':
     # declare analyzer
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT'),
+        BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT', 'FILTER'),
     )
