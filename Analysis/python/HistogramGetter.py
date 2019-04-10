@@ -42,6 +42,18 @@ for sample in (
     'DoubleMuonRun2016H-07Aug17'   ,
     'NoBPTXRun2016D_07Aug17'       ,
     'NoBPTXRun2016E_07Aug17'       ,
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_ppSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_ppSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_ppSeed',
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 

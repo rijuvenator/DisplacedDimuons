@@ -36,6 +36,41 @@ DataSampleList = (
     ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
 
+DataSampleList_NoBPTX = (
+    ('NoBPTXRun2016D-07Aug17', (16, 50000)),
+    ('NoBPTXRun2016E-07Aug17', (14, 50000)),
+)
+
+DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (35, 50000)), # 1714889 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (52, 50000)), # 2591141 events
+)
+
+DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (27, 50000)), # 1308037 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (34, 50000)), # 1676444 events
+)
+
+DataSampleList_Cosmics_UGMT_base_CosmicSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_CosmicSeed', (35, 50000)), # 1714889 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_CosmicSeed', (52, 50000)), # 2591141 events
+)
+
+DataSampleList_Cosmics_UGMT_base_ppSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_ppSeed', (27, 50000)), # 1308037 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_ppSeed', (34, 50000)), # 1676444 events
+)
+
+DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (35, 50000)), # 1714889 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (52, 50000)), # 2591141 events
+)
+
+DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed = (
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_ppSeed', (27, 50000)), # 1308037 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_ppSeed', (34, 50000)), # 1676444 events
+)
+
 # specific scripts that should ignore the splitting parameter
 # e.g. scripts that do not loop on the tree but use existing histograms
 SplittingVetoList = ('tailCumulativePlots.py',)
@@ -132,6 +167,33 @@ if args.FILE == '':
                 NJOBS, NEVENTS = SPLITTING
                 for i in xrange(NJOBS):
                     ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+
+    if 'N' in args.SAMPLES:
+        for NAME, SPLITTING in DataSampleList_NoBPTX:
+            if SPLITTING is None:
+                ArgsList.append('--name {}'.format(NAME))
+            else:
+                NJOBS, NEVENTS = SPLITTING
+                for i in xrange(NJOBS):
+                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+
+    cosmics_dict = {
+        'C_base_bottomonly_cosmicseed': DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed,
+        'C_base_bottomonly_ppseed'    : DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed,
+        'C_base_cosmicseed'           : DataSampleList_Cosmics_UGMT_base_CosmicSeed,
+        'C_base_ppseed'               : DataSampleList_Cosmics_UGMT_base_ppSeed,
+        'C_bottomOnly_cosmicseed'     : DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed,
+        'C_bottomOnly_ppseed'         : DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed,
+    }
+    for identifier in cosmics_dict:
+        if identifier in args.SAMPLES:
+            for NAME, SPLITTING in cosmics_dict[identifier]:
+                if SPLITTING is None:
+                    ArgsList.append('--name {}'.format(NAME))
+                else:
+                    NJOBS, NEVENTS = SPLITTING
+                    for i in xrange(NJOBS):
+                        ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
 # if a file is given, make the arguments the lines in the file instead
 # the script name should be in the arguments, so pass a dummy argument to SCRIPT and set it to nothing here
