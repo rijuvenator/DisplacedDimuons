@@ -182,8 +182,8 @@ if args.FILE == '':
         'C_base_bottomonly_ppseed'    : DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed,
         'C_base_cosmicseed'           : DataSampleList_Cosmics_UGMT_base_CosmicSeed,
         'C_base_ppseed'               : DataSampleList_Cosmics_UGMT_base_ppSeed,
-        'C_bottomOnly_cosmicseed'     : DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed,
-        'C_bottomOnly_ppseed'         : DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed,
+        'C_bottomonly_cosmicseed'     : DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed,
+        'C_bottomonly_ppseed'         : DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed,
     }
     for identifier in cosmics_dict:
         if identifier in args.SAMPLES:
