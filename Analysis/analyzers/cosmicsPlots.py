@@ -12,9 +12,8 @@ from DisplacedDimuons.Analysis.AnalysisTools import matchedMuons
 DO_CREATE_SIMPLE_HISTS = True
 DO_CREATE_TURNON_HISTS = True
 
-# accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_NoBPTX3BX']
-accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_CosmicSeed']
-# accepted_HLTpaths = ['HLT_L2Mu10_NoVertex_pp']
+# this will be used as a fallback if the option --HLTfilter is NOT explicitly given
+accepted_HLTpaths_fallback = ['HLT_L2Mu10_NoVertex_pp']
 
 # define single muon cuts
 SINGLEMU_SELECTION = {
@@ -76,12 +75,12 @@ L1THRESHOLDS = (0.0, 5.0, 12.0, 15.0)
 # "(None,None,'')" is the alpha-inclusive case.
 ALPHA_CATEGORIES = (
         (None, None, ''),
-        (2.8, math.pi, '__2p8alphaPi'),
-        (2.8, math.pi, '__SSpairs_2p8alphaPi'),
-        (2.8, math.pi, '__goodQuality_2p8alphaPi'),
-        (0.3, 2.8, '__0p3alpha2p8'),
-        (0., 0.3, '__0p0alpha0p3'),
-        (0., 2.8, '__noOppositeMuonMatch_0p0alpha2p8'),
+        # (2.8, math.pi, '__2p8alphaPi'),
+        # (2.8, math.pi, '__SSpairs_2p8alphaPi'),
+        # (2.8, math.pi, '__goodQuality_2p8alphaPi'),
+        # (0.3, 2.8, '__0p3alpha2p8'),
+        # (0., 0.3, '__0p0alpha0p3'),
+        # (0., 2.8, '__noOppositeMuonMatch_0p0alpha2p8'),
 )
 
 # list of d0 intervals to process, "(None, None)" gives the d0-inclusive results
@@ -121,7 +120,7 @@ VALUES  = (
     ('pTdiff',        '(p_{T}^{upper}-p_{T}^{lower})/p_{T}^{lower}', (1000, -10., 100.), lambda (m1,m2): (m1.pt-m2.pt)/m2.pt, 'p_{T}^{upper}-p_{T}^{lower}/p_{T}^{lower}'),
     ('deltaR',        '#Delta R',         (1000,       0.,      5.), lambda (m1,m2): m1.p4.DeltaR(m2.p4)                 , '#DeltaR(#mu#mu)'),
     ('mass',          'M_{#mu#mu}',       (1000,       0.,    500.), lambda (m1,m2): (m1.p4+m2.p4).M()                   , 'M(#mu#mu) [GeV]'),
-    # ('cosAlpha',      'cos#alpha',        (1000,      -1.,      1.), lambda (m1,m2): m1.p4.Vect().Dot(m2.p4.Vect())/m1.p4.P()/m2.p4.P(),'cos(#alpha)'),
+    ('cosAlpha',      'cos#alpha',        (1000,      -1.,      1.), lambda (m1,m2): m1.p4.Vect().Dot(m2.p4.Vect())/m1.p4.P()/m2.p4.P(),'cos(#alpha)'),
     ('alpha',         '#alpha',           (1000,       0., math.pi), lambda (m1,m2): m1.p4.Angle(m2.p4.Vect())           , 'cos(#alpha)'),
     # ('dimuonPTOverM', 'dimuon p_{T} / M', (1000,       0.,     20.), lambda (m1,m2): (m1.p4+m2.p4).Pt()/(m1.p4+m2.p4).M(), 'p_{T} / M'),
     # ('pairPT',        'pair p_{T}',       (1000,       0.,   1000.), lambda (m1,m2): (m1.p4+m2.p4).Pt()                  , 'pair p_{T}'),
@@ -136,8 +135,8 @@ VALUES  = (
     ('dimVtxChi2',    'vertex #chi^{2}/dof', (1000,    0.,    200.), lambda dimuon: dimuon.normChi2                      , 'vertex #chi^{2}/dof'),
     ('dimCosAlpha',   'dim. cos(#alpha)', (1000,      -1.,      1.), lambda dimuon: dimuon.cosAlpha                      , 'dim. cos(#alpha)'),
     ('dimLxySig',     'dim. L_{xy}/#sigma_{L_{xy}}', (1000, 0., 300.), lambda dimuon: dimuon.LxySig()                    , 'dim. L_{xy}/#sigma_{L_{xy}}'),
-    ('L1pTres',       '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1., 10.), lambda (dsamu,l1mu): (l1mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}'),
-    ('L2pTres',       '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1.,  5.), lambda (dsamu,l2mu): (l2mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}'),
+    ('L1pTres',       '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1., 20.), lambda (dsamu,l1mu): (l1mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L1}-p_{T}^{DSA})/p_{T}^{DSA}'),
+    ('L2pTres',       '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}', (1000, -1., 20.), lambda (dsamu,l2mu): (l2mu.pt-dsamu.pt)/dsamu.pt, '(p_{T}^{L2}-p_{T}^{DSA})/p_{T}^{DSA}'),
 )
 CONFIG = {}
 for VAL in VALUES:
@@ -240,8 +239,6 @@ def declareHistograms(self, PARAMS=None):
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
-    if not 'NoBPTX' in self.NAME:
-        raise NotImplementedError('[ANALYZER ERROR]: Non-NoBPTX datasets are not supported')
 
     HLTpaths, HLTmuons, L1Tmuons = E.getPrimitives('TRIGGER')
     DSAmuons = E.getPrimitives('DSAMUON')
@@ -250,6 +247,12 @@ def analyze(self, E, PARAMS=None):
     DIMUONS = [dim for dim in DIMUONS3 if dim.composition == 'DSA']
 
     event = E.getPrimitives('EVENT')
+
+    # override HLT path filter if the option has been passed
+    if ARGS.HLTFILTER is not None:
+        accepted_HLTpaths = [ARGS.HLTFILTER]
+    else:
+        accepted_HLTpaths = accepted_HLTpaths_fallback
 
     # if len(HLTmuons) != len(L1Tmuons):
     #     do_print = False
@@ -775,6 +778,15 @@ def parse_filename(path='roots/', prefix='', suffix='', fext='.root'):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
 
+    Analyzer.PARSER.add_argument('--HLTfilter',
+            dest='HLTFILTER',
+            type=str,
+            default=None)
+    Analyzer.PARSER.add_argument('--output-prefix',
+            dest='OUTPUTPREFIX',
+            type=str,
+            default=None)
+
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
 
@@ -788,6 +800,6 @@ if __name__ == '__main__':
 
     outputname = parse_filename(
             path='roots/',
-            prefix='pp-seeded-HLTpath_backgrEst_cosmicsPlots')
+            prefix=ARGS.OUTPUTPREFIX if ARGS.OUTPUTPREFIX is not None else 'test')
 
     analyzer.writeHistograms(outputname)
