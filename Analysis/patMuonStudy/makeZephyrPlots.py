@@ -248,7 +248,7 @@ def makeMCPlots():
 
             canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
             canvas.firstPlot.setTitles(Y='Normalized Counts')
-            canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DODATA else 1.)
+            canvas.makeLegend(lWidth=.27, pos='tr' if hkey != 'REF-DSA-FPTE' else 'tl', autoOrder=False, fontscale=0.8 if not DODATA else 1.)
             if DODATA:
                 canvas.addLegendEntry(PLOTS['data'])
             for ref in reversed(HG.BGORDER):
