@@ -22,6 +22,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     CHI2      = '_CHI2'     in CUTS
     VTX       = '_VTX'      in CUTS
     COSA      = '_COSA'     in CUTS
+    SFPTE     = '_SFPTE'    in CUTS
 
     # not yet used
     D0SIG     = '_D0SIG'    in CUTS
@@ -53,7 +54,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         return cutList
 
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, D0SIG):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, SFPTE):
         cutList = []
         if LXYERR:
             cutList.append('d_LxyErr')
@@ -63,8 +64,10 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             cutList.append('d_vtxChi2')
         if COSA:
             cutList.append('d_cosAlpha')
-        if D0SIG:
-            cutList.append('d_d0Sig')
+        #if D0SIG:
+        #    cutList.append('d_d0Sig')
+        if SFPTE:
+            cutList.append('d_smallFPTE')
         return cutList
 
     # primary vertex
@@ -215,7 +218,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
 
         # the d0Sig cut should be applied to original muons, so comment out the "dimuon" version of the d0Sig cut
-        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, False)
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, SFPTE)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:

@@ -21,9 +21,10 @@ if CUTSTRING == '':
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'          : '',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX'      : ' + P.V.',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA' : ' + P.V. + cos(#alpha)',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'                : '',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX'            : ' + P.V.',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA'       : ' + P.V. + cos(#alpha)',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE' : ' + P.V. + cos(#alpha) + ref. FPTE',
 }
 
 DRAW = False

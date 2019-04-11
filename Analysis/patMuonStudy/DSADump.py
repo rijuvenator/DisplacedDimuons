@@ -55,11 +55,19 @@ def analyze(self, E, PARAMS=None):
 
         mu1, mu2 = getOriginalMuons(dim)
 
-        print '{:29s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} ::: {:7.2f} {:7.2f} {:6.4f} {:6.4f} ::: {:.3e} {:.3e} {:6.3f} {:6.3f} {:6.3f} {:6.3f}'.format(
-                self.NAME, Event.run, Event.lumi, Event.event, int(eventWeight),
+        def modifiedName(name):
+            if 'DoubleMuon' in name:
+                return 'Data'+name[17]
+            if 'QCD' in name:
+                return 'QCD'
+            return name
+
+        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} {:6.4f} {:6.4f} ::: {:.3e} {:.3e} {:6.3f} {:6.3f} {:6.3f} {:6.3f}'.format(
+                modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                 dim.composition[:3], dim.idx1, dim.idx2,
                 dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, 
-                mu1.d0Sig(), mu2.d0Sig(), mu1.deltaR_ProxMatch, mu2.deltaR_ProxMatch if dim.composition == 'DSA' else -1.,
+                mu1.d0(), mu2.d0(), mu1.d0Sig(), mu2.d0Sig(),
+                mu1.deltaR_ProxMatch, mu2.deltaR_ProxMatch if dim.composition == 'DSA' else -1.,
                 dim.mu1.ptError/dim.mu1.pt, dim.mu2.ptError/dim.mu2.pt,
                 mu1.phi, mu2.phi, dim.mu1.phi, dim.mu2.phi
         )
