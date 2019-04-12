@@ -419,4 +419,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('../analyzers/roots/mcbg/RepPlots_{}.root')
+    analyzer.writeHistograms('roots/mcbg/RepPlots_{}.root')
