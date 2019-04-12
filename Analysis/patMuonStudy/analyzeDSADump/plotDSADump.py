@@ -73,7 +73,7 @@ for line in f:
             print vals['event']
 
     for i in ('1', '2'):
-        if vals['ftpe'+i] < 0.01:
+        if vals['fpte'+i] < 0.01:
             h['d0Sig-S'].Fill(vals['d0Sig'+i])
             h['d0-S']   .Fill(vals['d0'+i])
             h['dPhi-S'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
@@ -86,7 +86,7 @@ for line in f:
 print c
 
 for i in ('d0', 'd0Sig', 'dPhi'):
-    name = 'd0'+i
+    name = i
     c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in Data')
     p = {
         'small':Plotter.Plot(h[name+'-S'], 'refitted #sigma_{p_{T}}/p_{T} < 1%', 'l', 'hist'),
