@@ -272,7 +272,10 @@ condorSubmitAdd = '''
 output                 = logs/run{runNum}/{logname}_{index}.out
 log                    = logs/run{runNum}/{logname}_{index}.log
 error                  = logs/run{runNum}/{logname}_{index}.err
+x509userproxy          = $ENV(X509_USER_PROXY)
+use_x509userproxy      = true
 arguments              = {ARGS}
+requirements           = (OpSysAndVer =?= "SLCern6")
 #image_size             = 28000
 should_transfer_files  = NO
 +JobFlavour            = "{flavour}"
@@ -305,10 +308,10 @@ if MODE == 'LXBATCH':
 #### Run on HEPHY Batch ####
 elif MODE == 'HEPHY':
     #if the certificate does not exist or is >6h old, create a new one in a a place accesible in AFS. .
-    if os.path.isfile('{HOME}/private/.proxy'.format(**locals())) == False \
-            or int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
-                        **locals()), shell=True)) > 6*3600:
-        print "You need a GRID certificate or current certificate is older than 6h..."
+    if not os.path.isfile('{HOME}/private/.proxy'.format(**locals())) or \
+            int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
+                **locals()), shell=True)) > 6*3600:
+        print('GRID certificate not found or older than 6 hours. You will need a new one.')
         bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
     for index, ARGS in enumerate(ArgsList):
         scriptName = 'submit_{index}.sh'                         .format(**locals())
@@ -318,6 +321,19 @@ elif MODE == 'HEPHY':
 
 #### Run on CONDOR ####
 elif MODE == 'CONDOR':
+    # prepare the grid certificate
+    proxy = '{HOME}/private/.proxy'.format(**locals())
+    print('proxy path: {}'.format(proxy))
+    if not os.path.isfile(proxy) or \
+            int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {}))'.format(
+                proxy), shell=True)) > 6*3600:
+        print('GRID certificate not found or older than 6 hours. You will need a new one.')
+        bash.call('voms-proxy-init --voms cms --valid 168:00 -out {}'.format(proxy), shell=True)
+    
+    # export the environment variable related to the certificate
+    os.environ['X509_USER_PROXY'] = proxy
+    print os.environ['X509_USER_PROXY']
+
     # make the logs directory if it doesn't exist
     bash.call('mkdir -p logs', shell=True)
     executableName = 'condorExecutable.sh'

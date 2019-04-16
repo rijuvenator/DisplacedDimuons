@@ -2,11 +2,12 @@ import os
 
 # set directory strings
 if 'stempl' in os.environ['USER']:
-    DIR_WS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
-    DIR_EOS = '/afs/hephy.at/user/s/stempl/workspace/CMSSW_8_0_29/src/DisplacedDimuons/Tupler/python/'
+    DIR_WS = '/afs/cern.ch/work/s/stempl/public/DisplacedDimuons/'
+    DIR_EOS = '/eos/user/s/stempl/public/DisplacedDimuons/'
 
     PREFIX_CERN='root://eoscms.cern.ch/'
-    PREFIX_FNAL=''
+    PREFIX_FNAL='root://cmseos.fnal.gov/'
+    PREFIX_HEPHY = 'root://hephyse.oeaw.ac.at/'
 else:
     DIR_WS= '/afs/cern.ch/work/a/adasgupt/DisplacedDimuons/'
     DIR_EOS= '/eos/cms/store/user/adasgupt/DisplacedDimuons/'

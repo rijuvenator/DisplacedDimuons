@@ -123,12 +123,13 @@ class Dataset(object):
     def getNTuples(self):
         # if nTupleInfo (from NTuples.dat) is just a string,
         # assume there is just 1 file and return the string
-        # add a root protocol if we are not on lxplus (TODO: generalize)
+        # add a root protocol if we are not on lxplus or on a CONDOR worker
+        # (TODO: generalize)
         if type(self.nTupleInfo) == str:
-            if not 'lxplus' in os.environ['HOSTNAME']:
-                return Constants.PREFIX_CERN + self.nTupleInfo
-            else:
+            if 'cern.ch' in os.environ['HOSTNAME']:
                 return self.nTupleInfo
+            else:
+                return Constants.PREFIX_CERN + self.nTupleInfo
 
         # if nTupleInfo is a list, we have a few options
         # - if it's a list of .root files, i.e. [1] is something.root,
