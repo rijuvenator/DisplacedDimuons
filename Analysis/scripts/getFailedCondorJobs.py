@@ -1,10 +1,19 @@
 #!/usr/bin/env python2
 import subprocess as bash
 import re
+import glob
 
 def grab(cmd):
     try:
         return bash.check_output(cmd, shell=True).strip('\n')
+    except bash.CalledProcessError:
+        return ''
+
+def specialGrab():
+    try:
+        return bash.check_output(['grep',
+                                  '-zPl',
+                                  'Could not find platform independent libraries <prefix>\\nCould not find platform dependent libraries <exec_prefix>\\nConsider setting \$PYTHONHOME to <prefix>\[:<exec_prefix>\]\\nTraceback \(most recent call last\):\\n  File ".*\\n    __boot\(\)\\n  File ".*\\n    import sys, os, os.path\\nImportError: No module named os\\n.+'] + glob.glob('logs/run*/*.err')).strip('\n')
     except bash.CalledProcessError:
         return ''
 
@@ -21,7 +30,8 @@ if grepOutput != '':
 
 # find non-empty .err files
 # the findOutput is a number of lines consisting of file names of the format 'logs/run*/*.err'
-findOutput = grab('find logs/run*/*.err -type f ! -empty')
+#findOutput = grab('find logs/run*/*.err -type f ! -empty')
+findOutput = specialGrab()
 baseNames['errored'] = []
 if findOutput != '':
     for line in findOutput.split('\n'):

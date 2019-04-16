@@ -98,8 +98,8 @@ def makeSinglePlots():
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
 
-    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'd0', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'd0', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     quantities['REF-DSA'] = ['FPTE']
     quantities[''] = ['nDimuon']
@@ -168,8 +168,8 @@ def makeMCPlots():
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
 
-    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
-    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'relTrkIso', 'd0Sig', 'trkChi2'])
+    quantities['HYB-DSA'].extend(['pT', 'eta', 'phi', 'd0', 'FPTE', 'd0Sig', 'trkChi2', 'nStations'])
+    quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'd0', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     for recoType in ('DSA', 'PAT'):
         quantities[recoType].extend(quantities['HYB-'+recoType])
@@ -187,6 +187,7 @@ def makeMCPlots():
         if 'cosAlpha' in key: return True
         if 'LxySig' in key and 'DSA' in key: return True
         if 'mind0Sig' in key and 'DSA' in key: return True
+        if 'd0' in key and 'Sig' not in key and 'DSA' in key: return True
         if 'trkChi2' in key: return True
         if 'nDimuon' in key: return True
         if 'REF-DSA-FPTE' in key: return True
