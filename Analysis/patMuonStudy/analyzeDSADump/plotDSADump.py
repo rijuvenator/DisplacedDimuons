@@ -11,6 +11,8 @@ h = {
     'dPhi-B' :R.TH1F('h4', ';#Delta#phi(original, refitted);Counts', 40, -R.TMath.Pi(), R.TMath.Pi()),
     'd0-S'   :R.TH1F('h5', ';d_{0};Counts'                         , 20, np.logspace(-3., 5., 21)   ),
     'd0-B'   :R.TH1F('h6', ';d_{0};Counts'                         , 20, np.logspace(-3., 5., 21)   ),
+
+    'dR'     :R.TH1F('h7', ';proximity #DeltaR;Counts'             , 37, 0.04, 0.41),
 }
 
 def deltaPhi(phi1, phi2):
@@ -56,12 +58,15 @@ config = {
     'phi2'    : {'cast':float, 'col':25},
     'rphi1'   : {'cast':float, 'col':26},
     'rphi2'   : {'cast':float, 'col':27},
+
+    'nDSA'    : {'cast':int  , 'col':28},
 }
 
 
 f = open(sys.argv[1])
 
 c = 0
+nDR7 = 0
 for line in f:
     cols = line.strip('\n').split()
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
@@ -71,6 +76,9 @@ for line in f:
 
         if vals['event'] in l:
             print vals['event']
+
+    if vals['dR1'] < 0.07 or vals['dR2'] < 0.07:
+        nDR7 += 1
 
     for i in ('1', '2'):
         if vals['fpte'+i] < 0.01:
@@ -82,8 +90,13 @@ for line in f:
             h['d0-B']   .Fill(vals['d0'+i])
             h['dPhi-B'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
 
+        if vals['nDSA'] < 10:
+            if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
+            h['dR'].Fill(vals['dR'+i])
+
 
 print c
+print nDR7
 
 for i in ('d0', 'd0Sig', 'dPhi'):
     name = i
@@ -108,3 +121,13 @@ for i in ('d0', 'd0Sig', 'dPhi'):
     p2.SetX1(p1.GetX1())
     c.firstPlot.scaleTitleOffsets(1.2, axes='X')
     c.cleanup('{}.pdf'.format(name))
+
+if True:
+    c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in Data')
+    p = Plotter.Plot(h['dR'], '', '', 'hist')
+    c.addMainPlot(p)
+    p.setColor(R.kBlue, which='L')
+    c.setMaximum()
+    pave = c.makeStatsBox(p, color=R.kBlue)
+    c.firstPlot.scaleTitleOffsets(1.2, axes='X')
+    c.cleanup('dR.pdf')

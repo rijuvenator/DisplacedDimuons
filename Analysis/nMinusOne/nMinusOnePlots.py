@@ -54,7 +54,7 @@ def analyze(self, E, PARAMS=None):
     def nDSA(selDims):
         return len([d for d in selectedDimuons if d.composition == 'DSA'])
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_REP_PC', Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_REP_PC', Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
     if selectedDimuons is not None:
 
         self.seqCounts['none'] += 1
@@ -65,7 +65,7 @@ def analyze(self, E, PARAMS=None):
 
     for idx, omit in enumerate(CUTS):
         CUTSTRING = '_Combined_' + '_'.join([c for c in CUTS if c != omit]) + '_REP_PC'
-        selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons)
+        selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
         if selectedDimuons is not None:
             self.omitCounts[omit] += 1
             self.HISTS['NM1'].Fill(idx+1., eventWeight)
@@ -75,7 +75,7 @@ def analyze(self, E, PARAMS=None):
 
     for idx in range(len(CUTS)):
         CUTSTRING = '_Combined_' + '_'.join(CUTS[:idx+1]) + '_REP_PC'
-        selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons)
+        selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
         if selectedDimuons is not None:
             self.seqCounts[CUTS[idx]] += 1
             self.HISTS['SEQ'].Fill(idx+1., eventWeight)
@@ -124,6 +124,7 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
+    Analyzer.PARSER.add_argument('--bump', dest='BUMPFPTE', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -140,4 +141,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/mcbg/NM1Plots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))
+    analyzer.writeHistograms('roots/mcbg/NM1Plots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', '_Bump' if ARGS.BUMPFPTE else ''))

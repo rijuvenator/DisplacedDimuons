@@ -1,7 +1,7 @@
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.AnalysisTools as AnalysisTools
 
-def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
+def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
     # failed return list
     failedReturnList = None, None, None
@@ -102,7 +102,13 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         DSASelections = {muon.idx:Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
+
+        # testing bumpFPTE
+        # if bumpFPTE, then move the FPTE DSA cut to after the replacement
+        if not bumpFPTE:
+            cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
+        else:
+            cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, False)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
@@ -144,6 +150,19 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         else:
             tag1, tag2 = 'DSA', 'PAT'
         return dim.idx1 in selectedIndices[tag1] and dim.idx2 in selectedIndices[tag2]
+
+    # apply post-replacement DSA cuts and filter down the selectedMuons and selectedDimuons
+    # this only needs to be done right now if bumpFPTE is true
+    # at the moment, DSASelections is computed already above, correctly, but if doing N-2 later, fix it!
+    if bumpFPTE and FPTERR:
+        cutList = boolsToMuonCutList(False, False, True)
+        selectedMuons['DSA'] = [mu for mu in selectedMuons['DSA'] if DSASelections[mu.idx].allOf(*cutList)]
+
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
     # apply post-replacement PAT quality cuts and filter down the selectedMuons and selectedDimuons
     # since this is PAT only, this only needs to be done if REP is true

@@ -6,13 +6,19 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 
+PP.PARSER.add_argument('--bump', dest='BUMP', action='store_true')
+ARGS = PP.PARSER.parse_args()
+BUMPSTRING = ''
+if ARGS.BUMP:
+    BUMPSTRING = '_Bump'
+
 DODATA = True
 DATASCALE = 1433921./14334550.
 
 FILES = {
-    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig_HTo2XTo2Mu2J.root'),
-    'MC'    : R.TFile.Open('roots/NM1Plots_MC.root'               ),
-    'Data'  : R.TFile.Open('roots/NM1Plots_Data.root'             ),
+    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig{}_HTo2XTo2Mu2J.root'.format(BUMPSTRING)),
+    'MC'    : R.TFile.Open('roots/NM1Plots{}_MC.root'               .format(BUMPSTRING)),
+    'Data'  : R.TFile.Open('roots/NM1Plots{}_DATA.root'             .format(BUMPSTRING)),
 }
 
 CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA', 'SFPTE')
@@ -87,7 +93,7 @@ def makeIntegratedSEQMC(hkey='SEQ'):
 
     #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
     canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
-    canvas.save('pdfs/NM1_{}_MC.pdf'.format(hkey))
+    canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
     canvas.deleteCanvas()
 makeIntegratedSEQMC()
 makeIntegratedSEQMC(hkey='DSA-SEQ')
@@ -109,7 +115,7 @@ def makeIntegratedSEQSignal(hkey='SEQ'):
     canvas.firstPlot.SetMaximum(3.e5 if 'DSA' not in hkey else 1.e5)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}_2Mu2J.pdf'.format(hkey))
+    canvas.cleanup('pdfs/NM1_{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING))
 makeIntegratedSEQSignal()
 makeIntegratedSEQSignal(hkey='DSA-SEQ')
 
@@ -236,7 +242,7 @@ def makeIntegratedNM1MC(hkey='NM1'):
 
     #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
     canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
-    canvas.save('pdfs/NM1_{}_MC.pdf'.format(hkey))
+    canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
     canvas.deleteCanvas()
 makeIntegratedNM1MC()
 makeIntegratedNM1MC(hkey='DSA-NM1')
@@ -273,6 +279,6 @@ def makeIntegratedNM1Signal(hkey='NM1'):
     canvas.firstPlot.SetMaximum(1.1)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}_2Mu2J.pdf'.format(hkey))
+    canvas.cleanup('pdfs/NM1_{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING))
 makeIntegratedNM1Signal()
 makeIntegratedNM1Signal(hkey='DSA-NM1')

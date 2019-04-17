@@ -7,3 +7,4 @@ then
 fi
 
 PATH=$CMSSW_BASE/src/DisplacedDimuons/Analysis/scripts/:$PATH
+MCSAMPLES="DY10to50 DY50toInf ttbar tbarW tW WZ ZZ WW WJets QCD20toInf-ME"

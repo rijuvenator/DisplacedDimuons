@@ -131,7 +131,8 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     # dimuon multiplicity
-    self.HistInit('nDimuon', ';N(dimuons);Counts', 2, 1., 3.)
+    self.HistInit('nDimuon', ';N(dimuons);Counts'        ,  2, 1.,  3.)
+    self.HistInit('nDSA'   , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
 
     # for Bob
     self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
@@ -216,7 +217,8 @@ def analyze(self, E, PARAMS=None):
 
     for dim in selectedDimuons:
         if dim.composition == 'DSA':
-            self.HISTS['nDimuon'].Fill(len(selectedDimuons))
+            self.HISTS['nDimuon'].Fill(len(selectedDimuons), eventWeight)
+            self.HISTS['nDSA'   ].Fill(len(DSAmuons       ), eventWeight)
             break
 
     def getOriginalMuons(dim):
