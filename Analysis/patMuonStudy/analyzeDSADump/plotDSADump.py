@@ -40,6 +40,8 @@ l = [
 config = {
     'event'   : {'cast':int  , 'col': 3},
 
+    'type'    : {'cast':str  , 'col': 6},
+
     'LxySig'  : {'cast':float, 'col':10},
     'vtxChi2' : {'cast':float, 'col':12},
     'cosAlpha': {'cast':float, 'col':13},
@@ -91,6 +93,7 @@ for line in f:
             h['dPhi-B'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
 
         if vals['nDSA'] < 10:
+            if i == '2' and vals['type'] == 'HYB': continue
             if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
             h['dR'].Fill(vals['dR'+i])
 

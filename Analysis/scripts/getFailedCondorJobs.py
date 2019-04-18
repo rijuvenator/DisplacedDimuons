@@ -13,7 +13,7 @@ def specialGrab():
     try:
         return bash.check_output(['grep',
                                   '-zPl',
-                                  'Could not find platform independent libraries <prefix>\\nCould not find platform dependent libraries <exec_prefix>\\nConsider setting \$PYTHONHOME to <prefix>\[:<exec_prefix>\]\\nTraceback \(most recent call last\):\\n  File ".*\\n    __boot\(\)\\n  File ".*\\n    import sys, os, os.path\\nImportError: No module named os\\n.+'] + glob.glob('logs/run*/*.err')).strip('\n')
+                                  '(?s)Could not find platform independent libraries <prefix>\\nCould not find platform dependent libraries <exec_prefix>\\nConsider setting \$PYTHONHOME to <prefix>\[:<exec_prefix>\]\\nTraceback \(most recent call last\):\\n  File ".*\\n    __boot\(\)\\n  File ".*\\n    import sys, os, os.path\\nImportError: No module named os\\n.+'] + glob.glob('logs/run*/*.err')).strip('\n')
     except bash.CalledProcessError:
         return ''
 

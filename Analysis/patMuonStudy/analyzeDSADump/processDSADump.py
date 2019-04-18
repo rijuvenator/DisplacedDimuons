@@ -3,6 +3,8 @@ import sys
 config = {
     'event'   : {'cast':int  , 'col': 3},
 
+    'type'    : {'cast':str  , 'col': 6},
+
     'LxySig'  : {'cast':float, 'col':10},
     'vtxChi2' : {'cast':float, 'col':12},
     'cosAlpha': {'cast':float, 'col':13},
@@ -21,6 +23,8 @@ config = {
     'phi2'    : {'cast':float, 'col':25},
     'rphi1'   : {'cast':float, 'col':26},
     'rphi2'   : {'cast':float, 'col':27},
+
+    'nDSA'    : {'cast':int  , 'col':28},
 }
 
 tests = {'total':{'count':0, 'lines':''}, 'LxySig':{'count':0, 'lines':''}, 'd0Sig':{'count':0, 'lines':''}, 'vtxChi2':{'count':0, 'lines':''}}
@@ -30,6 +34,9 @@ f = open(sys.argv[1])
 for line in f:
     cols = line.strip('\n').split()
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
+
+    #if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
+    #    print line.strip('\n')
 
     bools = {'LxySig':False, 'd0Sig':False, 'vtxChi2':False}
 
