@@ -243,13 +243,38 @@ def declareHistograms(self, PARAMS=None):
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
 
+    event = E.getPrimitives('EVENT')
+
+    # # enforce a custom set of runs/lumisections for a direct comparison of
+    # # NoBPTX vs. Cosmics samples
+    # custom_JSON = {
+    #     # using the "firstClean" JSON
+    #     276336: [[10,27]],
+    #     276337: [[10,91]],
+    #     276459: [[11,109]],
+    #     276467: [[11,61]],
+    #     276529: [[10,51]],
+    #     276563: [[1, 35]],
+    #     276567: [[1, 62]],
+    #     276568: [[12,31]],
+    #     276570: [[1, 99]],
+    #     276577: [[1, 177]],
+    #     276735: [[11,60]],
+    #     276758: [[11,177]],
+    #     276872: [[11,27]],
+    #     276910: [[20, 188]],
+    #     276919: [[1, 47]],
+    #     276921: [[1, 34]],
+    #     276936: [[1, 91], [161, 176]],
+    # }
+    # if event.run not in custom_JSON.keys(): return
+    # # if event.lumi not in custom_JSON[event.run]: return
+
     HLTpaths, HLTmuons, L1Tmuons = E.getPrimitives('TRIGGER')
     DSAmuons = E.getPrimitives('DSAMUON')
     DIMUONS3 = E.getPrimitives('DIMUON')
     # restore "old" (pre-January-2019) dimuon behavior
     DIMUONS = [dim for dim in DIMUONS3 if dim.composition == 'DSA']
-
-    event = E.getPrimitives('EVENT')
 
     # override HLT path filter if the option has been passed
     if ARGS.HLTFILTER is not None:
@@ -308,7 +333,7 @@ def analyze(self, E, PARAMS=None):
             do_skip_event = False
 
             # Accept only events that pass the following HLT triggers
-            HLTpaths_list = [str(path) for path in HLTpaths]
+            HLTpaths_list = [path.name for path in HLTpaths]
             if not any([any([(accepted_path in HLTpath) for accepted_path in accepted_HLTpaths]) for HLTpath in HLTpaths_list]):
                 do_skip_event = True
 
@@ -823,6 +848,12 @@ if __name__ == '__main__':
     if ARGS.REFLEG not in ('lower','upper'):
         raise Exception('Invalid value of reference-leg (allowed: '
                 '\'lower\', \'upper\'')
+
+    if ARGS.HLTFILTER is None:
+        print('Warning: \'--HLTfilter\' not given, will use {}'.format(
+            accepted_HLTpaths_fallback))
+    else:
+        print('HLT path(s) to filter by: {}'.format(ARGS.HLTFILTER))
 
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
