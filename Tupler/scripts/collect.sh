@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# first, move all the signal nTuples out of here
+# no need to call hadd when there's only one file for sure
+# cd to the CRAB directory and then
+
+# for i in HTo2LongLivedTo*/*/*/*/*.root; do mv $i .; i=$(basename $i); mv $i ${i/_1.root/.root}; done
+
 # cd to the CRAB directory and run this script
 # automatically dives into a CRAB directory
 # hadds things together stripping off the number

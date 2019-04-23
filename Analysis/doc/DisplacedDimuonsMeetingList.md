@@ -37,6 +37,9 @@ Date | Talks
 [2019   January 31](https://indico.cern.ch/event/794936/) | Suchita, Sebastian, Slava
 [2019  February 14](https://indico.cern.ch/event/798959/) | Riju, Sebastian
 [2019  February 21](https://indico.cern.ch/event/800782/) | Riju, Alberto
+[2019     March  7](https://indico.cern.ch/event/804260/) | Riju, Sebastian
+[2019     March 21](https://indico.cern.ch/event/807968/) | Riju, Alberto, Sebastian
+[2019     April  4](https://indico.cern.ch/event/811831/) | Riju
 
 ## External Talks
 

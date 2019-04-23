@@ -493,53 +493,110 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
         return []
 
 # function for replacing DSA muons with PAT muons, and DSA dimuons with PAT or HYBRID dimuons
-# The input PATmuons list should be the bare list
+# The input selectedPATmuons list is probably a list of PAT muons, at this moment, unselected, but possibly passing quality cuts
 # The input selectedDSAmuons list is probably a list of DSA muons passing quality cuts
 # The input selectedDimuons list is probably a list of DSA dimuons made only of the selected DSA muons + PAT and HYBRID dimuons
+# PATSelections is either None or a dictionary of selections, used for disambiguating multiple segment matches
+# cutList is used along with PATSelections
 # By default this will look for a segment match (in a way that was defined previously) and will always consider HYBRID dimuons
 # For a few more details, take a look at an early March 2019 commit with the replaceDSADimuons function
-def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
+def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSelections, cutList):
+
+    inputPATs = {mu.idx:mu for mu in selectedPATmuons}
 
     # defines a SegMatch, returns a pair of indices (called candidate)
+    # uses inputPATs, above
     def lookForSegMatch(DSAmuon):
-        candidate = None
         if DSAmuon.idx_SegMatch is None:
-            pass
-        elif len(DSAmuon.idx_SegMatch) > 1:
-            if DSAmuon.idx_ProxMatch in DSAmuon.idx_SegMatch:
+            return None
+
+        # only consider segMatches that are selectedPATmuons
+        # don't do this anymore
+        # segMatches = [idx for idx in DSAmuon.idx_SegMatch if idx in inputPATs]
+
+        # ONLY if there are multiple segment matches,
+        # filter the segment matches based on some selections
+        # then go through the rest of the segment matching logic
+        # ONLY if filtering results in 0 segment matches,
+        # pretend that the cuts were not done at all, i.e.
+        # if filtering gets down to 1, great -- it'll get taken
+        # if it gets down to 2+, great -- prox will disambiguate
+        # if it gets down to 0, the filtering would cause us to lose the match,
+        # so pretend the filtering didn't happen
+        if len(DSAmuon.idx_SegMatch) > 1 and PATSelections is not None:
+            segMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf(*cutList)]
+            if len(segMatches) == 0:
+                segMatches = DSAmuon.idx_SegMatch
+        else:
+            segMatches = DSAmuon.idx_SegMatch
+
+        # if 0, no matches
+        # if 1, take the match
+        # if 2+, disambiguate using ProxMatch OR take the first entry, if ProxMatch is not a SegMatch
+        if len(segMatches) == 0:
+            return None
+
+        if len(segMatches) > 1:
+            if DSAmuon.idx_ProxMatch in segMatches:
                 candidate = DSAmuon.idx_ProxMatch
             else:
                 # take first entry
                 # which is the smallest index = largest pT
-                candidate = DSAmuon.idx_SegMatch[0]
+                candidate = segMatches[0]
         else:
-            candidate = DSAmuon.idx_SegMatch[0]
+            candidate = segMatches[0]
+
         return candidate
+
+    # always do the last-resort DSA proximity match
+    DSAProxMatch = True
+
+    # as a last resort, use the proximity match in certain cases
+    def lookForProximityMatch(DSAmuon):
+        # only do this if there are NO segment matches
+        if DSAmuon.idx_SegMatch is not None: return None
+        if DSAmuon.idx_ProxMatch is None: return None
+
+        # option 1: proximity match is global ONLY and within deltaR of 0.1
+        if         inputPATs[DSAmuon.idx_ProxMatch].isGlobal  \
+           and not inputPATs[DSAmuon.idx_ProxMatch].isTracker \
+           and     DSAmuon.deltaR_ProxMatch < 0.1:
+            return DSAmuon.idx_ProxMatch
+
+        # option 2: proximity match is within deltaR of 0.05
+        if DSAmuon.deltaR_ProxMatch < 0.05:
+            return DSAmuon.idx_ProxMatch
+
+        return None
 
     # filter DSA muons based on whether there was a PAT match
     # after this, there are two lists: PAT muons which replaced a DSA muon, and
     # DSA muons which matched no PAT muon
-    selectedPATmuons = []
+    filteredPATmuons = []
     filteredDSAmuons = []
     DSAIndices = []
     PATIndices = []
     for mu in selectedDSAmuons:
         candidate = lookForSegMatch(mu)
+        if candidate is None:
+            if DSAProxMatch:
+                candidate = lookForProximityMatch(mu)
         if candidate is not None:
             if candidate in PATIndices: continue
-            selectedPATmuons.append(PATmuons[candidate]) # be careful. PATmuons is the full list, here.
+            filteredPATmuons.append(inputPATs[candidate])
             PATIndices.append(candidate)
         else:
             filteredDSAmuons.append(mu)
             DSAIndices.append(mu.idx)
 
-    # possible indices for dimuons. Consider only DSA-DSA and PAT-PAT dimuons; skip HYBRID
+    # possible indices for dimuons.
     # call the new list "filteredDimuons"
     selectedIndices = {
         'DSA':DSAIndices,
         'PAT':PATIndices,
     }
 
+    # consider hybrids
     keepHybrids = True
 
     filteredDimuons = []
@@ -558,9 +615,9 @@ def replaceDSAMuons(selectedDSAmuons, PATmuons, selectedDimuons):
 
     # final return
     # suitable for the following call:
-    # selectedDSAmuons, selectedPATmuons, selectedDimuons = replaceDSAmuons(selectedDSAmuons, PATmuons, selectedDimuons)
+    # selectedDSAmuons, selectedPATmuons, selectedDimuons = replaceDSAmuons(selectedDSAmuons, selectedPATmuons, selectedDimuons)
     # where selectedDimuons is a Dimuons3 type list
-    return filteredDSAmuons, selectedPATmuons, filteredDimuons
+    return filteredDSAmuons, filteredPATmuons, filteredDimuons
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

@@ -3,7 +3,7 @@ import numpy as np
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import sys
 
-fname = 'text/DY50toInf_eventsWithLxySigAbove100.txt'
+fname = 'text/MC_eventsWithLxySigAbove20.txt'
 if len(sys.argv) > 1:
     fname = sys.argv[1]
 
@@ -11,21 +11,24 @@ if len(sys.argv) > 1:
 # really, it just needs a file with chi2 being the last column
 # there are many scripts that do the required event line printing
 
-h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 200, np.logspace(-3., 8., 201))
+#h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 100, np.logspace(-3., 8., 101))
+h = R.TH1F('h', ';vtx #chi^{2}/dof;Counts', 100, 0., 50.)
 
 with open(fname) as f:
     for line in f:
+        if 'DY50' not in line: continue
+        if 'PAT' not in line: continue
         cols = line.strip('\n').split()
-        chi2 = float(cols[-1])
+        chi2 = float(cols[-3])
         h.Fill(chi2)
 
 p = Plotter.Plot(h, '', '', 'hist')
-canvas = Plotter.Canvas()
+canvas = Plotter.Canvas(logy=True)
 canvas.addMainPlot(p)
 p.setColor(R.kBlue, which='L')
 pave = canvas.makeStatsBox(p, R.kBlue)
 Plotter.MOVE_OBJECT(pave, X=-.5)
-canvas.mainPad.SetLogx()
+#canvas.mainPad.SetLogx()
 canvas.scaleMargins(0.8, 'L')
 canvas.firstPlot.scaleTitleOffsets(1.2, 'X')
 canvas.cleanup('pdfs/badChi2.pdf')
@@ -33,7 +36,7 @@ canvas.cleanup('pdfs/badChi2.pdf')
 cum = h.GetCumulative()
 cum.Scale(1./h.Integral(0, h.GetNbinsX()+1))
 
-findAt = 10.
+findAt = 50.
 for ibin in xrange(1, h.GetNbinsX()):
     if cum.GetXaxis().GetBinLowEdge(ibin) > findAt:
         print '{:.1f} : {:.4f}'.format(findAt, cum.GetBinContent(ibin))

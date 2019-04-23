@@ -17,7 +17,7 @@ MAINDIR='../analyzers/roots/Main/'
 PLOTTERDIR='../../../plotters/'
 
 cd $MAINDIR
-../relink {ftag} {fcutstring}
+relink {ftag} {fcutstring}
 if [ ! -e "{ftag}.root" ]
 then
     echo "Bad symlink"

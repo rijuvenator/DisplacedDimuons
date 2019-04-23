@@ -202,3 +202,7 @@ SIGNALS = {
 		]
 	}
 }
+
+# order of background samples from weakest to strongest
+# used for making stack plots and etc.
+BGORDER = ('WJets', 'WW', 'WZ', 'ZZ', 'tW', 'tbarW', 'ttbar', 'QCD20toInf-ME', 'DY10to50', 'DY50toInf')

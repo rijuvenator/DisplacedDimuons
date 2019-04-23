@@ -1,2 +1,2 @@
 #!/bin/bash
-PATH=$PATH:$(pwd -P)
+PATH=$CMSSW_BASE/src/DisplacedDimuons/Analysis/scripts/:$PATH

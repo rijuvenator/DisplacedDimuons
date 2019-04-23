@@ -41,6 +41,10 @@ def msg(string, col='red'):
 #             in rehadd mode, directories from which to look for tags and hadd together
 # cutstrings: in move mode, string in between tag and sample, i.e. tag_CS_sample.root
 #             specifies what directories to make, what files to move into them
+# suffix:     in rehadd mode, specifies the hadded suffix
+# noPlots:    flag, does not add "Plots" onto the end of a tag
+# batch:      flag, does not prompt (allows rehadding in a loop without pause)
+# noMove:     flag, does not move hadded files to ROOTSDIR
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode'      , dest='MODE'      ,            default='split'               , choices=['split', 'rehadd', 'move'])
@@ -51,6 +55,7 @@ parser.add_argument('--cutstrings', dest='CUTSTRINGS', nargs='+', default=[]    
 parser.add_argument('--suffix'    , dest='SUFFIX'    ,            default=''                                                         )
 parser.add_argument('--noPlots'   , dest='NOPLOTS'   ,                                            action='store_true'                )
 parser.add_argument('--batch'     , dest='BATCH'     ,                                            action='store_true'                )
+parser.add_argument('--noMove'    , dest='NOMOVE'    ,                                            action='store_true'                )
 ARGS = parser.parse_args()
 
 # for convenience
@@ -134,23 +139,23 @@ OK? [y/n] '''.format(
 if MODE == 'split':
     FOLDER = '' if len(DIRS) < 2 else DIRS[1]
     msg('cd to roots/{} and making {}'.format(FOLDER, DIRS[0]))
-    cd('roots/'+FOLDER)
+    cd(ROOTSDIR+FOLDER)
     dirs = DIRS[0]
     run(['mkdir', '-p', dirs])
     for tag in TAGS:
         for sample in SAMPLES:
             msg('rehadding {} for {}'.format(sample, tag))
-            run('{}rehadd {}'.format(ROOTSDIR, tag+'_'+sample))
+            run('rehadd {}'.format(tag+'_'+sample))
             msg('moving {} for {} _* splits to {}'.format(sample, tag, dirs))
             run(['mv'] + glob.glob(tag+'_'+sample+'_*') + [dirs])
-            if FOLDER != '':
+            if FOLDER != '' and not ARGS.NOMOVE:
                 msg('moving hadded {} {} to roots/'.format(tag, sample))
                 run(['mv', tag+'_'+sample+'.root', ROOTSDIR])
 
 # move data, MC, Signal files to subfolders
 elif MODE == 'move':
     msg('cd to roots/')
-    cd('roots/')
+    cd(ROOTSDIR)
     def CS(cs):
         return '' if cs == '' else '_'+cs
     for tag in TAGS:
@@ -191,7 +196,7 @@ elif MODE == 'move':
 # rehadd the Main files
 elif MODE == 'rehadd':
     msg('cd to roots/')
-    cd('roots/')
+    cd(ROOTSDIR)
     for tag in TAGS:
         files = []
         for dirs in DIRS:

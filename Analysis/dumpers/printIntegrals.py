@@ -11,6 +11,7 @@ import argparse
 
 # define parser
 PARSER = argparse.ArgumentParser()
+PARSER.add_argument('-f' , '--file'    , dest='FILE'    , default=''                             , help='file name, explicit'   )
 PARSER.add_argument('-c' , '--category', dest='CATEGORY', default='D'        , choices=['D', 'R'], help='dimuon or recoMuon'    )
 PARSER.add_argument('-s' , '--string'  , dest='STRING'  , default=''                             , help='cut string, e.g. NS_NH')
 PARSER.add_argument('-m' , '--mconly'  , dest='MCONLY'  , action='store_true'                    , help='whether mconly'        )
@@ -32,9 +33,14 @@ if ARGS.BIN2 != 'N' and ARGS.BIN2 != 'NM1':
     except:
         raise Exception('Error: Bin 2 must be int, N, or NM1')
 
-FILE = R.TFile.Open('../analyzers/roots/Main/{}{}.root'.format(FULLCATEGORY, '' if ARGS.STRING == '' else '_'+ARGS.STRING))
-if not FILE:
-    raise Exception('{}{}.root: No such file'.format(FULLCATEGORY, '' if ARGS.STRING == '' else '_'+ARGS.STRING))
+if ARGS.FILE == '':
+    FILE = R.TFile.Open('../analyzers/roots/Main/{}{}.root'.format(FULLCATEGORY, '' if ARGS.STRING == '' else '_'+ARGS.STRING))
+    if not FILE:
+        raise Exception('{}{}.root: No such file'.format(FULLCATEGORY, '' if ARGS.STRING == '' else '_'+ARGS.STRING))
+else:
+    FILE = R.TFile.Open(ARGS.FILE)
+    if not FILE:
+        raise Exception('{}: No such file'.format(ARGS.FILE))
 
 MCONLY = ARGS.MCONLY
 HKEY = ARGS.HKEY
