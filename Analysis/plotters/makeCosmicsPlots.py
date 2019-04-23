@@ -20,8 +20,8 @@ HLT_info = 'HLT_L2Mu10_NoVertex_NoBPTX3BX'
 RANGES = {
     'pTdiff': (-1.1, 10.),
     'd0'    : (0., 500),
-    'L1pTres': (-1., 5.),
-    'L2pTres': (-1., 5.),
+    # 'L1pTres': (-1., 5.),
+    # 'L2pTres': (-1., 5.),
     'dimVtxChi2': (0., 60.),
     'dimLxySig': (0., 230.),
     'chi2': (0., 30.),
@@ -32,8 +32,7 @@ RANGES = {
     'charge': (-1.,2.),
 }
 
-# HISTS = HistogramGetter.getHistograms('../analyzers/test.root')
-HISTS = HistogramGetter.getHistograms('../analyzers/roots/cosmic-seeded-HLTpath_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path.root')
+HISTS = HistogramGetter.getHistograms('../analyzers/roots/check-muonMult_NoBPTX2016_HLT-CosmicSeed_lowerLeg_nCSCDTHitsGT12_nStationsGT1_pTGT20p0_pTSigLT1p0_vtxChiSquLT50p0_pairL1pT5p0AND12p0_bothLegsMatched_requireDimVtx_noTurnOnHists.root')
 
 
 def makePerSamplePlots(selection=None):
@@ -293,7 +292,6 @@ def makeTurnOnPlots():
                 hdens = getHistNames(dataset, 'DSA','pTVAREffDen',
                     'd0GT'+str(d0min).replace('.','p'),
                     'd0LT'+str(d0max).replace('.','p'), exclude=['alpha'])
-                print(hdens)
 
             for hname in hnums:
                 current_hist = HISTS[dataset][hname].Clone()
@@ -442,7 +440,7 @@ def makeCombinedPlots(categories, selection=None, exclude=None, logic='and'):
                     print('Do not rebin for variable {}'.format(variable))
                     pass
                 else:
-                    h[variable][category].Rebin(10)
+                    h[variable][category].Rebin(5)
 
             else:
                 pass
@@ -630,7 +628,7 @@ alpha_categories = (
     ('__noOppositeMuonMatch_0p0alpha2p8', '0 < #alpha < 2.8 (no match with opposite muon)'),
 )
 
-# makeCombinedPlots(alpha_categories, selection=['DSA__alphaVAR','DSA__chargeVAR','DSA__nStationsVAR','DSA__dNStationsVAR','DSA__nCSCDTHitsVAR','DSA__dNCSCDTHitsVAR','DSA__pSigVAR','DSA__pTVAR','DSA__dimVtxChi2','DSA__dimCosAlpha','DSA__dimLxySig','DSA__chi2VAR','DSA__massVAR','DSA__chargeprodVAR','DSA__dimLxyVAR','DSA__pTdiffVAR','DSA__pairPTVAR','DSA__dEtaVAR','DSA__dPhiVAR','DSA__dD0VAR','DSA__dChi2VAR'], logic='or', exclude=['__d0GT','__d0LT','Eff'])
+makeCombinedPlots(alpha_categories, selection=['DSA__alphaVAR','DSA__chargeVAR','DSA__nStationsVAR','DSA__dNStationsVAR','DSA__nCSCDTHitsVAR','DSA__dNCSCDTHitsVAR','DSA__pSigVAR','DSA__pTVAR','DSA__dimVtxChi2','DSA__dimCosAlpha','DSA__dimLxySig','DSA__chi2VAR','DSA__massVAR','DSA__chargeprodVAR','DSA__dimLxyVAR','DSA__pTdiffVAR','DSA__pairPTVAR','DSA__dEtaVAR','DSA__dPhiVAR','DSA__dD0VAR','DSA__dChi2VAR','DSA__pTSigVAR'], logic='or', exclude=['__d0GT','__d0LT','Eff','_noSelections'])
 
 # makePerSamplePlots()
 # makePerSamplePlots(['DSA__dimLxyVAR'])
@@ -646,8 +644,9 @@ alpha_categories = (
 # makePerSamplePlots(['DSA__nCSCDTHitsVAR'])
 # makePerSamplePlots(['DSA__pTSigVAR'])
 
-makePerSamplePlots(['DSA','L1pTres'])
-makePerSamplePlots(['DSA','L2pTres'])
+# makePerSamplePlots(['DSA','L1pTres'])
+# makePerSamplePlots(['DSA','L2pTres'])
+makePerSamplePlots(['DSAmuonMultiplicity'])
 
 
-makeTurnOnPlots()
+# makeTurnOnPlots()

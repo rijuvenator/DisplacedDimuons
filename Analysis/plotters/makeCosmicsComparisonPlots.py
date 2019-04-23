@@ -8,44 +8,47 @@ import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
 lumi_str = '2016 cosmics data'
 
-L1T_info = 'data taken with L1_SingleMuOpen'
-HLT_info = 'ref. path: HLT_L2Mu10_NoVertex_[pp|CosmicSeed] (re-HLT)'
+L1T_info = 'Data taken with L1_SingleMuOpen'
+HLT_info = 'Ref. path: HLT_L2Mu10_NoVertex_[pp|CosmicSeed] (re-HLT)'
 
-# specify file names, description
-file_specs = (
-    # ('../analyzers/roots/cosmics-studies/cosmics_reHLT/NoBPTX_cosmic-seeded-HLTpath_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'lower leg (NoBPTX data, cosmic seed)'),
-    # ('../analyzers/roots/cosmics-studies/cosmics_reHLT/hadded_UGMT-base_HLT-cosmic-seed_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_CosmicsRun2016DE-reHLT.root', '"Base JSON", re-HLT Cosmics data (cosmic seed)'),
-    # ('../analyzers/roots/cosmics-studies/cosmics_reHLT/NoBPTX_upperLegMuon_cosmic-seeded-HLTpath_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'upper leg (NoBPTX data, cosmic seed)'),
-    # ('../analyzers/roots/cosmics-studies/cosmics_reHLT/hadded_UGMT-base-bottomOnly_HLT-cosmic-seed_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_CosmicsRun2016DE-reHLT.root', 'cosmic seed (re-HLT Cosmics data, lower leg)'),
-    # ('../analyzers/roots/cosmics-studies/cosmics_reHLT/hadded_UGMT-base-bottomOnly_HLT-pp-seed_backgrEst_cosmicsPlots_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_CosmicsRun2016DE-reHLT.root', 'pp seed (re-HLT Cosmics data, lower leg)'),
-    #
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-base-bottomOnly_CosmicSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base+bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-base-bottomOnly_ppSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base+bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-base_CosmicSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base JSON, CosmicsRun2016[D+E], lower leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-base_ppSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base JSON, CosmicsRun2016[D+E], lower leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-bottomOnly_CosmicSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-bottomOnly_ppSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    ###
-    # PARTIAL FILES
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_upperLegMuon/hadded_UGMT-base-bottomOnly_CosmicSeed_upperLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base+bottomOnly JSON, CosmicsRun2016[D+E], upper leg'),
-    # ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_upperLegMuon/hadded_UGMT-base-bottomOnly_ppSeed_upperLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base+bottomOnly JSON, CosmicsRun2016[D+E], upper leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_upperLegMuon/hadded_UGMT-base_CosmicSeed_upperLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base JSON, CosmicsRun2016[D+E], upper leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_upperLegMuon/hadded_UGMT-base_ppSeed_upperLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base JSON, CosmicsRun2016[D+E], upper leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_lowerLegMuon/hadded_UGMT-bottomOnly_CosmicSeed_lowerLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, bottomOnly JSON, CosmicsRun2016[D+E], upper leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_partialReHLTplots_upperLegMuon/hadded_UGMT-bottomOnly_ppSeed_upperLegMuon_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, bottomOnly JSON, CosmicsRun2016[D+E], upper leg'),
-    #
-    #('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/hadded_UGMT-base-bottomOnly_CosmicSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base+bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    #('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/hadded_UGMT-base-bottomOnly_ppSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base+bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/hadded_UGMT-base_CosmicSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'cosmic seed, base JSON, CosmicsRun2016[D+E], lower leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/hadded_UGMT-base_ppSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, base JSON, CosmicsRun2016[D+E], lower leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/CosmicsRun2016D_UGMT-bottomOnly_CosmicSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched_CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_CosmicSeed.root', 'cosmic seed, bottomOnly JSON, CosmicsRun2016D, lower leg'),
-    ('../analyzers/roots/cosmics-studies/CosmicsRun_reHLTplots_lowerLegMuon/hadded_UGMT-bottomOnly_ppSeed_alphaGT2p9_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_largestAlphaPair_oneLegMatched.root', 'pp seed, bottomOnly JSON, CosmicsRun2016[D+E], lower leg'),
-)
-
-# specify a list of patterns and a corresponding list of strings to exclude
+# specify a list of patterns to plot, and a corresponding list of strings to exclude
 hist_patterns_and_excludes = (
         ('L1pTresVAR', ['_0p0alpha','_0p3alpha','_2p8alpha']),
         ('L2pTresVAR', ['_0p0alpha','_0p3alpha','_2p8alpha']),
+)
+
+# define a custom color palette for all plots
+palette = Plotter.ColorPalette([R.kBlue, R.kBlue, R.kRed, R.kRed, R.kGreen+1, R.kGreen+1])
+
+# define the histogram line styles (in the same order as the colors in the palette)
+linestyles = [1,2,1,2,1,2]
+
+# define the histogram marker style (in the same order as the colors in the palette) (None <-> default)
+markerstyles = [None, 24, None, 24, None, 24]
+
+# specify file names, description
+file_specs = (
+    # compare JSONS (for lower legs)
+
+    ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base JSON (cosmic seed, lower leg)'),
+    ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly JSON (cosmic seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base JSON (pp seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly JSON (pp seed, lower leg)'),
+
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base JSON (cosmic seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly JSON (cosmic seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base JSON (pp seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly JSON (pp seed, lower leg)'),
+    #
+    # # compare legs (for base JSONs)
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'lower leg (cosmic seed, base JSON)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_upperLeg.root', 'upper leg (cosmic seed, base JSON)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'lower leg (pp seed, base JSON)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_upperLeg.root', 'upper leg (pp seed, base JSON)'),
+    #
+    # # validate re-HLT
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'Cosmics re-HLT samples (cosmic seed, lower leg)'),
+    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/NoBPTX2016_HLT-CosmicSeed_lowerLeg.root', 'NoBPTX samples (cosmic seed, lower leg)'),
 )
 
 
@@ -53,9 +56,9 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
     p = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
     p_norm = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
 
-    palette = Plotter.ColorPalette()
-
     hists = collectHistograms(file_specs, hist_patterns_and_excludes)
+
+    # palette.resetColor()
 
     # prepare the histograms
     for f,f_descr in file_specs:
@@ -89,15 +92,21 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
                 canvas = Plotter.Canvas(logy=is_logy, lumi=lumi_str)
                 palette.resetColor()
 
+                cnt_file = 0  # keep track of the order of processed files
                 for f in hists:
                     canvas.addMainPlot(plots[f]['plots'][key])
                     RT.addBinWidth(plots[f]['plots'][key])
                     plots[f]['plots'][key].SetLineColor(palette.getNextColor())
+                    plots[f]['plots'][key].SetLineStyle(linestyles[cnt_file])
+                    if markerstyles[cnt_file] is not None:
+                        plots[f]['plots'][key].SetMarkerStyle(markerstyles[cnt_file])
+
+                    cnt_file += 1
 
                 if legName != '':
                     canvas.makeLegend(lWidth=.3, pos='tr', fontscale=.77)
                     canvas.legend.resizeHeight()
-                    canvas.legend.moveLegend(X=-.34, Y=-.2)
+                    canvas.legend.moveLegend(X=-.3, Y=-.2)
 
                 pave_triggerinfo = R.TPaveText(.28, .75, .9, .9, 'NDCNB')
                 pave_triggerinfo.SetTextAlign(13)
@@ -133,6 +142,18 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
                 if 'pTresVAR' in key:
                     canvas.firstPlot.GetXaxis().SetRangeUser(-1., 5.)
 
+                if 'L1pTresVAR' in key and 'norm' in suffix:
+                    if is_logy:
+                        canvas.firstPlot.GetYaxis().SetRangeUser(1e-3, .35)
+                    else:
+                        canvas.firstPlot.GetYaxis().SetRangeUser(0., .35)
+
+                if 'L2pTresVAR' in key and 'norm' in suffix:
+                    if is_logy:
+                        canvas.firstPlot.GetYaxis().SetRangeUser(1e-3, .35)
+                    else:
+                        canvas.firstPlot.GetYaxis().SetRangeUser(0., .35)
+
                 fname = 'pdfs/reconstruction-comparisons/{}{}{}'.format(key,
                         '_logy' if is_logy else '',
                         suffix)
@@ -158,9 +179,9 @@ def makeTurnOnComparisonPlots():
     # d0intervals += [(i,i+10.0) for i in np.arange(20., 100., 10.0)]
     d0intervals += ([(0,10),(10,50),(50,100),(100,150),(150,250),(250,350),(250,1000)])
 
-    palette = Plotter.ColorPalette()
-
     hists = collectHistograms(file_specs, turnOn_patterns_and_excludes)
+
+    # palette.resetColor()
 
     # prepare the histograms
     for f,f_descr in file_specs:
@@ -235,6 +256,7 @@ def makeTurnOnComparisonPlots():
         for key in hnum[file_specs[0][0]]:
             canvas = Plotter.Canvas(lumi=lumi_str)
 
+            cnt_file = 0  # keep track of the order of processed files
             for f,f_descr in file_specs:
                 try:
                     hden[f] = hden[f][hden[f].keys()[0]]
@@ -248,6 +270,11 @@ def makeTurnOnComparisonPlots():
 
                 canvas.addMainPlot(p[f][key])
                 p[f][key].setColor(palette.getNextColor())
+                # p[f][key].SetLineStyle(linestyles[cnt_file])
+                if markerstyles[cnt_file] is not None:
+                    p[f][key].SetMarkerStyle(markerstyles[cnt_file])
+
+                cnt_file += 1
 
             canvas.makeLegend(pos='br', fontscale=0.77)
             canvas.legend.moveLegend(X=-.45, Y=.13)
@@ -369,73 +396,6 @@ def collectHistograms(file_specs, hist_patterns_and_excludes):
         print('[WARNING] Consistency checks failed')
 
     return h
-
-
-def interpolateX(x0,y0,x1,y1,y):
-    # Linearly interpolate between (x0,y0) and (x1,y1), return the x value for y
-    return (x1-x0)*(y-y0)/(y1-y0)+x0
-
-
-def findFitRange(h, percentage=0.3):
-    nbins_to_check = 1
-    peakval = h.GetMaximum()
-    peakbin = h.GetMaximumBin()
-
-    threshold = percentage * peakval
-
-    # find the lower limit
-    for b in range(1, peakbin+1):
-        if h.GetBinContent(b) > threshold:
-            # check following bins to make sure this is not a
-            # statistical fluctuation
-            is_fluctuation = False
-            for bb in range(b+1, b+nbins_to_check):
-                if h.GetBinContent(bb) < h.GetBinContent(b):
-                    is_fluctuation = True
-
-            if not is_fluctuation:
-                if b > 1:
-                    range_min = interpolateX(
-                            h.GetXaxis().GetBinCenter(b-1),
-                            h.GetBinContent(b-1),
-                            h.GetXaxis().GetBinCenter(b),
-                            h.GetBinContent(b),
-                            threshold)
-                else:
-                    range_min = h.GetXaxis().GetBinLowEdge(b)
-
-                break
-
-    else:
-        range_min = h.GetXaxis().GetBinLowEdge(1)
-
-    # find the upper limit
-    for b in range(peakbin+1, h.GetNbinsX()+1):
-        if h.GetBinContent(b) < threshold:
-            # check following bins to make sure this is not a
-            # statistical fluctuation
-            is_fluctuation = False
-            for bb in range(b+1, b+nbins_to_check):
-                if h.GetBinContent(bb) > h.GetBinContent(b):
-                    is_fluctuation = True
-
-            if not is_fluctuation:
-                if b < h.GetNbinsX()+1:
-                    range_max = interpolateX(
-                            h.GetXaxis().GetBinCenter(b-1),
-                            h.GetBinContent(b-1),
-                            h.GetXaxis().GetBinCenter(b),
-                            h.GetBinContent(b),
-                            threshold)
-                else:
-                    range_max = h.GetXaxis().GetBinLowEdge(b+1)
-
-                break
-
-    else:
-        range_max = h.GetXaxis().GetBinLowEdge(h.GetNbinsX())
-
-    return range_min, range_max
 
 
 def getHistNames(hists, dataset, *args, **kwargs):
