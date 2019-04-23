@@ -67,7 +67,7 @@ MATCHING_THRESHOLD_HLT = 0.2
 PTTHRESHOLDS = [23., 25., 28.]  
 
 # additional L1 pT cuts applied consecutively to the sets of turn-on curves
-L1THRESHOLDS = (0.0, 5.0, 12.0, 15.0)
+L1THRESHOLDS = (0.0, 4.0, 5.0, 7.0, 11.0, 12.0, 15.0)
 
 # different dimuon populations, defined by their alpha(mu,mu) values
 # define tuples of (min,max,name), corresponding to min<alpha<max and the name
@@ -92,6 +92,7 @@ D0INTERVALS = [(None,None)]
 # 10-cm steps for the entire d0 range
 # D0INTERVALS += ([(i,i+10.) for i in np.arange(0., 500., 10.)])
 # custom d0 bins
+D0INTERVALS += ([(0,5),(5,10),(10,15),(15,20),(20,25),(25,30)])
 D0INTERVALS += ([(0,10),(10,50),(0,50),(50,100),(100,150),(150,250),(250,350),(250,1000),(350,1000)])
 
 # make sure that all of the values are actually floats
@@ -179,6 +180,8 @@ def declareHistograms(self, PARAMS=None):
             self.HistInit('lowerLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for lower leg muon;Yield', 2, 0, 2)
             self.HistInit('upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for upper leg muon;Yield', 2, 0, 2)
             self.HistInit('lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str, ';HLT matches for both lower and upper leg muons;Yield', 2, 0, 2)
+            self.HistInit('DSAmuonMultiplicity_noSelections'+d0intervals_str+alpha_categories_str, ';DSA muon multiplicity; Yield', 29, 1, 30)
+            self.HistInit('DSAmuonMultiplicity'+d0intervals_str+alpha_categories_str, ';DSA muon multiplicity; Yield', 29, 1, 30)
             self.HistInit('dimuonMultiplicity'+d0intervals_str+alpha_categories_str, ';dim. multiplicity;Yield', 10, 0, 10)
 
             for MUONTYPE in ('DSA',):
@@ -295,6 +298,9 @@ def analyze(self, E, PARAMS=None):
 
         for alpha_min,alpha_max,alpha_category_name in ALPHA_CATEGORIES:
             alpha_categories_str = alpha_category_name
+
+            # count DSA muons before any selections
+            self.HISTS['DSAmuonMultiplicity_noSelections'+d0intervals_str+alpha_categories_str].Fill(len(DSAmuons))
 
             # count events without any selections
             self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(0)
@@ -450,6 +456,7 @@ def analyze(self, E, PARAMS=None):
                     self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(10)
 
                 buffer_selected_muonpairs = []  # stores next subset of muon pairs
+                buffer_HLTmatches_selected_muonpairs = []  # stores corresponding HLT matches
 
                 for m1,m2 in selected_muonpairs:
                     # count all muon pairs selected so far
@@ -488,29 +495,36 @@ def analyze(self, E, PARAMS=None):
 
                     # if muon pair passed all the selections, store it for later
                     buffer_selected_muonpairs.append((m1,m2))
+                    if DO_REQUIRE_BOTH_LEGS_MATCHED:
+                        buffer_HLTmatches_selected_muonpairs.append((
+                            muonMatches_m1[0]['muon'],
+                            muonMatches_m2[0]['muon']))
 
                 selected_muonpairs = buffer_selected_muonpairs
-
+                HLTmatches_selected_muonpairs = buffer_HLTmatches_selected_muonpairs
 
                 for HLTmuon in HLTmuons:
                     nL1Tmuons = len([m for m in L1Tmuons if m.idx == HLTmuon.idx])
                     self.HISTS['L1TObjectsPerHLTObject'+d0intervals_str+alpha_categories_str].Fill(nL1Tmuons)
 
                 dimuon_multiplicity = 0
+                selected_muons = []
 
+                cnt_pos_muonpairs = -1
                 for m1,m2 in selected_muonpairs:
+                    cnt_pos_muonpairs += 1
                     # count all muon pairs selected so far
                     self.HISTS['cutFlow'+d0intervals_str+alpha_categories_str].Fill(14)
 
                     # apply pT cuts on L1 muons pairs ("L1 seed emulation")
                     if DO_REQUIRE_BOTH_LEGS_MATCHED:
-                        m1_passes_first_cut = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m1.idx])
-                        m1_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m1.idx])
-                        m2_passes_first_cut = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == m2.idx])
-                        m2_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == m2.idx])
+                        m1_passes_first_cut  = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == HLTmatches_selected_muonpairs[cnt_pos_muonpairs][0].idx])
+                        m1_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == HLTmatches_selected_muonpairs[cnt_pos_muonpairs][0].idx])
+                        m2_passes_first_cut  = any([mu.pt >= L1_pairthresholds[0] for mu in L1Tmuons if mu.idx == HLTmatches_selected_muonpairs[cnt_pos_muonpairs][1].idx])
+                        m2_passes_second_cut = any([mu.pt >= L1_pairthresholds[1] for mu in L1Tmuons if mu.idx == HLTmatches_selected_muonpairs[cnt_pos_muonpairs][1].idx])
 
-                        if not ((m1_passes_first_cut and m2_passes_second_cut) or \
-                                (m1_passes_second_cut and m2_passes_first_cut)):
+                        if not (m1_passes_first_cut and m2_passes_second_cut) \
+                                and not (m1_passes_second_cut and m2_passes_first_cut):
                             continue
                         else:
                             # count all muon pars that pass the L1 trigger cuts
@@ -589,6 +603,11 @@ def analyze(self, E, PARAMS=None):
                     if is_dimuon:
                         dimuon_multiplicity += 1
 
+                    # collect all selected muons in order to calculate the
+                    # multiplicity of selected reco muons
+                    if m1 not in selected_muons: selected_muons.append(m1)
+                    if m2 not in selected_muons: selected_muons.append(m2)
+
                     # # print event info for edmPickEvents.py
                     # print('{}:{}:{}'.format(event.run, event.lumi, event.event))
 
@@ -648,8 +667,10 @@ def analyze(self, E, PARAMS=None):
 
                     # fill turn-on histograms and resolution plots
                     if DO_CREATE_TURNON_HISTS:
-                        lowerHSmuon = m1 if hemisphere(m1) == 'lower' else m2
-                        upperHSmuon = m1 if hemisphere(m1) == 'upper' else m2
+                        reference_leg = ARGS.REFLEG
+                        other_leg = 'upper' if reference_leg == 'lower' else 'lower'
+                        lowerHSmuon = m1 if hemisphere(m1) == reference_leg else m2
+                        upperHSmuon = m1 if hemisphere(m1) == other_leg else m2
 
                         # match lower-HS muon
                         muonMatches = matchedMuons(lowerHSmuon, HLTmuons, threshold=MATCHING_THRESHOLD_HLT)
@@ -718,6 +739,8 @@ def analyze(self, E, PARAMS=None):
                             self.HISTS['lowerLegMu_HLTmatches_upperLegMu_HLTmatches'+d0intervals_str+alpha_categories_str].Fill(0)
 
                 self.HISTS['dimuonMultiplicity'+d0intervals_str+alpha_categories_str].Fill(dimuon_multiplicity)
+                if len(selected_muons) > 0:
+                    self.HISTS['DSAmuonMultiplicity'+d0intervals_str+alpha_categories_str].Fill(len(selected_muons))
 
 
 def hemisphere(muon):
@@ -779,16 +802,27 @@ def parse_filename(path='roots/', prefix='', suffix='', fext='.root'):
 if __name__ == '__main__':
 
     Analyzer.PARSER.add_argument('--HLTfilter',
+            help='Specify the name (or a substring) of the HLT path to filter by',
             dest='HLTFILTER',
             type=str,
             default=None)
     Analyzer.PARSER.add_argument('--output-prefix',
+            help='Define an optional prefix for all output files',
             dest='OUTPUTPREFIX',
             type=str,
             default=None)
+    Analyzer.PARSER.add_argument('--reference-leg',
+            help='Define which muon leg to use as reference leg (default: \'lower\')',
+            dest='REFLEG',
+            type=str,
+            default='lower')
 
     ARGS = Analyzer.PARSER.parse_args()
     Analyzer.setSample(ARGS)
+
+    if ARGS.REFLEG not in ('lower','upper'):
+        raise Exception('Invalid value of reference-leg (allowed: '
+                '\'lower\', \'upper\'')
 
     for METHOD in ('declareHistograms', 'analyze'):
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
