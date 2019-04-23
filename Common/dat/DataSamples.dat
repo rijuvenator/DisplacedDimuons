@@ -42,6 +42,14 @@ NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path
 /NoBPTX/escalant-NoBPTX_Run2016D_reAOD-HLT-debug_v1-5852ce0d07b69793a51d1eaac1d88d04/USER
 /NoBPTX/stempl-PATFilter_NoBPTXRun2016D-07Aug17_reAOD-HLT_Mar2019-v1-e09087fc04dadc2f0906fe882d07396e/USER
 -
+CosmicsRun2016D_reAOD-HLT
+/Cosmics/escalant-Cosmics_Run2016D-v2_reAOD-HLT-March2019-v1-5852ce0d07b69793a51d1eaac1d88d04/USER
+/Cosmics/stempl-PATFilter_CosmicsRun2016D_reAOD-HLT_Apr2019-v2-e09087fc04dadc2f0906fe882d07396e/USER
+-
+CosmicsRun2016E_reAOD-HLT
+/Cosmics/escalant-Cosmics_Run2016E-v2_reAOD-HLT-March2019-v1-5852ce0d07b69793a51d1eaac1d88d04/USER
+/Cosmics/stempl-PATFilter_CosmicsRun2016E_reAOD-HLT_Apr2019-v2-e09087fc04dadc2f0906fe882d07396e/USER
+-
 CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed
 /Cosmics/escalant-Cosmics_Run2016D-v2_reAOD-HLT-March2019-v1-5852ce0d07b69793a51d1eaac1d88d04/USER
 /Cosmics/stempl-PATFilter_CosmicsRun2016D_reAOD-HLT_Apr2019-v2-e09087fc04dadc2f0906fe882d07396e/USER
