@@ -17,51 +17,40 @@ hist_patterns_and_excludes = (
         ('L2pTresVAR', ['_0p0alpha','_0p3alpha','_2p8alpha']),
 )
 
-# define a custom color palette for all plots
-palette = Plotter.ColorPalette([R.kBlue, R.kBlue, R.kRed, R.kRed, R.kGreen+1, R.kGreen+1])
-
-# define the histogram line styles (in the same order as the colors in the palette)
-linestyles = [1,2,1,2,1,2]
-
-# define the histogram marker style (in the same order as the colors in the palette) (None <-> default)
-markerstyles = [None, 24, None, 24, None, 24]
-
-# specify file names, description
+# specify (color, linestyle, markerstyle), file names, description
 file_specs = (
-    # compare JSONS (for lower legs)
+    # compare GMT modes / JSONs (for lower legs)
+    # ((R.kBlue, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base GMT mode (cosmic seed, lower leg)'),
+    # ((R.kBlue, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly GMT mode (cosmic seed, lower leg)'),
+    # ((R.kRed, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base GMT mode (pp seed, lower leg)'),
+    # ((R.kRed, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly GMT mode (pp seed, lower leg)'),
 
-    ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base JSON (cosmic seed, lower leg)'),
-    ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly JSON (cosmic seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base JSON (pp seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_L1EmulatorBug_fewerL1thresholds/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly JSON (pp seed, lower leg)'),
-
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base JSON (cosmic seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly JSON (cosmic seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base JSON (pp seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly JSON (pp seed, lower leg)'),
+    # compare GMT modes / JSONs (for lower legs)
+    # ((R.kBlue, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'base GMT mode (cosmic seed, lower leg)'),
+    # ((R.kBlue, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed_lowerLeg.root', 'bottomOnly GMT mode (cosmic seed, lower leg)'),
+    # ((R.kRed, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'base GMT mode (pp seed, lower leg)'),
+    # ((R.kRed, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed_lowerLeg.root', 'bottomOnly GMT mode (pp seed, lower leg)'),
     #
-    # # compare legs (for base JSONs)
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'lower leg (cosmic seed, base JSON)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-CosmicSeed_upperLeg.root', 'upper leg (cosmic seed, base JSON)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'lower leg (pp seed, base JSON)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/hadded_Cosmics2016/Cosmics2016_UGMT-base_HLT-ppSeed_upperLeg.root', 'upper leg (pp seed, base JSON)'),
+    # # compare legs (for base GMT modes)
+    ((R.kBlue, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'lower leg (cosmic seed, base GMT mode)'),
+    ((R.kBlue, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-CosmicSeed_upperLeg.root', 'upper leg (cosmic seed, base GMT mode)'),
+    ((R.kRed, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-ppSeed_lowerLeg.root', 'lower leg (pp seed, base GMT mode)'),
+    ((R.kRed, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_reHLT_fixedL1EmulatorBug/Cosmics2016_UGMT-base_HLT-ppSeed_upperLeg.root', 'upper leg (pp seed, base GMT mode)'),
     #
     # # validate re-HLT
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'Cosmics re-HLT samples (cosmic seed, lower leg)'),
-    # ('/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/NoBPTX2016_HLT-CosmicSeed_lowerLeg.root', 'NoBPTX samples (cosmic seed, lower leg)'),
+    # ((R.kBlue, 1, None), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/Cosmics2016_UGMT-base_HLT-CosmicSeed_lowerLeg.root', 'Cosmics re-HLT samples (cosmic seed, lower leg)'),
+    # ((R.kBlue, 2, 24), '/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/hadded_Cosmics2016_L1emulatorFixed_JSONsubset-for-NoBPTX-comparison/NoBPTX2016_HLT-CosmicSeed_lowerLeg.root', 'NoBPTX samples (cosmic seed, lower leg)'),
 )
 
 
 def makeSimpleComparisonPlots(hist_patterns_and_excludes):
-    p = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
-    p_norm = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
+    p = {f: {'appearance': app, 'descr': d, 'plots': {}} for app,f,d in file_specs}
+    p_norm = {f: {'appearance': app, 'descr': d, 'plots': {}} for app,f,d in file_specs}
 
     hists = collectHistograms(file_specs, hist_patterns_and_excludes)
 
-    # palette.resetColor()
-
     # prepare the histograms
-    for f,f_descr in file_specs:
+    for appearance,f,f_descr in file_specs:
         for key in hists[f]['hists']:
             RT.addFlows(hists[f]['hists'][key])
             
@@ -87,21 +76,19 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
                     legName+' (normalized)', 'l', 'hist')
 
     for plots,suffix in ((p, ''), (p_norm, '_norm')):
-        for key in hists[hists.keys()[0]]['hists']:
-            for is_logy in (True, False):
+        for is_logy in (True, False):
+            for key in hists[hists.keys()[0]]['hists']:
                 canvas = Plotter.Canvas(logy=is_logy, lumi=lumi_str)
-                palette.resetColor()
 
-                cnt_file = 0  # keep track of the order of processed files
+                cnt_file = -1  # keeps track of the order of processed files
                 for f in hists:
+                    cnt_file += 1
                     canvas.addMainPlot(plots[f]['plots'][key])
                     RT.addBinWidth(plots[f]['plots'][key])
-                    plots[f]['plots'][key].SetLineColor(palette.getNextColor())
-                    plots[f]['plots'][key].SetLineStyle(linestyles[cnt_file])
-                    if markerstyles[cnt_file] is not None:
-                        plots[f]['plots'][key].SetMarkerStyle(markerstyles[cnt_file])
-
-                    cnt_file += 1
+                    plots[f]['plots'][key].SetLineColor(plots[f]['appearance'][0])
+                    plots[f]['plots'][key].SetLineStyle(plots[f]['appearance'][1])
+                    if plots[f]['appearance'][2] is not None:
+                        plots[f]['plots'][key].SetMarkerStyle(plots[f]['appearance'][2])
 
                 if legName != '':
                     canvas.makeLegend(lWidth=.3, pos='tr', fontscale=.77)
@@ -181,29 +168,27 @@ def makeTurnOnComparisonPlots():
 
     hists = collectHistograms(file_specs, turnOn_patterns_and_excludes)
 
-    # palette.resetColor()
-
     # prepare the histograms
-    for f,f_descr in file_specs:
+    for app,f,f_descr in file_specs:
         for key in hists[f]['hists']:
             RT.addFlows(hists[f]['hists'][key])
             
             if hists[f]['hists'][key].GetNbinsX() >= 1000:
-                hists[f]['hists'][key].Rebin(15)
+                hists[f]['hists'][key].Rebin(5)
             elif hists[f]['hists'][key].GetNbinsX() >= 100:
-                hists[f]['hists'][key].Rebin(10)
+                hists[f]['hists'][key].Rebin(5)
             else:
                 pass
 
             legName = f_descr
 
     for d0min,d0max in d0intervals:
-        hden = {f: {} for f,__ in file_specs}
-        hnum = {f: {} for f,__ in file_specs}
-        p = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
-        g = {f: {'descr': d, 'plots': {}} for f,d in file_specs}
+        hden = {f: {} for __,f,__ in file_specs}
+        hnum = {f: {} for __,f,__ in file_specs}
+        p = {f: {'appearance': app, 'descr': d, 'plots': {}} for app,f,d in file_specs}
+        g = {f: {'appearance': app, 'descr': d, 'plots': {}} for app,f,d in file_specs}
 
-        for f,f_descr in file_specs:
+        for app,f,f_descr in file_specs:
             if d0min is None or d0max is None:
                 hnums = [h for h in hists[f]['hists'] if \
                         turnOn_patterns_and_excludes[0][0]+'Num' in h and \
@@ -253,11 +238,11 @@ def makeTurnOnComparisonPlots():
 
         # works only if consistency checks of the collectHistograms() function
         # pass (i.e., if all files have the same histogram content)
-        for key in hnum[file_specs[0][0]]:
+        for key in hnum[file_specs[0][1]]:
             canvas = Plotter.Canvas(lumi=lumi_str)
 
             cnt_file = 0  # keep track of the order of processed files
-            for f,f_descr in file_specs:
+            for app,f,f_descr in file_specs:
                 try:
                     hden[f] = hden[f][hden[f].keys()[0]]
                 except:
@@ -269,10 +254,9 @@ def makeTurnOnComparisonPlots():
                 p[f][key] = Plotter.Plot(g[f][key], f_descr, 'elp', 'pe')
 
                 canvas.addMainPlot(p[f][key])
-                p[f][key].setColor(palette.getNextColor())
-                # p[f][key].SetLineStyle(linestyles[cnt_file])
-                if markerstyles[cnt_file] is not None:
-                    p[f][key].SetMarkerStyle(markerstyles[cnt_file])
+                p[f][key].setColor(app[0])
+                if app[2] is not None:
+                    p[f][key].SetMarkerStyle(app[2])
 
                 cnt_file += 1
 
@@ -341,21 +325,19 @@ def makeTurnOnComparisonPlots():
             canvas.save(fname, extList=['.pdf','.root'])
             canvas.deleteCanvas()
 
-            palette.resetColor()
-
     del hists
 
 
 def collectHistograms(file_specs, hist_patterns_and_excludes):
 
     # structure for storing the histograms
-    h = {f: {'descr': d, 'hists': {}} for f,d in file_specs}
+    h = {f: {'appearance': app, 'descr': d, 'hists': {}} for app,f,d in file_specs}
 
     # lists of keys for each file (for consistency checks)
-    lists_of_keys = {f: [] for f,__ in file_specs}
+    lists_of_keys = {f: [] for __,f,__ in file_specs}
 
     cnt = 1
-    for f,__ in file_specs:
+    for __,f,__ in file_specs:
         print('[{}/{}] Reading file {}...'.format(cnt, len(file_specs), f))
         cnt += 1
 

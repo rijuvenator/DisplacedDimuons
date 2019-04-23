@@ -663,7 +663,8 @@ class Canvas(R.TCanvas):
 # integers in the case of ROOT).
 # colorState: position of the color to start with (defaults to the beginning of
 # the color palette list, i.e., zero)
-# getColor(): returns the current color state
+# getColor(): returns the color of the current color state
+# getColorState(): returns the current color state (integer for color position)
 # getNextColor(): returns the current color state and sets the color state to
 # the next color in the palette (modulo the total number of colors)
 # resetColor(): reverts the color state to a given color in the palette
@@ -684,14 +685,24 @@ class ColorPalette:
             self.palette = self.__palettes['defaultPalette']
 
     def getColor(self):
+        return self.palette[self.colorState]
+
+    def getColorState(self):
         return self.colorState
+
+    def advanceColorState(self, amount=1):
+        if self.colorState < len(self.palette)-amount:
+            self.colorState += amount
+        else:
+            self.colorState = 0
 
     def getNextColor(self):
         color = self.palette[self.colorState]
-        if self.colorState < len(self.palette)-1:
-            self.colorState += 1
-        else:
-            self.colorState = 0
+        self.advanceColorState()
+        # if self.colorState < len(self.palette)-1:
+        #     self.colorState += 1
+        # else:
+        #     self.colorState = 0
         return color
 
     def resetColor(self, colorState=0):
