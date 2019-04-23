@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **14 December 2018**
+Last updated: **23 April 2019**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -172,6 +172,8 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * Signal **2** (`2Mu2J`)
   * **B**ackground, or
   * **D**ata.
+
+`--use-proxy`, when used in combination with `--condor`, passes the GRID certificate to the CONDOR workers so that they can access certain data samples (the proxy is _not_ copied per default)
 
 For example, at the moment, `signalRecoEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 

@@ -36,39 +36,51 @@ DataSampleList = (
     ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
 
+# NoBPTX data: 30 jobs in total
 DataSampleList_NoBPTX = (
     ('NoBPTXRun2016D-07Aug17', (16, 50000)),
     ('NoBPTXRun2016E-07Aug17', (14, 50000)),
 )
 
+# NoBPTX data (re-HLT; cosmic seed): 15 jobs in total
+DataSampleList_NoBPTX_reHLT_CosmicSeed = (
+    ('NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path', (15, 50000)), # 742904 events
+)
+
+# NoBPTX data (re-HLT; pp seed): 8 jobs in total
+DataSampleList_NoBPTX_reHLT_ppSeed = (
+    ('NoBPTXRun2016D-07Aug17_reAOD-HLT_pp-seeded-path', (8, 50000)), # 370759 events
+)
+
+# Cosmcis data: 591 jobs in total
 DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (35, 50000)), # 1714889 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (35, 50000)), # 1733944 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (52, 50000)), # 2591141 events
 )
 
 DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (27, 50000)), # 1308037 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (27, 50000)), # 1322612 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (34, 50000)), # 1676444 events
 )
 
 DataSampleList_Cosmics_UGMT_base_CosmicSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_CosmicSeed', (35, 50000)), # 1714889 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_CosmicSeed', (52, 50000)), # 2591141 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_CosmicSeed', (35, 50000)), # 1733944 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_CosmicSeed', (16, 50000)), # 778138 events
 )
 
 DataSampleList_Cosmics_UGMT_base_ppSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_ppSeed', (27, 50000)), # 1308037 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_ppSeed', (34, 50000)), # 1676444 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_ppSeed', (27, 50000)), # 1322612 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_ppSeed', (12, 50000)), # 595818 events
 )
 
 DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (35, 50000)), # 1714889 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (52, 50000)), # 2591141 events
+    # no selected LS in 2016D data
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (37, 50000)), # 1813003 events
 )
 
 DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_ppSeed', (27, 50000)), # 1308037 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_ppSeed', (34, 50000)), # 1676444 events
+    # no selected LS in 2016D data
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_ppSeed', (22, 50000)), # 1080626 events
 )
 
 # specific scripts that should ignore the splitting parameter
@@ -87,18 +99,19 @@ HOME         = os.environ['HOME']
 
 # parse arguments -- this configures which samples to process, which analyzer to run, and which batch system to use
 parser = argparse.ArgumentParser()
-parser.add_argument('SCRIPT'   ,                                         help='which script to run'                                            )
-parser.add_argument('--local'  , dest='LOCAL'  , action='store_true'   , help='whether to run locally'                                         )
-parser.add_argument('--condor' , dest='CONDOR' , action='store_true'   , help='whether to run on condor'                                       )
-parser.add_argument('--lxbatch', dest='LXBATCH', action='store_true'   , help='whether to run on LXBATCH (LSF) batch system'                   )
-parser.add_argument('--hephy'  , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system'                           )
-parser.add_argument('--one'    , dest='ONE'    , action='store_true'   , help='whether to just do one job (e.g. for testing batch)'            )
-parser.add_argument('--samples', dest='SAMPLES', default='S2BD'        , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
-parser.add_argument('--file'   , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
-parser.add_argument('--folder' , dest='FOLDER' , default=None          , help='which folder the script is located in'                          )
-parser.add_argument('--extra'  , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
-parser.add_argument('--flavour', dest='FLAVOUR', default='microcentury', help='which condor job flavour to use'                                )
-parser.add_argument('--queue'  , dest='QUEUE'  , default='1nh'         , help='which LSF job queue to use'                                     )
+parser.add_argument('SCRIPT'   ,                                           help='which script to run'                                            )
+parser.add_argument('--local'    , dest='LOCAL'  , action='store_true'   , help='whether to run locally'                                         )
+parser.add_argument('--condor'   , dest='CONDOR' , action='store_true'   , help='whether to run on condor'                                       )
+parser.add_argument('--lxbatch'  , dest='LXBATCH', action='store_true'   , help='whether to run on LXBATCH (LSF) batch system'                   )
+parser.add_argument('--hephy'    , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system'                           )
+parser.add_argument('--use-proxy', dest='PROXY'  , action='store_true'   , help='whether to ship the GRID certificate with the jobs'             )
+parser.add_argument('--one'      , dest='ONE'    , action='store_true'   , help='whether to just do one job (e.g. for testing batch)'            )
+parser.add_argument('--samples'  , dest='SAMPLES', default='S2BD'        , help='which samples to run: S(ignal), (Signal)2, B(ackground), D(ata)')
+parser.add_argument('--file'     , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
+parser.add_argument('--folder'   , dest='FOLDER' , default=None          , help='which folder the script is located in'                          )
+parser.add_argument('--extra'    , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
+parser.add_argument('--flavour'  , dest='FLAVOUR', default='microcentury', help='which condor job flavour to use'                                )
+parser.add_argument('--queue'    , dest='QUEUE'  , default='1nh'         , help='which LSF job queue to use'                                     )
 args = parser.parse_args()
 
 # get current directory automatically
@@ -167,9 +180,24 @@ if args.FILE == '':
                 NJOBS, NEVENTS = SPLITTING
                 for i in xrange(NJOBS):
                     ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-
-    if 'N' in args.SAMPLES:
+    if 'N_orig' in args.SAMPLES:
         for NAME, SPLITTING in DataSampleList_NoBPTX:
+            if SPLITTING is None:
+                ArgsList.append('--name {}'.format(NAME))
+            else:
+                NJOBS, NEVENTS = SPLITTING
+                for i in xrange(NJOBS):
+                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+    if 'N_rehlt_cosmicseed' in args.SAMPLES:
+        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLT_CosmicSeed:
+            if SPLITTING is None:
+                ArgsList.append('--name {}'.format(NAME))
+            else:
+                NJOBS, NEVENTS = SPLITTING
+                for i in xrange(NJOBS):
+                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
+    if 'N_rehlt_ppseed' in args.SAMPLES:
+        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLT_ppSeed:
             if SPLITTING is None:
                 ArgsList.append('--name {}'.format(NAME))
             else:
@@ -217,6 +245,8 @@ if args.ONE:
         ArgsList.extend(['--name HTo2XTo4Mu --signalpoint 125 20 13'])
     if 'B' in args.SAMPLES:
         ArgsList.extend(['--name WJets'])
+    if 'C' in args.SAMPLES:
+        ArgsList.extend(['--name C_base_ppseed'])
 
 # This is clunky, but I don't have a better way of doing it
 # if additional command-line parameters need to be passed to the analyzer script,
@@ -272,8 +302,7 @@ condorSubmitAdd = '''
 output                 = logs/run{runNum}/{logname}_{index}.out
 log                    = logs/run{runNum}/{logname}_{index}.log
 error                  = logs/run{runNum}/{logname}_{index}.err
-x509userproxy          = $ENV(X509_USER_PROXY)
-use_x509userproxy      = true
+{proxy_literal}
 arguments              = {ARGS}
 requirements           = (OpSysAndVer =?= "SLCern6")
 #image_size             = 28000
@@ -307,12 +336,14 @@ if MODE == 'LXBATCH':
 
 #### Run on HEPHY Batch ####
 elif MODE == 'HEPHY':
-    #if the certificate does not exist or is >6h old, create a new one in a a place accesible in AFS. .
-    if not os.path.isfile('{HOME}/private/.proxy'.format(**locals())) or \
-            int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
-                **locals()), shell=True)) > 6*3600:
-        print('GRID certificate not found or older than 6 hours. You will need a new one.')
-        bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
+    if args.PROXY:
+        #if the certificate does not exist or is >6h old, create a new one in a place accesible in AFS
+        if not os.path.isfile('{HOME}/private/.proxy'.format(**locals())) or \
+                int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {HOME}/private/.proxy))'.format(
+                    **locals()), shell=True)) > 6*3600:
+            print('GRID certificate not found or older than 6 hours. You will need a new one.')
+            bash.call('voms-proxy-init --voms cms --valid 168:00 -out {HOME}/private/.proxy'.format(**locals()), shell=True) 
+
     for index, ARGS in enumerate(ArgsList):
         scriptName = 'submit_{index}.sh'                         .format(**locals())
         open(scriptName, 'w').write(submitHephyScript            .format(**locals()))
@@ -321,18 +352,22 @@ elif MODE == 'HEPHY':
 
 #### Run on CONDOR ####
 elif MODE == 'CONDOR':
-    # prepare the grid certificate
-    proxy = '{HOME}/private/.proxy'.format(**locals())
-    print('proxy path: {}'.format(proxy))
-    if not os.path.isfile(proxy) or \
-            int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {}))'.format(
-                proxy), shell=True)) > 6*3600:
-        print('GRID certificate not found or older than 6 hours. You will need a new one.')
-        bash.call('voms-proxy-init --voms cms --valid 168:00 -out {}'.format(proxy), shell=True)
-    
-    # export the environment variable related to the certificate
-    os.environ['X509_USER_PROXY'] = proxy
-    print os.environ['X509_USER_PROXY']
+    if args.PROXY:
+        # prepare the grid certificate
+        proxy = '{HOME}/private/.proxy'.format(**locals())
+        if not os.path.isfile(proxy) or \
+                int(bash.check_output('echo $(expr $(date +%s) - $(date +%s -r {}))'.format(
+                    proxy), shell=True)) > 6*3600:
+            print('GRID certificate not found or older than 6 hours. You will need a new one.')
+            bash.call('voms-proxy-init --voms cms --valid 168:00 -out {}'.format(proxy), shell=True)
+        
+        # export the environment variable related to the certificate
+        os.environ['X509_USER_PROXY'] = proxy
+
+        PROXY_LITERAL = 'x509userproxy = $ENV(X509_USER_PROXY)\nuse_x509userproxy = true'
+
+    else:
+        PROXY_LITERAL = ''
 
     # make the logs directory if it doesn't exist
     bash.call('mkdir -p logs', shell=True)
@@ -351,11 +386,12 @@ elif MODE == 'CONDOR':
     submitName = 'condorSubmit'
     for index, ARGS in enumerate(ArgsList):
         condorSubmit += condorSubmitAdd.format(
-            runNum  = runNum,
-            logname = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
-            index   = index,
-            ARGS    = SCRIPT + ' ' + ARGS,
-            flavour = FLAVOUR,
+            runNum        = runNum,
+            logname       = SCRIPT.replace('.py', '') if SCRIPT != '' else 'dummy',
+            index         = index,
+            ARGS          = SCRIPT + ' ' + ARGS,
+            flavour       = FLAVOUR,
+            proxy_literal = PROXY_LITERAL,
         )
 
     open(submitName, 'w').write(condorSubmit)
