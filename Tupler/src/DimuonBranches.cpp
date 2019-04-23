@@ -171,13 +171,15 @@ void DimuonBranches::FillDimuon(int i, int j,
   // DSA muons.
   if (i >= 1000) {
     //checkHitPattern.print(tk1);
-    hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), true);
+    //hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), true);
+    hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), false);
     cand1_hitsInFrontOfVert = hitPattern.hitsInFrontOfVert;
     cand1_missHitsAfterVert = hitPattern.missHitsAfterVert;
   }
   if (j >= 1000) {
     //checkHitPattern.print(tk2);
-    hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), true);
+    //hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), true);
+    hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), false);
     cand2_hitsInFrontOfVert = hitPattern.hitsInFrontOfVert;
     cand2_missHitsAfterVert = hitPattern.missHitsAfterVert;
   }

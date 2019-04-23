@@ -38,6 +38,8 @@ class PATMuonBranches : public BranchCollection
   std::vector<int  > patmu_charge          ;
   std::vector<float> patmu_chi2            ;
   std::vector<int>   patmu_ndof            ;
+  std::vector<float> patmu_globchi2        ;
+  std::vector<int>   patmu_globndof        ;
 
   std::vector<float> patmu_x               ;
   std::vector<float> patmu_y               ;
@@ -103,6 +105,8 @@ class PATMuonBranches : public BranchCollection
     Declare("patmu_charge"          , patmu_charge          );
     Declare("patmu_chi2"            , patmu_chi2            );
     Declare("patmu_ndof"            , patmu_ndof            );
+    Declare("patmu_globchi2"        , patmu_globchi2        );
+    Declare("patmu_globndof"        , patmu_globndof        );
 
     Declare("patmu_x"               , patmu_x               );
     Declare("patmu_y"               , patmu_y               );
@@ -168,7 +172,8 @@ class PATMuonBranches : public BranchCollection
     patmu_charge          .clear();
     patmu_chi2            .clear();
     patmu_ndof            .clear();
-
+    patmu_globchi2        .clear();
+    patmu_globndof        .clear();
 
     patmu_x               .clear();
     patmu_y               .clear();
