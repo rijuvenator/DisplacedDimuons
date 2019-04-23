@@ -33,9 +33,11 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     bool isMedium = isMediumMuon(mu);
 
     const reco::Track* tk = mu.tunePMuonBestTrack().get();
+    //const reco::Track* tk = mu.combinedMuon().get();
+    //const reco::Track* tk = mu.innerTrack().get();
     if (!tk) {
       std::cout << "+++ PATMuonBranches::Fill warning: tuneP track for muon # "
-        << idx << " is not found +++" << std::endl;
+        << idx++ << " is not found +++" << std::endl;
       continue;
     }
 
@@ -52,6 +54,14 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
       muon_cand.n_CSCHits     = tk_glb->hitPattern().numberOfValidMuonCSCHits();
       muon_cand.n_DTStations  = tk_glb->hitPattern().dtStationsWithValidHits() ;
       muon_cand.n_CSCStations = tk_glb->hitPattern().cscStationsWithValidHits();
+    }
+
+    // chi2 of the global-muon track
+    int   globndof = -999;
+    float globchi2 = -999.;
+    if (isGlobal) {
+      globchi2 = mu.globalTrack()->chi2();
+      globndof = mu.globalTrack()->ndof();
     }
 
     // Detector-based isolation variables.
@@ -78,12 +88,15 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
         << "; PF? "          << (isPF         ? "yes" : "no")
         << "; medium? "      << (isMedium     ? "yes" : "no")
         << "; high purity? " << (isHighPurity ? "yes" : "no")
-        << std::endl;
+	<< "; tuneP track type: " << mu.tunePMuonBestTrackType() << std::endl;
       std::cout << " " << muon_cand;
-      std::cout << "  N(matched muon stations) = " << n_MatchedStations
-        << " track iso = " << mu.trackIso()
-        << " ecal iso = "  << mu.ecalIso()
-        << " hcal iso = "  << mu.hcalIso() << std::endl;
+      std::cout << "  N(matched muon stations) = " << n_MatchedStations;
+      if (isGlobal)
+	std::cout << "  global chi2/ndof = " << globchi2 << "/" << globndof
+		  << " = " << globchi2/globndof;
+      std::cout<< " track iso = " << mu.trackIso()
+	       << " ecal iso = "  << mu.ecalIso()
+	       << " hcal iso = "  << mu.hcalIso() << std::endl;
     }
 
     // Fill the Tree
@@ -119,6 +132,8 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
     patmu_trackIso        .push_back(trackIso);
     patmu_ecalIso         .push_back(ecalIso);
     patmu_hcalIso         .push_back(hcalIso);
+    patmu_globchi2        .push_back(globchi2);
+    patmu_globndof        .push_back(globndof);
     patmu_hpur            .push_back(isHighPurity);
 
     patmu_d0_pv       .push_back(fabs(muon_cand.d0_pv      ));

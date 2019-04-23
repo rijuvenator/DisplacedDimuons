@@ -133,6 +133,8 @@ struct DisplacedMuon
 	   << " pt = "  << pt << " +/- " << rhs.ptError << " p = " << p
 	   << " eta = " << rhs.eta << " phi = " << rhs.phi
 	   << " chi2/ndof = " << rhs.chi2 << "/" << rhs.ndof << std::endl;
+    output << "  (px; py; pz) at the reference point: (" << rhs.px
+	   << ";" << rhs.py        << ";" << rhs.pz     << ")" << std::endl;
     output << "  (x; y; z) of the reference point: (" << rhs.x
 	   << ";" << rhs.y         << ";" << rhs.z      << ")" << std::endl;
     output << "  (x; y; z) of the innermost hit:   (" << rhs.x_fhit
