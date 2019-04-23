@@ -18,7 +18,19 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     PT        = '_PT'       in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
-    MASS      = '_M'        in CUTS
+    MASS      = '_MASS'     in CUTS
+    CHI2      = '_CHI2'     in CUTS
+    VTX       = '_VTX'      in CUTS
+    COSA      = '_COSA'     in CUTS
+
+    # not yet used
+    D0SIG     = '_D0SIG'    in CUTS
+    ISMEDIUM  = '_MED'      in CUTS
+    NTRKLAYS  = '_NTL'      in CUTS
+
+    # always apply PAT quality cuts when doing replacement
+    # PQ1 = '_PQ1' in CUTS
+    PQ1 = True
 
     # determine muon cut list based on string values
     def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR):
@@ -31,14 +43,34 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             cutList.append('q_FPTE')
         return cutList
 
+    # determine PAT muon quality cuts based on string values
+    def boolsToPATMuonCutList(ISMEDIUM, NTRKLAYS):
+        cutList = []
+        if ISMEDIUM:
+            cutList.append('p_isMedium')
+        if NTRKLAYS:
+            cutList.append('p_nTrkLays')
+        return cutList
+
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, D0SIG):
         cutList = []
         if LXYERR:
-            cutList.append('b_LxyErr')
+            cutList.append('d_LxyErr')
         if MASS:
-            cutList.append('b_mass')
+            cutList.append('d_mass')
+        if CHI2:
+            cutList.append('d_vtxChi2')
+        if COSA:
+            cutList.append('d_cosAlpha')
+        if D0SIG:
+            cutList.append('d_d0Sig')
         return cutList
+
+    # primary vertex
+    if VTX:
+        Filters = E.getPrimitives('FILTER')
+        if not Selections.CUTS['goodVtx'].apply(Filters): return failedReturnList
 
     # for PROMPT and NOPROMPT event selections
     if PROMPT or NOPROMPT:
@@ -64,18 +96,14 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     # DSA muon quality cuts
     if NSTATIONS or NMUONHITS or FPTERR:
         # compute all the baseline selection booleans
-        DSASelections = [Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons]
+        DSASelections = {muon.idx:Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons}
 
         # figure out which cuts we actually care about
         cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
 
-        # no selection
-        if len(cutList) == 0:
-            selectedMuons['DSA'] = DSAmuons
-            selectedDimuons      = Dimuons3
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
-        else:
-            selectedMuons['DSA'] = [mu for i,mu in enumerate(DSAmuons) if DSASelections[i].allOf(*cutList)]
+        if len(cutList) > 0:
+            selectedMuons['DSA'] = [mu for mu in DSAmuons if DSASelections[mu.idx].allOf(*cutList)]
             selectedOIndices     = [mu.idx for mu in selectedMuons['DSA']]
             selectedDimuons      = [dim for dim in Dimuons3 if set(dim.ID).issubset(selectedOIndices) or dim.composition != 'DSA']
 
@@ -89,10 +117,50 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
 
     # PAT muon replacement
     if REP:
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], PATmuons, selectedDimuons)
+        if PQ1:
+            # compute all the PAT quality selection booleans
+            # Note: the PATQualityCutList computes isGlobal, isMedium, and nTrkLays
+            # A study determined that isGlobal + nTrkLays is the best combination at this stage, hence the explicit cutList
+            # for standard quality cuts ONLY for disambiguating when doing the replacement
+            # After replacement, we test isMedium + nTrkLays
+            PATSelections = {muon.idx:Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in PATmuons}
+            cutList = ['p_isGlobal', 'p_nTrkLays']
+        else:
+            PATSelections = None
+            cutList = []
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
+
+    # given a selectedIndices dictionary of DSA and PAT indices and a dimuon,
+    # determine if this dimuon is a selected dimuon
+    def dimuonFilter(dim, selectedIndices):
+        if dim.composition != 'HYBRID':
+            tag1, tag2 = dim.composition, dim.composition
+        else:
+            tag1, tag2 = 'DSA', 'PAT'
+        return dim.idx1 in selectedIndices[tag1] and dim.idx2 in selectedIndices[tag2]
+
+    # apply post-replacement PAT quality cuts and filter down the selectedMuons and selectedDimuons
+    # since this is PAT only, this only needs to be done if REP is true
+    # also, we are currently not considering ISGLOBAL among the list of post-replacement PAT quality cuts
+    # but it should be present approximately where ISMEDIUM is, if desired in the future
+    if REP and (ISMEDIUM or NTRKLAYS):
+        # compute all the PAT quality selection booleans
+        PATSelections = {muon.idx:Selections.MuonSelection(muon, cutList='PATQualityCutList') for muon in selectedMuons['PAT']}
+
+        # figure out which cuts we actually care about
+        cutList = boolsToPATMuonCutList(ISMEDIUM, NTRKLAYS)
+
+        # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
+        if len(cutList) > 0:
+            selectedMuons['PAT'] = [mu for mu in selectedMuons['PAT'] if PATSelections[mu.idx].allOf(*cutList)]
+            selectedIndices = {'DSA':set(), 'PAT':set()}
+            for tag in selectedMuons:
+                selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+            selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
     # pT cut
     # there is only one cut of this type right now, but if additional cuts are applied later,
@@ -101,14 +169,9 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     if PT:
         selectedIndices = {'DSA':set(), 'PAT':set()}
         for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['r_pT'].apply(mu)]
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_pT'].apply(mu)]
             selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
 
-        def dimuonFilter(dim, selectedIndices):
-            if dim.composition != 'HYBRID':
-                return set(dim.ID).issubset(selectedIndices[dim.composition])
-            else:
-                return dim.idx1 in selectedIndices['DSA'] and dim.idx2 in selectedIndices['PAT']
         selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
     # apply pairing criteria and transform selectedDimuons
@@ -127,18 +190,49 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         candidateDimuons = objects['DSA']['outputDims'] + objects['PAT']['outputDims'] + objects['HYBRID']['outputDims']
         candidateDimuons.sort(key = lambda dim: dim.normChi2)
 
-        selectedDimuons = candidateDimuons[:2]
+        # error: now that we have hybrids, we can't just take the two lowest chi2
+        # we need the two lowest chi2, *non-overlapping*
+        # selectedDimuons = candidateDimuons[:2]
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        selectedDimuons = []
+        for dim in candidateDimuons:
+            if len(selectedDimuons) == 2:
+                break
+            if dim.composition != 'HYBRID':
+                tag1, tag2 = dim.composition, dim.composition
+            else:
+                tag1, tag2 = 'DSA', 'PAT'
+            if dim.idx1 in selectedIndices[tag1] or dim.idx2 in selectedIndices[tag2]: continue
+            selectedIndices[tag1].add(dim.idx1)
+            selectedIndices[tag2].add(dim.idx2)
+            selectedDimuons.append(dim)
 
     if True:
         # compute all the baseline selection booleans
-        DimuonSelections = {dim.ID:Selections.DimuonSelection(dim, cutList='BaselineDimuonCutList') for dim in selectedDimuons}
+        DimuonSelections = {(dim.ID, dim.composition):Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToDimuonCutList(LXYERR, MASS)
+        #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
+
+        # the d0Sig cut should be applied to original muons, so comment out the "dimuon" version of the d0Sig cut
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, False)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
-            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[dim.ID].allOf(*cutList)]
+            selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
+
+    # d0Sig cut
+    # this cut is in the MuonCutList, but it is applied later so I'm just going to recompute it
+    # and apply it directly
+    # note that this is a MultiCut, so it will behave differently depending on the muon type
+    if D0SIG:
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_d0Sig'].apply(mu)]
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
+
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if NSTATIONS:

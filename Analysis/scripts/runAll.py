@@ -36,6 +36,17 @@ DataSampleList = (
     ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
 
+# 33 data jobs when using skim
+SkimDataSampleList = (
+    ('DoubleMuonRun2016B-07Aug17-v2', ( 5, 50000)), # 211338 events
+    ('DoubleMuonRun2016C-07Aug17'   , ( 2, 50000)), # 96535  events
+    ('DoubleMuonRun2016D-07Aug17'   , ( 4, 50000)), # 166899 events
+    ('DoubleMuonRun2016E-07Aug17'   , ( 4, 50000)), # 158760 events
+    ('DoubleMuonRun2016F-07Aug17'   , ( 3, 50000)), # 125439 events
+    ('DoubleMuonRun2016G-07Aug17'   , ( 7, 50000)), # 311688 events
+    ('DoubleMuonRun2016H-07Aug17'   , ( 8, 50000)), # 363262 events
+)
+
 # NoBPTX data: 30 jobs in total
 DataSampleList_NoBPTX = (
     ('NoBPTXRun2016D-07Aug17', (16, 50000)),
@@ -173,7 +184,10 @@ if args.FILE == '':
                 for i in xrange(NJOBS):
                     ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
     if 'D' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList:
+        # if "skim" is in the extra list (passed to Analyzer), use the SkimDataSampleList
+        # The Analyzer replaces ntuple with skim in the file name, smaller files
+        RealDataSampleList = DataSampleList if '__skim' not in EXTRA else SkimDataSampleList
+        for NAME, SPLITTING in RealDataSampleList:
             if SPLITTING is None:
                 ArgsList.append('--name {}'.format(NAME))
             else:

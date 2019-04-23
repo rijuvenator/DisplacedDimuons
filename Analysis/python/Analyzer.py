@@ -26,6 +26,7 @@ PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , de
 PARSER.add_argument('--maxevents'  , dest='MAXEVENTS'  , type=int,            default=1000          , help='max events for test mode'     )
 PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true'                        , help='apply trigger to signal'      )
 PARSER.add_argument('--cuts'       , dest='CUTS'       ,                      default=''            , help='cut string'                   )
+PARSER.add_argument('--skim'       , dest='SKIM'       , action='store_true'                        , help='whether to use the skim file' )
 
 # important setSample function
 # this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler
@@ -90,6 +91,13 @@ class Analyzer(object):
             self.FILES  = ARGS.SAMPLE.getNTuples()
         else:
             self.FILES  = FILES
+
+        # cludge for replacing an nTuple with the skimmed version
+        if ARGS.SKIM and 'DoubleMuon' in self.NAME:
+            if type(self.FILES) == str:
+                self.FILES = self.FILES.replace('ntuple', 'skim')
+            elif type(self.FILES) == list:
+                self.FILES = [i.replace('ntuple', 'skim') for i in self.FILES]
 
         # these are constants and the rest of the parameters from the constructor
         self.TREE       = 'SimpleNTupler/DDTree'

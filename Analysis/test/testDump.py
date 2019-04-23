@@ -1,9 +1,10 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
+import DisplacedDimuons.Analysis.PrimitivesPrinter as Printer
 import DisplacedDimuons.Common.Constants as Constants
 import os
 
-Primitives.COLORON = True
+Printer.COLORON = True
 
 
 # test files

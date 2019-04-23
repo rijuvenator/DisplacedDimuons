@@ -1,7 +1,8 @@
 import re
 import ROOT as R
 import DisplacedDimuons.Common.DataHandler as DH
-from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+import DisplacedDimuons.Analysis.RootTools as RT
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS, BGORDER
 
 # integrated luminosity for 2016
 INTEGRATED_LUMINOSITY_2016 = 35900.
@@ -105,14 +106,119 @@ def getHistogram(FILE, ref, key):
     return FILE.Get(hkey)
 
 # get added signal histograms
-def getAddedSignalHistograms(FILE, fs, keylist):
+def getAddedSignalHistograms(FILE, fs, keylist, getIndividuals=False):
+    # allow passing a string or a list
+    if type(keylist) == str:
+        keylist = [keylist]
+
+    # loop through the keys, add up all the signalpoints, return a dictionary of histograms
     HISTS = {}
+    INDIV = {}
     for key in keylist:
+        INDIV[key] = {}
         HISTS[key] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
+        if getIndividuals:
+            INDIV[key][SIGNALPOINTS[0]] = getHistogram(FILE, (fs, SIGNALPOINTS[0]), key).Clone()
     for sp in SIGNALPOINTS[1:]:
         for key in keylist:
             HISTS[key].Add(getHistogram(FILE, (fs, sp), key))
-    return HISTS
+            if getIndividuals:
+                INDIV[key][sp] = getHistogram(FILE, (fs, sp), key).Clone()
+
+    if not getIndividuals:
+        return HISTS
+    else:
+        return HISTS, INDIV
+
+# get added weighted background histograms
+# keylist is a single key (string) or a list of keys
+# stack and addFlows are bools
+# rebin is a single int or a list of ints (for 2D plots)
+# rebinVeto is a lambda specifying which keys NOT to rebin, with the key as an input
+# extraScale is an extra scaling factor (needed for comparing to 10% of data)
+def getBackgroundHistograms(FILE, keylist, stack=True, addFlows=True, rebin=None, rebinVeto=None, extraScale=None):
+    # allow passing a string or a list
+    if type(keylist) == str:
+        keylist = [keylist]
+
+    # loop through the keys
+    # if stack, make a THStack; otherwise, get started by using the first histogram
+    # loop through the bg keys, addFlows if desired, scale, rebin if desired
+    # if stack, Add
+    # if not stack and this isn't the first, also Add
+    # if not stack and this is the first, clone ("get started")
+    # return dictionary of dictionary of histograms, and plot configs
+    HISTS = {}
+    PConfig = {}
+    for key in keylist:
+        HISTS[key] = {}
+        PConfig[key] = {'stack':('', '', 'hist')}
+        if stack:
+            HISTS[key]['stack'] = R.THStack('hStack', '')
+        for ref in BGORDER:
+            HISTS[key][ref] = getHistogram(FILE, ref, key).Clone()
+            if addFlows:
+                RT.addFlows(HISTS[key][ref])
+            HISTS[key][ref].Scale(PLOTCONFIG[ref]['WEIGHT'])
+            if extraScale is not None:
+                HISTS[key][ref].Scale(extraScale)
+            if rebin is not None and (rebinVeto is None or (rebinVeto is not None and not rebinVeto(key))):
+                is2D = 'TH2' in str(HISTS[key][ref].__class__)
+                if is2D:
+                    if not hasattr(rebin, '__iter__'):
+                        print '[HISTOGRAMGETTER ERROR]: For 2D plots, "rebin" must be a list of 2 rebin values'
+                        exit()
+                    HISTS[key][ref].Rebin2D(*rebin)
+                else:
+                    HISTS[key][ref].Rebin(rebin)
+            PConfig[key][ref] = (PLOTCONFIG[ref]['LATEX'], 'f', 'hist')
+            if not stack and ref == BGORDER[0]:
+                HISTS[key]['stack'] = HISTS[key][ref].Clone()
+                continue
+            HISTS[key]['stack'].Add(HISTS[key][ref])
+
+    return HISTS, PConfig
+
+# get added data histograms
+# interface is similar to above
+def getDataHistograms(FILE, keylist, addFlows=True, rebin=None, rebinVeto=None):
+    # allow passing a string or a list
+    if type(keylist) == str:
+        keylist = [keylist]
+
+    DataKeys = ['DoubleMuonRun2016{}-07Aug17{}'.format(era, '' if era != 'B' else '-v2') for era in ('B', 'C', 'D', 'E', 'F', 'G', 'H')]
+
+    # loop through the keys
+    # if stack, make a THStack; otherwise, get started by using the first histogram
+    # loop through the bg keys, addFlows if desired, scale, rebin if desired
+    # if stack, Add
+    # if not stack and this isn't the first, also Add
+    # if not stack and this is the first, clone ("get started")
+    # return dictionary of dictionary of histograms, and plot configs
+    HISTS = {}
+    PConfig = {}
+    for key in keylist:
+        HISTS[key] = {}
+        PConfig[key] = {'data':('DoubleMuon2016', 'pe', 'pe')}
+        for ref in DataKeys:
+            HISTS[key][ref] = getHistogram(FILE, ref, key).Clone()
+            if addFlows:
+                RT.addFlows(HISTS[key][ref])
+            if rebin is not None and (rebinVeto is None or (rebinVeto is not None and not rebinVeto(key))):
+                is2D = 'TH2' in str(HISTS[key][ref].__class__)
+                if is2D:
+                    if not hasattr(rebin, '__iter__'):
+                        print '[HISTOGRAMGETTER ERROR]: For 2D plots, "rebin" must be a list of 2 rebin values'
+                        exit()
+                    HISTS[key][ref].Rebin2D(*rebin)
+                else:
+                    HISTS[key][ref].Rebin(rebin)
+            if ref == DataKeys[0]:
+                HISTS[key]['data'] = HISTS[key][ref].Clone()
+                continue
+            HISTS[key]['data'].Add(HISTS[key][ref])
+
+    return HISTS, PConfig
 
 ############################
 #### PLOT CONFIGURATION ####
@@ -155,3 +261,15 @@ for name, latex, color in PlotData:
         s = SAMPLES[name]
         sampleWeight = (s.crossSection * s.kFactor) / (s.nEvents * (1. - 2. * s.negFrac)) * INTEGRATED_LUMINOSITY_2016
     PLOTCONFIG[name] = {'LATEX':latex, 'COLOR':color, 'WEIGHT':sampleWeight}
+
+# DY50toInf job #6 fails with file open error on/after pat_203.root
+# This job consists of files 19 190-199 2 20 200-206 = 20 files
+# Corresponding to 201,005 events that do not end up in the final ROOT file
+# The full DY50toInf dataset is 122,547,040 events
+# The PAT dataset is 10,259,410 events (passing the trigger)
+# So an approximation for the real number of events that went into the final ROOT file is
+# 122547040 * (1 - 201005/10259410)
+# Recompute the weight based on this.
+
+s = SAMPLES['DY50toInf']
+PLOTCONFIG['DY50toInf']['WEIGHT'] = (s.crossSection * s.kFactor) / ( (s.nEvents * (1. - 201005./10259410.)) * (1. - 2. * s.negFrac)) * INTEGRATED_LUMINOSITY_2016
