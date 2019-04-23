@@ -21,10 +21,10 @@ if CUTSTRING == '':
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2'                : '',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX'            : ' + P.V.',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA'       : ' + P.V. + cos(#alpha)',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE' : ' + P.V. + cos(#alpha) + ref. FPTE',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA'       : ' + cos(#alpha)',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE' : ' + cos(#alpha) + ref. FPTE',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_PROXTHRESH'       : ' + cos(#alpha) + #DeltaR < 0.15',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_PROXTHRESH' : ' + cos(#alpha) + ref. FPTE + #DeltaR < 0.15',
 }
 
 DRAW = False
@@ -99,7 +99,7 @@ def makeSinglePlots():
     quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'd0', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     quantities['REF-DSA'] = ['FPTE']
-    quantities[''] = ['nDimuon', 'nDSA']
+    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12']
 
     for recoType in ('DSA', 'PAT'):
         quantities[recoType].extend(quantities['HYB-'+recoType])
@@ -115,7 +115,7 @@ def makeSinglePlots():
             LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'd0') else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'nDSA12', 'd0') else False)
 
             if key == 'REF-DSA-FPTE':
                 canvas.mainPad.SetLogx()
@@ -171,7 +171,7 @@ def makeMCPlots():
         quantities[recoType].extend(quantities['HYB-'+recoType])
 
     quantities['REF-DSA'] = ['FPTE']
-    quantities[''] = ['nDimuon', 'nDSA']
+    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12']
 
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
 
@@ -197,7 +197,7 @@ def makeMCPlots():
                 hkey = quantity
                 recoType = 'DSAPlus'
 
-            DODATA = recoType == 'DSA' or recoType == 'REF-DSA' or (recoType == 'DSAPlus' and quantity == 'nDSA')
+            DODATA = recoType == 'DSA' or recoType == 'REF-DSA' or (recoType == 'DSAPlus' and 'nDSA' in quantity)
 
             if DODATA:
                 HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, addFlows=True, rebin=10, rebinVeto=rebinVeto, extraScale=DATASCALE)

@@ -25,42 +25,59 @@ config = {
     'rphi2'   : {'cast':float, 'col':27},
 
     'nDSA'    : {'cast':int  , 'col':28},
+
+    'charge1' : {'cast':float, 'col':29},
+    'charge2' : {'cast':float, 'col':30},
+    'rcharge1': {'cast':float, 'col':31},
+    'rcharge2': {'cast':float, 'col':32},
 }
 
 tests = {'total':{'count':0, 'lines':''}, 'LxySig':{'count':0, 'lines':''}, 'd0Sig':{'count':0, 'lines':''}, 'vtxChi2':{'count':0, 'lines':''}}
 
 f = open(sys.argv[1])
 
+MODE = 'FPTE'
+#MODE = 'CUTTEST'
+#MODE = 'CHARGE'
+
 for line in f:
     cols = line.strip('\n').split()
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
-    #if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
-    #    print line.strip('\n')
+    if MODE == 'FPTE':
+        if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
+            print line.strip('\n')
 
-    bools = {'LxySig':False, 'd0Sig':False, 'vtxChi2':False}
+    elif MODE == 'CHARGE':
+        if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
+            if vals['charge1'] != vals['rcharge1'] or vals['charge2'] != vals['rcharge2']:
+                print line.strip('\n')
 
-    if vals['LxySig'] > 3.:
-        tests['LxySig']['count'] += 1
-        tests['LxySig']['lines'] += line
-        bools['LxySig'] = True
+    elif MODE == 'CUTTEST':
+        bools = {'LxySig':False, 'd0Sig':False, 'vtxChi2':False}
 
-    if vals['d0Sig1'] > 3. and vals['d0Sig2'] > 3.:
-        tests['d0Sig']['count'] += 1
-        tests['d0Sig']['lines'] += line
-        bools['d0Sig'] = True
+        if vals['LxySig'] > 3.:
+            tests['LxySig']['count'] += 1
+            tests['LxySig']['lines'] += line
+            bools['LxySig'] = True
 
-    if vals['vtxChi2'] < 20.:
-        tests['vtxChi2']['count'] += 1
-        tests['vtxChi2']['lines'] += line
-        bools['vtxChi2'] = True
+        if vals['d0Sig1'] > 3. and vals['d0Sig2'] > 3.:
+            tests['d0Sig']['count'] += 1
+            tests['d0Sig']['lines'] += line
+            bools['d0Sig'] = True
 
-    if all(bools.values()):
-        tests['total']['count'] += 1
-        tests['total']['lines'] += line
+        if vals['vtxChi2'] < 20.:
+            tests['vtxChi2']['count'] += 1
+            tests['vtxChi2']['lines'] += line
+            bools['vtxChi2'] = True
 
-for key in ('total', 'LxySig', 'd0Sig', 'vtxChi2'):
-    print '===', key, ':::', tests[key]['count']
-    if True:
-        print tests[key]['lines']
-        print ''
+        if all(bools.values()):
+            tests['total']['count'] += 1
+            tests['total']['lines'] += line
+
+if MODE == 'CUTTEST':
+    for key in ('total', 'LxySig', 'd0Sig', 'vtxChi2'):
+        print '===', key, ':::', tests[key]['count']
+        if True:
+            print tests[key]['lines']
+            print ''

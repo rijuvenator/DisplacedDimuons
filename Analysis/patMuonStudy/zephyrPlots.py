@@ -133,9 +133,10 @@ def declareHistograms(self, PARAMS=None):
     # dimuon multiplicity
     self.HistInit('nDimuon', ';N(dimuons);Counts'        ,  2, 1.,  3.)
     self.HistInit('nDSA'   , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
+    self.HistInit('nDSA12' , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
 
     # for Bob
-    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
+    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 60, np.logspace(-10., 2., 61))
 
     for QKEY in DIMQUANTITIES:
         XTIT = DIMQUANTITIES[QKEY]['PRETTY']
@@ -212,13 +213,14 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, proxThresh=self.ARGS.PROXTHRESH)
     if selectedDimuons is None: return
 
     for dim in selectedDimuons:
         if dim.composition == 'DSA':
             self.HISTS['nDimuon'].Fill(len(selectedDimuons), eventWeight)
             self.HISTS['nDSA'   ].Fill(len(DSAmuons       ), eventWeight)
+            self.HISTS['nDSA12' ].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12]), eventWeight)
             break
 
     def getOriginalMuons(dim):
@@ -389,6 +391,7 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
+    Analyzer.PARSER.add_argument('--proxThresh', dest='PROXTHRESH', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -405,4 +408,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_PROXTHRESH' if ARGS.PROXTHRESH else ''))

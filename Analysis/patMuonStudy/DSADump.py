@@ -38,7 +38,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, proxThresh=self.ARGS.PROXTHRESH)
     if selectedDimuons is None: return
 
     def getOriginalMuons(dim):
@@ -62,7 +62,7 @@ def analyze(self, E, PARAMS=None):
                 return 'QCD'
             return name
 
-        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} {:6.4f} {:6.4f} ::: {:.3e} {:.3e} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:2d}'.format(
+        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} {:6.4f} {:6.4f} ::: {:.3e} {:.3e} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:2d} {:2d} {:2d} {:2d} {:2d}'.format(
                 modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                 dim.composition[:3], dim.idx1, dim.idx2,
                 dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, 
@@ -70,7 +70,8 @@ def analyze(self, E, PARAMS=None):
                 mu1.deltaR_ProxMatch, mu2.deltaR_ProxMatch if dim.composition == 'DSA' else -1.,
                 dim.mu1.ptError/dim.mu1.pt, dim.mu2.ptError/dim.mu2.pt,
                 mu1.phi, mu2.phi, dim.mu1.phi, dim.mu2.phi,
-                len(DSAmuons)
+                len(DSAmuons),
+                mu1.charge, mu2.charge, dim.mu1.charge, dim.mu2.charge,
         )
 
 
@@ -81,6 +82,7 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
+    Analyzer.PARSER.add_argument('--proxThresh', dest='PROXTHRESH', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
