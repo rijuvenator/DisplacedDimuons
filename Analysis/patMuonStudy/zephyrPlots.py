@@ -131,9 +131,11 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     # dimuon multiplicity
-    self.HistInit('nDimuon', ';N(dimuons);Counts'        ,  2, 1.,  3.)
-    self.HistInit('nDSA'   , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
-    self.HistInit('nDSA12' , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
+    self.HistInit('nDimuon'   , ';N(dimuons);Counts'        ,  2, 1.,  3.)
+    self.HistInit('nDSA'      , ';N(DSA);Counts'                        , 40, 0., 40.)
+    self.HistInit('nDSA12'    , ';N(DSA) 12 hits;Counts'                , 40, 0., 40.)
+    self.HistInit('nDSA12-pT' , ';N(DSA) 12 hits + p_{T} > 5 GeV;Counts', 40, 0., 40.)
+    self.HistInit('nDSA-DT'   , ';N(DSA) DT only;Counts'                , 40, 0., 40.)
 
     # for Bob
     self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 60, np.logspace(-10., 2., 61))
@@ -218,9 +220,11 @@ def analyze(self, E, PARAMS=None):
 
     for dim in selectedDimuons:
         if dim.composition == 'DSA':
-            self.HISTS['nDimuon'].Fill(len(selectedDimuons), eventWeight)
-            self.HISTS['nDSA'   ].Fill(len(DSAmuons       ), eventWeight)
-            self.HISTS['nDSA12' ].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12]), eventWeight)
+            self.HISTS['nDimuon'  ].Fill(len(selectedDimuons                                                 ), eventWeight)
+            self.HISTS['nDSA'     ].Fill(len(DSAmuons                                                        ), eventWeight)
+            self.HISTS['nDSA12'   ].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12]              ), eventWeight)
+            self.HISTS['nDSA12-pT'].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12 and d.pt > 5.]), eventWeight)
+            self.HISTS['nDSA-DT'  ].Fill(len([d for d in DSAmuons if d.nCSCHits == 0]                        ), eventWeight)
             break
 
     def getOriginalMuons(dim):
