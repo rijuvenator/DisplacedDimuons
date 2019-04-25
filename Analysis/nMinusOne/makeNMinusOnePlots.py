@@ -21,8 +21,8 @@ FILES = {
     'Data'  : R.TFile.Open('roots/NM1Plots{}_DATA.root'             .format(BUMPSTRING)),
 }
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA', 'SFPTE')
-PRETTY = ('n_{st}', 'n_{hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}', 'pv', 'cos(#alpha)', 'sFPTE')
+CUTS = ('NS_NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA', 'SFPTE')
+PRETTY = ('n_{st/hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}', 'pv', 'cos(#alpha)', 'sFPTE')
 #PRETTY = CUTS[:]
 PRETTY = dict(zip(CUTS, PRETTY))
 
