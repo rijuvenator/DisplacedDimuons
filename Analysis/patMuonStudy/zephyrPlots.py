@@ -215,7 +215,7 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, proxThresh=self.ARGS.PROXTHRESH)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
     for dim in selectedDimuons:
@@ -395,7 +395,6 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
-    Analyzer.PARSER.add_argument('--proxThresh', dest='PROXTHRESH', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -412,4 +411,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_PROXTHRESH' if ARGS.PROXTHRESH else ''))
+    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
