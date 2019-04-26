@@ -96,6 +96,8 @@ CUTS = {
     'd_cosAlpha' :      Cut('cosAlpha' , lambda dim: dim.cosAlpha                   , operator.gt,         -0.8     ),
     'd_d0Sig'    : DimMuCut('d0Sig'    , lambda ref: ref.d0Sig()                    , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda ref: ref.tag[4:7]       ),
+    'd_smallFPTE': DimMuCut('smallFPTE', lambda ref: ref.ptError/ref.pt             , operator.gt, {'DSA':  0.01     ,
+                                                                                                    'PAT':  0.      }, lambda ref: ref.tag[4:7]       ),
 
 ### RUN 1 RECO MUON CUTS ###
     '8_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         30.      ),
@@ -121,7 +123,7 @@ CutLists = {
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
     'PATQualityCutList'     : ('p_isGlobal', 'p_isMedium', 'p_nTrkLays'),
     'AllMuonCutList'        : ('m_pT', 'm_d0Sig'),
-    'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_d0Sig'),
+    'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_d0Sig', 'd_smallFPTE'),
     'Run1MuonCutList'       : ('8_pT', '8_eta', '8_normChi2', '8_nMuonHits', '8_nStations', '8_d0Sig'),
     'Run1DimuonCutList'     : ('8_vtxChi2', '8_deltaR', '8_mass', '8_deltaPhi', '8_cosAlpha', '8_LxySig'),
 }

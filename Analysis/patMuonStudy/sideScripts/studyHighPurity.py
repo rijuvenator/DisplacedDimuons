@@ -107,5 +107,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    #analyzer.writeHistograms('../analyzers/roots/HPPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/HPPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('roots/mcbg/HPPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

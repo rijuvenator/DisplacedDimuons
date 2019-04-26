@@ -1,7 +1,7 @@
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.AnalysisTools as AnalysisTools
 
-def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
+def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False, proxThresh=False):
 
     # failed return list
     failedReturnList = None, None, None
@@ -22,6 +22,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
     CHI2      = '_CHI2'     in CUTS
     VTX       = '_VTX'      in CUTS
     COSA      = '_COSA'     in CUTS
+    SFPTE     = '_SFPTE'    in CUTS
 
     # not yet used
     D0SIG     = '_D0SIG'    in CUTS
@@ -53,7 +54,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         return cutList
 
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, D0SIG):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, SFPTE):
         cutList = []
         if LXYERR:
             cutList.append('d_LxyErr')
@@ -63,8 +64,10 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
             cutList.append('d_vtxChi2')
         if COSA:
             cutList.append('d_cosAlpha')
-        if D0SIG:
-            cutList.append('d_d0Sig')
+        #if D0SIG:
+        #    cutList.append('d_d0Sig')
+        if SFPTE:
+            cutList.append('d_smallFPTE')
         return cutList
 
     # primary vertex
@@ -99,7 +102,13 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         DSASelections = {muon.idx:Selections.MuonSelection(muon, cutList='DSAQualityCutList') for muon in DSAmuons}
 
         # figure out which cuts we actually care about
-        cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
+
+        # testing bumpFPTE
+        # if bumpFPTE, then move the FPTE DSA cut to after the replacement
+        if not bumpFPTE:
+            cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR)
+        else:
+            cutList = boolsToMuonCutList(NSTATIONS, NMUONHITS, False)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
@@ -128,7 +137,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         else:
             PATSelections = None
             cutList = []
-        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList)
+        selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons = AnalysisTools.replaceDSAMuons(selectedMuons['DSA'], selectedMuons['PAT'], selectedDimuons, PATSelections, cutList, proxThresh)
     else:
         selectedMuons['PAT'] = []
         selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
@@ -141,6 +150,19 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         else:
             tag1, tag2 = 'DSA', 'PAT'
         return dim.idx1 in selectedIndices[tag1] and dim.idx2 in selectedIndices[tag2]
+
+    # apply post-replacement DSA cuts and filter down the selectedMuons and selectedDimuons
+    # this only needs to be done right now if bumpFPTE is true
+    # at the moment, DSASelections is computed already above, correctly, but if doing N-2 later, fix it!
+    if bumpFPTE and FPTERR:
+        cutList = boolsToMuonCutList(False, False, True)
+        selectedMuons['DSA'] = [mu for mu in selectedMuons['DSA'] if DSASelections[mu.idx].allOf(*cutList)]
+
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
     # apply post-replacement PAT quality cuts and filter down the selectedMuons and selectedDimuons
     # since this is PAT only, this only needs to be done if REP is true
@@ -215,7 +237,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons):
         #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
 
         # the d0Sig cut should be applied to original muons, so comment out the "dimuon" version of the d0Sig cut
-        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, False)
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, SFPTE)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:

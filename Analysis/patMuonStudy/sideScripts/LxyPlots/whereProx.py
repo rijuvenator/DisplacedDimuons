@@ -5,8 +5,11 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 #fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_HTo2XTo2Mu2J.root')
 #fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
 
-fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
-fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DPT_HTo2XTo2Mu2J.root')
+#fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DSAPROXMATCH_HTo2XTo2Mu2J.root')
+#fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PQ1_PT_PC_LXYE_MASS_CHI2_DPT_HTo2XTo2Mu2J.root')
+
+fOld = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_HTo2XTo2Mu2J.root')
+fNew = R.TFile.Open('roots/ZephyrPlots_Trig_Combined_NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_PROXTHRESH_HTo2XTo2Mu2J.root')
 
 def deleteHistogram(HIST):
     R.gROOT.ProcessLine('delete gROOT->FindObject("'+HIST.GetName()+'")')

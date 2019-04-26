@@ -26,6 +26,7 @@ DSAQUANTITIES = {
     'pT'       : {'LAMBDA': lambda mu: mu.pt                         , 'PRETTY':'p_{T} [GeV]'           },
     'eta'      : {'LAMBDA': lambda mu: mu.eta                        , 'PRETTY':'#eta'                  },
     'phi'      : {'LAMBDA': lambda mu: mu.phi                        , 'PRETTY':'#phi'                  },
+    'd0'       : {'LAMBDA': lambda mu: mu.d0()                       , 'PRETTY':'d_{0} [cm]'            },
     'FPTE'     : {'LAMBDA': lambda mu: mu.ptError/mu.pt              , 'PRETTY':'#sigma_{p_{T}}/p_{T}'  },
     'd0Sig'    : {'LAMBDA': lambda mu: mu.d0Sig()                    , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
     'trkChi2'  : {'LAMBDA': lambda mu: mu.normChi2                   , 'PRETTY':'trk #chi^{2}/dof'      },
@@ -36,6 +37,7 @@ PATQUANTITIES = {
     'pT'        : {'LAMBDA': lambda mu: mu.pt             , 'PRETTY':'p_{T} [GeV]'           },
     'eta'       : {'LAMBDA': lambda mu: mu.eta            , 'PRETTY':'#eta'                  },
     'phi'       : {'LAMBDA': lambda mu: mu.phi            , 'PRETTY':'#phi'                  },
+    'd0'        : {'LAMBDA': lambda mu: mu.d0()           , 'PRETTY':'d_{0} [cm]'            },
     'relTrkIso' : {'LAMBDA': lambda mu: mu.trackIso/mu.pt , 'PRETTY':'rel. track iso.'       },
     'd0Sig'     : {'LAMBDA': lambda mu: mu.d0Sig()        , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
     'trkChi2'   : {'LAMBDA': lambda mu: mu.normChi2       , 'PRETTY':'trk #chi^{2}/dof'      },
@@ -59,6 +61,7 @@ AXES = {
         'pT'       : (1000,   0.  , 1000.   ), # 1 GeV   bins
         'eta'      : ( 600,  -3.  ,    3.   ), # 0.01    bins
         'phi'      : ( 200, -PI   ,   PI    ), # pi/100  bins
+        'd0'       : ( 300,   0.  ,  300.   ), # 1 cm    bins
         'FPTE'     : (1000,   0.  ,    1.   ), # 1e-3    bins
         'd0Sig'    : ( 800,   0.  ,   80.   ), # 0.1     bins
         'trkChi2'  : ( 150,   0.  ,   15.   ), # 0.1     bins
@@ -79,6 +82,7 @@ AXES = {
         'pT'       : (1000,   0.  , 1000.   ),
         'eta'      : ( 600,  -3.  ,    3.   ),
         'phi'      : ( 200, -PI   ,   PI    ),
+        'd0'       : ( 300,   0.  ,   30.   ),
         'relTrkIso': (1000,   0.  ,     .5  ), # 5e-4    bins
         'd0Sig'    : (2000,   0.  ,  200.   ),
         'trkChi2'  : ( 150,   0.  ,   15.   ),
@@ -127,10 +131,12 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     # dimuon multiplicity
-    self.HistInit('nDimuon', ';N(dimuons);Counts', 2, 1., 3.)
+    self.HistInit('nDimuon', ';N(dimuons);Counts'        ,  2, 1.,  3.)
+    self.HistInit('nDSA'   , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
+    self.HistInit('nDSA12' , ';N(DSA-DSA dimuons);Counts', 40, 0., 40.)
 
     # for Bob
-    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
+    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 60, np.logspace(-10., 2., 61))
 
     for QKEY in DIMQUANTITIES:
         XTIT = DIMQUANTITIES[QKEY]['PRETTY']
@@ -148,6 +154,9 @@ def declareHistograms(self, PARAMS=None):
         for RTYPE in ('PAT',):
             self.HistInit(       RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
             self.HistInit('HYB-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+
+    for RTYPE in ('DSA', 'PAT', 'HYB'):
+        self.HistInit('{R}-LxySigVSdeltaPhi'.format(R=RTYPE), ';|#delta#Phi|;L_{xy}/#sigma_{L_{xy}};Counts', *(AXES[RTYPE]['deltaPhi']+AXES[RTYPE]['LxySig']))
 
     # temporary 2D histograms
     PAT2DQ=PAT2DQUANTITIES
@@ -169,7 +178,7 @@ def declareHistograms(self, PARAMS=None):
     if self.SP is not None:
         for RTYPE in ('DSA', 'PAT', 'HYB'):
             AR = AXES[RTYPE]
-            self.HistInit('{R}-LxyRes'            .format(R=RTYPE),  ';reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                                     .format(R=RTYPE), *AR['LxyRes']               )
+            self.HistInit('{R}-LxyRes'            .format(R=RTYPE), ';reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                                      .format(R=RTYPE), *AR['LxyRes']               )
             self.HistInit('{R}-LxyPull'           .format(R=RTYPE), ';(reco {R} L_{{xy}} #minus gen L_{{xy}})/#sigma_{{L_{{xy}}}};Counts'                     .format(R=RTYPE), *LxyPull                    )
             self.HistInit('GEN-Lxy-{R}'           .format(R=RTYPE), ';gen L_{xy} [cm];Counts'                                                                                 , *GenLxy                     )
             self.HistInit('{R}-LxyResVSGEN-Lxy'   .format(R=RTYPE), ';gen L_{{xy}} [cm];reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                    .format(R=RTYPE), *(GenLxy+AR['LxyRes'])      )
@@ -204,12 +213,14 @@ def analyze(self, E, PARAMS=None):
     except:
         pass
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons, proxThresh=self.ARGS.PROXTHRESH)
     if selectedDimuons is None: return
 
     for dim in selectedDimuons:
         if dim.composition == 'DSA':
-            self.HISTS['nDimuon'].Fill(len(selectedDimuons))
+            self.HISTS['nDimuon'].Fill(len(selectedDimuons), eventWeight)
+            self.HISTS['nDSA'   ].Fill(len(DSAmuons       ), eventWeight)
+            self.HISTS['nDSA12' ].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12]), eventWeight)
             break
 
     def getOriginalMuons(dim):
@@ -251,6 +262,8 @@ def analyze(self, E, PARAMS=None):
             for QKEY in PATQUANTITIES:
                 KEY = 'HYB-PAT'+'-'+QKEY
                 self.HISTS[KEY].Fill(PATQUANTITIES[QKEY]['LAMBDA'](PATmu), eventWeight)
+
+        self.HISTS[RTYPE+'-LxySigVSdeltaPhi'].Fill(DIMQUANTITIES['deltaPhi']['LAMBDA'](dim), DIMQUANTITIES['LxySig']['LAMBDA'](dim), eventWeight)
 
         # temporary 2D histograms
         if dim.composition != 'DSA':
@@ -378,6 +391,7 @@ def end(self, PARAMS=None):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
+    Analyzer.PARSER.add_argument('--proxThresh', dest='PROXTHRESH', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -394,5 +408,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    #analyzer.writeHistograms('../analyzers/roots/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS, '_PROXTHRESH' if ARGS.PROXTHRESH else ''))

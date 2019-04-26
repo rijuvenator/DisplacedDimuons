@@ -1,14 +1,24 @@
-import sys
+import sys, argparse
 import numpy as np
 import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.PlotterParser as PP
 import DisplacedDimuons.Analysis.RootTools as RT
 
+PP.PARSER.add_argument('FILE')
+PP.PARSER.add_argument('--hyb', dest='HYB', action='store_true')
+PP.PARSER.add_argument('--mc' , dest='MC' , action='store_true')
+args = PP.PARSER.parse_args()
+
 h = {
-    'd0Sig-S':R.TH1F('h1', ';d_{0}/#sigma_{d_{0}};Counts'          , 20, np.logspace(-3., 5., 21)   ),
-    'd0Sig-B':R.TH1F('h2', ';d_{0}/#sigma_{d_{0}};Counts'          , 20, np.logspace(-3., 5., 21)   ),
-    'dPhi-S' :R.TH1F('h3', ';#Delta#phi(original, refitted);Counts', 40, -R.TMath.Pi(), R.TMath.Pi()),
-    'dPhi-B' :R.TH1F('h4', ';#Delta#phi(original, refitted);Counts', 40, -R.TMath.Pi(), R.TMath.Pi()),
+    'd0Sig-S':R.TH1F('h1', ';d_{0}/#sigma_{d_{0}};Counts'            , 80, np.logspace(-3., 5., 81)   ),
+    'd0Sig-B':R.TH1F('h2', ';d_{0}/#sigma_{d_{0}};Counts'            , 80, np.logspace(-3., 5., 81)   ),
+    'dPhi-S' :R.TH1F('h3', ';|#Delta#phi(original, refitted)|;Counts', 80, 0.           , R.TMath.Pi()),
+    'dPhi-B' :R.TH1F('h4', ';|#Delta#phi(original, refitted)|;Counts', 80, 0.           , R.TMath.Pi()),
+    'd0-S'   :R.TH1F('h5', ';d_{0};Counts'                           , 80, np.logspace(-3., 5., 81)   ),
+    'd0-B'   :R.TH1F('h6', ';d_{0};Counts'                           , 80, np.logspace(-3., 5., 81)   ),
+
+    'dR'     :R.TH1F('h7', ';proximity #DeltaR;Counts'               , 37, 0.04, 0.41),
 }
 
 def deltaPhi(phi1, phi2):
@@ -16,7 +26,7 @@ def deltaPhi(phi1, phi2):
     v2 = R.TVector3()
     v1.SetPtEtaPhi(1., 1., phi1)
     v2.SetPtEtaPhi(1., 1., phi2)
-    return v1.DeltaPhi(v2)
+    return abs(v1.DeltaPhi(v2))
 
 l = [
     1094462867,
@@ -33,89 +43,114 @@ l = [
     246186967,
 ]
 
-f = open(sys.argv[1])
+config = {
+    'name'    : {'cast':str  , 'col': 0},
+    'event'   : {'cast':int  , 'col': 3},
+
+    'type'    : {'cast':str  , 'col': 6},
+
+    'LxySig'  : {'cast':float, 'col':10},
+    'vtxChi2' : {'cast':float, 'col':12},
+    'cosAlpha': {'cast':float, 'col':13},
+
+    'd01'     : {'cast':float, 'col':15},
+    'd02'     : {'cast':float, 'col':16},
+    'd0Sig1'  : {'cast':float, 'col':17},
+    'd0Sig2'  : {'cast':float, 'col':18},
+
+    'dR1'     : {'cast':float, 'col':19},
+    'dR2'     : {'cast':float, 'col':20},
+
+    'fpte1'   : {'cast':float, 'col':22},
+    'fpte2'   : {'cast':float, 'col':23},
+    'phi1'    : {'cast':float, 'col':24},
+    'phi2'    : {'cast':float, 'col':25},
+    'rphi1'   : {'cast':float, 'col':26},
+    'rphi2'   : {'cast':float, 'col':27},
+
+    'nDSA'    : {'cast':int  , 'col':28},
+}
+
+
+f = open(args.FILE)
 
 c = 0
+nDR7 = 0
 for line in f:
     cols = line.strip('\n').split()
+    vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
-    event = int(cols[3])
-
-    LxySig, chi2, cosAlpha, d0Sig1, d0Sig2, deltaR1, deltaR2 = map(float, cols[10:11]+cols[12:14]+cols[15:19])
-
-    d0Sig = {'1':d0Sig1, '2':d0Sig2}
-    fpte, phi, rphi = {}, {}, {}
-    fpte['1'], fpte['2'], phi['1'], phi['2'], rphi['1'], rphi['2'] = map(float, cols[20:])
-
-    # for Bob
-    #if LxySig > 5. and d0Sig1 > 3. and d0Sig2 > 3. and cosAlpha > -.8 and chi2 < 20.:
-    #    print line.strip('\n')
-
-    # for Slava
-    #if LxySig > 5 and chi2 < 20 and cosAlpha < -0.9:
-    #    print line.strip('\n')
-
-    # cuts
-    #if LxySig > 5 and chi2 < 20 and cosAlpha > -0.8 and d0Sig1 > 3. and d0Sig2 > 3:
-    #    print line.strip('\n')
-
-    #if cosAlpha > -0.9:
-    #    print line.strip('\n')
-
-    if fpte['1'] < 0.01 or fpte['2'] < 0.01 or fpte['1'] > 1. or fpte['2'] > 1.:
+    if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01 or vals['fpte1'] > 1. or vals['fpte2'] > 1.:
         c += 1
 
-        if event in l:
-            print event
+        if vals['event'] in l:
+            print vals['event']
+
+    if vals['dR1'] < 0.07 or vals['dR2'] < 0.07:
+        nDR7 += 1
 
     for i in ('1', '2'):
-        if fpte[i] < 0.01:
-            h['d0Sig-S'].Fill(d0Sig[i])
-            h['dPhi-S'] .Fill(deltaPhi(phi[i], rphi[i]))
+        if vals['fpte'+i] < 0.01:
+            h['d0Sig-S'].Fill(vals['d0Sig'+i])
+            h['d0-S']   .Fill(vals['d0'+i])
+            h['dPhi-S'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
         else:
-            h['d0Sig-B'].Fill(d0Sig[i])
-            h['dPhi-B'] .Fill(deltaPhi(phi[i], rphi[i]))
+            h['d0Sig-B'].Fill(vals['d0Sig'+i])
+            h['d0-B']   .Fill(vals['d0'+i])
+            h['dPhi-B'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
+
+        if vals['nDSA'] < 10:
+            if i == '2' and vals['type'] == 'HYB': continue
+            if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
+            if 'Data' not in vals['name'] and 'QCD' not in vals['name']: continue
+            h['dR'].Fill(vals['dR'+i])
 
 
 print c
+print nDR7
 
-c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in Data')
-p = {
-    'small':Plotter.Plot(h['d0Sig-S'], 'refitted #sigma_{p_{T}}/p_{T} < 1%', 'l', 'hist'),
-    'big'  :Plotter.Plot(h['d0Sig-B'], 'refitted #sigma_{p_{T}}/p_{T} > 1%', 'l', 'hist'),
-}
-c.addMainPlot(p['small'])
-c.addMainPlot(p['big']  )
-c.mainPad.SetLogx()
-p['small'].setColor(R.kRed, which='L')
-p['big'].setColor(R.kBlue, which='L')
-c.setMaximum()
-c.makeLegend(lWidth=.3, pos='tr')
-c.legend.resizeHeight()
-p1 = c.makeStatsBox(p['small'], color=R.kRed)
-p2 = c.makeStatsBox(p['big'], color=R.kBlue)
-Plotter.MOVE_OBJECT(p1, Y=-.1)
-Plotter.MOVE_OBJECT(p2, Y=-.3)
-p2.SetX1(p1.GetX1())
-c.firstPlot.scaleTitleOffsets(1.2, axes='X')
-c.cleanup('d0Sig.pdf')
+if args.HYB:
+    rtype = 'DSA-PAT'
+    fname = '-HYB'
+else:
+    rtype = 'DSA-DSA'
+    fname = ''
 
-c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in Data')
-p = {
-    'small':Plotter.Plot(h['dPhi-S'], 'refitted #sigma_{p_{T}}/p_{T} < 1%', 'l', 'hist'),
-    'big'  :Plotter.Plot(h['dPhi-B'], 'refitted #sigma_{p_{T}}/p_{T} > 1%', 'l', 'hist'),
-}
-c.addMainPlot(p['small'])
-c.addMainPlot(p['big']  )
-p['small'].setColor(R.kRed, which='L')
-p['big'].setColor(R.kBlue, which='L')
-c.setMaximum()
-c.makeLegend(lWidth=.3, pos='tr')
-c.legend.resizeHeight()
-p1 = c.makeStatsBox(p['small'], color=R.kRed)
-p2 = c.makeStatsBox(p['big'], color=R.kBlue)
-Plotter.MOVE_OBJECT(p1, Y=-.1)
-Plotter.MOVE_OBJECT(p2, Y=-.3)
-p2.SetX1(p1.GetX1())
-c.firstPlot.scaleTitleOffsets(1.2, axes='X')
-c.cleanup('dPhi.pdf')
+if args.MC:
+    dtype = 'MC'
+else:
+    dtype = 'Data'
+
+for i in ('d0', 'd0Sig', 'dPhi'):
+    name = i
+    c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype), logy=name=='dPhi')
+    p = {
+        'small':Plotter.Plot(h[name+'-S'], 'refitted #sigma_{p_{T}}/p_{T} < 1%', 'l', 'hist'),
+        'big'  :Plotter.Plot(h[name+'-B'], 'refitted #sigma_{p_{T}}/p_{T} > 1%', 'l', 'hist'),
+    }
+    c.addMainPlot(p['small'])
+    c.addMainPlot(p['big']  )
+    p['small'].setColor(R.kRed, which='L')
+    p['big'].setColor(R.kBlue, which='L')
+    if 'dPhi' not in name:
+        c.mainPad.SetLogx()
+    c.setMaximum()
+    c.makeLegend(lWidth=.3, pos='tr')
+    c.legend.resizeHeight()
+    p1 = c.makeStatsBox(p['small'], color=R.kRed)
+    p2 = c.makeStatsBox(p['big'], color=R.kBlue)
+    Plotter.MOVE_OBJECT(p1, Y=-.1)
+    Plotter.MOVE_OBJECT(p2, Y=-.3)
+    p2.SetX1(p1.GetX1())
+    c.firstPlot.scaleTitleOffsets(1.2, axes='X')
+    c.cleanup('{}{}.pdf'.format(name, fname))
+
+if True:
+    c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype))
+    p = Plotter.Plot(h['dR'], '', '', 'hist')
+    c.addMainPlot(p)
+    p.setColor(R.kBlue, which='L')
+    c.setMaximum()
+    pave = c.makeStatsBox(p, color=R.kBlue)
+    c.firstPlot.scaleTitleOffsets(1.2, axes='X')
+    c.cleanup('dR{}.pdf'.format(fname))
