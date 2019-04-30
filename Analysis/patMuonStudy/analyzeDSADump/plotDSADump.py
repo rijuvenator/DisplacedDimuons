@@ -8,6 +8,7 @@ import DisplacedDimuons.Analysis.RootTools as RT
 PP.PARSER.add_argument('FILE')
 PP.PARSER.add_argument('--hyb', dest='HYB', action='store_true')
 PP.PARSER.add_argument('--mc' , dest='MC' , action='store_true')
+PP.PARSER.add_argument('--sig', dest='SIG', action='store_true')
 args = PP.PARSER.parse_args()
 
 h = {
@@ -19,6 +20,7 @@ h = {
     'd0-B'   :R.TH1F('h6', ';d_{0};Counts'                           , 80, np.logspace(-3., 5., 81)   ),
 
     'dR'     :R.TH1F('h7', ';proximity #DeltaR;Counts'               , 37, 0.04, 0.41),
+    'DCA'    :R.TH1F('h8', ';D.C.A. [cm];Counts'                     , 50, 0.  , 1000.),
 }
 
 def deltaPhi(phi1, phi2):
@@ -44,31 +46,32 @@ l = [
 ]
 
 config = {
-    'name'    : {'cast':str  , 'col': 0},
-    'event'   : {'cast':int  , 'col': 3},
+    'name'     : {'cast':str  , 'col': 0},
+    'event'    : {'cast':int  , 'col': 3},
 
-    'type'    : {'cast':str  , 'col': 6},
+    'type'     : {'cast':str  , 'col': 6},
 
-    'LxySig'  : {'cast':float, 'col':10},
-    'vtxChi2' : {'cast':float, 'col':12},
-    'cosAlpha': {'cast':float, 'col':13},
+    'LxySig'   : {'cast':float, 'col':10},
+    'vtxChi2'  : {'cast':float, 'col':12},
+    'cosAlpha' : {'cast':float, 'col':13},
+    'cosAlphaO': {'cast':float, 'col':14},
 
-    'd01'     : {'cast':float, 'col':15},
-    'd02'     : {'cast':float, 'col':16},
-    'd0Sig1'  : {'cast':float, 'col':17},
-    'd0Sig2'  : {'cast':float, 'col':18},
+    'd01'      : {'cast':float, 'col':16},
+    'd02'      : {'cast':float, 'col':17},
+    'd0Sig1'   : {'cast':float, 'col':18},
+    'd0Sig2'   : {'cast':float, 'col':19},
 
-    'dR1'     : {'cast':float, 'col':19},
-    'dR2'     : {'cast':float, 'col':20},
+    'fpte1'    : {'cast':float, 'col':21},
+    'fpte2'    : {'cast':float, 'col':22},
+    'phi1'     : {'cast':float, 'col':23},
+    'phi2'     : {'cast':float, 'col':24},
+    'rphi1'    : {'cast':float, 'col':25},
+    'rphi2'    : {'cast':float, 'col':26},
 
-    'fpte1'   : {'cast':float, 'col':22},
-    'fpte2'   : {'cast':float, 'col':23},
-    'phi1'    : {'cast':float, 'col':24},
-    'phi2'    : {'cast':float, 'col':25},
-    'rphi1'   : {'cast':float, 'col':26},
-    'rphi2'   : {'cast':float, 'col':27},
-
-    'nDSA'    : {'cast':int  , 'col':28},
+    'nDSA'     : {'cast':int  , 'col':27},
+    'nDSACln'  : {'cast':int  , 'col':28},
+    'qsum'     : {'cast':int  , 'col':29},
+    'DCA'      : {'cast':float, 'col':30},
 }
 
 
@@ -80,14 +83,18 @@ for line in f:
     cols = line.strip('\n').split()
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
-    if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01 or vals['fpte1'] > 1. or vals['fpte2'] > 1.:
+    h['DCA'].Fill(vals['DCA'])
+
+    if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
         c += 1
+
+        h['DCA'].Fill(vals['DCA'])
 
         if vals['event'] in l:
             print vals['event']
 
-    if vals['dR1'] < 0.07 or vals['dR2'] < 0.07:
-        nDR7 += 1
+#    if vals['dR1'] < 0.07 or vals['dR2'] < 0.07:
+#        nDR7 += 1
 
     for i in ('1', '2'):
         if vals['fpte'+i] < 0.01:
@@ -99,11 +106,11 @@ for line in f:
             h['d0-B']   .Fill(vals['d0'+i])
             h['dPhi-B'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
 
-        if vals['nDSA'] < 10:
-            if i == '2' and vals['type'] == 'HYB': continue
-            if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
-            if 'Data' not in vals['name'] and 'QCD' not in vals['name']: continue
-            h['dR'].Fill(vals['dR'+i])
+#        if vals['nDSA'] < 10:
+#            if i == '2' and vals['type'] == 'HYB': continue
+#            if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
+#            if 'Data' not in vals['name'] and 'QCD' not in vals['name']: continue
+#            h['dR'].Fill(vals['dR'+i])
 
 
 print c
@@ -118,6 +125,8 @@ else:
 
 if args.MC:
     dtype = 'MC'
+elif args.SIG:
+    dtype = 'Signal'
 else:
     dtype = 'Data'
 
@@ -145,7 +154,7 @@ for i in ('d0', 'd0Sig', 'dPhi'):
     c.firstPlot.scaleTitleOffsets(1.2, axes='X')
     c.cleanup('{}{}.pdf'.format(name, fname))
 
-if True:
+if False:
     c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype))
     p = Plotter.Plot(h['dR'], '', '', 'hist')
     c.addMainPlot(p)
@@ -154,3 +163,13 @@ if True:
     pave = c.makeStatsBox(p, color=R.kBlue)
     c.firstPlot.scaleTitleOffsets(1.2, axes='X')
     c.cleanup('dR{}.pdf'.format(fname))
+
+if True:
+    c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype), logy=True)
+    p = Plotter.Plot(h['DCA'], '', '', 'hist')
+    c.addMainPlot(p)
+    p.setColor(R.kBlue, which='L')
+    c.setMaximum()
+    pave = c.makeStatsBox(p, color=R.kBlue)
+    c.firstPlot.scaleTitleOffsets(1.2, axes='X')
+    c.cleanup('DCA{}.pdf'.format(fname))

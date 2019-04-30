@@ -460,13 +460,18 @@ class RecoMuon(Muon):
             self.set('highPurity', E, prefix+'hpur', i)
             for attr in ('isGlobal', 'isTracker', 'highPurity', 'isMedium'):
                 setattr(self, attr, bool(getattr(self, attr)))
+            self.set('chi2_Global', E, prefix+'globchi2', i)
+            self.set('ndof_Global', E, prefix+'globndof', i)
+            self.normChi2_Global = self.chi2_Global/self.ndof_Global if self.ndof_Global != 0 else float('inf')
         # only DSA has these attributes
         if tag in ('DSA',):
             for attr in ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch'):
                 self.set(attr, E, prefix+attr, i)
+            self.set('nSeg_ProxMatch', E, prefix+'nSegms_ProxMatch', i)
             if     self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
             if len(self.idx_SegMatch)   == 0   : self.idx_SegMatch     = None
             if     self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
+            if     self.nSeg_ProxMatch   < 0   : self.nSeg_ProxMatch   = None
         # only refitted PAT has these attributes
         if 'REF' in tag:
             if 'PAT' in self.tag:
@@ -531,6 +536,13 @@ class Dimuon(Particle):
         for attr in ('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha'):
             self.set(attr, E, 'dim_'+attr, i)
         self.Lxy_ = TransverseDecayLength(E, i, 'dim_')
+
+        self.set('cosAlphaOriginal', E, 'dim_cosAlphaOrig', i)
+        self.set('DCA'             , E, 'dim_dca'         , i)
+        self.set('x_PCA'           , E, 'dim_pca_x'       , i)
+        self.set('y_PCA'           , E, 'dim_pca_y'       , i)
+        self.set('z_PCA'           , E, 'dim_pca_z'       , i)
+        self.PCA = R.TVector3(self.x_PCA, self.y_PCA, self.z_PCA)
 
         self.mu1 = RecoMuon(E, i, 'DIM_REF1')
         self.mu2 = RecoMuon(E, i, 'DIM_REF2')

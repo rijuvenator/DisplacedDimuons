@@ -1,42 +1,40 @@
 import sys
 
 config = {
-    'event'   : {'cast':int  , 'col': 3},
+    'event'    : {'cast':int  , 'col': 3},
 
-    'type'    : {'cast':str  , 'col': 6},
+    'type'     : {'cast':str  , 'col': 6},
 
-    'LxySig'  : {'cast':float, 'col':10},
-    'vtxChi2' : {'cast':float, 'col':12},
-    'cosAlpha': {'cast':float, 'col':13},
+    'LxySig'   : {'cast':float, 'col':10},
+    'vtxChi2'  : {'cast':float, 'col':12},
+    'cosAlpha' : {'cast':float, 'col':13},
+    'cosAlphaO': {'cast':float, 'col':14},
 
-    'd01'     : {'cast':float, 'col':15},
-    'd02'     : {'cast':float, 'col':16},
-    'd0Sig1'  : {'cast':float, 'col':17},
-    'd0Sig2'  : {'cast':float, 'col':18},
+    'd01'      : {'cast':float, 'col':16},
+    'd02'      : {'cast':float, 'col':17},
+    'd0Sig1'   : {'cast':float, 'col':18},
+    'd0Sig2'   : {'cast':float, 'col':19},
 
-    'dR1'     : {'cast':float, 'col':19},
-    'dR2'     : {'cast':float, 'col':20},
+    'fpte1'    : {'cast':float, 'col':21},
+    'fpte2'    : {'cast':float, 'col':22},
+    'phi1'     : {'cast':float, 'col':23},
+    'phi2'     : {'cast':float, 'col':24},
+    'rphi1'    : {'cast':float, 'col':25},
+    'rphi2'    : {'cast':float, 'col':26},
 
-    'fpte1'   : {'cast':float, 'col':22},
-    'fpte2'   : {'cast':float, 'col':23},
-    'phi1'    : {'cast':float, 'col':24},
-    'phi2'    : {'cast':float, 'col':25},
-    'rphi1'   : {'cast':float, 'col':26},
-    'rphi2'   : {'cast':float, 'col':27},
-
-    'nDSA'    : {'cast':int  , 'col':28},
-
-    'charge1' : {'cast':float, 'col':29},
-    'charge2' : {'cast':float, 'col':30},
-    'rcharge1': {'cast':float, 'col':31},
-    'rcharge2': {'cast':float, 'col':32},
+    'nDSA'     : {'cast':int  , 'col':27},
+    'nDSACln'  : {'cast':int  , 'col':28},
+    'qsum'     : {'cast':int  , 'col':29},
+    'DCA'      : {'cast':float, 'col':30},
 }
 
 tests = {'total':{'count':0, 'lines':''}, 'LxySig':{'count':0, 'lines':''}, 'd0Sig':{'count':0, 'lines':''}, 'vtxChi2':{'count':0, 'lines':''}}
 
 f = open(sys.argv[1])
 
-MODE = 'FPTE'
+#MODE = 'FPTE'
+MODE = 'DCA'
+#MODE = 'DCA-SIG'
 #MODE = 'CUTTEST'
 #MODE = 'CHARGE'
 
@@ -46,6 +44,14 @@ for line in f:
 
     if MODE == 'FPTE':
         if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01:
+            print line.strip('\n')
+
+    elif MODE == 'DCA':
+        if (vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01) and vals['DCA'] < 60.:
+            print line.strip('\n')
+
+    elif MODE == 'DCA-SIG':
+        if vals['DCA'] > 60.:
             print line.strip('\n')
 
     elif MODE == 'CHARGE':

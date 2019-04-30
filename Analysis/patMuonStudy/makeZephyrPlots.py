@@ -17,11 +17,13 @@ LXYZOOMEDFULL = ARGS.ZOOMED
 MASSZOOMED = ARGS.ZOOMED
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_NDSA_LXYSIG'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
     'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG' : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_LXYSIG'      : ' #minus N(DSA)',
+    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_LXYSIG'            : ' #minus N(DSA) #minus ref. #sigma_{p_{T}}/p_{T}',
 }
 
 DRAW = False
@@ -87,7 +89,7 @@ def makeLxyResVSLxyPlot(recoType):
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha', 'cosAlpha-O', 'DCA', 'pTOverM', 'minNHits', 'qsum']
     for recoType in quantities:
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
@@ -156,7 +158,7 @@ def makeSinglePlots():
 # MC plots of LxySig
 def makeMCPlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha', 'cosAlpha-O', 'DCA', 'pTOverM', 'minNHits', 'qsum']
     for recoType in quantities:
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
@@ -185,6 +187,8 @@ def makeMCPlots():
         if 'nDimuon' in key: return True
         if 'nDSA' in key: return True
         if 'REF-DSA-FPTE' in key: return True
+        if 'minNHits' in key: return True
+        if 'qsum' in key: return True
         return False
 
     for recoType in quantities:
