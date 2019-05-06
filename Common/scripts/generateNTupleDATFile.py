@@ -21,6 +21,15 @@ for SP in Constants.SIGNALPOINTS:
         FNAME = F_NTUPLE.format(NAME)
         output += '{NAME} {FNAME}\n'.format(**locals())
 
+# # Signal samples (re-HLT)
+# for SP in Constants.REHLT_SIGNALPOINTS:
+#     for FS in ('2Mu2J',):
+#         for HLTfilter in ('CosmicSeed', 'ppSeed'):
+#             NAME = 'HTo2XTo{FS}_reHLT_{HLTFILTER}_{SPSTR}'.format(
+#                     FS=FS, SPSTR=Utilities.SPStr(SP), HLTFILTER=HLTfilter)
+#             FNAME = F_NTUPLE.format(NAME)
+#             output += '{NAME} {FNAME}\n'.format(**locals())
+
 for NAME in (
     # Background MC
     'DY10to50'                     ,
@@ -46,6 +55,24 @@ for NAME in (
     'DoubleMuonRun2016F-07Aug17'   ,
     'DoubleMuonRun2016G-07Aug17'   ,
     'DoubleMuonRun2016H-07Aug17'   ,
+    # # Cosmics data
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed',
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed',
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'    ,
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'    ,
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-CosmicSeed'           ,
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed'           ,
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-ppSeed'               ,
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-ppSeed'               ,
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'     ,
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'     ,
+    # 'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'         ,
+    # 'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'         ,
+    # # NoBPTX data
+    # 'NoBPTXRun2016D-07Aug17'                                       ,
+    # 'NoBPTXRun2016E-07Aug17'                                       ,
+    # 'NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path'          ,
+    # 'NoBPTXRun2016D-07Aug17_reAOD-HLT_pp-seeded-path'              ,
     ):
     FNAME = F_NTUPLE.format(NAME)
     output += '{NAME} {FNAME}\n'.format(**locals())

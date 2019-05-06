@@ -283,6 +283,12 @@ def getHTo2XTo2Mu2JSamples():
     return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J')]
 
 # aliased wrapper for convenience
+# get HTo2LongLivedTo2mu2jets_reHLT MC samples
+def getHTo2XTo2Mu2JSamples_reHLT():
+    return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J') \
+            and '_reHLT' in s.name]
+
+# aliased wrapper for convenience
 # get background MC samples
 def getBackgroundSamples():
     return getSamples('BackgroundMC')
@@ -295,7 +301,7 @@ def getDataSamples():
 # aliased wrapper for convenience
 # get all samples, return as dictionary
 def getAllSamples():
-    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getBackgroundSamples() + getDataSamples()}
+    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2JSamples_reHLT() + getBackgroundSamples() + getDataSamples()}
 
 # get NTuple info
 # this loads the information in NTuples.dat into a dictionary at module level
@@ -329,6 +335,15 @@ if __name__ == '__main__':
 
     print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES-----\n\033[m'
     HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples()
+    for ds in HTo2XTo2Mu2JSamples:
+        for process in ds.datasets:
+            if 'AOD' in process:
+                print process, ds.signalPoint()
+                print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
+        print '   ', ds.nTupleInfo
+
+    print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES (reHLT)-----\n\033[m'
+    HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples_reHLT()
     for ds in HTo2XTo2Mu2JSamples:
         for process in ds.datasets:
             if 'AOD' in process:

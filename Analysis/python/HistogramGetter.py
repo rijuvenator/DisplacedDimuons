@@ -18,7 +18,11 @@ INTEGRATED_LUMINOSITY_2016 = 35900.
 
 Patterns = {
     'HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})')
+    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J_reHLT_CosmicSeed' : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT_CosmicSeed_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J_reHLT_ppSeed'     : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT_ppSeed_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'merged_HTo2XTo2Mu2J_reHLT_CosmicSeed' : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT_CosmicSeed'),
+    'merged_HTo2XTo2Mu2J_reHLT_ppSeed' : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT_ppSeed'),
 }
 for sample in (
     'DY10to50'     ,
@@ -43,18 +47,18 @@ for sample in (
     'DoubleMuonRun2016H-07Aug17'   ,
     'NoBPTXRun2016D_07Aug17'       ,
     'NoBPTXRun2016E_07Aug17'       ,
-    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_CosmicSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_CosmicSeed',
-    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_ppSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_ppSeed',
-    'CosmicsRun2016D_reAOD_HLT_UGMT_base_CosmicSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_base_CosmicSeed',
-    'CosmicsRun2016D_reAOD_HLT_UGMT_base_ppSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_base_ppSeed',
-    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_CosmicSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_CosmicSeed',
-    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_ppSeed',
-    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_ppSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_HLT_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_HLT_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_bottomOnly_HLT_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_bottomOnly_HLT_ppSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_HLT_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_HLT_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_base_HLT_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_base_HLT_ppSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_HLT_CosmicSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_HLT_CosmicSeed',
+    'CosmicsRun2016D_reAOD_HLT_UGMT_bottomOnly_HLT_ppSeed',
+    'CosmicsRun2016E_reAOD_HLT_UGMT_bottomOnly_HLT_ppSeed',
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 
@@ -78,9 +82,26 @@ def getHistograms(FILE):
             elif '2Mu2J' in hkey:
                 # hkey has the form KEY_HTo2XTo2Mu2J_mH_mX_cTau
                 matches = Patterns['HTo2XTo2Mu2J'].match(hkey)
+
+                # if no match is found, try to match the pattern
+                # KEY_HTo2XTo2Mu2J_reHLT_[pp|Cosmic]Seed, either with or without
+                # the signalpoint
+                if 'reHLT_CosmicSeed' in hkey:
+                    matches = Patterns['HTo2XTo2Mu2J_reHLT_CosmicSeed'].match(hkey)
+                    if matches is None:
+                        matches = Patterns['merged_HTo2XTo2Mu2J_reHLT_CosmicSeed'].match(hkey)
+                if 'reHLT_ppSeed' in hkey:
+                    matches = Patterns['HTo2XTo2Mu2J_reHLT_ppSeed'].match(hkey)
+                    if matches is None:
+                        matches = Patterns['merged_HTo2XTo2Mu2J_reHLT_ppSeed'].match(hkey)
                 fs = '2Mu2J'
             key = matches.group(1)
-            sp = tuple(map(int, matches.group(2, 3, 4)))
+            try:
+                sp = tuple(map(int, matches.group(2, 3, 4)))
+            except:
+                # if histograms have been merged before, there will not be a
+                # signal point string
+                sp = (-1, -1, -1)
             if (fs, sp) not in HISTS:
                 HISTS[(fs, sp)] = {}
             HISTS[(fs, sp)][key] = f.Get(hkey)

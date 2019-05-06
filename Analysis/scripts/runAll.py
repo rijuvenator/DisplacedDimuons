@@ -3,7 +3,7 @@ import os
 import re
 import subprocess as bash
 import argparse
-from DisplacedDimuons.Common.Constants import SIGNALPOINTS
+from DisplacedDimuons.Common.Constants import SIGNALPOINTS, REHLT_SIGNALPOINTS
 
 #########################################
 #### GLOBAL CONFIGURATION PARAMETERS ####
@@ -65,33 +65,33 @@ DataSampleList_NoBPTX_reHLT_ppSeed = (
 
 # Cosmcis data: 591 jobs in total
 DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (35, 50000)), # 1733944 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_CosmicSeed', (52, 50000)), # 2591141 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed', (70, 25000)), # 1733944 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed', (104, 25000)), # 2591141 events
 )
 
 DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (27, 50000)), # 1322612 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_ppSeed', (34, 50000)), # 1676444 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed', (53, 25000)), # 1322612 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed', (68, 25000)), # 1676444 events
 )
 
 DataSampleList_Cosmics_UGMT_base_CosmicSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_CosmicSeed', (35, 50000)), # 1733944 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_CosmicSeed', (16, 50000)), # 778138 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-CosmicSeed', (70, 25000)), # 1733944 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed', (32, 25000)), # 778138 events
 )
 
 DataSampleList_Cosmics_UGMT_base_ppSeed = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_ppSeed', (27, 50000)), # 1322612 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_ppSeed', (12, 50000)), # 595818 events
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-ppSeed', (53, 25000)), # 1322612 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-ppSeed', (24, 25000)), # 595818 events
 )
 
 DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed = (
     # no selected LS in 2016D data
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_CosmicSeed', (37, 50000)), # 1813003 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed', (73, 25000)), # 1813003 events
 )
 
 DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed = (
     # no selected LS in 2016D data
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_ppSeed', (22, 50000)), # 1080626 events
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed', (44, 25000)), # 1080626 events
 )
 
 # specific scripts that should ignore the splitting parameter
@@ -171,10 +171,14 @@ elif MODE == 'LXBATCH':
 # all data samples are huge and must be split up
 if args.FILE == '':
     ArgsList = []
-    if 'S' in args.SAMPLES:
+    if 'S' in args.SAMPLES and not 'reHLT' in args.SAMPLES:
         ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-    if '2' in args.SAMPLES:
+    if '2' in args.SAMPLES and not 'reHLT' in args.SAMPLES:
         ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
+    if all([a in args.SAMPLES for a in ('2', 'reHLT', 'CosmicSeed')]):
+        ArgsList.extend(['--name HTo2XTo2Mu2J_reHLT_CosmicSeed --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in REHLT_SIGNALPOINTS])
+    if all([a in args.SAMPLES for a in ('2', 'reHLT', 'ppSeed')]):
+        ArgsList.extend(['--name HTo2XTo2Mu2J_reHLT_ppSeed --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in REHLT_SIGNALPOINTS])
     if 'B' in args.SAMPLES:
         for NAME, SPLITTING in BGSampleList:
             if SPLITTING is None or SCRIPT in SplittingVetoList:
