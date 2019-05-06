@@ -566,9 +566,10 @@ class Canvas(R.TCanvas):
             latex.DrawLatex(pos[0], pos[1], text)
         return latex
 
-    # makes a stat box, given a ROOT color number
-    def makeStatsBox(self, plot, color=1):
-        entries = ('mean', 'stddev', 'nentries', 'underflow', 'overflow')
+    # makes a stat box, given a ROOT color number, for the specified list of entries
+    def makeStatsBox(self, plot, color=1,
+            entries=('mean', 'stddev', 'nentries', 'underflow', 'overflow')):
+        supported_entries = ('mean', 'stddev', 'nentries', 'underflow', 'overflow')
         texts = (
             '{:.4f}'.format(plot.GetMean()),
             '{:.4f}'.format(plot.GetStdDev()),
@@ -599,8 +600,9 @@ class Canvas(R.TCanvas):
         pave.SetBorderSize(0)
 
         # add all the entries and draw, then move the pave
-        for i, (entry, text, name) in enumerate(zip(entries, texts, names)):
-            pave.AddText(0., 1.-float(i)/len(entries)-0.1, '#color[{C}]{{{N} = {T}}}'.format(C=color, N=name, T=text))
+        for i, (entry, text, name) in enumerate(zip(supported_entries, texts, names)):
+            if entry in entries:
+                pave.AddText(0., 1.-float(i)/len(entries)-0.1, '#color[{C}]{{{N} = {T}}}'.format(C=color, N=name, T=text))
         pave.Draw()
         MOVE_OBJECT(pave, Y=.08*len(entries)*self.fontsize)
 
