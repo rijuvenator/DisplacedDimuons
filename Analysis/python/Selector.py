@@ -24,6 +24,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     COSA      = '_COSA'     in CUTS
     SFPTE     = '_SFPTE'    in CUTS
     NDSA      = '_NDSA'     in CUTS
+    NPP       = '_NPP'      in CUTS
     LXYSIG    = '_LXYSIG'   in CUTS
 
     # not yet used
@@ -81,6 +82,10 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
     if NDSA:
         if not Selections.CUTS['nDSA'].apply(DSAmuons): return failedReturnList
+
+    if NPP:
+        nPPm, nPPp = AnalysisTools.numberOfParallelPairs(DSAmuons)
+        if not Selections.CUTS['nPP'].apply(nPPm+nPPp): return failedReturnList
 
     # for PROMPT and NOPROMPT event selections
     if PROMPT or NOPROMPT:

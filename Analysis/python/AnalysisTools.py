@@ -620,6 +620,26 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # where selectedDimuons is a Dimuons3 type list
     return filteredDSAmuons, filteredPATmuons, filteredDimuons
 
+# "cosmic shower finder"
+# finds the number of parallel (or antiparallel) pairs from the original list of DSA muons
+# if this number is particularly high, it's very likely a cosmic event
+def numberOfParallelPairs(DSAmuons):
+    cleanMuons = [d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12 and d.pt > 5.]
+    nMinus, nPlus = 0, 0
+    for i in xrange(len(cleanMuons)):
+        for j in xrange(i+1, len(cleanMuons)):
+            d1, d2 = cleanMuons[i], cleanMuons[j]
+            originalCosAlpha = computeCosAlpha(d1, d2)
+            if originalCosAlpha < -0.99:
+                nMinus += 1
+            if originalCosAlpha > 0.99:
+                nPlus += 1
+    return nMinus, nPlus
+
+# needed for the above
+def computeCosAlpha(d1, d2):
+    return d1.p4.Vect().Dot(d2.p4.Vect())/d1.p4.P()/d2.p4.P()
+
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
     PBi = R.TMath.BetaIncomplete(1./(1.+tau),nOn,nOff+1)

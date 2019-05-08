@@ -73,6 +73,7 @@ CUTS = {
 
 ### N(DSA) MUONS CUT ###
     'nDSA'       :      Cut('nDSA'     , NDSALAMBDA                                 , operator.lt,          8       ),
+    'nPP'        :      Cut('nPP'      , lambda npp: npp                            , operator.lt,         10       ),
 
 ### GEN ACCEPTANCE CUTS ###
     'a_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         25.      ),
