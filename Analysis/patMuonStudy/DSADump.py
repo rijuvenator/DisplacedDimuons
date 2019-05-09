@@ -1,8 +1,9 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
+import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, numberOfParallelPairs
 import DisplacedDimuons.Analysis.Selector as Selector
 import DisplacedDimuons.Analysis.PrimitivesPrinter as Printer
 
@@ -41,7 +42,7 @@ def analyze(self, E, PARAMS=None):
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
-    def getOriginalMuons(dim):
+    def getOriginalMuons(dim, DSAmuons):
         if dim.composition == 'PAT':
             return PATmuons[dim.idx1], PATmuons[dim.idx2]
         elif dim.composition == 'DSA':
@@ -49,31 +50,33 @@ def analyze(self, E, PARAMS=None):
         else:
             return DSAmuons[dim.idx1], PATmuons[dim.idx2]
 
+    def modifiedName(name):
+        if 'DoubleMuon' in name:
+            return 'Data'+name[17]
+        if 'QCD' in name:
+            return 'QCD'
+        if 'HTo2X' in name:
+            return '{:4d} {:3d} {:4d}'.format(*self.SP.SP)
+        return name
+
+    cleanMuons = [d for d in DSAmuons if d.nCSCHits+d.nDTHits>12 and d.pt>5.]
+
     for dim in selectedDimuons:
         if dim.composition != 'DSA': continue
         #if not (dim.composition == 'DSA' or dim.composition == 'HYBRID'): continue
 
-        mu1, mu2 = getOriginalMuons(dim)
+        mu1, mu2 = getOriginalMuons(dim, DSAmuons)
+        nMinusPP, nPlusPP = numberOfParallelPairs(DSAmuons)
 
-        def modifiedName(name):
-            if 'DoubleMuon' in name:
-                return 'Data'+name[17]
-            if 'QCD' in name:
-                return 'QCD'
-            return name
-
-        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:6.3f} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} ::: {:.3e} {:.3e} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:2d} {:2d} {:2d} {:.3e}'.format(
+        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:6.3f} {:.3e} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} ::: {:2d} {:2d} {:2d} {:2d} {:2d} ::: {:6.3f} {:6.3f} ::: {:.3e} {:.3e} {:.3e}'.format(
                 modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                 dim.composition[:3], dim.idx1, dim.idx2,
-                dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, dim.cosAlphaOriginal,
+                dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, dim.cosAlphaOriginal, dim.DCA,
                 mu1.d0(), mu2.d0(), mu1.d0Sig(), mu2.d0Sig(),
-                dim.mu1.ptError/dim.mu1.pt, dim.mu2.ptError/dim.mu2.pt,
-                mu1.phi, mu2.phi, dim.mu1.phi, dim.mu2.phi,
-                len(DSAmuons), len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12 and d.pt > 5.]),
-                int(dim.mu1.charge+dim.mu2.charge), dim.DCA
+                len(DSAmuons), len(cleanMuons), nMinusPP, nPlusPP, nMinusPP+nPlusPP,
+                mu1.normChi2, mu2.normChi2,
+                dim.pos.Dist(dim.PCA), dim.pos.Proj2D().Dist(dim.PCA.Proj2D()), abs(dim.z-dim.z_PCA),
         )
-
-#               mu1.deltaR_ProxMatch, mu2.deltaR_ProxMatch if dim.composition == 'DSA' else -1.,
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):

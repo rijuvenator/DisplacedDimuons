@@ -40,6 +40,8 @@ Date | Talks
 [2019     March  7](https://indico.cern.ch/event/804260/) | Riju, Sebastian
 [2019     March 21](https://indico.cern.ch/event/807968/) | Riju, Alberto, Sebastian
 [2019     April  4](https://indico.cern.ch/event/811831/) | Riju
+[2019     April 18](https://indico.cern.ch/event/815040/) | Riju, Alberto, Sebastian
+[2019       May  9](https://indico.cern.ch/event/819804/) | Riju, Alberto, Slava
 
 ## External Talks
 
