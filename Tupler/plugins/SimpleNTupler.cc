@@ -96,6 +96,7 @@ class SimpleNTupler : public edm::EDAnalyzer
     edm::EDGetTokenT<pat::MuonCollection           > muonToken;
     edm::EDGetTokenT<reco::TrackCollection         > dsaMuonToken;
     edm::EDGetTokenT<reco::TrackCollection         > rsaMuonToken;
+    edm::EDGetTokenT<reco::TrackCollection		   > trackToken;
 
 };
 
@@ -120,19 +121,20 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   rsaMuonData (tree, source != "GEN"),
   dimData     (tree, source != "GEN"),
 
-  triggerEventToken(consumes<pat::TriggerEvent             >(iConfig.getParameter<edm::InputTag>("triggerEvent"  ))),
-  prescalesToken   (consumes<pat::PackedTriggerPrescales   >(iConfig.getParameter<edm::InputTag>("prescales"     ))),
-  triggerToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
-  patMetToken      (consumes<pat::METCollection            >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
-  filtersToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("filters"       ))),
-  beamspotToken    (consumes<reco::BeamSpot                >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
-  vertexToken      (consumes<reco::VertexCollection        >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
-  genToken         (consumes<reco::GenParticleCollection   >(iConfig.getParameter<edm::InputTag>("gens"          ))),
-  GEIPToken        (consumes<GenEventInfoProduct           >(iConfig.getParameter<edm::InputTag>("GEIP"          ))),
-  pileupToken      (consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupInfo"    ))),
-  muonToken        (consumes<pat::MuonCollection           >(iConfig.getParameter<edm::InputTag>("muons"         ))),
-  dsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dsaMuons"      ))),
-  rsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("rsaMuons"      )))
+  triggerEventToken(consumes<pat::TriggerEvent             >(iConfig.getParameter<edm::InputTag>("triggerEvent" 	   ))),
+  prescalesToken   (consumes<pat::PackedTriggerPrescales   >(iConfig.getParameter<edm::InputTag>("prescales"   		   ))),
+  triggerToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("triggerResults"	   ))),
+  patMetToken      (consumes<pat::METCollection            >(iConfig.getParameter<edm::InputTag>("patMet"  		       ))),
+  filtersToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("filters"  	       ))),
+  beamspotToken    (consumes<reco::BeamSpot                >(iConfig.getParameter<edm::InputTag>("beamspot" 	       ))),
+  vertexToken      (consumes<reco::VertexCollection        >(iConfig.getParameter<edm::InputTag>("vertices"  	       ))),
+  genToken         (consumes<reco::GenParticleCollection   >(iConfig.getParameter<edm::InputTag>("gens"    		       ))),
+  GEIPToken        (consumes<GenEventInfoProduct           >(iConfig.getParameter<edm::InputTag>("GEIP"        		   ))),
+  pileupToken      (consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupInfo" 		   ))),
+  muonToken        (consumes<pat::MuonCollection           >(iConfig.getParameter<edm::InputTag>("muons"    	       ))),
+  dsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dsaMuons"    		   ))),
+  rsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("rsaMuons"     	   ))),
+  trackToken	   (consumes<reco::TrackCollection		   >(iConfig.getParameter<edm::InputTag>("inputTrackCollection")))
 {};
 
 // wrapper for failedToGet
@@ -290,8 +292,12 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *******************
   if (source != "GEN")
   {
+	//tracks used for isolation
+	 edm::Handle<reco::TrackCollection> generalTracks;
+	 iEvent.getByToken(trackToken, generalTracks);
+
     if (dsaMuonData.isValid() && vertexData.isValid())
-      dimData.Fill(dsaMuons, ttB, vertices, beamspot);
+      dimData.Fill(dsaMuons, ttB, vertices, beamspot, generalTracks);
   }
 
   // Final tree fill

@@ -8,7 +8,7 @@ import FWCore.ParameterSet.Config as cms
 # ^PARAMETER\s+= and set values accordingly, so
 # please don't add any similar lines above these 8
 MAXEVENTS  = -1
-INPUTFILES = []
+INPUTFILES = ['file:/eos/cms/store/user/valuev/DisplacedDimuons/PATFilter/MC2016_Hto2Xto2mu2j_1000_150_1000_07May19.root']
 OUTPUTFILE = 'test.root'
 ISMC       = False
 ISSIGNAL   = False

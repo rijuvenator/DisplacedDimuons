@@ -55,6 +55,7 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_normChi2 ;
 		std::vector<float> dim_cosAlpha ;
 		std::vector<float> dim_deltaPhi ;
+		std::vector<float> dim_iso	    ;
 
 		std::vector<int  > dim_mu1_idx          ;
 		std::vector<float> dim_mu1_px           ;
@@ -125,6 +126,7 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_normChi2" , dim_normChi2 );
 			Declare("dim_cosAlpha" , dim_cosAlpha );
 			Declare("dim_deltaPhi" , dim_deltaPhi );
+			Declare("dim_iso" 	   , dim_iso 	  );
 
 			Declare("dim_mu1_idx"         , dim_mu1_idx         );
 			Declare("dim_mu1_px"          , dim_mu1_px          );
@@ -195,6 +197,7 @@ class DimuonBranches : public BranchCollection
 			dim_normChi2 .clear();
 			dim_cosAlpha .clear();
 			dim_deltaPhi .clear();
+			dim_iso      .clear();
 
 			dim_mu1_idx         .clear();
 			dim_mu1_px          .clear();
@@ -247,10 +250,12 @@ class DimuonBranches : public BranchCollection
 			dim_mu2_dzsig_bs_lin.clear();
 		}
 
+
 		void Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			  const edm::ESHandle<TransientTrackBuilder>& ttB,
 			  const edm::Handle<reco::VertexCollection> &verticesHandle,
-			  const edm::Handle<reco::BeamSpot> &beamspotHandle);
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			  const edm::Handle<reco::TrackCollection> &generalTracksHandle);
 
 		reco::Vertex RefittedVertex(const edm::ESHandle<TransientTrackBuilder>& ttB,
 					    const reco::Vertex& pv,
@@ -258,6 +263,12 @@ class DimuonBranches : public BranchCollection
 					    const reco::TransientTrack& tt1,
 					    const reco::TransientTrack& tt2,
 					    const bool debug = false);
+
+		static float DimuonIsolation(const reco::Vertex& rv,
+				const TLorentzVector& dimuon,
+				const reco::BeamSpot &beamspot,
+				const reco::TrackCollection &generalTracks,
+				bool debug = false);
 
 		virtual bool alreadyPrinted() { return alreadyPrinted_; }
 		virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }

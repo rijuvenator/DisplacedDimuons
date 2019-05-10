@@ -3,13 +3,18 @@
 
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/RecoCandidate/interface/IsoDepositDirection.h"
+#include "RecoMuon/MuonIsolation/plugins/TrackSelector.h"
+//TODO: Figure out how to just include library
+#include "RecoMuon/MuonIsolation/plugins/TrackSelector.cc"
 
 bool DimuonBranches::alreadyPrinted_ = false;
 
 void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 			  const edm::ESHandle<TransientTrackBuilder>& ttB,
 			  const edm::Handle<reco::VertexCollection> &verticesHandle,
-			  const edm::Handle<reco::BeamSpot> &beamspotHandle)
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			  const edm::Handle<reco::TrackCollection> &generalTracksHandle)
 {
   Reset();
   static bool debug = false;
@@ -19,6 +24,7 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
   const reco::TrackCollection &muons = *muonsHandle;
   const reco::VertexCollection &vertices = *verticesHandle;
   const reco::BeamSpot &beamspot = *beamspotHandle;
+  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
   // Primary vertex
   reco::Vertex pv = vertices.front();
@@ -93,6 +99,9 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
         // Dimuon 4-vector
         TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
 
+        //Calculate dimuon isolation
+        float dimuon_iso = DimuonIsolation(rv,dimu_p4, beamspot, generalTracks,debug);
+
         // delta phi
         float dPhi = fabs(deltaPhi(diffP.Phi(), dimu_p4.Phi()));
 
@@ -131,6 +140,7 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
         dim_deltaPhi .push_back(dPhi         );
         dim_deltaR   .push_back(dR           );
         dim_cosAlpha .push_back(cosAlpha     );
+        dim_iso		 .push_back(dimuon_iso   );
 
         // First muon candidate resulting from the common-vertex fit.
         // The refitted track does not have chi2, ndof, and hitpattern
@@ -202,6 +212,7 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
               << " Lxy(BS) significance = " << Lxysig_bs << std::endl;
           std::cout << "  dR = "         << dR       << " dphi = " << dPhi
               << " cos(alpha) = "  << cosAlpha << std::endl;
+          std::cout << "Isolation: " << dimuon_iso << std::endl;
           std::cout << "Refitted DSA muon info:" << muon_cand1;
           std::cout << "Refitted DSA muon info:" << muon_cand2;
         }
@@ -292,4 +303,64 @@ reco::Vertex DimuonBranches::RefittedVertex(
   }
 
   return newvtx;
+}
+
+
+using namespace muonisolation;
+/* @brief Determines if a dimuon, described with decay vertex rv, and momentum dimuon
+ * is isolated with respect to other tracks found within the event.
+ *
+ * Function modelled from:
+ *
+ * https://github.com/cms-sw/cmssw/blob/f092629e3aac118bcf206450291a0c042c87769d/RecoMuon/MuonIsolation/plugins/TrackExtractor.cc
+ *
+ * returns (Sum of other tracks momentum in cone) / (Sum of dimuon momentum)
+ */
+float DimuonBranches::DimuonIsolation(const reco::Vertex& rv,
+		const TLorentzVector& dimuon,
+		const reco::BeamSpot &beamspot,
+		const reco::TrackCollection &generalTracks,
+		bool debug)
+{
+
+	const float dRmax = 0.3;
+
+	/* Taken from
+	 *
+	 * https://github.com/cms-sw/cmssw/blob/02d4198c0b6615287fd88e9a8ff650aea994412e/RecoMuon/MuonIsolationProducers/python/trackExtractorBlocks_cff.py
+	 */
+	const float diffZ = 0.2;
+	const float diffR = 0.1;
+	const int nHitsMin = 0;
+	const int chi2NdofMax = 1e9;
+	const float chi2ProbMin = -1;
+	const float ptMin = -1;
+
+	const float vtx_z = rv.z();
+
+	//currently using direction of momentum to define cone
+	reco::isodeposit::Direction muonDir(dimuon.Eta(), dimuon.Phi());
+
+	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
+			diffR, muonDir, dRmax,beamspot.position());
+
+	pars.nHitsMin = nHitsMin;
+	pars.chi2NdofMax = chi2NdofMax;
+	pars.chi2ProbMin = chi2ProbMin;
+	pars.ptMin = ptMin;
+
+	TrackSelector selection(pars);
+	TrackSelector::result_type sel_tracks = selection(generalTracks);
+
+	if(debug) std::cout << "Isolation - All Tracks: " << generalTracks.size()
+			<< " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;
+
+
+	//total Pt from all other tracks within cone
+	float sumGeneralPt = 0;
+	for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
+		sumGeneralPt += (*it)->pt();
+	}
+
+	return sumGeneralPt/dimuon.Perp();
 }
