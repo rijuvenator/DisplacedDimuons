@@ -93,6 +93,7 @@ CUTS = {
     'm_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         10.      ),
     'm_d0Sig'    : MultiCut('d0Sig'    , lambda mu : mu.d0Sig()                     , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda mu: mu.tag              ),
+    'm_trkChi2'  :      Cut('trkChi2'  , lambda mu : mu.normChi2                    , operator.lt,          4.      ),
 
 ### DIMUON CUTS ###
     'd_LxyErr'   :      Cut('LxyErr'   , lambda dim: dim.LxyErr()                   , operator.lt,         99.      ),

@@ -16,6 +16,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     HLT       = '_HLT'      in CUTS
     REP       = '_REP'      in CUTS
     PT        = '_PT'       in CUTS
+    DCA       = '_DCA'      in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
     MASS      = '_MASS'     in CUTS
@@ -23,8 +24,8 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     VTX       = '_VTX'      in CUTS
     COSA      = '_COSA'     in CUTS
     NPP       = '_NPP'      in CUTS
-    DCA       = '_DCA'      in CUTS
     LXYSIG    = '_LXYSIG'   in CUTS
+    TRKCHI2   = '_TRK'      in CUTS
 
     # not (yet) used (or deprecated)
     D0SIG     = '_D0SIG'    in CUTS
@@ -205,6 +206,21 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
         selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
+    def getSelectedIndices(selectedDimuons):
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for dim in selectedDimuons:
+            if dim.composition != 'HYBRID':
+                tag1, tag2 = dim.composition, dim.composition
+            else:
+                tag1, tag2 = 'DSA', 'PAT'
+            selectedIndices[tag1].add(dim.idx1)
+            selectedIndices[tag2].add(dim.idx2)
+        return selectedIndices
+
+    # DCA cut is moved to be before pairing criteria
+    if DCA:
+        selectedDimuons = [dim for dim in selectedDimuons if Selections.CUTS['d_DCA'].apply(dim)]
+
     # apply pairing criteria and transform selectedDimuons
     # pairing criteria was developed with DSA muons and DSA-DSA dimuons in mind
     # after replacement: run pairing criteria twice on the 3 semi-disjoint sets of dimuons
@@ -252,6 +268,15 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         if len(cutList) > 0:
             selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
 
+    # track chi^2/dof cut is applied to muons
+    if TRKCHI2:
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for tag in selectedMuons:
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_trkChi2'].apply(mu)]
+            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
+
+        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
+
     # d0Sig cut
     # this cut is in the MuonCutList, but it is applied later so I'm just going to recompute it
     # and apply it directly
@@ -271,14 +296,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
     # also filter selectedMuons to only be of those indices that are in the final dimuons
     if True:
-        selectedIndices = {'DSA':set(), 'PAT':set()}
-        for dim in selectedDimuons:
-            if dim.composition != 'HYBRID':
-                tag1, tag2 = dim.composition, dim.composition
-            else:
-                tag1, tag2 = 'DSA', 'PAT'
-            selectedIndices[tag1].add(dim.idx1)
-            selectedIndices[tag2].add(dim.idx2)
+        selectedIndices = getSelectedIndices(selectedDimuons)
         for tag in selectedMuons:
             selectedMuons[tag] = [mu for mu in selectedMuons[tag] if mu.idx in selectedIndices[tag]]
 

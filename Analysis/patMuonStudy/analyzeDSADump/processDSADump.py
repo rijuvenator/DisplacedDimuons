@@ -33,11 +33,17 @@ config = {
     'PCA'      : {'cast':float, 'col':31},
     'PCA_XY'   : {'cast':float, 'col':32},
     'PCA_Z'    : {'cast':float, 'col':33},
+
+    'nCSC1'    : {'cast':int  , 'col':35},
+    'nCSC2'    : {'cast':int  , 'col':36},
+    'nDT1'     : {'cast':int  , 'col':37},
+    'nDT2'     : {'cast':int  , 'col':38},
 }
 
 f = open(sys.argv[1])
 
-MODE = 'NDSA'
+MODE = 'PCA'
+MODE = 'HITS'
 
 for line in f:
 
@@ -55,6 +61,13 @@ for line in f:
 
     # some useful expressions... nothing yet
 
-    if MODE is not None:
-        if vals['PCA'] < 10.:
+    if MODE == 'PCA':
+        if vals['PCA'] > 200.:
             print line.strip('\n')
+
+    if MODE == 'HITS':
+        nCSC1, nCSC2, nDT1, nDT2 = vals['nCSC1'], vals['nCSC2'], vals['nDT1'], vals['nDT2']
+        pure1 = (True) or (nDT1 > 0 and nCSC1 == 0) #or (nCSC1 > 0 and nDT1 == 0)
+        pure2 = (True) or (nDT2 > 0 and nCSC2 == 0) #or (nCSC2 > 0 and nDT2 == 0)
+        if pure1 or pure2:
+            print '{} {}'.format('{:2d}'.format(nDT1) if pure1 else '  ', '{:2d}'.format(nDT2) if pure2 else '  ')

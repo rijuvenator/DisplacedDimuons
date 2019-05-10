@@ -21,9 +21,7 @@ if CUTSTRING == '':
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG' : ' ',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_LXYSIG'      : ' #minus N(DSA)',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_LXYSIG'            : ' #minus N(DSA) #minus ref. #sigma_{p_{T}}/p_{T}',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK' : ' ',
 }
 
 DRAW = False

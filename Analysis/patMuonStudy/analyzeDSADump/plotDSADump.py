@@ -15,6 +15,10 @@ h = {
     'PCA'        : R.TH1F('h3', ';P.C.A. #minus vPos [cm];Counts'              , 100, 0., 10.),
     'PCA_XY'     : R.TH1F('h4', ';transverse P.C.A. #minus vPos [cm];Counts'   , 100, 0., 10.),
     'PCA_Z'      : R.TH1F('h5', ';longitudinal P.C.A. #minus vPos [cm];Counts' , 100, 0., 10.),
+    'd0Sig'      : R.TH1F('h6', ';|d_{0}|/#sigma_{d_{0}};Counts'               , 100, 0., 50.),
+    'mind0Sig'   : R.TH1F('h7', ';min |d_{0}|/#sigma_{d_{0}};Counts'           , 100, 0., 50.),
+    'LxySig'     : R.TH1F('h8', ';L_{xy}/#sigma_{L_{xy}};Counts'               , 100, 0., 50.),
+    'vtxChi2'    : R.TH1F('h9', ';vtx #chi^{2};Counts'                         , 100, 0., 20.),
 }
 
 def deltaPhi(phi1, phi2):
@@ -81,13 +85,17 @@ for line in f:
 
     h['maxtrkChi2'].Fill(max(vals['trkChi21'], vals['trkChi22']))
 
-    for val in ('PCA', 'PCA_XY', 'PCA_Z'):
+    for val in ('PCA', 'PCA_XY', 'PCA_Z', 'LxySig', 'vtxChi2'):
         h[val].Fill(vals[val])
+
+    h['d0Sig'].Fill(vals['d0Sig1'])
+    h['d0Sig'].Fill(vals['d0Sig2'])
+    h['mind0Sig'].Fill(min(vals['d0Sig1'], vals['d0Sig2']))
 
 dtype = 'Data'
 if args.SIG: dtype = 'Signal'
 
-for key in ('trkChi2', 'maxtrkChi2', 'PCA', 'PCA_XY', 'PCA_Z'):
+for key in ('trkChi2', 'maxtrkChi2', 'PCA', 'PCA_XY', 'PCA_Z', 'd0Sig', 'mind0Sig', 'LxySig', 'vtxChi2'):
     c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in {}'.format(dtype), logy=(args.SIG and 'PCA' in key))
     p = Plotter.Plot(h[key], '', '', 'hist')
     c.addMainPlot(p)
