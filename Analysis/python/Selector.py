@@ -26,11 +26,17 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     NPP       = '_NPP'      in CUTS
     LXYSIG    = '_LXYSIG'   in CUTS
     TRKCHI2   = '_TRK'      in CUTS
+    DPHI      = '_DPHI'     in CUTS
+    IDPHI     = '_IDPHI'    in CUTS
 
     # not (yet) used (or deprecated)
     D0SIG     = '_D0SIG'    in CUTS
     ISMEDIUM  = '_MED'      in CUTS
     NTRKLAYS  = '_NTL'      in CUTS
+
+    # validate deltaPhi
+    if DPHI and IDPHI:
+        raise ValueError('[SELECTOR ERROR]: Cannot select DPHI and IDPHI simultaneously')
 
     # always apply PAT quality cuts when doing replacement
     # PQ1 = '_PQ1' in CUTS
@@ -57,7 +63,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         return cutList
 
     # determine dimuon cut list based on string values
-    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, DCA, LXYSIG):
+    def boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, DCA, LXYSIG, DPHI, IDPHI):
         cutList = []
         if LXYERR:
             cutList.append('d_LxyErr')
@@ -74,6 +80,10 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
             cutList.append('d_DCA')
         if LXYSIG:
             cutList.append('d_LxySig')
+        if DPHI:
+            cutList.append('d_deltaPhi')
+        if IDPHI:
+            cutList.append('d_IDeltaPhi')
         return cutList
 
     # primary vertex
@@ -256,13 +266,16 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
     if True:
         # compute all the baseline selection booleans
-        DimuonSelections = {(dim.ID, dim.composition):Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
+        if IDPHI:
+            DimuonSelections = {(dim.ID, dim.composition):Selections.DimuonSelection(dim, cutList='InvertedDimuonCutList') for dim in selectedDimuons}
+        else:
+            DimuonSelections = {(dim.ID, dim.composition):Selections.DimuonSelection(dim, cutList='DimuonCutList') for dim in selectedDimuons}
 
         # figure out which cuts we actually care about
         #cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, D0SIG)
 
         # the d0Sig cut should be applied to original muons, so comment out the "dimuon" version of the d0Sig cut
-        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, DCA, LXYSIG)
+        cutList = boolsToDimuonCutList(LXYERR, MASS, CHI2, COSA, DCA, LXYSIG, DPHI, IDPHI)
 
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:

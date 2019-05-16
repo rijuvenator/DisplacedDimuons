@@ -223,7 +223,7 @@ def analyze(self, E, PARAMS=None):
     Event = E.getPrimitives('EVENT')
 
     # take 10% of data: event numbers ending in 7
-    if 'DoubleMuon' in self.NAME:
+    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
         self.DATACOUNTER['all'] += 1
         if Event.event % 10 != 7: return
         self.DATACOUNTER['selected'] += 1

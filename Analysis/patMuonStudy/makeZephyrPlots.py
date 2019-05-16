@@ -17,11 +17,13 @@ LXYZOOMEDFULL = ARGS.ZOOMED
 MASSZOOMED = ARGS.ZOOMED
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG_TRK_DPHI'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK' : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK'       : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_DPHI'  : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_IDPHI' : ' ',
 }
 
 DRAW = False
@@ -33,6 +35,9 @@ FILES = {
     'MC'    : R.TFile.Open('roots/ZephyrPlots_Combined_{}_MC.root'               .format(CUTSTRING)),
     'Data'  : R.TFile.Open('roots/ZephyrPlots_Combined_{}_DATA.root'             .format(CUTSTRING)),
 }
+
+if 'IDPHI' in CUTSTRING:
+    DATASCALE = 1.
 
 fs = '2Mu2J'
 
@@ -112,7 +117,7 @@ def makeSinglePlots():
             LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'nDSA12', 'nDSA12-pT', 'nDSA-DT', 'd0') else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'nDSA12', 'nDSA12-pT', 'nDSA-DT', 'd0', 'DCA') else False)
 
             if key == 'REF-DSA-FPTE':
                 canvas.mainPad.SetLogx()

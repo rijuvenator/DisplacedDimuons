@@ -26,8 +26,9 @@ def analyze(self, E, PARAMS=None):
     Event = E.getPrimitives('EVENT')
 
     # take 10% of data: event numbers ending in 7
-    #if 'DoubleMuon' in self.NAME:
-    #    if Event.event % 10 != 7: return
+    # unmask data if we're sure we're in the |deltaPhi| > pi/2 range
+    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
+        if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
@@ -64,9 +65,6 @@ def analyze(self, E, PARAMS=None):
     for dim in selectedDimuons:
         if dim.composition != 'DSA': continue
         #if not (dim.composition == 'DSA' or dim.composition == 'HYBRID'): continue
-
-        # unmasks ONLY the control region!
-        if dim.deltaPhi < R.TMath.Pi()/2.: continue
 
         mu1, mu2 = getOriginalMuons(dim, DSAmuons)
         nMinusPP, nPlusPP = numberOfParallelPairs(DSAmuons)
