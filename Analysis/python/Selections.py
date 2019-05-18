@@ -94,6 +94,8 @@ CUTS = {
     'm_d0Sig'    : MultiCut('d0Sig'    , lambda mu : mu.d0Sig()                     , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda mu: mu.tag              ),
     'm_trkChi2'  :      Cut('trkChi2'  , lambda mu : mu.normChi2                    , operator.lt,          4.      ),
+    'm_nDTHits'  : MultiCut('nDTHits'  , lambda mu : mu.nDTHits                     , operator.gt, {True : 18        ,
+                                                                                                    False: -1       }, lambda mu: mu.nCSCHits == 0    ),
 
 ### DIMUON CUTS ###
     'd_LxyErr'   :      Cut('LxyErr'   , lambda dim: dim.LxyErr()                   , operator.lt,         99.      ),
@@ -135,7 +137,7 @@ CutLists = {
     'AcceptanceCutList'     : ('a_pT', 'a_eta', 'a_Lxy'),
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
     'PATQualityCutList'     : ('p_isGlobal', 'p_isMedium', 'p_nTrkLays'),
-    'AllMuonCutList'        : ('m_pT', 'm_d0Sig'),
+    'AllMuonCutList'        : ('m_pT', 'm_d0Sig', 'm_trkChi2', 'm_nDTHits'),
     'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_deltaPhi'),
     'InvertedDimuonCutList' : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_IDeltaPhi'),
     'Run1MuonCutList'       : ('8_pT', '8_eta', '8_normChi2', '8_nMuonHits', '8_nStations', '8_d0Sig'),

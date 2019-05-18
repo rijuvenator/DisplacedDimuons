@@ -35,7 +35,7 @@ done
 
 # rehadd
 
-rehaddAll.py --mode split --tags NM1Distributions_IDPHI --dirs tmp mcbg --samples bigMC      --noPlots --noMove
+rehaddAll.py --mode split --tags NM1Distributions_IDPHI --dirs tmp mcbg --samples bigMC data --noPlots --noMove
 rehaddAll.py --mode split --tags NM1Distributions       --dirs tmp mcbg --samples bigMC data --noPlots --noMove
 
 # 10 MC samples
@@ -60,7 +60,7 @@ done
 
 # data -> one file
 
-for i in ""
+for i in "" "_IDPHI"
 do
     hadd NM1Distributions${i}_DATA.root NM1Distributions${i}_DoubleMuon*.root
     mv NM1Distributions${i}_DoubleMuon*.root tmp/

@@ -5,7 +5,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import numberOfParallelPairs
 import DisplacedDimuons.Analysis.Selector as Selector
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK'
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT'
 
 CONFIG = {
         'nHits'   : (( 50,  0.,   50.), 'N(CSC+DT Hits)'        , '_NS_NH'   , lambda  mu:  mu.nCSCHits+mu.nDTHits),
@@ -19,6 +19,7 @@ CONFIG = {
         'Npp'     : (( 20,  0.,   20.), 'N(parallel pairs)'     , '_COSA_NPP', numberOfParallelPairs              ),
         'LxySig'  : ((100,  0.,   40.), 'L_{xy}/#sigma_{L_{xy}}', '_LXYSIG'  , lambda dim: dim.LxySig()           ),
         'trkChi2' : (( 50,  0.,   10.), 'trk #chi^{2}'          , '_TRK'     , lambda  mu:  mu.normChi2           ),
+        'nDTHits' : (( 50,  0.,   50.), 'N(DT Hits)'            , '_NDT'     , lambda  mu:  mu.nDTHits            ),
 }
 for key in CONFIG:
     CONFIG[key] = dict(zip(('AXES', 'PRETTY', 'OMIT', 'LAMBDA'), CONFIG[key]))
@@ -36,10 +37,9 @@ def analyze(self, E, PARAMS=None):
 
     Event = E.getPrimitives('EVENT')
 
-    # I'm sure that IDPHI is always on for data, below
     # take 10% of data: event numbers ending in 7
-    #if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
-    #    if Event.event % 10 != 7: return
+    if 'DoubleMuon' in self.NAME and not self.ARGS.IDPHI:
+        if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
@@ -61,8 +61,10 @@ def analyze(self, E, PARAMS=None):
 
     for key in CONFIG:
         cutString = ALL.replace(CONFIG[key]['OMIT'], '')
-        if 'DoubleMuon' in self.NAME: cutString += '_IDPHI'
-        if 'DoubleMuon' not in self.NAME and self.SP is None and self.ARGS.IDPHI: cutString += '_IDPHI'
+        if 'DoubleMuon' in self.NAME and self.ARGS.IDPHI:
+            cutString += '_IDPHI'
+        if 'DoubleMuon' not in self.NAME and self.SP is None and self.ARGS.IDPHI:
+            cutString += '_IDPHI'
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, cutString, Dimuons3, DSAmuons, PATmuons)
         if selectedDimuons is None: continue
         for dim in selectedDimuons:
@@ -73,6 +75,9 @@ def analyze(self, E, PARAMS=None):
             elif key in ('nHits', 'FPTE', 'pT', 'trkChi2'):
                 mus = getOriginalMuons(dim)
                 vals = [f(mu) for mu in mus]
+            elif key in ('nDTHits',):
+                mus = getOriginalMuons(dim)
+                vals = [f(mu) for mu in mus if mu.nCSCHits == 0]
             else:
                 vals = [f(dim)]
             for val in vals:

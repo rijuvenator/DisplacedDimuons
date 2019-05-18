@@ -6,11 +6,14 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 
+DATASCALE = 1433921./14334550.
+
 FILES = {
     '2Mu2J' : R.TFile.Open('roots/NM1Distributions_Trig_HTo2XTo2Mu2J.root'),
     'MC'    : R.TFile.Open('roots/NM1Distributions_MC.root'               ),
     'MC_I'  : R.TFile.Open('roots/NM1Distributions_IDPHI_MC.root'         ),
     'Data'  : R.TFile.Open('roots/NM1Distributions_DATA.root'             ),
+    'Data_I': R.TFile.Open('roots/NM1Distributions_IDPHI_DATA.root'       ),
 }
 
 CONFIG = {
@@ -25,6 +28,7 @@ CONFIG = {
     'Npp'     : {'val':10. },
     'LxySig'  : {'val':5.  },
     'trkChi2' : {'val':4.  },
+    'nDTHits' : {'val':18. },
 }
 
 def makeSignalPlot(hkey):
@@ -44,12 +48,17 @@ def makeSignalPlot(hkey):
     line.SetLineStyle(2)
     canvas.cleanup('pdfs/NM1D_{}_2Mu2J.pdf'.format(hkey))
 
-def makeMCPlot(hkey, DODATA=False):
+def makeMCPlot(hkey, DODATA=False, TENP=False):
 
     if DODATA:
-        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC_I'], hkey)#, extraScale=DATASCALE)
-        DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data'], hkey)
-        lumi = 'MC + Data, |#Delta#Phi| > #pi/2'
+        if not TENP:
+            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC_I'], hkey)
+            DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data_I'], hkey)
+            lumi = 'MC + Data, |#Delta#Phi| > #pi/2'
+        else:
+            HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, extraScale=DATASCALE)
+            DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data'], hkey)
+            lumi = 'MC + 10% Data'
     else:
         HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey)
         lumi = 'MC'
@@ -101,7 +110,7 @@ def makeMCPlot(hkey, DODATA=False):
     line.Draw()
     line.SetLineStyle(2)
 
-    canvas.cleanup('pdfs/NM1D_{}_MC{}.pdf'.format(hkey, '' if not DODATA else 'Data'))
+    canvas.cleanup('pdfs/NM1D_{}_MC{}{}.pdf'.format(hkey, '' if not DODATA else 'Data', '' if not TENP else '-10'))
     #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
     #canvas.save()
     #canvas.deleteCanvas()
@@ -110,3 +119,4 @@ for hkey in CONFIG:
     makeSignalPlot(hkey)
     makeMCPlot(hkey)
     makeMCPlot(hkey, True)
+    makeMCPlot(hkey, True, True)

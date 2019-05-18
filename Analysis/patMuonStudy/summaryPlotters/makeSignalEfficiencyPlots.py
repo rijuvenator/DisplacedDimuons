@@ -5,6 +5,12 @@ R, makeSummaryPlot, initializeData, Plotter = SumPlotter.R, SumPlotter.makeSumma
 
 ##### Notes #####
 # To make these plots, I copied the DeltaPhi plot (which had the numbers I needed) and only loaded the necessary numbers
+
+# UPDATE: I can actually get the numbers I need from a DSA dump set with the right one liner, here it is:
+#   cat run3/DSADump_{0..32}.out | awk '{print $1, $2, $3}' | uniq -c | awk '{printf "%4d %3d %4d ::: %4d\n", $2, $3, $4, $1}'
+# Save this in a text file; then I just need column 4
+# Oh, by the way, 1000 20 2 and 400 20 4 have 0 events as of this writing, so they have to be put in manually
+
 # nEvents is really just nEvents
 # run1eff I got from the 2014 analysis note
 # Then the following changes to the SummaryPlotter module were necessary:
@@ -55,12 +61,12 @@ externalData = {
 }
 
 DATA = initializeData()
-with open('summaryPlotters/DeltaPhiCut.txt') as f:
+with open('summaryPlotters/SignalYields.txt') as f:
     for line in f:
         cols = line.strip('\n').split()
         fs = '2Mu2J'
         sp = tuple(map(int, cols[0:3]))
-        DATA[fs][sp]['C_P2_E'] = safeDivide(float(cols[5]), externalData[sp]['nEvents'])
+        DATA[fs][sp]['C_P2_E'] = safeDivide(float(cols[4]), externalData[sp]['nEvents'])
         DATA[fs][sp]['Run1'  ] = externalData[sp]['run1eff']
 
 makeSummaryPlot(

@@ -26,6 +26,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     NPP       = '_NPP'      in CUTS
     LXYSIG    = '_LXYSIG'   in CUTS
     TRKCHI2   = '_TRK'      in CUTS
+    NDTHITS   = '_NDT'      in CUTS
     DPHI      = '_DPHI'     in CUTS
     IDPHI     = '_IDPHI'    in CUTS
 
@@ -42,7 +43,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     # PQ1 = '_PQ1' in CUTS
     PQ1 = True
 
-    # determine muon cut list based on string values
+    # determine DSA muon quality cut list based on string values
     def boolsToMuonCutList(NSTATIONS, NMUONHITS, FPTERR):
         cutList = []
         if NSTATIONS:
@@ -53,7 +54,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
             cutList.append('q_FPTE')
         return cutList
 
-    # determine PAT muon quality cuts based on string values
+    # determine PAT muon quality cut list based on string values
     def boolsToPATMuonCutList(ISMEDIUM, NTRKLAYS):
         cutList = []
         if ISMEDIUM:
@@ -86,11 +87,23 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
             cutList.append('d_IDeltaPhi')
         return cutList
 
+    # determine "all muon" post-dimuon cut list based on string values
+    def boolsToAllMuonCutList(TRKCHI2, NDTHITS):
+        cutList = []
+        if TRKCHI2:
+            cutList.append('m_trkChi2')
+        if NDTHITS:
+            cutList.append('m_nDTHits')
+        #if D0SIG:
+        #    cutList.append('m_d0Sig')
+        return cutList
+
     # primary vertex
     if VTX:
         Filters = E.getPrimitives('FILTER')
         if not Selections.CUTS['goodVtx'].apply(Filters): return failedReturnList
 
+    # number of parallel pairs
     if NPP:
         nPPm, nPPp = AnalysisTools.numberOfParallelPairs(DSAmuons)
         if not Selections.CUTS['nPP'].apply(nPPm+nPPp): return failedReturnList
@@ -204,28 +217,21 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
 
             selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
+    # split up muon selections for here and the future
+    MuonSelections = {
+        'DSA' : {muon.idx:Selections.MuonSelection(muon, cutList='AllMuonCutList') for muon in selectedMuons['DSA']},
+        'PAT' : {muon.idx:Selections.MuonSelection(muon, cutList='AllMuonCutList') for muon in selectedMuons['PAT']}
+    }
+
     # pT cut
-    # there is only one cut of this type right now, but if additional cuts are applied later,
-    # do a CutList as above and add it to Selections
-    # for now, just apply the pT cut directly
+    # here, only one cut needs to be applied, so I will not do a cutList and just get the value directly
     if PT:
         selectedIndices = {'DSA':set(), 'PAT':set()}
         for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_pT'].apply(mu)]
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if MuonSelections[tag][mu.idx]['m_pT']]
             selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
 
         selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
-
-    def getSelectedIndices(selectedDimuons):
-        selectedIndices = {'DSA':set(), 'PAT':set()}
-        for dim in selectedDimuons:
-            if dim.composition != 'HYBRID':
-                tag1, tag2 = dim.composition, dim.composition
-            else:
-                tag1, tag2 = 'DSA', 'PAT'
-            selectedIndices[tag1].add(dim.idx1)
-            selectedIndices[tag2].add(dim.idx2)
-        return selectedIndices
 
     # DCA cut is moved to be before pairing criteria
     if DCA:
@@ -281,31 +287,36 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         if len(cutList) > 0:
             selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
 
-    # track chi^2/dof cut is applied to muons
-    if TRKCHI2:
+    # track chi^2/dof cut and N(DT hits) cut are applied to muons
+    # note the MultiCuts! They behave differently depending on muon parameters like the type!
+    if TRKCHI2 or NDTHITS:
+        # MuonSelections is already computed
+
+        # figure out which cuts we actually care about
+        cutList = boolsToAllMuonCutList(TRKCHI2, NDTHITS) # no D0SIG
+
         selectedIndices = {'DSA':set(), 'PAT':set()}
         for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_trkChi2'].apply(mu)]
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if MuonSelections[tag][mu.idx].allOf(*cutList)]
             selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
 
         selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
-
-    # d0Sig cut
-    # this cut is in the MuonCutList, but it is applied later so I'm just going to recompute it
-    # and apply it directly
-    # note that this is a MultiCut, so it will behave differently depending on the muon type
-    if D0SIG:
-        selectedIndices = {'DSA':set(), 'PAT':set()}
-        for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if Selections.CUTS['m_d0Sig'].apply(mu)]
-            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
-
-        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
-
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if NSTATIONS:
         if len(selectedDimuons) == 0: return failedReturnList
+
+    # I only use this here, but move it up if it's useful elsewhere
+    def getSelectedIndices(selectedDimuons):
+        selectedIndices = {'DSA':set(), 'PAT':set()}
+        for dim in selectedDimuons:
+            if dim.composition != 'HYBRID':
+                tag1, tag2 = dim.composition, dim.composition
+            else:
+                tag1, tag2 = 'DSA', 'PAT'
+            selectedIndices[tag1].add(dim.idx1)
+            selectedIndices[tag2].add(dim.idx2)
+        return selectedIndices
 
     # also filter selectedMuons to only be of those indices that are in the final dimuons
     if True:
