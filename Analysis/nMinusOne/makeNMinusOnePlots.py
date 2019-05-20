@@ -7,22 +7,28 @@ import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 
 PP.PARSER.add_argument('--bump', dest='BUMP', action='store_true')
+PP.PARSER.add_argument('--idphi', dest='IDPHI', action='store_true')
 ARGS = PP.PARSER.parse_args()
 BUMPSTRING = ''
 if ARGS.BUMP:
     BUMPSTRING = '_Bump'
+IDPHISTRING = ''
+if ARGS.IDPHI:
+    IDPHISTRING = '_IDPHI'
 
 DODATA = True
 DATASCALE = 1433921./14334550.
+if ARGS.IDPHI:
+    DATASCALE = 1.
 
 FILES = {
-    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig{}_HTo2XTo2Mu2J.root'.format(BUMPSTRING)),
-    'MC'    : R.TFile.Open('roots/NM1Plots{}_MC.root'               .format(BUMPSTRING)),
-    'Data'  : R.TFile.Open('roots/NM1Plots{}_DATA.root'             .format(BUMPSTRING)),
+    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig{}_HTo2XTo2Mu2J.root'.format(BUMPSTRING             )),
+    'MC'    : R.TFile.Open('roots/NM1Plots{}{}_MC.root'               .format(BUMPSTRING, IDPHISTRING)),
+    'Data'  : R.TFile.Open('roots/NM1Plots{}{}_DATA.root'             .format(BUMPSTRING, IDPHISTRING)),
 }
 
-CUTS = ('NS_NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA', 'SFPTE')
-PRETTY = ('n_{st/hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}', 'pv', 'cos(#alpha)', 'sFPTE')
+CUTS = ['NS_NH', 'FPTE', 'HLT', 'PT', 'DCA', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA_NPP', 'LXYSIG', 'TRK', 'NDT', 'DPHI']
+PRETTY = ('n_{st/hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', 'DCA', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}', 'pv', 'cosm.', 'Lxy sig.', 'trk #chi^{2}', 'N(DT)', '|#Delta#Phi|')
 #PRETTY = CUTS[:]
 PRETTY = dict(zip(CUTS, PRETTY))
 
@@ -60,8 +66,8 @@ def makeIntegratedSEQMC(hkey='SEQ'):
     if DODATA:
         PLOTS['data'] = Plotter.Plot(DATAHISTS['data'], *PConfig['data'])
 
-    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1000,
-        ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
+    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1600,)
+#       ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
@@ -73,28 +79,34 @@ def makeIntegratedSEQMC(hkey='SEQ'):
 
     setBinLabels(canvas)
 
-    canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8 if not DODATA else 1.)
+    canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)# if not DODATA else 1.)
     if DODATA:
         canvas.addLegendEntry(PLOTS['data'])
     for ref in reversed(HG.BGORDER):
         canvas.addLegendEntry(PLOTS[ref])
     canvas.legend.resizeHeight()
+    canvas.legend.moveLegend(X=.1)
 
     canvas.firstPlot.setTitles(X='Cut', Y='Normalized Counts')
     canvas.firstPlot.SetMaximum(2.e7)
     canvas.firstPlot.SetMinimum(1.e4 if 'DSA' not in hkey else 1.e-1)
 
-    if DODATA:
-        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
-        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
-        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
-        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
-        setBinLabels(canvas, '')
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+    R.TGaxis.SetExponentOffset(0., 0.02, "y")
+
+#    if DODATA:
+#        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
+#        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
+#        setBinLabels(canvas, '')
 
     #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
-    canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
-    canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
-    canvas.deleteCanvas()
+    #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
+    #canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
+    #canvas.deleteCanvas()
+    canvas.cleanup('pdfs/NM1_{}{}{}_MC.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedSEQMC()
 makeIntegratedSEQMC(hkey='DSA-SEQ')
 
@@ -104,7 +116,7 @@ def makeIntegratedSEQSignal(hkey='SEQ'):
     h = HISTS[hkey]
     p = Plotter.Plot(h, '', '', 'hist')
 
-    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1000)
+    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1600)
     canvas.addMainPlot(p)
 
     p.SetLineColor(R.kBlue)
@@ -115,7 +127,11 @@ def makeIntegratedSEQSignal(hkey='SEQ'):
     canvas.firstPlot.SetMaximum(3.e5 if 'DSA' not in hkey else 1.e5)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING))
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+    R.TGaxis.SetExponentOffset(0., 0.02, "y")
+
+    canvas.cleanup('pdfs/NM1_{}{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedSEQSignal()
 makeIntegratedSEQSignal(hkey='DSA-SEQ')
 
@@ -207,8 +223,8 @@ def makeIntegratedNM1MC(hkey='NM1'):
     if DODATA:
         PLOTS['data'] = Plotter.Plot(DATAHISTS['data'], *PConfig['data'])
 
-    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1000,
-        ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
+    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1600,)
+#       ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
@@ -220,7 +236,7 @@ def makeIntegratedNM1MC(hkey='NM1'):
 
     setBinLabels(canvas)
 
-    canvas.makeLegend(lWidth=.27, pos='bl', autoOrder=False, fontscale=0.8 if not DODATA else 1.)
+    canvas.makeLegend(lWidth=.27, pos='bl', autoOrder=False, fontscale=0.8)# if not DODATA else 1.)
     if DODATA:
         canvas.addLegendEntry(PLOTS['data'])
     for ref in reversed(HG.BGORDER):
@@ -231,19 +247,23 @@ def makeIntegratedNM1MC(hkey='NM1'):
     canvas.firstPlot.SetMaximum(1.e0)
     canvas.firstPlot.SetMinimum(1.e-3 if 'DSA' not in hkey else 1.e-6)
 
-    if DODATA:
-        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
-        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
-        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
-        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
-        setBinLabels(canvas, '')
-        for ibin in range(1, len(CUTS)+2):
-            canvas.rat.SetBinError(ibin, 1.e-7)
+#    if DODATA:
+#        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
+#        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
+#        setBinLabels(canvas, '')
+#        for ibin in range(1, len(CUTS)+2):
+#            canvas.rat.SetBinError(ibin, 1.e-7)
+
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
 
     #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
-    canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
-    canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
-    canvas.deleteCanvas()
+    #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
+    #canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
+    #canvas.deleteCanvas()
+    canvas.cleanup('pdfs/NM1_{}{}{}_MC.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedNM1MC()
 makeIntegratedNM1MC(hkey='DSA-NM1')
 
@@ -268,7 +288,7 @@ def makeIntegratedNM1Signal(hkey='NM1'):
     h = HISTS[hkey]
     p = Plotter.Plot(h, '', '', 'hist')
 
-    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1000)
+    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1600)
     canvas.addMainPlot(p)
 
     p.SetLineColor(R.kBlue)
@@ -276,9 +296,12 @@ def makeIntegratedNM1Signal(hkey='NM1'):
     setBinLabels(canvas)
 
     canvas.firstPlot.setTitles(X='Cut', Y='n#minus1 Eff.')
-    canvas.firstPlot.SetMaximum(1.1)
+    canvas.firstPlot.SetMaximum(1.2)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING))
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+
+    canvas.cleanup('pdfs/NM1_{}{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedNM1Signal()
 makeIntegratedNM1Signal(hkey='DSA-NM1')

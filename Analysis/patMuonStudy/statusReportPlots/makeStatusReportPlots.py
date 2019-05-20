@@ -17,7 +17,7 @@ def makeRepEffectPlots(hkey):
     for key in HG.BGORDER + ('stack',):
         PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
 
-    canvas = Plotter.Canvas(lumi='MC, {} replacement'.format(hkey), logy=True)
+    canvas = Plotter.Canvas(lumi='MC, {} replacement'.format(hkey.replace('LxySig-','').replace('Lxy-','')), logy=True)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
@@ -76,8 +76,10 @@ def makeResPlots(metric, quantity):
     RT.addBinWidth(canvas.firstPlot)
     canvas.cleanup('Res_Sig_{}_{}.pdf'.format(metric, quantity))
 
-makeRepEffectPlots('before')
-makeRepEffectPlots('after')
+makeRepEffectPlots('Lxy-before')
+makeRepEffectPlots('Lxy-after')
+makeRepEffectPlots('LxySig-before')
+makeRepEffectPlots('LxySig-after')
 makeResPlots('pTRes', 'hits')
 makeResPlots('pTRes', 'fpte')
 makeResPlots('qdiff', 'hits')

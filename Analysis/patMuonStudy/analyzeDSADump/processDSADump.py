@@ -38,12 +38,15 @@ config = {
     'nCSC2'    : {'cast':int  , 'col':36},
     'nDT1'     : {'cast':int  , 'col':37},
     'nDT2'     : {'cast':int  , 'col':38},
+
+    'deltaPhi' : {'cast':float, 'col':40},
 }
 
 f = open(sys.argv[1])
 
 MODE = 'PCA'
 MODE = 'HITS'
+MODE = 'DPHI'
 
 for line in f:
 
@@ -67,7 +70,11 @@ for line in f:
 
     if MODE == 'HITS':
         nCSC1, nCSC2, nDT1, nDT2 = vals['nCSC1'], vals['nCSC2'], vals['nDT1'], vals['nDT2']
-        pure1 = (True) or (nDT1 > 0 and nCSC1 == 0) #or (nCSC1 > 0 and nDT1 == 0)
-        pure2 = (True) or (nDT2 > 0 and nCSC2 == 0) #or (nCSC2 > 0 and nDT2 == 0)
+        pure1 = (nDT1 > 0 and nCSC1 == 0) #or (nCSC1 > 0 and nDT1 == 0)
+        pure2 = (nDT2 > 0 and nCSC2 == 0) #or (nCSC2 > 0 and nDT2 == 0)
         if pure1 or pure2:
             print '{} {}'.format('{:2d}'.format(nDT1) if pure1 else '  ', '{:2d}'.format(nDT2) if pure2 else '  ')
+
+    if MODE == 'DPHI':
+        if vals['deltaPhi'] < 1.5707963268:
+            print line.strip('\n')

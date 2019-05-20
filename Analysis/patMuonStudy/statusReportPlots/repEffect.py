@@ -8,8 +8,10 @@ import DisplacedDimuons.Analysis.Selector as Selector
 #### CLASS AND FUNCTION DEFINITIONS ####
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    self.HistInit('before', ';L_{xy} [cm];Counts', 170, 0., 340.)
-    self.HistInit('after' , ';L_{xy} [cm];Counts', 170, 0., 340.)
+    self.HistInit('Lxy-before'   , ';L_{xy} [cm];Counts'           , 170, 0., 340.)
+    self.HistInit('Lxy-after'    , ';L_{xy} [cm];Counts'           , 170, 0., 340.)
+    self.HistInit('LxySig-before', ';L_{xy}/#sigma_{L_{xy}};Counts', 170, 0., 340.)
+    self.HistInit('LxySig-after' , ';L_{xy}/#sigma_{L_{xy}};Counts', 170, 0., 340.)
 
 
 # internal loop function for Analyzer class
@@ -37,13 +39,15 @@ def analyze(self, E, PARAMS=None):
     if selectedDimuons is not None:
         for dim in selectedDimuons:
             if dim.composition != 'DSA': continue
-            self.HISTS['before'].Fill(dim.Lxy(), eventWeight)
+            self.HISTS['Lxy-before'   ].Fill(dim.Lxy()   , eventWeight)
+            self.HISTS['LxySig-before'].Fill(dim.LxySig(), eventWeight)
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_NS_NH_FPTE_HLT_REP', Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is not None:
         for dim in selectedDimuons:
             if dim.composition != 'DSA': continue
-            self.HISTS['after' ].Fill(dim.Lxy(), eventWeight)
+            self.HISTS['Lxy-after'    ].Fill(dim.Lxy()   , eventWeight)
+            self.HISTS['LxySig-after' ].Fill(dim.LxySig(), eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
