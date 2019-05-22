@@ -352,7 +352,6 @@ float DimuonBranches::DimuonIsolation(
 
 	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
 			diffR, isoConeDirection, dRmax,beamspot.position());
-
 	pars.nHitsMin = nHitsMin;
 	pars.chi2NdofMax = chi2NdofMax;
 	pars.chi2ProbMin = chi2ProbMin;

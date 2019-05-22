@@ -57,7 +57,7 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_cosAlpha ;
 		std::vector<float> dim_deltaPhi ;
 		std::vector<float> dim_iso_pmumu;
-		std::vector<float> dim_iso_lxy  ;
+		std::vector<float> dim_iso_lxy;
 
 		std::vector<int  > dim_mu1_idx          ;
 		std::vector<float> dim_mu1_px           ;
