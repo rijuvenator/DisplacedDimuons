@@ -99,7 +99,6 @@ def pairHistSpecs(DISTRIBUTION_SPECS):
         else:
             raise Exception("Unknown label format: {}".format(label))
 
-    print ("paired_specs:  {}".format(paired_specs))
     return paired_specs
 
 
@@ -195,7 +194,6 @@ def importHistograms(DISTRIBUTION_SPECS):
             selected_hists_names = getHistNames(
                 f_allhists, dataset, histname_identifier, exclude=histname_exclude
             )
-            print ("hist names: {}".format(selected_hists_names))
 
             if len(selected_hists_names) > 1:
                 raise Exception(
@@ -209,8 +207,11 @@ def importHistograms(DISTRIBUTION_SPECS):
             for key in selected_hists_names:
                 if histogram is None:
                     histogram = f_allhists[dataset][key].Clone()
+                    histogram.Sumw2()
                 else:
-                    histogram.Add(f_allhists[dataset][key])
+                    temp_hist = f_allhists[dataset][key].Clone()
+                    temp_hist.Sumw2()
+                    histogram.Add(temp_hist)
 
         if histogram:
             print ("\tImported histogram {}".format(histogram.GetName()))
