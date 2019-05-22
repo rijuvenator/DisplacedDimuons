@@ -7,6 +7,8 @@ import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 import operator
 
+PiO2 = R.TMath.Pi()/2.
+
 DATASCALE = 1433921./14334550.
 
 FILES = {
@@ -29,15 +31,20 @@ CONFIG = {
     'Npp'     : {'val':10. , 'op':operator.lt},
     'LxySig'  : {'val':5.  , 'op':operator.gt},
     'trkChi2' : {'val':4.  , 'op':operator.lt},
-    'nDTHits' : {'val':19. , 'op':operator.gt},
+    'nDTHits' : {'val':19. , 'op':operator.gt}, # this one is special, the line needs to be drawn at 19
+    'deltaPhi': {'val':PiO2, 'op':operator.lt},
 }
 
 def fractionCut(hkey, h):
+    val = CONFIG[hkey]['val']
+    if hkey == 'deltaPhi':
+        val -= 0.03
+
     if CONFIG[hkey]['op'] == operator.gt:
-        total, cut = h.Integral(0, h.GetNbinsX()+1), h.Integral(h.FindBin(CONFIG[hkey]['val']), h.GetNbinsX()+1)
+        total, cut = h.Integral(0, h.GetNbinsX()+1), h.Integral(h.FindBin(val), h.GetNbinsX()+1)
         return total, cut, float(cut)/total
     else:
-        total, cut = h.Integral(0, h.GetNbinsX()+1), h.Integral(0, h.FindBin(CONFIG[hkey]['val']))
+        total, cut = h.Integral(0, h.GetNbinsX()+1), h.Integral(0, h.FindBin(val))
         return total, cut, float(cut)/total
 
 def makeSignalPlot(hkey):
@@ -58,7 +65,8 @@ def makeSignalPlot(hkey):
         line = R.TLine(CONFIG[hkey]['val'], canvas.firstPlot.GetMinimum(), CONFIG[hkey]['val'],                     canvas.firstPlot.GetMaximum() *1.05 )
     line.Draw()
     line.SetLineStyle(2)
-    print '{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}'.format('Signal', hkey, *fractionCut(hkey, canvas.firstPlot.plot))
+    print '\033[31m{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}\033[m'.format('Signal', hkey, *fractionCut(hkey, canvas.firstPlot.plot))
+    RT.addBinWidth(canvas.firstPlot)
     canvas.cleanup('pdfs/NM1D_{}_2Mu2J.pdf'.format(hkey))
 
 def makeMCPlot(hkey, DODATA=False, TENP=False):
@@ -102,12 +110,15 @@ def makeMCPlot(hkey, DODATA=False, TENP=False):
     if DODATA:
         canvas.addMainPlot(PLOTS['data'])
 
+    canvas.firstPlot.setTitles(X='', copy=HISTS[HG.BGORDER[0]])
+    canvas.firstPlot.setTitles(Y='Normalized Counts')
     canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)# if not DODATA else 1.)
     if DODATA:
         canvas.addLegendEntry(PLOTS['data'])
     for ref in reversed(HG.BGORDER):
         canvas.addLegendEntry(PLOTS[ref])
     canvas.legend.resizeHeight()
+    RT.addBinWidth(canvas.firstPlot)
 
     if canvas.logy:
         canvas.firstPlot.SetMinimum(1.)
@@ -116,7 +127,6 @@ def makeMCPlot(hkey, DODATA=False, TENP=False):
         canvas.firstPlot.SetMinimum(0.)
         canvas.firstPlot.SetMaximum(10.)
 
-    canvas.firstPlot.setTitles(X='', Y='', copy=HISTS[HG.BGORDER[0]])
     #if DODATA:
     #    canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
     #    canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
@@ -124,13 +134,13 @@ def makeMCPlot(hkey, DODATA=False, TENP=False):
     #    canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
 
     if canvas.logy:
-        line = R.TLine(CONFIG[hkey]['val'], canvas.firstPlot.GetMinimum(), CONFIG[hkey]['val'], 10.**(R.TMath.Log10(canvas.firstPlot.GetMaximum())*1.06))
+        line = R.TLine(CONFIG[hkey]['val'], 0.45, CONFIG[hkey]['val'], 10.**(R.TMath.Log10(500.)*1.06))
     else:
-        line = R.TLine(CONFIG[hkey]['val'],                            0., CONFIG[hkey]['val'],                                                10.*1.05 )
+        line = R.TLine(CONFIG[hkey]['val'], 0.  , CONFIG[hkey]['val'],                      10. *1.05 )
     line.Draw()
     line.SetLineStyle(2)
     if DODATA:
-        print '{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}'.format('Data'+('' if not TENP else '10'), hkey, *fractionCut(hkey, PLOTS['data']))
+        print '\033[32m{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}\033[m'.format('Data'+('' if not TENP else '10'), hkey, *fractionCut(hkey, PLOTS['data']))
 
     canvas.cleanup('pdfs/NM1D_{}_MC{}{}.pdf'.format(hkey, '' if not DODATA else 'Data', '' if not TENP else '-10'))
     #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)

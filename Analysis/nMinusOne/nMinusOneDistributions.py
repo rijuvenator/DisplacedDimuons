@@ -5,7 +5,9 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import numberOfParallelPairs
 import DisplacedDimuons.Analysis.Selector as Selector
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT'
+PI = R.TMath.Pi()
+
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT_DPHI'
 
 CONFIG = {
         'nHits'   : (( 50,  0.,   50.), 'N(CSC+DT Hits)'        , '_NS_NH'   , lambda  mu:  mu.nCSCHits+mu.nDTHits),
@@ -20,6 +22,7 @@ CONFIG = {
         'LxySig'  : ((100,  0.,   40.), 'L_{xy}/#sigma_{L_{xy}}', '_LXYSIG'  , lambda dim: dim.LxySig()           ),
         'trkChi2' : (( 50,  0.,   10.), 'trk #chi^{2}'          , '_TRK'     , lambda  mu:  mu.normChi2           ),
         'nDTHits' : (( 50,  0.,   50.), 'N(DT Hits)'            , '_NDT'     , lambda  mu:  mu.nDTHits            ),
+        'deltaPhi': ((100,  0.,    PI), '|#Delta#Phi|'          , '_DPHI'    , lambda dim: dim.deltaPhi           ),
 }
 for key in CONFIG:
     CONFIG[key] = dict(zip(('AXES', 'PRETTY', 'OMIT', 'LAMBDA'), CONFIG[key]))
@@ -61,27 +64,33 @@ def analyze(self, E, PARAMS=None):
 
     for key in CONFIG:
         cutString = ALL.replace(CONFIG[key]['OMIT'], '')
-        if 'DoubleMuon' in self.NAME and self.ARGS.IDPHI:
-            cutString += '_IDPHI'
-        if 'DoubleMuon' not in self.NAME and self.SP is None and self.ARGS.IDPHI:
-            cutString += '_IDPHI'
+        if key == 'deltaPhi':
+            if ('DoubleMuon' in self.NAME or ('DoubleMuon' not in self.NAME and self.SP is None)) and self.ARGS.IDPHI:
+                cutString += '_IDPHI'
+        else:
+            if ('DoubleMuon' in self.NAME or ('DoubleMuon' not in self.NAME and self.SP is None)) and self.ARGS.IDPHI:
+                cutString = cutString.replace('DPHI', 'IDPHI')
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, cutString, Dimuons3, DSAmuons, PATmuons)
         if selectedDimuons is None: continue
-        for dim in selectedDimuons:
-            if dim.composition != 'DSA': continue
-            f = CONFIG[key]['LAMBDA']
-            if key == 'Npp':
-                vals = [sum(f(DSAmuons))]
-            elif key in ('nHits', 'FPTE', 'pT', 'trkChi2'):
-                mus = getOriginalMuons(dim)
-                vals = [f(mu) for mu in mus]
-            elif key in ('nDTHits',):
-                mus = getOriginalMuons(dim)
-                vals = [f(mu) for mu in mus if mu.nCSCHits == 0]
-            else:
-                vals = [f(dim)]
-            for val in vals:
+
+        f = CONFIG[key]['LAMBDA']
+        if key == 'Npp':
+            if [dim.composition for dim in selectedDimuons].count('DSA') > 0:
+                val = sum(f(DSAmuons))
                 self.HISTS[key].Fill(val, eventWeight)
+        else:
+            for dim in selectedDimuons:
+                if dim.composition != 'DSA': continue
+                if key in ('nHits', 'FPTE', 'pT', 'trkChi2'):
+                    mus = getOriginalMuons(dim)
+                    vals = [f(mu) for mu in mus]
+                elif key in ('nDTHits',):
+                    mus = getOriginalMuons(dim)
+                    vals = [f(mu) for mu in mus if mu.nCSCHits == 0]
+                else:
+                    vals = [f(dim)]
+                for val in vals:
+                    self.HISTS[key].Fill(val, eventWeight)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

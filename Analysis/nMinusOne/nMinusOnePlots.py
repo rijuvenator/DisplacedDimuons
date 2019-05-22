@@ -57,7 +57,7 @@ def analyze(self, E, PARAMS=None):
         pass
 
     def nDSA(selDims):
-        return len([d for d in selectedDimuons if d.composition == 'DSA'])
+        return len([d for d in selDims if d.composition == 'DSA'])
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, BASECUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
     if selectedDimuons is not None:
