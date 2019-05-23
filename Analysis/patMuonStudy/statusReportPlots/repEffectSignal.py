@@ -10,8 +10,6 @@ import DisplacedDimuons.Analysis.Selector as Selector
 def declareHistograms(self, PARAMS=None):
     self.HistInit('Lxy-before'   , ';L_{xy} [cm];Counts'           , 170, 0., 340.)
     self.HistInit('Lxy-after'    , ';L_{xy} [cm];Counts'           , 170, 0., 340.)
-    self.HistInit('LxySig-before', ';L_{xy}/#sigma_{L_{xy}};Counts', 170, 0., 340.)
-    self.HistInit('LxySig-after' , ';L_{xy}/#sigma_{L_{xy}};Counts', 170, 0., 340.)
 
 
 # internal loop function for Analyzer class
@@ -29,25 +27,41 @@ def analyze(self, E, PARAMS=None):
     PATmuons = E.getPrimitives('PATMUON')
     Dimuons3 = E.getPrimitives('DIMUON')
 
-    eventWeight = 1.
-    try:
-        eventWeight = 1. if Event.weight > 0. else -1.
-    except:
-        pass
+    mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
+    genMuons = (mu1, mu2)
+    genMuonPairs = ((mu1, mu2),)
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_NS_NH_FPTE_HLT_PT', Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is not None:
-        for dim in selectedDimuons:
-            if dim.composition != 'DSA': continue
-            self.HISTS['Lxy-before'   ].Fill(dim.Lxy()   , eventWeight)
-            self.HISTS['LxySig-before'].Fill(dim.LxySig(), eventWeight)
+
+        genMuonPair = genMuonPairs[0]
+        selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
+
+        dimuonMatches, muonMatches, exitcode = AT.matchedDimuons(genMuonPair, selectedDimuons)
+        if len(dimuonMatches) > 0:
+            realMatches = {0:dimuonMatches[0]}
+        else:
+            realMatches = {}
+
+        for pairIndex in realMatches:
+            genMuon = genMuonPairs[pairIndex][0]
+            self.HISTS['Lxy-before'].Fill(genMuon.Lxy())
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_NS_NH_FPTE_HLT_REP_PT', Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is not None:
-        for dim in selectedDimuons:
-            if dim.composition != 'DSA': continue
-            self.HISTS['Lxy-after'    ].Fill(dim.Lxy()   , eventWeight)
-            self.HISTS['LxySig-after' ].Fill(dim.LxySig(), eventWeight)
+
+        genMuonPair = genMuonPairs[0]
+        selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
+
+        dimuonMatches, muonMatches, exitcode = AT.matchedDimuons(genMuonPair, selectedDimuons)
+        if len(dimuonMatches) > 0:
+            realMatches = {0:dimuonMatches[0]}
+        else:
+            realMatches = {}
+
+        for pairIndex in realMatches:
+            genMuon = genMuonPairs[pairIndex][0]
+            self.HISTS['Lxy-after' ].Fill(genMuon.Lxy())
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

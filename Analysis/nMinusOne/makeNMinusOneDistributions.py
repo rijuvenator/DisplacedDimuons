@@ -39,6 +39,8 @@ def fractionCut(hkey, h):
     val = CONFIG[hkey]['val']
     if hkey == 'deltaPhi':
         val -= 0.03
+    if hkey == 'Npp':
+        val = 9.
 
     if CONFIG[hkey]['op'] == operator.gt:
         total, cut = h.Integral(0, h.GetNbinsX()+1), h.Integral(h.FindBin(val), h.GetNbinsX()+1)
@@ -140,7 +142,11 @@ def makeMCPlot(hkey, DODATA=False, TENP=False):
     line.Draw()
     line.SetLineStyle(2)
     if DODATA:
-        print '\033[32m{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}\033[m'.format('Data'+('' if not TENP else '10'), hkey, *fractionCut(hkey, PLOTS['data']))
+        if not TENP:
+            DATAHISTS_NO, DataPConfig_NO = HG.getDataHistograms(FILES['Data_I'], hkey, addFlows=False)
+        else:
+            DATAHISTS_NO, DataPConfig_NO = HG.getDataHistograms(FILES['Data'], hkey, addFlows=False)
+        print '\033[32m{:6s} {:8s} {:5.0f} {:5.0f} {:7.2%}\033[m'.format('Data'+('' if not TENP else '10'), hkey, *fractionCut(hkey, DATAHISTS_NO[hkey]['data']))
 
     canvas.cleanup('pdfs/NM1D_{}_MC{}{}.pdf'.format(hkey, '' if not DODATA else 'Data', '' if not TENP else '-10'))
     #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
