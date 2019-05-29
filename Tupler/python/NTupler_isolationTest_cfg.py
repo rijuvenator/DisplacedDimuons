@@ -1,20 +1,28 @@
 import FWCore.ParameterSet.Config as cms
+import glob
 
 #########################
 ##### CONFIGURATION #####
 #########################
+
 
 # Note: runNTupler.py will look for the first instance of
 # ^PARAMETER\s+= and set values accordingly, so
 # please don't add any similar lines above these 8
 MAXEVENTS  = -1
 INPUTFILES = []
-OUTPUTFILE = 'test.root'
-ISMC       = False
+OUTPUTFILE = 'qcdIsolation.root'
+ISMC       = True
 ISSIGNAL   = False
-FINALSTATE = '4Mu'
+FINALSTATE = ''
 GENS_TAG   = ('prunedGenParticles', '', 'PAT')
 SOURCE     = 'PAT'
+
+#fill in the INPUTFILES array
+inputregex = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/MC2016_QCDMuEnr20toInf_MMYYYY-vXX/190514_152506/0000/pat_*.root'
+
+for filename in glob.glob(inputregex):
+    INPUTFILES.append('file:'+filename)
 
 ###############################
 ##### BASIC CONFIGURATION #####

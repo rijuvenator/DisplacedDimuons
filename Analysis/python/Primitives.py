@@ -821,7 +821,7 @@ class ImpactParameter(Primitive):
 class Dimuon(Particle):
     def __init__(self, E, i):
         Particle.__init__(self, E, i, 'dim_')
-        for attr in ('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha'):
+        for attr in ('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'isoPmumu', 'isoLxy'):
             self.set(attr, E, 'dim_'+attr, i)
         self.Lxy_ = TransverseDecayLength(E, i, 'dim_')
 
@@ -845,8 +845,8 @@ class Dimuon(Particle):
             return DSAmuons[self.idx1].charge != DSAmuons[self.idx2].charge
 
     # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
-    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|\n'
-    dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
+    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
+    dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
     DIMUON_PRESPACE  = '    '
 
     @staticmethod
@@ -854,7 +854,7 @@ class Dimuon(Particle):
         # extra spaces are to align with the RecoMuon |idx| field
         if line == 1:
             return Dimuon.DIMUON_PRESPACE + Particle.headerstr().strip('\n') +\
-                   Dimuon.headerFormatPost.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha')
+                   Dimuon.headerFormatPost.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'isoPmumu', 'isoLxy')
         elif line == 2:
             return TransverseDecayLength.headerstr()
 
@@ -862,7 +862,7 @@ class Dimuon(Particle):
         # extra spaces are to align with the RecoMuon |idx| field
         if line == 1:
             return Dimuon.DIMUON_PRESPACE + Particle.datastr(self).strip('\n') +\
-                   Dimuon.dataFormatPost.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha)
+                   Dimuon.dataFormatPost.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha, self.isoPmumu, self.isoLxy)
 
         elif line == 2: 
             return self.Lxy_.datastr() 

@@ -99,8 +99,13 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
         // Dimuon 4-vector
         TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
 
-        //Calculate dimuon isolation
-        float dimuon_iso = DimuonIsolation(rv,dimu_p4, beamspot, generalTracks,debug);
+        //Calculate dimuon isolation (using momentum direction to define cone)
+        reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
+        float dimuon_isoPmumu = DimuonIsolation(pmumuDir, rv,dimu_p4, beamspot, generalTracks,debug);
+
+        //Calculate dimuon isolation (using SV-PV to define cone)
+        reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
+        float dimuon_isoLxy = DimuonIsolation(lxyDir, rv,dimu_p4, beamspot, generalTracks,debug);
 
         // delta phi
         float dPhi = fabs(deltaPhi(diffP.Phi(), dimu_p4.Phi()));
@@ -124,23 +129,24 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
 
         // fill tree
         // dimuon variables
-        dim_pt       .push_back(dimu_p4.Pt ());
-        dim_eta      .push_back(dimu_p4.Eta());
-        dim_phi      .push_back(dimu_p4.Phi());
-        dim_mass     .push_back(dimu_p4.M  ());
-        dim_p        .push_back(dimu_p4.P  ());
-        dim_x        .push_back(rv_x         );
-        dim_y        .push_back(rv_y         );
-        dim_z        .push_back(rv_z         );
-        dim_normChi2 .push_back(rv_normChi2  );
-        dim_Lxy_pv   .push_back(Lxy_pv       );
-        dim_LxySig_pv.push_back(Lxysig_pv    );
-        dim_Lxy_bs   .push_back(Lxy_bs       );
-        dim_LxySig_bs.push_back(Lxysig_bs    );
-        dim_deltaPhi .push_back(dPhi         );
-        dim_deltaR   .push_back(dR           );
-        dim_cosAlpha .push_back(cosAlpha     );
-        dim_iso		 .push_back(dimuon_iso   );
+        dim_pt       .push_back(dimu_p4.Pt ()    );
+        dim_eta      .push_back(dimu_p4.Eta()    );
+        dim_phi      .push_back(dimu_p4.Phi()    );
+        dim_mass     .push_back(dimu_p4.M  ()    );
+        dim_p        .push_back(dimu_p4.P  ()    );
+        dim_x        .push_back(rv_x             );
+        dim_y        .push_back(rv_y             );
+        dim_z        .push_back(rv_z             );
+        dim_normChi2 .push_back(rv_normChi2      );
+        dim_Lxy_pv   .push_back(Lxy_pv           );
+        dim_LxySig_pv.push_back(Lxysig_pv        );
+        dim_Lxy_bs   .push_back(Lxy_bs           );
+        dim_LxySig_bs.push_back(Lxysig_bs        );
+        dim_deltaPhi .push_back(dPhi             );
+        dim_deltaR   .push_back(dR               );
+        dim_cosAlpha .push_back(cosAlpha         );
+        dim_isoPmumu .push_back(dimuon_isoPmumu  );
+        dim_isoLxy   .push_back(dimuon_isoLxy    );
 
         // First muon candidate resulting from the common-vertex fit.
         // The refitted track does not have chi2, ndof, and hitpattern
@@ -212,7 +218,8 @@ void DimuonBranches::Fill(const edm::Handle<reco::TrackCollection> &muonsHandle,
               << " Lxy(BS) significance = " << Lxysig_bs << std::endl;
           std::cout << "  dR = "         << dR       << " dphi = " << dPhi
               << " cos(alpha) = "  << cosAlpha << std::endl;
-          std::cout << "Isolation: " << dimuon_iso << std::endl;
+          std::cout << "Pmumu Isolation: " << dimuon_isoPmumu << std::endl;
+          std::cout << "Lxy   Isolation: " << dimuon_isoLxy << std::endl;
           std::cout << "Refitted DSA muon info:" << muon_cand1;
           std::cout << "Refitted DSA muon info:" << muon_cand2;
         }
@@ -316,7 +323,9 @@ using namespace muonisolation;
  *
  * returns (Sum of other tracks momentum in cone) / (Sum of dimuon momentum)
  */
-float DimuonBranches::DimuonIsolation(const reco::Vertex& rv,
+float DimuonBranches::DimuonIsolation(
+		const reco::isodeposit::Direction& isoConeDirection,
+		const reco::Vertex& rv,
 		const TLorentzVector& dimuon,
 		const reco::BeamSpot &beamspot,
 		const reco::TrackCollection &generalTracks,
@@ -339,10 +348,10 @@ float DimuonBranches::DimuonIsolation(const reco::Vertex& rv,
 	const float vtx_z = rv.z();
 
 	//currently using direction of momentum to define cone
-	reco::isodeposit::Direction muonDir(dimuon.Eta(), dimuon.Phi());
+	//reco::isodeposit::Direction muonDir(dimuon.Eta(), dimuon.Phi());
 
 	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
-			diffR, muonDir, dRmax,beamspot.position());
+			diffR, isoConeDirection, dRmax,beamspot.position());
 
 	pars.nHitsMin = nHitsMin;
 	pars.chi2NdofMax = chi2NdofMax;

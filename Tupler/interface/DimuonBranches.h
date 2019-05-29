@@ -15,6 +15,7 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "RecoVertex/AdaptiveVertexFit/interface/AdaptiveVertexFitter.h"
 #include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
+#include "DataFormats/RecoCandidate/interface/IsoDepositDirection.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
@@ -55,7 +56,8 @@ class DimuonBranches : public BranchCollection
 		std::vector<float> dim_normChi2 ;
 		std::vector<float> dim_cosAlpha ;
 		std::vector<float> dim_deltaPhi ;
-		std::vector<float> dim_iso	    ;
+		std::vector<float> dim_isoPmumu;
+		std::vector<float> dim_isoLxy  ;
 
 		std::vector<int  > dim_mu1_idx          ;
 		std::vector<float> dim_mu1_px           ;
@@ -126,7 +128,8 @@ class DimuonBranches : public BranchCollection
 			Declare("dim_normChi2" , dim_normChi2 );
 			Declare("dim_cosAlpha" , dim_cosAlpha );
 			Declare("dim_deltaPhi" , dim_deltaPhi );
-			Declare("dim_iso" 	   , dim_iso 	  );
+			Declare("dim_isoPmumu" , dim_isoPmumu );
+			Declare("dim_isoLxy"   , dim_isoLxy   );
 
 			Declare("dim_mu1_idx"         , dim_mu1_idx         );
 			Declare("dim_mu1_px"          , dim_mu1_px          );
@@ -197,7 +200,8 @@ class DimuonBranches : public BranchCollection
 			dim_normChi2 .clear();
 			dim_cosAlpha .clear();
 			dim_deltaPhi .clear();
-			dim_iso      .clear();
+			dim_isoPmumu .clear();
+			dim_isoLxy   .clear();
 
 			dim_mu1_idx         .clear();
 			dim_mu1_px          .clear();
@@ -264,7 +268,9 @@ class DimuonBranches : public BranchCollection
 					    const reco::TransientTrack& tt2,
 					    const bool debug = false);
 
-		static float DimuonIsolation(const reco::Vertex& rv,
+		static float DimuonIsolation(
+				const reco::isodeposit::Direction& isoConeDirection,
+				const reco::Vertex& rv,
 				const TLorentzVector& dimuon,
 				const reco::BeamSpot &beamspot,
 				const reco::TrackCollection &generalTracks,
