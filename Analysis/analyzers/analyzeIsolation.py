@@ -3,6 +3,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
+import DisplacedDimuons.Analysis.Selector as Selector
 
 #
 # voms-proxy-init --voms cms
@@ -13,10 +14,9 @@ import DisplacedDimuons.Analysis.Selections as Selections
 
 def declareHistograms(self, Params=None):
     
-    self.HistInit('Lxy-Isolation', 'Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 0.05)
-    self.HistInit('Lxy-Isolation-Selected', 'Selected Dimuon Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 0.05)
-    self.HistInit('Pmumu-Isolation', 'P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 0.05)
-    self.HistInit('Pmumu-Isolation-Selected', 'Selected Dimuon P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 0.05)
+    for tag in ('DSA','PAT','HYBRID'):
+        self.HistInit(tag+'-Lxy-Isolation', tag+' Selected Dimuon Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 10)
+        self.HistInit(tag+'-Pmumu-Isolation', tag+' Selected Dimuon P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 10)
     
 
 def analyze(self, E, PARAMS=None):
@@ -26,22 +26,19 @@ def analyze(self, E, PARAMS=None):
         if not Selections.passTrigger(E): return
     
     DSAmuons = E.getPrimitives('DSAMUON')
-    Dimuons  = E.getPrimitives('DIMUON' )
+    PATmuons = E.getPrimitives('PATMUON')
+    Dimuons3  = E.getPrimitives('DIMUON' )
 
-    DSASelections    = [Selections.MuonSelection(muon) for muon in DSAmuons]
-    DimuonSelections = [Selections.DimuonSelection(dimuon) for dimuon in Dimuons ]
-    selectedDSAmuons = [mu for idx,mu in enumerate(DSAmuons) if DSASelections[idx]]
-    selectedDimuons  = [dim for idx,dim in enumerate(Dimuons) if DimuonSelections[idx].allExcept('LxySig', 'deltaPhi') and DSASelections[dim.idx1] and DSASelections[dim.idx2]]
+
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT_DPHI', Dimuons3, DSAmuons, PATmuons)
+    if selectedDimuons is None: return
 
     
-    for dimuon in Dimuons:
-        #print dimuon
-        self.HISTS['Lxy-Isolation'].Fill(dimuon.isoLxy)
-        self.HISTS['Pmumu-Isolation'].Fill(dimuon.isoPmumu)
-        
     for dimuon in selectedDimuons:
-        self.HISTS['Lxy-Isolation-Selected'].Fill(dimuon.isoLxy)
-        self.HISTS['Pmumu-Isolation-Selected'].Fill(dimuon.isoPmumu)
+
+        self.HISTS[dimuon.composition+'-Lxy-Isolation'].Fill(dimuon.isoLxy)
+        self.HISTS[dimuon.composition+'-Pmumu-Isolation'].Fill(dimuon.isoPmumu)
+        
     
 
     
@@ -58,7 +55,7 @@ if __name__ == '__main__':
         setattr(Analyzer.Analyzer, METHOD, locals()[METHOD])
     analyzer = Analyzer.Analyzer(
         ARGS        = ARGS,
-        BRANCHKEYS  = ('DIMUON','DSAMUON'),
+        BRANCHKEYS  = ('DIMUON','DSAMUON','PATMUON','FILTER', 'TRIGGER'),
         FILES = '/afs/cern.ch/user/w/wnash/DisplacedDimuons/Tupler/python/qcdIsolation.root'
     )
     analyzer.writeHistograms('roots/isolationPlots.root')

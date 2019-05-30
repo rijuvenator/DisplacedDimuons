@@ -36,7 +36,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
   reco::TrackCollection::const_iterator ptk, qtk;
   for (i = 0, ptk = dsamuons.begin(); ptk != dsamuons.end(); ptk++, i++) {
     for (j = i+1, qtk = ptk+1; qtk != dsamuons.end(); qtk++, j++) {
-      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle,debug);
     }
   }
 
@@ -67,7 +67,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
 
       // Increment the muon index by 1000 to flag global/tracker
       // muons.
-      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle, debug);
 
     }
   }
@@ -80,7 +80,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
       if (!qmu->isGlobalMuon() && qmu->numberOfMatchedStations() <= 1)
         continue;
       const reco::TrackRef qtk = qmu->tunePMuonBestTrack();
-      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle, debug);
     }
   }
 }
@@ -92,6 +92,7 @@ void DimuonBranches::FillDimuon(int i, int j,
 				const edm::Handle<reco::VertexCollection> &verticesHandle,
 				const edm::Handle<reco::BeamSpot> &beamspotHandle,
 				const edm::ESHandle<MagneticField>& magfield,
+				const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 				bool debug)
 {
   static float mass = .105658375;
@@ -377,7 +378,6 @@ void DimuonBranches::FillDimuon(int i, int j,
     std::cout << "Lxy   Isolation: " << dimuon_isoLxy << std::endl;
     std::cout << "Refitted DSA muon info:" << muon_cand1;
     std::cout << "Refitted DSA muon info:" << muon_cand2;
->>>>>>> master
   }
 }
 
