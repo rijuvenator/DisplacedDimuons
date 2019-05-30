@@ -6,7 +6,12 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
-lumi_str = "2016 cosmics data"
+# output_folder = "pdfs/simulation-validation_comparison-plots/"
+output_folder = "pdfs/reHLT-validation-plots_Cosmics-vs-NoBPTX_fullStats/"
+output_formats = [".pdf", ".root"]
+
+lumi_str = "2016 Cosmics / MC samples"
+# lumi_str = "2016 cosmics events"
 
 L1T_info = "Data taken with L1_SingleMuOpen"
 HLT_info = "Ref. path: HLT_L2Mu10_NoVertex_[pp|CosmicSeed] (re-HLT)"
@@ -172,6 +177,13 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
         f: {"appearance": app, "descr": d, "plots": {}} for app, f, d in file_specs
     }
 
+    rebinning_exceptions = ()
+
+    custom_xranges = {
+        "pTresVAR": [-1, 5],
+        "d0VAR": [0, 400],
+    }
+
     hists = collectHistograms(file_specs, hist_patterns_and_excludes)
 
     # prepare the histograms
@@ -179,12 +191,13 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
         for key in hists[f]["hists"]:
             RT.addFlows(hists[f]["hists"][key])
 
-            if hists[f]["hists"][key].GetNbinsX() >= 1000:
-                hists[f]["hists"][key].Rebin(5)
-            elif hists[f]["hists"][key].GetNbinsX() >= 100:
-                hists[f]["hists"][key].Rebin(2)
-            else:
-                pass
+            if not any([e in key for e in rebinning_exceptions]):
+                if hists[f]["hists"][key].GetNbinsX() >= 1000:
+                    hists[f]["hists"][key].Rebin(5)
+                elif hists[f]["hists"][key].GetNbinsX() >= 100:
+                    hists[f]["hists"][key].Rebin(2)
+                else:
+                    pass
 
             legName = f_descr
 
@@ -360,33 +373,32 @@ def makeSimpleComparisonPlots(hist_patterns_and_excludes):
 
                             cnt_d0infos += 1
                 
-                if "pTresVAR" in key:
-                    canvas.firstPlot.GetXaxis().SetRangeUser(-1.0, 4.0)
+                # set custom x axis range if so specified in the variable custom_xranges
+                for var in custom_xranges:
+                    if var in key:
+                        canvas.firstPlot.GetXaxis().SetRangeUser(
+                            custom_xranges[var][0],
+                            custom_xranges[var][1]
+                        )
+                        break
 
-                if "L1pTresVAR" in key and "norm" in suffix:
+                if "norm" in suffix:
                     if is_logy:
-                        canvas.firstPlot.GetYaxis().SetRangeUser(1e-3, 0.7)
+                        canvas.firstPlot.GetYaxis().SetRangeUser(1e-3, 0.5)
                     else:
-                        canvas.firstPlot.GetYaxis().SetRangeUser(0.0, 0.7)
-
-                if "L2pTresVAR" in key and "norm" in suffix:
-                    if is_logy:
-                        canvas.firstPlot.GetYaxis().SetRangeUser(1e-3, 0.7)
-                    else:
-                        canvas.firstPlot.GetYaxis().SetRangeUser(0.0, 0.7)
+                        canvas.firstPlot.GetYaxis().SetRangeUser(0.0, 0.5)
 
                 if "norm" in suffix:
                     canvas.firstPlot.GetYaxis().SetTitle(
                         "Normalized " + canvas.firstPlot.GetYaxis().GetTitle()
                     )
 
-                # fname = "pdfs/simulationValidationPlots/{}{}{}".format(
-                fname = "pdfs/testplots/cosmic-seed/{}{}{}".format(
-                    key, "_logy" if is_logy else "", suffix
+                fname = "{}/{}{}{}".format(
+                    output_folder, key, "_logy" if is_logy else "", suffix
                 )
 
                 canvas.finishCanvas()
-                canvas.save(fname, extList=[".pdf"]) #, ".root"])
+                canvas.save(fname, extList=output_formats)
                 canvas.deleteCanvas()
 
     del hists
@@ -614,11 +626,10 @@ def makeTurnOnComparisonPlots():
             pave_triggerinfo.AddText(0.0, 0.5, L1T_info)
             pave_triggerinfo.Draw()
 
-            fname = "pdfs/testplots/TETurnOn_{}".format(key)
-            # fname = "pdfs/simulationValidationPlots/TETurnOn_{}".format(key)
+            fname = "{}/TETurnOn_{}".format(output_folder, key)
 
             canvas.finishCanvas()
-            canvas.save(fname, extList=[".pdf", ".root"])
+            canvas.save(fname, extList=output_formats)
             canvas.deleteCanvas()
 
     del hists

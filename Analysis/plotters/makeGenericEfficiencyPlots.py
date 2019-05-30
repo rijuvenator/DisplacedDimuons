@@ -310,6 +310,7 @@ def makeEfficiencyPlots(
         num_leg = num_specs.getAttribute("legend")
         if num_leg is None:
             num_leg = ""
+
         num_linecolor = num_specs.getAttribute("linecolor")
         num_linestyle = num_specs.getAttribute("linestyle")
         num_markercolor = num_specs.getAttribute("markercolor")
@@ -332,7 +333,7 @@ def makeEfficiencyPlots(
                 Xrange_max = Xrange[1]
 
         if Yrange is not None:
-            # find the most inclusive x-axis ranges
+            # find the most inclusive y-axis ranges
             if Yrange_min is not None:
                 Yrange_min = Yrange[0] if Yrange[0] < Yrange_min else Yrange_min
             else:
@@ -374,10 +375,9 @@ def makeEfficiencyPlots(
         if num_markerstyle:
             plots[plot_name].SetMarkerStyle(num_markerstyle)
 
-        RT.addBinWidth(plots[plot_name])
-
     if logy and Yrange_min <= 0.0:
         Yrange_min = 1e-3
+
     if Xrange:
         print ("setting x ranges: {}, {}".format(Xrange_min, Xrange_max))
         canvas.firstPlot.GetXaxis().SetRangeUser(Xrange_min, Xrange_max)
@@ -387,6 +387,13 @@ def makeEfficiencyPlots(
     if make_legend:
         canvas.makeLegend(pos="tl", fontscale=0.77)
         canvas.legend.resizeHeight()
+
+    # draw horizontal line at 1
+    hline = R.TLine(23.0, 1.0, (150.0 if not Xrange else Xrange_max), 1.0)
+    R.SetOwnership(hline, 0)
+    hline.SetLineColor(15)
+    hline.SetLineStyle(2)
+    hline.Draw()
 
     fname = output_folder + "/" + output_filename
     if logy:

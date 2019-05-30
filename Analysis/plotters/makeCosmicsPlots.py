@@ -12,16 +12,20 @@ import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 L1RESOLUTIONVARIABLES = ["L1pTres"]
 L2RESOLUTIONVARIABLES = ["L2pTres"]
 
-# L1T_info = 'L1_SingleMuOpen'
-# HLT_info = 'HLT_L2Mu10_NoVertex_pp'
-L1T_info = "L1_SingleMuOpen_NotBptxOR_3BX"
-HLT_info = "HLT_L2Mu10_NoVertex_NoBPTX3BX"
+L1T_info = 'L1_SingleMuOpen'
+HLT_info = 'HLT_L2Mu10_NoVertex_ppSeed'
+# L1T_info = "L1_SingleMuOpen_NotBptxOR_3BX"
+# HLT_info = "HLT_L2Mu10_NoVertex_NoBPTX3BX"
+
+lumi = '2016 Cosmics data'
+# lumi = '2016 MC signal samples'
+dataset_fname = "_Cosmics2016"
 
 RANGES = {
     "pTdiff": (-1.1, 10.0),
-    "d0": (0.0, 500),
-    # "L1pTres": (-1.0, 5.0),
-    # "L2pTres": (-1.0, 5.0),
+    "d0": (0.0, 200),
+    "L1pTres": (-1.0, 8.0),
+    "L2pTres": (-1.0, 8.0),
     "dimVtxChi2": (0.0, 60.0),
     "dimLxySig": (0.0, 230.0),
     "chi2": (0.0, 30.0),
@@ -33,7 +37,7 @@ RANGES = {
 }
 
 HISTS = HistogramGetter.getHistograms(
-    "../analyzers/roots/check-muonMult_NoBPTX2016_HLT-CosmicSeed_lowerLeg_nCSCDTHitsGT12_nStationsGT1_pTGT20p0_pTSigLT1p0_vtxChiSquLT50p0_pairL1pT5p0AND12p0_bothLegsMatched_requireDimVtx_noTurnOnHists.root"
+    "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed.root"
 )
 
 
@@ -66,7 +70,10 @@ def makePerSamplePlots(selection=None):
                 print ("Do not rebin {}".format(key))
                 pass
             else:
-                h[key].Rebin(15)
+                if "__L1pTresVAR" in key or "__L2pTresVAR" in key:
+                    h[key].Rebin(2)
+                else:
+                    h[key].Rebin(15)
         elif h[key].GetNbinsX() >= 100:
             if any(["__" + var + "VAR" in key for var in rebinning_exceptions]):
                 print ("Do not rebin {}".format(key))
@@ -107,21 +114,6 @@ def makePerSamplePlots(selection=None):
         p = Plotter.Plot(h[key], legName, "l", "hist")
 
         for is_logy in (True, False):
-            if len(HISTS.keys()) > 1:
-                lumi = "NoBPTXRun2016[D+E]-07Aug17"
-                dataset_fname = ""
-            else:
-                search_res = re.search(r"NoBPTXRun2016([A-Z])", HISTS.keys()[0])
-                if search_res:
-                    era = search_res.group(1)
-                else:
-                    raise Exception(
-                        "NoBPTXRun2016[A-Z] identified not found in {}".format(key)
-                    )
-
-                lumi = "NoBPTXRun2016{}-07Aug17".format(era)
-                dataset_fname = "_NoBPTXRun2016{}-07Aug17".format(era)
-
             fname = "pdfs/{}{}{}.pdf".format(
                 key, dataset_fname, ("_logy" if is_logy else "")
             )
@@ -130,7 +122,6 @@ def makePerSamplePlots(selection=None):
             canvas.addMainPlot(p)
             if legName != "":
                 canvas.makeLegend(lWidth=0.25, pos="tl", fontscale=0.65)
-                # canvas.legend.moveLegend()
                 canvas.legend.resizeHeight()
 
             for var in RANGES:
@@ -211,7 +202,11 @@ def makePerSamplePlots(selection=None):
                 )
                 pave_gaus.Draw()
 
-                canvas.legend.moveLegend(X=0.393, Y=-0.01)
+                try:
+                    canvas.legend.moveLegend(X=0.393, Y=-0.01)
+                except:
+                    # continue if there is no legend
+                    pass
             else:
                 # Trigger information for canvas
                 pave_triggerinfo = R.TPaveText(0.4, 0.75, 0.72, 0.88, "NDCNB")
@@ -318,24 +313,22 @@ def makeTurnOnPlots():
         for i, dataset in enumerate(HISTS):
             if d0min is None or d0max is None:
                 hnums = getHistNames(
-                    dataset, "DSA", "pTVAREffNum", exclude=["d0GT", "d0LT", "alpha"]
+                    dataset, "DSA_lowerLeg", "pTVAREffNum", exclude=["d0GT", "d0LT", "alpha"]
                 )
                 hdens = getHistNames(
-                    dataset, "DSA", "pTVAREffDen", exclude=["d0GT", "d0LT", "alpha"]
+                    dataset, "DSA_lowerLeg", "pTVAREffDen", exclude=["d0GT", "d0LT", "alpha"]
                 )
             else:
                 hnums = getHistNames(
                     dataset,
-                    "DSA",
-                    "pTVAREffNum",
+                    "DSA_lowerLeg__pTVAREffNum",
                     "d0GT" + str(d0min).replace(".", "p"),
                     "d0LT" + str(d0max).replace(".", "p"),
                     exclude=["alpha"],
                 )
                 hdens = getHistNames(
                     dataset,
-                    "DSA",
-                    "pTVAREffDen",
+                    "DSA_lowerLeg__pTVAREffDen",
                     "d0GT" + str(d0min).replace(".", "p"),
                     "d0LT" + str(d0max).replace(".", "p"),
                     exclude=["alpha"],
@@ -347,7 +340,7 @@ def makeTurnOnPlots():
                 current_hist.Sumw2()
                 RT.addFlows(current_hist)
                 if current_hist.GetNbinsX() >= 1000:
-                    current_hist.Rebin(10)
+                    current_hist.Rebin(15)
                 elif current_hist.GetNbinsX() >= 100:
                     current_hist.Rebin(5)
                 else:
@@ -364,7 +357,7 @@ def makeTurnOnPlots():
                 current_hist.Sumw2()
                 RT.addFlows(current_hist)
                 if current_hist.GetNbinsX() >= 1000:
-                    current_hist.Rebin(10)
+                    current_hist.Rebin(15)
                 elif current_hist.GetNbinsX() >= 100:
                     current_hist.Rebin(5)
                 else:
@@ -599,34 +592,35 @@ def interpolateX(x0, y0, x1, y1, y):
     return (x1 - x0) * (y - y0) / (y1 - y0) + x0
 
 
-def findFitRange(h, percentage=0.3):
+def findFitRange(h, percentage=0.66, minimal_range=0.4):
     nbins_to_check = 1
     peakval = h.GetMaximum()
     peakbin = h.GetMaximumBin()
+    peakcenter = h.GetBinCenter(peakbin)
 
     threshold = percentage * peakval
 
     # find the lower limit
-    for b in range(1, peakbin + 1):
-        if h.GetBinContent(b) > threshold:
+    for b in range(peakbin, 0, -1):
+        if h.GetBinContent(b) < threshold:
             # check following bins to make sure this is not a
             # statistical fluctuation
             is_fluctuation = False
-            for bb in range(b + 1, b + nbins_to_check):
-                if h.GetBinContent(bb) < h.GetBinContent(b):
-                    is_fluctuation = True
+            for bb in range(b - 1, b - nbins_to_check, -1):
+                if h.GetBinContent(bb) > h.GetBinContent(b):
+                    is_flucutaion = True
 
             if not is_fluctuation:
                 if b > 1:
                     range_min = interpolateX(
-                        h.GetXaxis().GetBinCenter(b - 1),
-                        h.GetBinContent(b - 1),
                         h.GetXaxis().GetBinCenter(b),
                         h.GetBinContent(b),
+                        h.GetXaxis().GetBinCenter(b + 1),
+                        h.GetBinContent(b + 1),
                         threshold,
                     )
                 else:
-                    range_min = h.GetXaxis().GetBinLowEdge(b)
+                    range_min = h.GetXaxis().GetBinLowEdge(b + 1)
 
                 break
 
@@ -659,6 +653,20 @@ def findFitRange(h, percentage=0.3):
 
     else:
         range_max = h.GetXaxis().GetBinLowEdge(h.GetNbinsX())
+
+    # if the calculated range is below the minimally accepted range,
+    # force a symmetric fit interval around the maximum
+    if minimal_range and abs(range_max - range_min) < minimal_range:
+        temp_min = peakcenter - 0.5 * minimal_range
+        if temp_min < h.GetBinLowEdge(1): temp_min = h.GetBinLowEdge(1)
+
+        temp_max = peakcenter + 0.5 * minimal_range
+        if temp_max > h.GetBinLowEdge(h.GetNbinsX()+1): temp_max = h.GetBinLowEdge(h.GetNBinsX()+1)
+
+        minbin = h.FindBin(temp_min)
+        maxbin = h.FindBin(temp_max)
+        range_min = h.GetBinCenter(minbin)
+        range_max = h.GetBinCenter(maxbin)
 
     return range_min, range_max
 

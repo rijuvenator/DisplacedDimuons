@@ -449,7 +449,7 @@ def declareHistograms(self, PARAMS=None):
                 # define histograms for pair variables
                 HISTNAME_TEMPLATES_SIMPLE_PAIRVARIABLES = []
 
-                # in addition to the default case, distringuish between oppositely and
+                # in addition to the default case, distinguish between oppositely and
                 # equally charged muon pairs
                 for paircharge in ("_oppositeCharges", "_equalCharges", ""):
                     histname = "DSA{paircharge}__{{}}VAR{identifier}".format(
@@ -575,24 +575,44 @@ def analyze(self, E, PARAMS=None):
     # # enforce a custom set of runs/lumisections for a direct comparison of
     # # NoBPTX vs. Cosmics samples
     # custom_JSON = {
-    #     # using the "firstClean" JSON
-    #     276336: [[10,27]],
-    #     276337: [[10,91]],
-    #     276459: [[11,109]],
-    #     276467: [[11,61]],
-    #     276529: [[10,51]],
-    #     276563: [[1, 35]],
-    #     276567: [[1, 62]],
-    #     276568: [[12,31]],
-    #     276570: [[1, 99]],
-    #     276577: [[1, 177]],
-    #     276735: [[11,60]],
-    #     276758: [[11,177]],
-    #     276872: [[11,27]],
-    #     276910: [[20, 188]],
-    #     276919: [[1, 47]],
-    #     276921: [[1, 34]],
-    #     276936: [[1, 91], [161, 176]],
+    #     # using the StoppedPtls_json_subset JSON
+    #     276563: range(11, 35),
+    #     276567: range(10, 61),
+    #     276570: range(11, 91),
+    #     276577: range(11, 176),
+    #     276910: range(20, 180),
+    #     276919: range(11, 39),
+    #     276921: range(10, 29),
+    #     276936: range(11, 90),
+
+    #     # # using the CosmicJSON_E_D_firstClean
+    #     # 276563: range(1, 35),
+    #     # 276567: range(1, 62),
+    #     # 276570: range(1, 99),
+    #     # 276577: range(1, 177),
+    #     # 276910: range(20, 188),
+    #     # 276919: range(1, 47),
+    #     # 276921: range(1, 34),
+    #     # 276936: range(1, 91) + range(161, 176),
+
+    #     # # using the CosmicJSON_E_D_UGMT_base_and_bottomOnly JSON
+    #     # 276336: range(10,27),
+    #     # 276337: range(10,91),
+    #     # 276459: range(11,109),
+    #     # 276467: range(11,61),
+    #     # 276529: range(10,51),
+    #     # 276563: range(1, 35),
+    #     # 276567: range(1, 62),
+    #     # 276568: range(12,31),
+    #     # 276570: range(1, 99),
+    #     # 276577: range(1, 177),
+    #     # 276735: range(11,60),
+    #     # 276758: range(11,177),
+    #     # 276872: range(11,27),
+    #     # 276910: range(20, 188),
+    #     # 276919: range(1, 47),
+    #     # 276921: range(1, 34),
+    #     # 276936: range(1, 91) + range(161, 176),
     # }
     # if event.run not in custom_JSON.keys(): return
     # # if event.lumi not in custom_JSON[event.run]: return
@@ -856,7 +876,7 @@ def analyze(self, E, PARAMS=None):
                 # apply pT cuts on L1 muon pairs ("L1 seed emulation") of both legs
                 # are required to match HLT objects
                 if DO_REQUIRE_BOTH_LEGS_MATCHED:
-                    m1_passed_first_cut = any(
+                    m1_passes_first_cut = any(
                         [
                             mu.pt >= L1_pairthresholds[0]
                             for mu in L1Tmuons
@@ -1128,6 +1148,8 @@ def analyze(self, E, PARAMS=None):
                                 for L1Tmuon in L1Tmuons
                                 if L1Tmuon.idx == matching_HLTmuon_referenceLeg.idx
                             ]
+                            if len(referenceMuon_L1muons) == 0:
+                                print("\t[DATA ERROR] No L1 muons found for HLT muon")
 
                             # create L2 resolution histograms
                             for KEY in L2RESOLUTIONVARIABLES:
@@ -1190,6 +1212,8 @@ def analyze(self, E, PARAMS=None):
                                 for L1Tmuon in L1Tmuons
                                 if L1Tmuon.idx == matching_HLTmuon_referenceLeg.idx
                             ]
+                            if len(referenceMuon_L1muons) == 0:
+                                print("\t[DATA ERROR] No L1 muons found for HLT muon")
 
                             for KEY in CONFIG:
                                 if KEY in SINGLEMUVARIABLES:

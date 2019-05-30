@@ -229,7 +229,7 @@ def makeSimplePlots(PLOT_SPECS, DISTRIBUTION_SPECS, output_filename, output_fold
                 Xrange_max = Xrange[1]
 
         if Yrange is not None:
-            # find the most inclusive x-axis ranges
+            # find the most inclusive y-axis ranges
             if Yrange_min is not None:
                 Yrange_min = Yrange[0] if Yrange[0] < Yrange_min else Yrange_min
             else:
