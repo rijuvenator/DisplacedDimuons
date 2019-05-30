@@ -320,8 +320,8 @@ condorSubmitAdd = '''
 output                 = logs/run{runNum}/{logname}_{index}.out
 log                    = logs/run{runNum}/{logname}_{index}.log
 error                  = logs/run{runNum}/{logname}_{index}.err
-{proxy_literal}
 arguments              = {ARGS}
+{proxy_literal}
 requirements           = (OpSysAndVer =?= "SLCern6")
 #image_size             = 28000
 should_transfer_files  = NO
