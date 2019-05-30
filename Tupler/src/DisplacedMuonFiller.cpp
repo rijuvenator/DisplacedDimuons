@@ -5,7 +5,8 @@
 DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
 					const edm::ESHandle<TransientTrackBuilder>& ttB,
 					const edm::Handle<reco::VertexCollection> &verticesHandle,
-					const edm::Handle<reco::BeamSpot> &beamspotHandle)
+					const edm::Handle<reco::BeamSpot> &beamspotHandle,
+					const bool patmuon)
 {
   DisplacedMuon cand;
 
@@ -33,12 +34,18 @@ DisplacedMuon DisplacedMuonFiller::Fill(const reco::Track& track,
 
   // Position of the innermost hit.  As it is stored in TrackExtra, we
   // need to make sure that TrackExtra exists.
-  if (!track.extra().isNull() && track.innerOk())
-  {
-    cand.x_fhit = track.innerPosition().x();
-    cand.y_fhit = track.innerPosition().y();
-    cand.z_fhit = track.innerPosition().z();
+  if (!patmuon) {
+    if (!track.extra().isNull() && track.innerOk())
+      {
+	cand.x_fhit = track.innerPosition().x();
+	cand.y_fhit = track.innerPosition().y();
+	cand.z_fhit = track.innerPosition().z();
+      }
   }
+
+  cand.n_PxlHits   = track.hitPattern().numberOfValidPixelHits();
+  cand.n_TrkHits   = track.hitPattern().numberOfValidTrackerHits();
+  cand.n_TrkLayers = track.hitPattern().trackerLayersWithMeasurement();
 
   cand.n_MuonHits    = track.hitPattern().numberOfValidMuonHits()   ;
   cand.n_DTHits      = track.hitPattern().numberOfValidMuonDTHits() ;

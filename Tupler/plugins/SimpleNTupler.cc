@@ -40,9 +40,10 @@
 #include "DisplacedDimuons/Tupler/interface/BeamspotBranches.h"
 #include "DisplacedDimuons/Tupler/interface/VertexBranches.h"
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
-#include "DisplacedDimuons/Tupler/interface/MuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/PATMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/DSAMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/RSAMuonBranches.h"
+#include "DisplacedDimuons/Tupler/interface/DGBMuonBranches.h"
 #include "DisplacedDimuons/Tupler/interface/DimuonBranches.h"
 
 // class declaration
@@ -77,9 +78,10 @@ class SimpleNTupler : public edm::EDAnalyzer
     BeamspotBranches beamspotData;
     VertexBranches   vertexData;
     GenBranches      genData;
-    MuonBranches     muonData;
+    PATMuonBranches  patMuonData;
     DSAMuonBranches  dsaMuonData;
     RSAMuonBranches  rsaMuonData;
+    DGBMuonBranches  dgbMuonData;
     DimuonBranches   dimData;
 
     // the tokens
@@ -97,6 +99,7 @@ class SimpleNTupler : public edm::EDAnalyzer
     edm::EDGetTokenT<reco::TrackCollection         > dsaMuonToken;
     edm::EDGetTokenT<reco::TrackCollection         > rsaMuonToken;
     edm::EDGetTokenT<reco::TrackCollection		   > trackToken;
+    edm::EDGetTokenT<reco::TrackCollection         > dgbMuonToken;
 
 };
 
@@ -116,10 +119,12 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   beamspotData(tree, source != "GEN"),
   vertexData  (tree, source != "GEN"),
   genData     (tree, isMC           ),
-  muonData    (tree, source == "PAT"),
+  patMuonData (tree, source == "PAT"),
   dsaMuonData (tree, source != "GEN"),
   rsaMuonData (tree, source != "GEN"),
+  dgbMuonData (tree, source != "GEN"),
   dimData     (tree, source != "GEN"),
+
 
   triggerEventToken(consumes<pat::TriggerEvent             >(iConfig.getParameter<edm::InputTag>("triggerEvent" 	   ))),
   prescalesToken   (consumes<pat::PackedTriggerPrescales   >(iConfig.getParameter<edm::InputTag>("prescales"   		   ))),
@@ -134,7 +139,9 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   muonToken        (consumes<pat::MuonCollection           >(iConfig.getParameter<edm::InputTag>("muons"    	       ))),
   dsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dsaMuons"    		   ))),
   rsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("rsaMuons"     	   ))),
-  trackToken	   (consumes<reco::TrackCollection		   >(iConfig.getParameter<edm::InputTag>("inputTrackCollection")))
+  trackToken	   (consumes<reco::TrackCollection		   >(iConfig.getParameter<edm::InputTag>("inputTrackCollection"))),
+  dgbMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dgbMuons"     	   )))
+
 {};
 
 // wrapper for failedToGet
@@ -250,30 +257,33 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     genData.Fill(gens, GEIP, pileupInfo, isSignal, finalState, beamspot, propagator, magfield);
   }
 
+  // ***** GET TRANSIENT TRACK BUILDER *****
+  edm::ESHandle<TransientTrackBuilder> ttB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
 
   // *********************
   // *** PAT MUON DATA ***
   // *********************
   if (source == "PAT")
   {
-    edm::Handle<pat::MuonCollection> muons;
-    iEvent.getByToken(muonToken, muons);
-    muonData.Fill(muons);
+    edm::Handle<pat::MuonCollection> patMuons;
+    iEvent.getByToken(muonToken, patMuons);
+    if (vertexData.isValid())
+      patMuonData.Fill(patMuons, ttB, vertices, beamspot, propagator, magfield);
   }
-
-  // ***** GET TRANSIENT TRACK BUILDER *****
-  edm::ESHandle<TransientTrackBuilder> ttB;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", ttB);
 
   // *********************
   // *** DSA MUON DATA ***
   // *********************
   edm::Handle<reco::TrackCollection> dsaMuons;
+  edm::Handle<pat::MuonCollection>   patMuons;
   if (source != "GEN")
   {
     iEvent.getByToken(dsaMuonToken, dsaMuons);
+    iEvent.getByToken(muonToken,    patMuons);
+
     if (vertexData.isValid())
-      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield);
+      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield, patMuons);
   }
 
   // *********************
@@ -287,6 +297,18 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       rsaMuonData.Fill(rsaMuons, ttB, vertices, beamspot);
   }
 
+  // *********************
+  // *** DGB MUON DATA ***
+  // *********************
+  if (source != "GEN")
+  {
+    // Skip for now. -SV.
+    //edm::Handle<reco::TrackCollection> dgbMuons;
+    //iEvent.getByToken(rsaMuonToken, dgbMuons);
+    //if (vertexData.isValid())
+    //  dgbMuonData.Fill(dgbMuons, ttB, vertices, beamspot);
+  }
+
   // *******************
   // *** DIMUON DATA ***
   // *******************
@@ -297,7 +319,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	 iEvent.getByToken(trackToken, generalTracks);
 
     if (dsaMuonData.isValid() && vertexData.isValid())
-      dimData.Fill(dsaMuons, ttB, vertices, beamspot, generalTracks);
+      dimData.Fill(iSetup, dsaMuons, ttB, vertices, beamspot, patMuons, magfield, generalTracks);
   }
 
   // Final tree fill

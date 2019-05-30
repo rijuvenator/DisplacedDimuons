@@ -1,6 +1,6 @@
 # Using the plotting scripts in `plotters/`
 
-Last updated: **25 October 2018**
+Last updated: **10 May 2019**
 
 This documents, not how to use _Plotter_ (see `PlotterDoc.md` for that), but rather some notes on specifics of the particular scripts in `plotters/`.
 
@@ -19,6 +19,8 @@ That last line is for getting the file handle again, since _HistogramGetter_ clo
 `HISTS` is a dictionary with two layers: `HISTS[sample][key]`. `sample` is either a string -- for data and background MC -- or a tuple of length two, of format `(FS, SP)`, where `FS` is a string (either `'2Mu2J'` or `'4Mu'`) and `SP` is a signalpoint tuple (e.g. `(125, 20, 13)`). So you can tell whether this sample is signal or not by whether the sample (reference) is of type string or of type tuple.
 
 _HistogramGetter_ also saves some useful constants related to plotting. It saves the integrated luminosity. It defines some standard LaTeX names for each sample, and some associated colors. And it saves the overall weight to be used for relative weighting of MC background samples, for example. This is all stored in `PLOTCONFIG` under the sample name as a dictionary.
+
+Finally, _HistogramGetter_ contains some scripts for getting sums of signal sample plots, getting the weighted MC histograms, and getting sums of data plots.
 
 ## Structure and booleans
 ### Structure

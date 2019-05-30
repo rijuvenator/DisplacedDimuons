@@ -17,7 +17,7 @@ MAINDIR='../analyzers/roots/Main/'
 PLOTTERDIR='../../../plotters/'
 
 cd $MAINDIR
-../relink {ftag} {fcutstring}
+relink {ftag} {fcutstring}
 if [ ! -e "{ftag}.root" ]
 then
     echo "Bad symlink"
@@ -49,6 +49,37 @@ python {plottingScriptName}.py {args}
 
 # list of configs. All of them will be run at the bottom of the file
 CONFIGS = []
+
+# section for signal plots with baseline cuts
+if False:
+    CONFIGS.append(Configuration(
+        'DimuonPlots',
+        'makeDimuonPlots',
+        'Trig_Prompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_Prompt'
+        )
+    )
+    CONFIGS.append(Configuration(
+        'DimuonPlots',
+        'makeDimuonPlots',
+        'Trig_NoPrompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_NoPrompt'
+        )
+    )
+    CONFIGS.append(Configuration(
+        'RecoMuonPlots',
+        'makeRecoMuonPlots',
+        'Trig_Prompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_Prompt'
+        )
+    )
+    CONFIGS.append(Configuration(
+        'RecoMuonPlots',
+        'makeRecoMuonPlots',
+        'Trig_NoPrompt_NS_NH_FPTE_PT_HLT_PC_LXYE_M_SignalOnly',
+        '--trigger --cutstring _NS_NH_FPTE_PT_HLT_PC_LXYE_M_NoPrompt'
+        )
+    )
 
 # section for MC/Data type plots, e.g. dimuon, recoMuon, with
 # various sets of cuts, for prompt and not prompt, etc.

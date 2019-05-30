@@ -9,7 +9,8 @@ if not 'lxplus' in os.environ['HOSTNAME']:
     PREFIX = Constants.PREFIX_CERN
 else:
     PREFIX = ''
-F_NTUPLE = PREFIX+Constants.DIR_EOS+'NTuples/ntuple_HTo2XTo4Mu_125_20_13.root'
+#F_NTUPLE = PREFIX+Constants.DIR_EOS+'NTuples/ntuple_HTo2XTo4Mu_125_20_13.root'
+F_NTUPLE = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Apr26/ntuple_HTo2XTo4Mu_125_20_13.root'
 
 def tprint(msg):
     print '\033[32mPRIMITIVES TEST: ' + msg + '\033[m'
@@ -36,7 +37,7 @@ KEYS = {
         'VERTEX'  : [-1, False],
         'BEAMSPOT': [-1, False],
         'GEN'     : [-1, False],
-        'MUON'    : [-1, False],
+        'PATMUON' : [-1, False],
         'DSAMUON' : [-1, False],
         'RSAMUON' : [-1, False],
         'DIMUON'  : [-1, False],

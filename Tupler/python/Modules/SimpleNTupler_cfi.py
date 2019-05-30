@@ -47,6 +47,8 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
         dsaMuons             = cms.InputTag('displacedStandAloneMuons', '', 'RECO'),
         rsaMuons             = cms.InputTag('refittedStandAloneMuons', '', 'RECO'),
         inputTrackCollection = cms.InputTag('generalTracks'),
+        dgbMuons             = cms.InputTag('displacedGlobalMuons', '', 'RECO')
+
     )
 )
 

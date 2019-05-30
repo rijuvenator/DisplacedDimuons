@@ -65,7 +65,7 @@ python runNTupler.py DoubleMuonRun2016D-07Aug17 --test --verbose
 
 Finally, **submitAll.py** submits the full suite of jobs; all that is needed is to change the `MODE` variable inside the script as desired. If desired, each of the submission blocks can be turned off with the `Do_*` booleans, and the user is free to place additional restrictions on which samples will be run (for example, by adding a conditional statement inside the loop).
 
-Currently, the script will submit 84 jobs, all running on PAT Tuples, corresponding to
+Currently, the script will submit 88 jobs, all running on PAT Tuples, corresponding to
   * 33 jobs for all HTo2XTo4Mu signal points
   * 33 jobs for all HTo2XTo2Mu2J signal points
   * 15 jobs for most background MC samples

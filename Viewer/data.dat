@@ -1,0 +1,295 @@
+PYTHON HTML DICT
+ARROW    &rarr;
+MU       &mu;
+MINUS    &minus;
+LT       &lt;
+GT       &gt;
+ALPHA    &alpha;
+BETA     &beta;
+DELTA    &Delta;
+PHI      &Phi;
+PHI_L    &phi;
+ETA      &eta;
+EPSILON  &epsilon;
+PI       &pi;
+SIGMA    &sigma;
+DELTAPHI &Delta;&Phi;
+DELTAR   &Delta;R
+PT       p<sub>T</sub>
+D0       d<sub>0</sub>
+DZ       d<sub>z</sub>
+LXY      L<sub>xy</sub>
+PT_S     <sub>pT</sub>
+D0_S     <sub>d0</sub>
+LXY_S    <sub>Lxy</sub>
+CHI2     &chi;<sup>2</sup>/dof
+MH       "m<sub>H</sub>"
+MX       "m<sub>X</sub>"
+CTAU     "c&tau;"
+C_NS     "n<sub>st.</sub> &gt; 1"
+C_NH     "+ n<sub>hits</sub> &gt; 12"
+C_FPTE   "+ &sigma;<sub>pT</sub>/p<sub>T</sub> &lt; 1"
+C_PT     "+ p<sub>T</sub> &gt; 10 GeV"
+C_HLT    "+ HLT match"
+C_PC     "+ p.c."
+C_LXYE   "+ &sigma;<sub>Lxy</sub> &lt; 99 cm"
+C_MASS   "+ M(&mu;&mu;) &gt; 5 GeV"
+<<<
+
+VAR BGLIST LIST BGLABS LIST
+"Stack"         "Stack"
+"Stack-Log-Rat" "Stack (Log, Ratio)"
+"StackMC"       "Stack (MC)"
+"StackMC-Log"   "Stack (MC, Log)"
+<<<
+
+VAR SIGNALLIST LIST SIGNALLABS LIST
+"HTo2XTo4Mu"        "H{ARROW}2X{ARROW}4{MU}"
+"Trig-HTo2XTo4Mu"   "H{ARROW}2X{ARROW}4{MU} (Trig)"
+"HTo2XTo2Mu2J"      "H{ARROW}2X{ARROW}2{MU}2j"
+"Trig-HTo2XTo2Mu2J" "H{ARROW}2X{ARROW}2{MU}2j (Trig)"
+<<<
+
+VAR SAMPLEVALS CMD SAMPLELABELS CMD
+[].concat(SIGNALLIST).concat(BGLIST)
+[].concat(SIGNALLABS).concat(BGLABS)
+<<<
+
+VAR SIGNALVALS LIST SIGNALLABELS LIST
+"Dim"      "dimuon"
+"DSA"      "DSA"
+"RSA"      "RSA"
+"REF"      "REF"
+"NM1"      "N{MINUS}1"
+"NM1E"     "N{MINUS}1 eff."
+"TCUM"     "tail cum."
+"CutTable" "cut table"
+"Gen"      "gen"
+"SRE"      "sig. eff."
+"SRR"      "sig. res."
+"SVFE"     "sig. v. f. eff."
+<<<
+
+VAR BGVALS CMD DATAVALS CMD BGLABELS CMD DATALABELS CMD
+SIGNALVALS.slice(0, 8)
+SIGNALVALS.slice(0, 8)
+SIGNALLABELS.slice(0, 8)
+SIGNALLABELS.slice(0, 8)
+<<<
+
+VAR REGIONVALS LIST REGIONLABELS LIST
+""                 "Combined"
+"Less"             "{DELTAPHI} {LT} {PI}/2"
+"More"             "{DELTAPHI} {GT} {PI}/2"
+"Both"             "Overlaid"
+"BothRat"          "Overlaid + Ratio"
+"Prompt"           "Prompt"
+"NoPrompt"         "No Prompt"
+"Prompt_BothRat"   "Prompt + Split"
+"NoPrompt_BothRat" "No Prompt + Split"
+<<<
+
+VAR PLOTTYPEVALS OBJ PLOTTYPELABELS OBJ
+NAME Dim 1:2
+"pT"                 "{PT}"
+"eta"                "{ETA}"
+"mass"               "M({MU}{MU})"
+"massZoom"           "M({MU}{MU})-30GeV"
+"deltaR"             "{DELTAR}({MU}{MU})"
+"cosAlpha"           "cos({ALPHA})"
+"deltaPhi"           "|{DELTAPHI}|"
+"vtxChi2"            "vertex {CHI2}"
+"Lxy"                "{LXY}"
+"LxySig"             "{LXY}/{SIGMA}{LXY_S}"
+"LxyErr"             "{SIGMA}{LXY_S}"
+"LxyErrZoom"         "{SIGMA}{LXY_S}-100cm"
+"nDimuon"            "nDimuon"
+"deltaEta"           "{DELTA}{ETA}({MU}{MU})"
+"deltaphi"           "{DELTA}{PHI_L}({MU}{MU})"
+"pTCosPhi"           "{PT} cos({DELTAPHI})"
+"pTOverM"            "{PT}/M({MU}{MU})"
+"LxySigVSLxy"        "{LXY} sig. vs. {LXY}"
+"LxyErrVSLxy"        "{LXY} err. vs. {LXY}"
+"deltaRVSLxy"        "{DELTAR} vs. {LXY}"
+"deltaEtaVSLxy"      "{DELTA}{ETA} vs. {LXY}"
+"deltaphiVSLxy"      "{DELTA}{PHI_L} vs. {LXY}"
+"LxyVSdeltaPhi"      "{LXY} vs. {DELTAPHI}"
+"LxySigVSdeltaPhi"   "{LXY} sig. vs. {DELTAPHI}"
+"LxyErrVSdeltaPhi"   "{LXY} err. vs. {DELTAPHI}"
+"deltaRVSdeltaPhi"   "{DELTAR} vs. {DELTAPHI}"
+"deltaEtaVSdeltaPhi" "{DELTA}{ETA} vs. {DELTAPHI}"
+"deltaphiVSdeltaPhi" "{DELTA}{PHI_L} vs. {DELTAPHI}"
+<<<
+
+""                                     "no selection"
+"_Matched"                             "matched"
+"_Matched_NS_NH_FPTE_PT_HLT_PC_LXYE_M" "matched BS8"
+"_NS"                                  "{C_NS}"
+"_NS_NH"                               "{C_NH}"
+"_NS_NH_FPTE"                          "{C_FPTE}"
+"_NS_NH_FPTE_PT"                       "{C_PT}"
+"_NS_NH_FPTE_PT_HLT"                   "{C_HLT}"
+"_NS_NH_FPTE_PT_HLT_PC"                "{C_PC}"
+"_NS_NH_FPTE_PT_HLT_PC_LXYE"           "{C_LXYE}"
+"_NS_NH_FPTE_PT_HLT_PC_LXYE_M"         "{C_MASS}"
+<<<
+%%%
+
+NAME DSA 1:1
+"pT"         "{PT}"
+"pTSig"      "{SIGMA}{PT_S}/{PT}"
+"eta"        "{ETA}"
+"d0"         "{D0}"
+"d0Sig"      "|{D0}|/{SIGMA}{D0_S}"
+"dz"         "{DZ}"
+"dzSig"      "|{DZ}|/{SIGMA}<sub>dz</sub>"
+"d0Lin"      "lin. {D0}"
+"d0SigLin"   "lin. |{D0}|/{SIGMA}{D0_S}"
+"dzLin"      "lin. {DZ}"
+"dzSigLin"   "lin. |{DZ}|/{SIGMA}<sub>dz</sub>"
+"normChi2"   "{CHI2}"
+"nMuonHits"  "nMuonHits"
+"nCSCDTHits" "nCSC+DTHits"
+"nStations"  "nStations"
+"nMuon"      "nMuon"
+"deltaRGR"   "{DELTAR}(g-r)"
+"fYVSfX"     "fY vs. fX"
+"fRVSfZ"     "fR vs. fZ"
+<<<
+%%%
+
+NAME NM1 1:0
+"pT"        "{PT}"
+"eta"       "{ETA}"
+"nMuonHits" "nMuonHits"
+"nStations" "nStations"
+"normChi2"  "{CHI2}"
+"d0Sig"     "|{D0}|/{SIGMA}{D0_S}"
+"mass"      "M({MU}{MU})"
+"vtxChi2"   "vtx. {CHI2}"
+"deltaR"    "{DELTAR}"
+"LxySig"    "{LXY}/{SIGMA}{LXY_S}"
+"cosAlpha"  "cos({ALPHA})"
+<<<
+%%%
+
+NAME NM1E 1:2
+"LxySig"    "{LXY}/{SIGMA}{LXY_S}"
+"cosAlpha"  "cos({ALPHA})"
+"deltaPhi"  "|{DELTAPHI}|"
+"deltaR"    "{DELTAR}"
+"mass"      "M({MU}{MU})"
+"vtxChi2"   "vtx. {CHI2}"
+"pT"        "{PT}"
+"eta"       "{ETA}"
+"nMuonHits" "nMuonHits"
+"nStations" "nStations"
+"normChi2"  "track {CHI2}"
+"d0Sig"     "|{D0}|/{SIGMA}{D0_S}"
+<<<
+
+"EffVSpT"  "vs. {PT}"
+"EffVSeta" "vs. {ETA}"
+"EffVSd0"  "vs. {D0}"
+"EffVSLxy" "vs. {LXY}"
+<<<
+%%%
+
+NAME TCUM 1:0
+"LxySig" "{LXY}/{SIGMA}{LXY_S}"
+"d0Sig"  "|{D0}|/{SIGMA}{D0_S}"
+<<<
+%%%
+
+NAME CutTable 1:2
+"MUO" "Muon"
+"DIM" "Dimuon"
+<<<
+
+"-IND" "Ind."
+"-SEQ" "Seq."
+"-NM1" "N{MINUS}1"
+<<<
+%%%
+
+NAME Gen 1:0
+"massH"    "{MH}"
+"massX"    "{MX}"
+"cTau"     "{CTAU}"
+"pTH"      "{PT} H"
+"pTX"      "{PT} X"
+"pTmu"     "{PT} {MU}"
+"beta"     "{BETA}"
+"etaMu"    "{ETA} {MU}"
+"dPhiMuMu" "{DELTA}{PHI_L}({MU}{MU})"
+"dPhiMuX"  "{DELTA}{PHI_L}({MU}X)"
+"dPhiCol"  "|{DELTAPHI}|"
+"cosAlpha" "cos({ALPHA})"
+"Lxy"      "{LXY}"
+"d0"       "{D0}"
+"dR"       "{DELTAR}"
+"LxyVSLz"  "{LXY} vs. L<sub>z</sub>"
+<<<
+%%%
+
+NAME SRE 1:2
+"pT"   "{PT}"
+"eta"  "{ETA}"
+"phi"  "{PHI_L}"
+"Lxy"  "{LXY}"
+"d0"   "{D0}"
+"dR"   "{DELTAR}({MU}{MU})"
+"dphi" "{DELTA}{PHI_L}({MU}{MU})"
+<<<
+
+"Eff"       "reco. {EPSILON}"
+"ChargeEff" "charge {EPSILON}"
+<<<
+%%%
+
+NAME SRR 1:2:2
+"DSA_" "DSA"
+"RSA_" "RSA"
+"REF_" "REF"
+"RBA_" "REF+DSA"
+<<<
+
+"pTRes"    "{PT} Res."
+"etaRes"   "{ETA} Dif."
+"d0Res"    "{D0} Dif."
+"dzRes"    "{DZ} Dif."
+"LxyRes"   "{LXY} Dif."
+"d0LinRes" "{D0} lin. Dif."
+"dzLinRes" "{DZ} lin. Dif."
+<<<
+
+""                  "Int."
+"_Lxy-Binned"       "{LXY}-Binned"
+"_d0-Binned"        "{D0}-Binned"
+"_pT-Binned"        "{PT}-Binned"
+"_qm-Binned"        "q.m.-Binned"
+"_Lxy-Binned-Bin-1" "{LXY} Bin 1"
+"_Lxy-Binned-Bin-2" "{LXY} Bin 2"
+"_Lxy-Binned-Bin-2" "{LXY} Bin 3"
+<<<
+%%%
+
+NAME SVFE 1:2
+"pT"  "{PT}"
+"eta" "{ETA}"
+"phi" "{PHI_L}"
+"Lxy" "{LXY}"
+<<<
+
+"Eff" "v. f. {EPSILON}"
+<<<
+%%%
+
+RUN
+PLOTTYPEVALS["DSA"].push(PLOTTYPEVALS["Dim"][1])
+PLOTTYPEVALS["RSA"] = PLOTTYPEVALS["DSA"]
+PLOTTYPEVALS["REF"] = PLOTTYPEVALS["DSA"]
+PLOTTYPELABELS["DSA"].push(PLOTTYPELABELS["Dim"][1])
+PLOTTYPELABELS["REF"] = PLOTTYPELABELS["DSA"]
+PLOTTYPELABELS["RSA"] = PLOTTYPELABELS["DSA"]
+<<<

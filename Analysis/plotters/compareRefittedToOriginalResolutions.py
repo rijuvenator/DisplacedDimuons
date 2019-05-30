@@ -11,7 +11,7 @@ import DisplacedDimuons.Analysis.PlotterParser as PlotterParser
 ARGS = PlotterParser.PARSER.parse_args()
 TRIGGER = ARGS.TRIGGER
 
-bash.call('cd ../analyzers/roots/Main; ../relink SignalRecoResPlots {}; cd -'.format('Trig' if ARGS.TRIGGER else 'Full'), shell=True)
+bash.call('cd ../analyzers/roots/Main; relink SignalRecoResPlots {}; cd -'.format('Trig' if ARGS.TRIGGER else 'Full'), shell=True)
 
 # get histograms
 f = R.TFile.Open('../analyzers/roots/Main/SignalRecoResPlots.root')

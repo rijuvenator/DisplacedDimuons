@@ -19,13 +19,14 @@ R.gROOT.SetBatch(True)
 # In any given Analyzer, one may add a few extra parameters to PARSER
 # in case any additional command-line parameters are desired
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo4Mu' , help='sample name'                  )
-PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13), help='the mH mX cTau tuple'         )
-PARSER.add_argument('--test'       , dest='TEST'       , action='store_true'                       , help='run test mode for 1000 events')
-PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None         , help='splitting parameter'          )
-PARSER.add_argument('--maxevents'  , dest='MAXEVENTS'  , type=int,            default=1000         , help='max events for test mode'     )
-PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true'                       , help='apply trigger to signal'      )
-PARSER.add_argument('--cuts'       , dest='CUTS'       ,                      default=''           , help='cut string'                   )
+PARSER.add_argument('--name'       , dest='NAME'       ,                      default='HTo2XTo2Mu2J', help='sample name'                  )
+PARSER.add_argument('--signalpoint', dest='SIGNALPOINT', type=int, nargs=3  , default=(125, 20, 13) , help='the mH mX cTau tuple'         )
+PARSER.add_argument('--test'       , dest='TEST'       , action='store_true'                        , help='run test mode for 1000 events')
+PARSER.add_argument('--splitting'  , dest='SPLITTING'  , type=int, nargs=2  , default=None          , help='splitting parameter'          )
+PARSER.add_argument('--maxevents'  , dest='MAXEVENTS'  , type=int,            default=1000          , help='max events for test mode'     )
+PARSER.add_argument('--trigger'    , dest='TRIGGER'    , action='store_true'                        , help='apply trigger to signal'      )
+PARSER.add_argument('--cuts'       , dest='CUTS'       ,                      default=''            , help='cut string'                   )
+PARSER.add_argument('--skim'       , dest='SKIM'       , action='store_true'                        , help='whether to use the skim file' )
 
 # important setSample function
 # this function takes the inputs from ARGS and selects the unique matching Dataset from DataHandler
@@ -91,6 +92,13 @@ class Analyzer(object):
         else:
             self.FILES  = FILES
 
+        # cludge for replacing an nTuple with the skimmed version
+        if ARGS.SKIM and 'DoubleMuon' in self.NAME:
+            if type(self.FILES) == str:
+                self.FILES = self.FILES.replace('ntuple', 'skim')
+            elif type(self.FILES) == list:
+                self.FILES = [i.replace('ntuple', 'skim') for i in self.FILES]
+
         # these are constants and the rest of the parameters from the constructor
         self.TREE       = 'SimpleNTupler/DDTree'
         self.BRANCHKEYS = BRANCHKEYS
@@ -117,7 +125,7 @@ class Analyzer(object):
             raise Exception('Invalid signature: expecting 5 or 8 arguments')
 
         # set HNAME to NAME_SampleName
-        # remember NAME is HTo2XTo**_SPStr for signal
+        # remember self.NAME is HTo2XTo**_SPStr for signal
         HNAME = NAME+'_{}'.format(self.NAME)
 
         # declare the histogram

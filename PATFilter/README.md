@@ -1,6 +1,6 @@
 # PATFilter
 
-Last updated: **18 Nov 2018**
+Last updated: **14 Jan 2019**
 
 This subpackage takes AOD or AODSIM files, centrally produced or privately
 produced, and produces PAT Tuples. These are a subset of the original AOD files
@@ -115,5 +115,6 @@ effect. Apart from that, all arguments can be applied in any combination.
 
 | **Date** | **Tag** | **Produced data samples** | **Produced MC samples** | **Comments / further details** |
 | -------- | ------- | ------------------------- | ----------------------- | ------------------------------ |
-| June 2018 | `_Jun2018-v1` | DoubleMuonRun2016[B-H] | see [MCSamples.py @ 99f079a2](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/99f079a27f1a7bf56284f09950a9a126f9b88b3e/PATFilter/python/MCSamples.py) | see [Dropbox paper](https://paper.dropbox.com/doc/DataMC-sample-production-on-CRAB-_Jun2018-v1--AG58Se6CYfWhvhEe48zMMTHsAQ-fBfzdJAQJskeXrdHaU7xq) |
-| November 2018 | `_Jun2018-v1` | | selected QCD samples, see [MCSamples.py @ bf9c30d6](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/bf9c30d6062580e779c46bb67429751a3d458db8/PATFilter/python/MCSamples.py) | |
+| June 2018 | `_Jun2018-v1` | DoubleMuonRun2016[B-H] | benchmark signal samples (HTo2XTo2Mu2J, HTo2XTo4Mu); see [MCSamples.py @ 99f079a2](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/99f079a27f1a7bf56284f09950a9a126f9b88b3e/PATFilter/python/MCSamples.py) | see [Dropbox paper](https://paper.dropbox.com/doc/DataMC-sample-production-on-CRAB-_Jun2018-v1--AG58Se6CYfWhvhEe48zMMTHsAQ-fBfzdJAQJskeXrdHaU7xq) |
+| November 2018 | `_Jun2018-v1` | | benchmark signal samples (HTo2XTo2Mu2J, HTo2XTo4Mu); selected QCD samples, see [MCSamples.py @ bf9c30d6](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/bf9c30d6062580e779c46bb67429751a3d458db8/PATFilter/python/MCSamples.py) | |
+| January 2019  | `_Jan2019-v1` | | Dark Photon (HAHM) samples; see [MCSamples.py @ b42001e7](https://gitlab.cern.ch/DisplacedDimuons/DisplacedDimuons/blob/b42001e7646c93cf7bbe17f5126a78027e466ea5/PATFilter/python/MCSamples.py) | [DAS](https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod%2Fphys03&input=dataset%3D%2FHTo2ZdTo2mu2x_MZd-*_Epsilon*_TuneCUETP8M1_13TeV_pythia8%2Fstempl-MC2016_Hto2ZDto2mu2x_*_*_Jan2019-v1*%2FUSER)|

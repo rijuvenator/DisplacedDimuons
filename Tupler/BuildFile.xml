@@ -16,6 +16,8 @@
 <use name="FWCore/ServiceRegistry"/>
 <use name="MagneticField/Records"/>
 <use name="RecoMuon/MuonIsolation"/>
+<use name="PhysicsTools/RecoUtils"/>
+<use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/AdaptiveVertexFit"/>
 <use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/VertexPrimitives"/>

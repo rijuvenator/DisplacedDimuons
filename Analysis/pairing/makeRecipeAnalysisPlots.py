@@ -202,6 +202,6 @@ for fs in ('4Mu', '2Mu2J'):
         for key in mnames:
             makeStackPlot(key, 'Eff', fs, sp)
 
-        if fs == '2Mu2J':
-            makeLxyEffPlot('Correct', 'nMuons', fs, sp)
-            makeLxyEffPlot('Correct', 'nMuons', fs, sp, '5')
+        makeLxyEffPlot('Correct', 'nMuons', fs, sp)
+        makeLxyEffPlot('Correct', 'nMuons', fs, sp, '5')
+        makeLxyEffPlot('Correct', 'nMuons', fs, sp, '10')
