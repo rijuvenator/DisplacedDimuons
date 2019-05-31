@@ -113,6 +113,7 @@ CUTS = {
                                                                                                     'HYB':  3.      }, lambda dim: dim.composition[:3]),
     'd_deltaPhi' :      Cut('deltaPhi' , lambda dim: dim.deltaPhi                   , operator.le,        math.pi/2.),
     'd_IDeltaPhi':      Cut('IDeltaPhi', lambda dim: dim.deltaPhi                   , operator.gt,        math.pi/2.),
+    'd_oppSign'  :      Cut('oppSign'  , lambda dim: dim.mu1.charge+dim.mu2.charge  , operator.eq,          0       ),
 
 ### RUN 1 RECO MUON CUTS ###
     '8_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         30.      ),
@@ -138,8 +139,8 @@ CutLists = {
     'DSAQualityCutList'     : ('q_nStations', 'q_nMuonHits', 'q_FPTE'),
     'PATQualityCutList'     : ('p_isGlobal', 'p_isMedium', 'p_nTrkLays'),
     'AllMuonCutList'        : ('m_pT', 'm_d0Sig', 'm_trkChi2', 'm_nDTHits'),
-    'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_deltaPhi'),
-    'InvertedDimuonCutList' : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_IDeltaPhi'),
+    'DimuonCutList'         : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_deltaPhi', 'd_oppSign'),
+    'InvertedDimuonCutList' : ('d_LxyErr', 'd_mass', 'd_vtxChi2', 'd_cosAlpha', 'd_cosAlphaO', 'd_DCA', 'd_d0Sig', 'd_LxySig', 'd_IDeltaPhi', 'd_oppSign'),
     'Run1MuonCutList'       : ('8_pT', '8_eta', '8_normChi2', '8_nMuonHits', '8_nStations', '8_d0Sig'),
     'Run1DimuonCutList'     : ('8_vtxChi2', '8_deltaR', '8_mass', '8_deltaPhi', '8_cosAlpha', '8_LxySig'),
 }

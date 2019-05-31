@@ -7,7 +7,7 @@ import DisplacedDimuons.Analysis.Selector as Selector
 
 PI = R.TMath.Pi()
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT_DPHI'
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT_DPHI_OS'
 
 CONFIG = {
         'nHits'   : (( 50,  0.,   50.), 'N(CSC+DT Hits)'        , '_NS_NH'   , lambda  mu:  mu.nCSCHits+mu.nDTHits),
@@ -19,7 +19,7 @@ CONFIG = {
         'vtxChi2' : ((100,  0.,   50.), 'vtx #chi^{2}'          , '_CHI2'    , lambda dim: dim.normChi2           ),
         'cosAlpha': (( 50, -1.,    1.), 'cos(#alpha)'           , '_COSA_NPP', lambda dim: dim.cosAlphaOriginal   ),
         'Npp'     : (( 20,  0.,   20.), 'N(parallel pairs)'     , '_COSA_NPP', numberOfParallelPairs              ),
-        'LxySig'  : ((100,  0.,   40.), 'L_{xy}/#sigma_{L_{xy}}', '_LXYSIG'  , lambda dim: dim.LxySig()           ),
+        'LxySig'  : ((100,  0.,   50.), 'L_{xy}/#sigma_{L_{xy}}', '_LXYSIG'  , lambda dim: dim.LxySig()           ),
         'trkChi2' : (( 50,  0.,   10.), 'trk #chi^{2}'          , '_TRK'     , lambda  mu:  mu.normChi2           ),
         'nDTHits' : (( 50,  0.,   50.), 'N(DT Hits)'            , '_NDT'     , lambda  mu:  mu.nDTHits            ),
         'deltaPhi': ((100,  0.,    PI), '|#Delta#Phi|'          , '_DPHI'    , lambda dim: dim.deltaPhi           ),

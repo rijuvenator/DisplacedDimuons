@@ -42,6 +42,7 @@ config = {
     'idx2'     : {'cast':int  , 'col': 8},
 
     'LxySig'   : {'cast':float, 'col':10},
+    'Lxy'      : {'cast':float, 'col':11},
     'vtxChi2'  : {'cast':float, 'col':12},
     'cosAlpha' : {'cast':float, 'col':13},
     'cosAlphaO': {'cast':float, 'col':14},
@@ -69,6 +70,13 @@ config = {
     'nCSC2'    : {'cast':int  , 'col':36},
     'nDT1'     : {'cast':int  , 'col':37},
     'nDT2'     : {'cast':int  , 'col':38},
+
+    'deltaPhi' : {'cast':float, 'col':40},
+
+    'q1'       : {'cast':int  , 'col':42},
+    'q2'       : {'cast':int  , 'col':43},
+    'rq1'      : {'cast':int  , 'col':44},
+    'rq2'      : {'cast':int  , 'col':45},
 }
 
 

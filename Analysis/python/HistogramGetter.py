@@ -5,7 +5,7 @@ import DisplacedDimuons.Analysis.RootTools as RT
 from DisplacedDimuons.Common.Constants import SIGNALPOINTS, BGORDER
 
 # integrated luminosity for 2016
-INTEGRATED_LUMINOSITY_2016 = 35900.
+INTEGRATED_LUMINOSITY_2016 = 35922.
 
 ######################################
 #### HISTOGRAM GETTER AND REGEXES ####
