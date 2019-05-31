@@ -5,7 +5,10 @@ import DisplacedDimuons.Analysis.Analyzer as Analyzer
 import DisplacedDimuons.Analysis.Primitives as Primitives
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Selector as Selector
+<<<<<<< HEAD
 import DisplacedDimuons.Analysis.RootTools as RootTools
+=======
+>>>>>>> 3988dda42eb2b437268dce6598d9c0eae6b73c6c
 
 #
 # voms-proxy-init --voms cms
@@ -17,8 +20,13 @@ import DisplacedDimuons.Analysis.RootTools as RootTools
 def declareHistograms(self, Params=None):
     
     for tag in ('DSA','PAT','HYBRID'):
+<<<<<<< HEAD
         self.HISTS[tag+'-Lxy-Isolation'] = R.TH1D(tag+'-Lxy-Isolation',tag+' Selected Dimuon Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events',8, np.logspace(-5, 3, 9) )
         self.HISTS[tag+'-Pmumu-Isolation'] = R.TH1D(tag+'-Pmumu-Isolation',tag+' Selected Dimuon P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events',8, np.logspace(-5, 3, 9) )
+=======
+        self.HistInit(tag+'-Lxy-Isolation', tag+' Selected Dimuon Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 10)
+        self.HistInit(tag+'-Pmumu-Isolation', tag+' Selected Dimuon P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events', 100, 0, 10)
+>>>>>>> 3988dda42eb2b437268dce6598d9c0eae6b73c6c
     
 
 def analyze(self, E, PARAMS=None):

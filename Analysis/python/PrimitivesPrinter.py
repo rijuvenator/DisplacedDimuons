@@ -507,10 +507,10 @@ for RTYPE in ('REF',):
 # Dimuon
 TitleStrings ['Dimuon'] = '=== DIMUONS ==='
 HeaderStrings['Dimuon'] = {'pre' :'  {IDX:8s} {TYP:6s}'.format(IDX='ID', TYP='type'),
-                           'post':'{NC2:>10s} {DR:>8s} {DPHI:>8s} {CA:>8s} {LXY:>7s} {LXYS:>7s} {LXYPV:>7s} {LXYSPV:>9s}'.format(
-                                NC2='normChi2', DR='deltaR', DPHI='deltaPhi', CA='cosAlpha', LXY='Lxy', LXYS='LxySig', LXYPV='PV-Lxy', LXYSPV='PV-LxySig')}
+                           'post':'{NC2:>10s} {DR:>8s} {DPHI:>8s} {CA:>8s} {LXY:>7s} {LXYS:>7s} {LXYPV:>7s} {LXYSPV:>9s} {ISOP:>8s} {ISOL:>8>}'.format(
+                                NC2='normChi2', DR='deltaR', DPHI='deltaPhi', CA='cosAlpha', LXY='Lxy', LXYS='LxySig', LXYPV='PV-Lxy', LXYSPV='PV-LxySig', ISOP='isoPmumu', ISOL='isoLxy')}
 DataStrings  ['Dimuon'] = {'pre' : '  {idx1:2d}  {idx2:2d}   {composition:6s}',
-                           'post':'{normChi2:10.2f} {deltaR:8.2f} {deltaPhi:8.2f} {cosAlpha:8.2f} {Lxy:7.2f} {LxySig:7.2f} {LxyPV:7.2f} {LxySigPV:9.2f}'}
+                           'post':'{normChi2:10.2f} {deltaR:8.2f} {deltaPhi:8.2f} {cosAlpha:8.2f} {Lxy:7.2f} {LxySig:7.2f} {LxyPV:7.2f} {LxySigPV:9.2f} {isoPmumu:8.3f} {isoLxy:8.3f}'}
 
 # Alt Title Strings
 TitleStrings['AltDSA'] = '=== DSA MUONS ==='
