@@ -3,7 +3,8 @@ import subprocess as bash
 import ROOT as R
 
 DIR = '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/'
-COMMAND = r'''echo 't=tt("SimpleNTupler/DDTree",_file0);cout << t->GetEntries() << endl;' | \root -l {FNAME}'''
+#DIR = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/'
+COMMAND = r'''echo 'TTree* t = (TTree*) _file0->Get("SimpleNTupler/DDTree");;cout << t->GetEntries() << endl;' | \root -l {FNAME}'''
 
 fileList = filter(lambda fname: re.match(r'ntuple_.*\.root', fname), os.listdir(DIR))
 tagList = [fname.replace('ntuple_','').replace('.root','') for fname in fileList]

@@ -43,8 +43,9 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_pt                     ;
     std::vector<float> dim_eta                    ;
     std::vector<float> dim_phi                    ;
-    std::vector<float> dim_mass                   ;
     std::vector<float> dim_p                      ;
+    std::vector<float> dim_mass                   ;
+    std::vector<float> dim_massunc                ;
     std::vector<float> dim_x                      ;
     std::vector<float> dim_y                      ;
     std::vector<float> dim_z                      ;
@@ -125,8 +126,9 @@ class DimuonBranches : public BranchCollection
       Declare("dim_pt"                     , dim_pt                     );
       Declare("dim_eta"                    , dim_eta                    );
       Declare("dim_phi"                    , dim_phi                    );
-      Declare("dim_mass"                   , dim_mass                   );
       Declare("dim_p"                      , dim_p                      );
+      Declare("dim_mass"                   , dim_mass                   );
+      Declare("dim_massunc"                , dim_massunc                );
       Declare("dim_x"                      , dim_x                      );
       Declare("dim_y"                      , dim_y                      );
       Declare("dim_z"                      , dim_z                      );
@@ -204,8 +206,9 @@ class DimuonBranches : public BranchCollection
       dim_pt                     .clear();
       dim_eta                    .clear();
       dim_phi                    .clear();
-      dim_mass                   .clear();
       dim_p                      .clear();
+      dim_mass                   .clear();
+      dim_massunc                .clear();
       dim_x                      .clear();
       dim_y                      .clear();
       dim_z                      .clear();
