@@ -41,26 +41,6 @@ class DimuonBranches : public BranchCollection
     // members
     static bool alreadyPrinted_;
 
-<<<<<<< HEAD
-		std::vector<float> dim_pt       ;
-		std::vector<float> dim_eta      ;
-		std::vector<float> dim_phi      ;
-		std::vector<float> dim_mass     ;
-		std::vector<float> dim_p        ;
-		std::vector<float> dim_x        ;
-		std::vector<float> dim_y        ;
-		std::vector<float> dim_z        ;
-		std::vector<float> dim_Lxy_pv   ;
-		std::vector<float> dim_LxySig_pv;
-		std::vector<float> dim_Lxy_bs   ;
-		std::vector<float> dim_LxySig_bs;
-		std::vector<float> dim_deltaR   ;
-		std::vector<float> dim_normChi2 ;
-		std::vector<float> dim_cosAlpha ;
-		std::vector<float> dim_deltaPhi ;
-		std::vector<float> dim_isoPmumu;
-		std::vector<float> dim_isoLxy  ;
-=======
     std::vector<float> dim_pt                     ;
     std::vector<float> dim_eta                    ;
     std::vector<float> dim_phi                    ;
@@ -82,7 +62,9 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_deltaR                 ;
     std::vector<float> dim_cosAlpha               ;
     std::vector<float> dim_cosAlphaOrig           ;
->>>>>>> master
+	std::vector<float> dim_isoPmumu				  ;
+	std::vector<float> dim_isoLxy  				  ;
+
 
     std::vector<int  > dim_mu1_idx                ;
     std::vector<float> dim_mu1_px                 ;
@@ -141,30 +123,7 @@ class DimuonBranches : public BranchCollection
     std::vector<int  > dim_mu2_hitsBeforeVtx      ;
     std::vector<int  > dim_mu2_missingHitsAfterVtx;
 
-<<<<<<< HEAD
-		// methods
-		void Declarations()
-		{
-			Declare("dim_pt"       , dim_pt       );
-			Declare("dim_eta"      , dim_eta      );
-			Declare("dim_phi"      , dim_phi      );
-			Declare("dim_mass"     , dim_mass     );
-			Declare("dim_p"        , dim_p        );
-			Declare("dim_x"        , dim_x        );
-			Declare("dim_y"        , dim_y        );
-			Declare("dim_z"        , dim_z        );
-			Declare("dim_Lxy_pv"   , dim_Lxy_pv   );
-			Declare("dim_LxySig_pv", dim_LxySig_pv);
-			Declare("dim_Lxy_bs"   , dim_Lxy_bs   );
-			Declare("dim_LxySig_bs", dim_LxySig_bs);
-			Declare("dim_deltaR"   , dim_deltaR   );
-			Declare("dim_normChi2" , dim_normChi2 );
-			Declare("dim_cosAlpha" , dim_cosAlpha );
-			Declare("dim_deltaPhi" , dim_deltaPhi );
-			Declare("dim_isoPmumu" , dim_isoPmumu );
-			Declare("dim_isoLxy"   , dim_isoLxy   );
 
-=======
     // methods
     void Declarations()
     {
@@ -189,7 +148,8 @@ class DimuonBranches : public BranchCollection
       Declare("dim_deltaR"                 , dim_deltaR                 );
       Declare("dim_cosAlpha"               , dim_cosAlpha               );
       Declare("dim_cosAlphaOrig"           , dim_cosAlphaOrig           );
->>>>>>> master
+      Declare("dim_isoPmumu" 			   , dim_isoPmumu 				);
+      Declare("dim_isoLxy"   			   , dim_isoLxy   				);
 
       Declare("dim_mu1_idx"                , dim_mu1_idx                );
       Declare("dim_mu1_px"                 , dim_mu1_px                 );
@@ -246,28 +206,6 @@ class DimuonBranches : public BranchCollection
       Declare("dim_mu2_missingHitsAfterVtx", dim_mu2_missingHitsAfterVtx);
     }
 
-<<<<<<< HEAD
-		void Reset()
-		{
-			dim_pt       .clear();
-			dim_eta      .clear();
-			dim_phi      .clear();
-			dim_mass     .clear();
-			dim_p        .clear();
-			dim_x        .clear();
-			dim_y        .clear();
-			dim_z        .clear();
-			dim_Lxy_pv   .clear();
-			dim_LxySig_pv.clear();
-			dim_Lxy_bs   .clear();
-			dim_LxySig_bs.clear();
-			dim_deltaR   .clear();
-			dim_normChi2 .clear();
-			dim_cosAlpha .clear();
-			dim_deltaPhi .clear();
-			dim_isoPmumu .clear();
-			dim_isoLxy   .clear();
-=======
     void Reset()
     {
       dim_pt                     .clear();
@@ -291,7 +229,8 @@ class DimuonBranches : public BranchCollection
       dim_deltaR                 .clear();
       dim_cosAlpha               .clear();
       dim_cosAlphaOrig           .clear();
->>>>>>> master
+      dim_isoPmumu .clear();
+      dim_isoLxy   .clear();
 
       dim_mu1_idx                .clear();
       dim_mu1_px                 .clear();
@@ -365,12 +304,13 @@ class DimuonBranches : public BranchCollection
 		    const edm::Handle<reco::VertexCollection> &verticesHandle,
 		    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 		    const edm::ESHandle<MagneticField>& magfield,
+			const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 		    bool debug);
 
 
     static float DimuonIsolation(
     		const reco::isodeposit::Direction& isoConeDirection,
-			const reco::Vertex& rv,
+			const reco::Vertex& pv,
 			const TLorentzVector& dimuon,
 			const reco::BeamSpot &beamspot,
 			const reco::TrackCollection &generalTracks,

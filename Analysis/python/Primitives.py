@@ -571,45 +571,7 @@ class Dimuon(Particle):
         else:
             return DSAmuons[self.idx1].charge != DSAmuons[self.idx2].charge
 
-<<<<<<< HEAD
-    # normChi2, deltaR, deltaPhi, cosAlpha, Lxy, LxySig
-    headerFormatPost = '{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|{:8s}|\n'
-    dataFormatPost   = '{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|{:8.2f}|\n'
-    DIMUON_PRESPACE  = '    '
 
-    @staticmethod
-    def headerstr(line=1):
-        # extra spaces are to align with the RecoMuon |idx| field
-        if line == 1:
-            return Dimuon.DIMUON_PRESPACE + Particle.headerstr().strip('\n') +\
-                   Dimuon.headerFormatPost.format('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'isoPmumu', 'isoLxy')
-        elif line == 2:
-            return TransverseDecayLength.headerstr()
-
-    def datastr(self, line=1):
-        # extra spaces are to align with the RecoMuon |idx| field
-        if line == 1:
-            return Dimuon.DIMUON_PRESPACE + Particle.datastr(self).strip('\n') +\
-                   Dimuon.dataFormatPost.format(self.normChi2, self.deltaR, self.deltaPhi, self.cosAlpha, self.isoPmumu, self.isoLxy)
-
-        elif line == 2: 
-            return self.Lxy_.datastr() 
-
-    def __str__(self):
-        outstr = colorText('Dimuon', color='blue') + '\n'
-        outstr += Dimuon.headerstr()  + self.datastr()
-        outstr += Dimuon.headerstr(2) + self.datastr(2)
-        outstr += colorText('Refitted Muons', color='blue') + '\n'
-        for i in (1, 3):
-            outstr += RecoMuon.headerstr(i)
-            for mu in (self.mu1, self.mu2):
-                outstr += mu.datastr(i)
-        # no need to print header 2 because no header 2 quantities in refitted muons
-        outstr += '\n'
-        return outstr
-
-=======
->>>>>>> master
 # Lxy wrapper class for Lxy and its significance
 # and wrt PV or BS
 class TransverseDecayLength(Primitive):

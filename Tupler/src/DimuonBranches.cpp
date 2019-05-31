@@ -36,7 +36,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
   reco::TrackCollection::const_iterator ptk, qtk;
   for (i = 0, ptk = dsamuons.begin(); ptk != dsamuons.end(); ptk++, i++) {
     for (j = i+1, qtk = ptk+1; qtk != dsamuons.end(); qtk++, j++) {
-      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle,debug);
     }
   }
 
@@ -67,7 +67,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
 
       // Increment the muon index by 1000 to flag global/tracker
       // muons.
-      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle, debug);
 
     }
   }
@@ -80,7 +80,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
       if (!qmu->isGlobalMuon() && qmu->numberOfMatchedStations() <= 1)
         continue;
       const reco::TrackRef qtk = qmu->tunePMuonBestTrack();
-      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
+      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle, debug);
     }
   }
 }
@@ -92,6 +92,7 @@ void DimuonBranches::FillDimuon(int i, int j,
 				const edm::Handle<reco::VertexCollection> &verticesHandle,
 				const edm::Handle<reco::BeamSpot> &beamspotHandle,
 				const edm::ESHandle<MagneticField>& magfield,
+				const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 				bool debug)
 {
   static float mass = .105658375;
@@ -204,11 +205,11 @@ void DimuonBranches::FillDimuon(int i, int j,
 
   //Calculate dimuon isolation (using momentum direction to define cone)
   reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-  float dimuon_isoPmumu = DimuonIsolation(pmumuDir, rv,dimu_p4, beamspot, generalTracks,debug);
+  float dimuon_isoPmumu = DimuonIsolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
   //Calculate dimuon isolation (using SV-PV to define cone)
   reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-  float dimuon_isoLxy = DimuonIsolation(lxyDir, rv,dimu_p4, beamspot, generalTracks,debug);
+  float dimuon_isoLxy = DimuonIsolation(lxyDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
 
   // delta phi
@@ -377,7 +378,6 @@ void DimuonBranches::FillDimuon(int i, int j,
     std::cout << "Lxy   Isolation: " << dimuon_isoLxy << std::endl;
     std::cout << "Refitted DSA muon info:" << muon_cand1;
     std::cout << "Refitted DSA muon info:" << muon_cand2;
->>>>>>> master
   }
 }
 
@@ -460,7 +460,7 @@ reco::Vertex DimuonBranches::RefittedVertex(
 
 
 using namespace muonisolation;
-/* @brief Determines if a dimuon, described with decay vertex rv, and momentum dimuon
+/* @brief Determines if a dimuon, described with primary vertex pv, and momentum dimuon
  * is isolated with respect to other tracks found within the event.
  *
  * Function modelled from:
@@ -471,7 +471,7 @@ using namespace muonisolation;
  */
 float DimuonBranches::DimuonIsolation(
 		const reco::isodeposit::Direction& isoConeDirection,
-		const reco::Vertex& rv,
+		const reco::Vertex& pv,
 		const TLorentzVector& dimuon,
 		const reco::BeamSpot &beamspot,
 		const reco::TrackCollection &generalTracks,
@@ -491,10 +491,8 @@ float DimuonBranches::DimuonIsolation(
 	const float chi2ProbMin = -1;
 	const float ptMin = -1;
 
-	const float vtx_z = rv.z();
+	const float vtx_z = pv.z();
 
-	//currently using direction of momentum to define cone
-	//reco::isodeposit::Direction muonDir(dimuon.Eta(), dimuon.Phi());
 
 	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
 			diffR, isoConeDirection, dRmax,beamspot.position());
