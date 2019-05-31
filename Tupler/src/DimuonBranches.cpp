@@ -6,6 +6,7 @@
 
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 #include "PhysicsTools/RecoUtils/interface/CheckHitPattern.h"
+#include "RecoVertex/VertexTools/interface/InvariantMassFromVertex.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -89,7 +90,7 @@ void DimuonBranches::FillDimuon(int i, int j,
 				const edm::ESHandle<MagneticField>& magfield,
 				bool debug)
 {
-  static float mass = .105658375;
+  static float muon_mass = .105658375;
   DisplacedMuonFiller muf;
   const reco::BeamSpot &beamspot = *beamspotHandle;
 
@@ -115,10 +116,14 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Default fitter settings
   KalmanVertexFitter kvf(true);
 
+  CachingVertex<5> cv;
   TransientVertex tv;
   try
   {
-    tv = kvf.vertex(trackVector);
+    //tv = kvf.vertex(trackVector);
+    // Find CachingVertex vertex first in order to calculate inv. mass uncertainty
+    cv = kvf.vertex(trackVector);
+    tv = TransientVertex(cv);
   }
   catch ( VertexException & e )
   {
@@ -190,8 +195,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Refitted transient tracks
   reco::TransientTrack rtt1 = tv.refittedTrack(ott1);
   reco::TransientTrack rtt2 = tv.refittedTrack(ott2);
-  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(mass,2.)));
-  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(mass,2.)));
+  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(muon_mass,2.)));
 
   // Dimuon 4-vector
   TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
@@ -205,9 +210,13 @@ void DimuonBranches::FillDimuon(int i, int j,
   // delta R between the tracks
   float dR = rt1_p4.DeltaR(rt2_p4);
 
+  // Dimuon invariant mass and its uncertainty
+  InvariantMassFromVertex imfv;
+  Measurement1D dimuon_mass = imfv.invariantMass(cv, muon_mass);
+
   // cos(alpha) and dR between the original tracks
-  TLorentzVector ot1_p4(ott1.track().px(), ott1.track().py(), ott1.track().pz(), sqrt(pow(ott1.track().p(),2.)+pow(mass,2.)));
-  TLorentzVector ot2_p4(ott2.track().px(), ott2.track().py(), ott2.track().pz(), sqrt(pow(ott2.track().p(),2.)+pow(mass,2.)));
+  TLorentzVector ot1_p4(ott1.track().px(), ott1.track().py(), ott1.track().pz(), sqrt(pow(ott1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector ot2_p4(ott2.track().px(), ott2.track().py(), ott2.track().pz(), sqrt(pow(ott2.track().p(),2.)+pow(muon_mass,2.)));
   TLorentzVector dimu_orig_p4 = ot1_p4 + ot2_p4;
   float cosAlpha_orig = ot1_p4.Vect().Dot(ot2_p4.Vect())/ot1_p4.P()/ot2_p4.P();
   float dR_orig = ot1_p4.DeltaR(ot2_p4);
@@ -251,8 +260,9 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_pt       .push_back(dimu_p4.Pt ());
   dim_eta      .push_back(dimu_p4.Eta());
   dim_phi      .push_back(dimu_p4.Phi());
-  dim_mass     .push_back(dimu_p4.M  ());
   dim_p        .push_back(dimu_p4.P  ());
+  dim_mass     .push_back(dimuon_mass.value());
+  dim_massunc  .push_back(dimuon_mass.error());
   dim_x        .push_back(rv_x         );
   dim_y        .push_back(rv_y         );
   dim_z        .push_back(rv_z         );
@@ -332,9 +342,10 @@ void DimuonBranches::FillDimuon(int i, int j,
   if (debug)
   {
     std::cout << "Dimuon info: muon id's = " << i << " " << j
-      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
-      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
-      << " mass = " << dimu_p4.M() << std::endl;
+	      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
+	      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
+	      << " mass = " << dimuon_mass.value()
+	      << " +/- "    << dimuon_mass.error() << std::endl;
     std::cout << "  Common vertex: (x; y; z): ("
       << rv_x << ";" << rv_y << ";" << rv_z 
       << ") chi2/ndof = "
