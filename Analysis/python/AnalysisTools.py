@@ -500,7 +500,7 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
 # cutList is used along with PATSelections
 # By default this will look for a segment match (in a way that was defined previously) and will always consider HYBRID dimuons
 # For a few more details, take a look at an early March 2019 commit with the replaceDSADimuons function
-def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSelections, cutList, proxThresh=False):
+def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSelections, cutList):
 
     inputPATs = {mu.idx:mu for mu in selectedPATmuons}
 
@@ -564,7 +564,7 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
             return DSAmuon.idx_ProxMatch
 
         # option 2: proximity match is within deltaR of 0.05
-        thresh = 0.05 if not proxThresh else 0.15
+        thresh = 0.15
         if DSAmuon.deltaR_ProxMatch < thresh:
             return DSAmuon.idx_ProxMatch
 
@@ -619,6 +619,26 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # selectedDSAmuons, selectedPATmuons, selectedDimuons = replaceDSAmuons(selectedDSAmuons, selectedPATmuons, selectedDimuons)
     # where selectedDimuons is a Dimuons3 type list
     return filteredDSAmuons, filteredPATmuons, filteredDimuons
+
+# "cosmic shower finder"
+# finds the number of parallel (or antiparallel) pairs from the original list of DSA muons
+# if this number is particularly high, it's very likely a cosmic event
+def numberOfParallelPairs(DSAmuons):
+    cleanMuons = [d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12 and d.pt > 5.]
+    nMinus, nPlus = 0, 0
+    for i in xrange(len(cleanMuons)):
+        for j in xrange(i+1, len(cleanMuons)):
+            d1, d2 = cleanMuons[i], cleanMuons[j]
+            originalCosAlpha = computeCosAlpha(d1, d2)
+            if originalCosAlpha < -0.99:
+                nMinus += 1
+            if originalCosAlpha > 0.99:
+                nPlus += 1
+    return nMinus, nPlus
+
+# needed for the above
+def computeCosAlpha(d1, d2):
+    return d1.p4.Vect().Dot(d2.p4.Vect())/d1.p4.P()/d2.p4.P()
 
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):

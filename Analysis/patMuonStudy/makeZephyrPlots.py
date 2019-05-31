@@ -17,14 +17,13 @@ LXYZOOMEDFULL = ARGS.ZOOMED
 MASSZOOMED = ARGS.ZOOMED
 
 if CUTSTRING == '':
-    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA'
+    CUTSTRING = 'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_NDSA_LXYSIG_TRK_DPHI'
     print 'Defaulting to', CUTSTRING
 
 lumiExtra = {
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA'       : ' + cos(#alpha)',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE' : ' + cos(#alpha) + ref. FPTE',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_PROXTHRESH'       : ' + cos(#alpha) + #DeltaR < 0.15',
-    'NS_NH_FPTE_HLT_REP_PT_PC_LXYE_MASS_CHI2_VTX_COSA_SFPTE_PROXTHRESH' : ' + cos(#alpha) + ref. FPTE + #DeltaR < 0.15',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK'       : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_DPHI'  : ' ',
+    'NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_IDPHI' : ' ',
 }
 
 DRAW = False
@@ -36,6 +35,9 @@ FILES = {
     'MC'    : R.TFile.Open('roots/ZephyrPlots_Combined_{}_MC.root'               .format(CUTSTRING)),
     'Data'  : R.TFile.Open('roots/ZephyrPlots_Combined_{}_DATA.root'             .format(CUTSTRING)),
 }
+
+if 'IDPHI' in CUTSTRING:
+    DATASCALE = 1.
 
 fs = '2Mu2J'
 
@@ -90,7 +92,7 @@ def makeLxyResVSLxyPlot(recoType):
 # make the 1D PAT and DSA plots
 def makeSinglePlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'LxyRes', 'LxyPull', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha', 'cosAlpha-O', 'DCA', 'pTOverM', 'minNHits', 'qsum']
     for recoType in quantities:
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
@@ -99,7 +101,7 @@ def makeSinglePlots():
     quantities['HYB-PAT'].extend(['pT', 'eta', 'phi', 'd0', 'relTrkIso', 'd0Sig', 'trkChi2'])
 
     quantities['REF-DSA'] = ['FPTE']
-    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12']
+    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12', 'nDSA12-pT', 'nDSA-DT']
 
     for recoType in ('DSA', 'PAT'):
         quantities[recoType].extend(quantities['HYB-'+recoType])
@@ -115,7 +117,7 @@ def makeSinglePlots():
             LXYZOOMED = LXYZOOMEDFULL and recoType == 'DSA'
 
             p = Plotter.Plot(HISTS[key], key, 'l', 'hist')
-            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'nDSA12', 'd0') else False)
+            canvas = Plotter.Canvas(lumi=fs+lumiExtra.get(CUTSTRING)+' ({})'.format(recoType), logy=True if quantity in ('vtxChi2', 'relTrkIso', 'deltaPhi', 'trkChi2', 'nDimuon', 'nDSA', 'nDSA12', 'nDSA12-pT', 'nDSA-DT', 'd0', 'DCA') else False)
 
             if key == 'REF-DSA-FPTE':
                 canvas.mainPad.SetLogx()
@@ -159,7 +161,7 @@ def makeSinglePlots():
 # MC plots of LxySig
 def makeMCPlots():
     quantities = {'DSA':[], 'PAT':[], 'HYB':[], 'HYB-DSA':[], 'HYB-PAT':[]}
-    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha']
+    dimQuantities = ['Lxy', 'LxySig', 'LxyErr', 'vtxChi2', 'mind0Sig', 'mass', 'deltaPhi', 'deltaR', 'cosAlpha', 'cosAlpha-O', 'DCA', 'pTOverM', 'minNHits', 'qsum']
     for recoType in quantities:
         if 'HYB-' in recoType: continue
         quantities[recoType].extend(dimQuantities)
@@ -171,7 +173,7 @@ def makeMCPlots():
         quantities[recoType].extend(quantities['HYB-'+recoType])
 
     quantities['REF-DSA'] = ['FPTE']
-    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12']
+    quantities[''] = ['nDimuon', 'nDSA', 'nDSA12', 'nDSA12-pT', 'nDSA-DT']
 
     # consider making deltaPhi not log scale. If so, then uncomment the maximum commands at the bottom
 
@@ -188,6 +190,8 @@ def makeMCPlots():
         if 'nDimuon' in key: return True
         if 'nDSA' in key: return True
         if 'REF-DSA-FPTE' in key: return True
+        if 'minNHits' in key: return True
+        if 'qsum' in key: return True
         return False
 
     for recoType in quantities:

@@ -2,7 +2,7 @@ import ROOT as R
 
 #### Improved Vector Classes
 def genericDist(self, second):
-    return (self-vec).Mag()
+    return (self-second).Mag()
 def genericInverse(self):
     return self.__class__(*[1./component for component in self])
 def genericFormat(self, format_spec):

@@ -5,11 +5,14 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA', 'SFPTE')
+CUTS = ['NS_NH', 'FPTE', 'HLT', 'PT', 'DCA', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA_NPP', 'LXYSIG', 'TRK', 'NDT', 'DPHI']
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
+    if self.SP is None and self.ARGS.IDPHI:
+        CUTS[-1] = 'IDPHI'
+
     self.omitCounts = {'none':0}
     self.seqCounts  = {'none':0}
     for c in CUTS:
@@ -38,12 +41,14 @@ def analyze(self, E, PARAMS=None):
     Event = E.getPrimitives('EVENT')
 
     # take 10% of data: event numbers ending in 7
-    if 'DoubleMuon' in self.NAME:
+    if 'DoubleMuon' in self.NAME and not self.ARGS.IDPHI:
         if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
     Dimuons3 = E.getPrimitives('DIMUON')
+
+    BASECUTS = '_Combined_REP_PC'
 
     eventWeight = 1.
     try:
@@ -52,9 +57,9 @@ def analyze(self, E, PARAMS=None):
         pass
 
     def nDSA(selDims):
-        return len([d for d in selectedDimuons if d.composition == 'DSA'])
+        return len([d for d in selDims if d.composition == 'DSA'])
 
-    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, '_Combined_REP_PC', Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
+    selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, BASECUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
     if selectedDimuons is not None:
 
         self.seqCounts['none'] += 1
@@ -64,7 +69,7 @@ def analyze(self, E, PARAMS=None):
         self.HISTS['DSA-SEQ'].Fill(0., eventWeight*nDSA(selectedDimuons))
 
     for idx, omit in enumerate(CUTS):
-        CUTSTRING = '_Combined_' + '_'.join([c for c in CUTS if c != omit]) + '_REP_PC'
+        CUTSTRING = BASECUTS + '_' + '_'.join([c for c in CUTS if c != omit])
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
         if selectedDimuons is not None:
             self.omitCounts[omit] += 1
@@ -74,7 +79,7 @@ def analyze(self, E, PARAMS=None):
             self.HISTS['DSA-NM1'].Fill(idx+1., eventWeight*nDSA(selectedDimuons))
 
     for idx in range(len(CUTS)):
-        CUTSTRING = '_Combined_' + '_'.join(CUTS[:idx+1]) + '_REP_PC'
+        CUTSTRING = BASECUTS + '_' + '_'.join(CUTS[:idx+1])
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons, bumpFPTE=self.ARGS.BUMPFPTE)
         if selectedDimuons is not None:
             self.seqCounts[CUTS[idx]] += 1
@@ -99,8 +104,8 @@ def end(self, PARAMS=None):
             return 'QCD'
         return name
 
-    fieldWidth = '5'
-    nPlusC = ('none',) + CUTS
+    fieldWidth = '8'
+    nPlusC = ['none'] + CUTS
     fstring = '{:19s}     '
     for c in nPlusC:
         fstring += '{:>' + fieldWidth + 's} '
@@ -125,6 +130,7 @@ def end(self, PARAMS=None):
 if __name__ == '__main__':
     # get arguments
     Analyzer.PARSER.add_argument('--bump', dest='BUMPFPTE', action='store_true')
+    Analyzer.PARSER.add_argument('--idphi', dest='IDPHI', action='store_true')
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -141,4 +147,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    analyzer.writeHistograms('roots/mcbg/NM1Plots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', '_Bump' if ARGS.BUMPFPTE else ''))
+    analyzer.writeHistograms('roots/mcbg/NM1Plots{}{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', '_Bump' if ARGS.BUMPFPTE else '', '' if not ARGS.IDPHI else '_IDPHI'))

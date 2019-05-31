@@ -1,6 +1,6 @@
 # Displaced Dimuons Analysis
 
-Last updated: **14 December 2018**
+Last updated: **10 May 2019**
 
 This subpackage contains code to analyze nTuples produced by the _Tupler_ subpackage. It mostly produces histograms. The `python` folder contains several libraries for organizing and interacting with the nTuples and their data.
 
@@ -82,16 +82,17 @@ RSAMuons                                      = E.getPrimitives('RSAMUON')
 Dimuons                                       = E.getPrimitives('DIMUON')
 ```
 
-  The _Primitives_ library contains extensive printing functionality, so that at any time, any object or even the entire _ETree_ can be printed in with neatly formatted output. This output is colored by default; to turn it off, one only needs to add the following line to the analysis script:
+  The _PrimitivesPrinter_ library encapsulates extensive printing functionality, including printing lists of objects in a clean way, so that at any time, any object or even the entire _ETree_ can be printed in with neatly formatted output. This output is colored by default; to turn it off, one only needs to add the following line to the analysis script:
 
 ```python
-Primitives.COLORON = False
+PrimitivesPrinter.COLORON = False
 ```
 
   * **RootTools.py** contains a few small ROOT-related additions.
     * The _TVector_ section improves the Python implementation of _TVector2_, _TVector3_, and _TLorentzVector_ by adding a few functions and fixing the interface so as to be a bit more uniform.
     * The `setGenAliases()` function is a _TTree_ related function that sets gen particle aliases in the _TTree_. My current way of storing the gen particles in the tree is in a vector of size 8+, specifically **mu11, mu12, mu21, mu22, X1, X2, H, P** or **mu1, mu2, j1, j2, X, XP, H, P**. Rather than writing `t.gen_pt[4]`, I would rather write `t.X1.pt`. This is useful when the full machinery of _Primitives_ is not required and only simple selections need to be done, and the full speed of the `TTree::Draw()` function is desired.
     * The `addBinWidth` function takes in a plot and appends the bin width, with a "GeV" or "cm" as appropriate, to the *y*-axis. It has been added to all the plotters, so that it is now a standard part of all plots.
+    * The `addFlows` function takes in a plot and adds the overflow (underflow) bins to the last (first) bin.
   * **Selections.py** is the central library for dealing with object and event selections. It defines _Cut_ objects, which are context-aware selections that take in objects and apply cuts; and _Selection_ objects, which are collections of _Cuts_ along with useful auxiliary functions. To apply the muon selection to a muon, one only needs to declare a _MuonSelection_ object, and all the booleans are automatically computed, along with functions to access any or all or none of them, and functions to increment counters in a systematic way. Any selections and cuts should be added here and imported to other functions.
   * **Selector.py** is a library for actually performing the object and event selections. It uses the _Selections_ library, but requires the context of the interior of an `analyze()` function of an _Analyzer_. This isn't in the _Selections_ library because it actually does the full process of the analysis selection, and is more than just a few cuts -- it combines functions from _AnalysisTools_, as well. This code used to live in an _Analyzer_ -- it is the meat of it, after all -- but it is quite similar for many purposes, so into a library it goes.
   * **SummaryPlotter.py** is a small library for making "summary plots". These are plots of a few numbers for entire signal points, e.g. the fitted &sigma; of the L<sub>xy</sub> distribution. Plotting them this way makes dependencies on the Higgs mass, the long-lived particle mass, and the lifetime more obvious, in a visual way.
@@ -138,6 +139,11 @@ The following analyzers use the full _Primitives_ and _Analyzer_ machinery, usin
   * **signalRecoResPlots.py** produces reco-gen resolution plots for various quantities, for signal samples.
   * **signalVertexFitEffPlots.py** produces plots parametrizing the common vertex fit efficiency as a function of various quantities, for signal samples.
   * **signalTriggerEffPlots.py** produces plots parametrizing the trigger efficiency as a function of various quantities, for signal samples.
+
+As of 2019 most of the current analyzers live in _nMinusOne_ and _patMuonStudy_; the analyzers above are kept for some of their history, but are mostly deprecated.
+
+  * **zephyrPlots** is the new mainline plot maker, replacing _recoMuonPlots_ and _dimuonPlots_ as well as some of the signal plots. It is an analyzer in all respects, but the core difference is that the configuration dictionaries at the beginning set up machinery for treating three types of dimuons completely independently, including their axes.
+  * **DSADump** is actually a dumper, but it's here for convenience. Quite a lot of analysis was done with these event lines, using the scripts in _analyzeDSADump_.
 
 <a name="runall"></a>
 ### runAll.py
@@ -196,6 +202,8 @@ By default, _runAll.py_ detects the current folder. If one wishes to submit an a
 `--file` allows you to specify a specific file of job arguments. This is useful if, say, a few jobs fail. You extract the argument lists, put them in a file, and submit using `--file`.
 
 The `--extra` parameter should be passed last, if at all. It is for passing any additional arguments to the _Analyzer_ script, e.g. `--trigger` or `--cuts`. Everything after `--extra` will be passed directly to the given _Analyzer_, except that all instances of `__` will be replaced with `--`. This is necessary because if they are passed with `--`, the parser in _runAll.py_ will interpret them as options for itself, rather than additional options for the _Analyzer_. To do: this can probably be improved by requiring that the parameter be a single quoted string, but it works for now.
+
+If `__skim` is in the extra parameter list, currently _runAll.py_ will adapt the arguments for data appropriately for the _Analyzer_ to run over "skimmed" versions of the data nTuples.
 
 ### CONDOR submission workflow for analyzers
 

@@ -6,19 +6,22 @@ import DisplacedDimuons.Analysis.PlotterParser as PP
 import DisplacedDimuons.Analysis.RootTools as RT
 
 PP.PARSER.add_argument('FILE')
-PP.PARSER.add_argument('--hyb', dest='HYB', action='store_true')
-PP.PARSER.add_argument('--mc' , dest='MC' , action='store_true')
+PP.PARSER.add_argument('--sig', dest='SIG', action='store_true')
 args = PP.PARSER.parse_args()
 
 h = {
-    'd0Sig-S':R.TH1F('h1', ';d_{0}/#sigma_{d_{0}};Counts'            , 80, np.logspace(-3., 5., 81)   ),
-    'd0Sig-B':R.TH1F('h2', ';d_{0}/#sigma_{d_{0}};Counts'            , 80, np.logspace(-3., 5., 81)   ),
-    'dPhi-S' :R.TH1F('h3', ';|#Delta#phi(original, refitted)|;Counts', 80, 0.           , R.TMath.Pi()),
-    'dPhi-B' :R.TH1F('h4', ';|#Delta#phi(original, refitted)|;Counts', 80, 0.           , R.TMath.Pi()),
-    'd0-S'   :R.TH1F('h5', ';d_{0};Counts'                           , 80, np.logspace(-3., 5., 81)   ),
-    'd0-B'   :R.TH1F('h6', ';d_{0};Counts'                           , 80, np.logspace(-3., 5., 81)   ),
-
-    'dR'     :R.TH1F('h7', ';proximity #DeltaR;Counts'               , 37, 0.04, 0.41),
+    'trkChi2'    : R.TH1F('h1' , ';track #chi^{2}/dof;Counts'       , 100, 0., 5. ),
+    'maxtrkChi2' : R.TH1F('h2' , ';max track #chi^{2}/dof;Counts'   , 100, 0., 5. ),
+    'PCA'        : R.TH1F('h3' , ';P.C.A. #minus vPos [cm];Counts'              , 100, 0., 10.),
+    'PCA_XY'     : R.TH1F('h4' , ';transverse P.C.A. #minus vPos [cm];Counts'   , 100, 0., 10.),
+    'PCA_Z'      : R.TH1F('h5' , ';longitudinal P.C.A. #minus vPos [cm];Counts' , 100, 0., 10.),
+    'd0Sig'      : R.TH1F('h6' , ';|d_{0}|/#sigma_{d_{0}};Counts'               , 100, 0., 50.),
+    'mind0Sig'   : R.TH1F('h7' , ';min |d_{0}|/#sigma_{d_{0}};Counts'           , 100, 0., 50.),
+    'LxySig'     : R.TH1F('h8' , ';L_{xy}/#sigma_{L_{xy}};Counts'               , 100, 0., 50.),
+    'vtxChi2'    : R.TH1F('h9' , ';vtx #chi^{2};Counts'                         , 100, 0., 20.),
+    'nCSCHits'   : R.TH1F('h10', ';N(CSC Hits);Counts'                          ,  50, 0., 50.),
+    'nDTHits'    : R.TH1F('h11', ';N(DT Hits);Counts'                           ,  50, 0., 50.),
+    'nHitsScat'  : R.TH2F('h12', ';N(CSC Hits);N(DT Hits);Counts'               ,  30, 0., 30., 40, 0., 40.),
 }
 
 def deltaPhi(phi1, phi2):
@@ -28,129 +31,124 @@ def deltaPhi(phi1, phi2):
     v2.SetPtEtaPhi(1., 1., phi2)
     return abs(v1.DeltaPhi(v2))
 
-l = [
-    1094462867,
-    1283051327,
-    1790870957,
-    224954587,
-    2660937567,
-    706256787,
-    819173247,
-    871330817,
-    1840232227,
-    214390057,
-    229870167,
-    246186967,
-]
-
 config = {
-    'name'    : {'cast':str  , 'col': 0},
-    'event'   : {'cast':int  , 'col': 3},
+    'name'     : {'cast':str  , 'col': 0},
+    'run'      : {'cast':int  , 'col': 1},
+    'lumi'     : {'cast':int  , 'col': 2},
+    'event'    : {'cast':int  , 'col': 3},
 
-    'type'    : {'cast':str  , 'col': 6},
+    'type'     : {'cast':str  , 'col': 6},
+    'idx1'     : {'cast':int  , 'col': 7},
+    'idx2'     : {'cast':int  , 'col': 8},
 
-    'LxySig'  : {'cast':float, 'col':10},
-    'vtxChi2' : {'cast':float, 'col':12},
-    'cosAlpha': {'cast':float, 'col':13},
+    'LxySig'   : {'cast':float, 'col':10},
+    'vtxChi2'  : {'cast':float, 'col':12},
+    'cosAlpha' : {'cast':float, 'col':13},
+    'cosAlphaO': {'cast':float, 'col':14},
+    'DCA'      : {'cast':float, 'col':15},
 
-    'd01'     : {'cast':float, 'col':15},
-    'd02'     : {'cast':float, 'col':16},
-    'd0Sig1'  : {'cast':float, 'col':17},
-    'd0Sig2'  : {'cast':float, 'col':18},
+    'd01'      : {'cast':float, 'col':17},
+    'd02'      : {'cast':float, 'col':18},
+    'd0Sig1'   : {'cast':float, 'col':19},
+    'd0Sig2'   : {'cast':float, 'col':20},
 
-    'dR1'     : {'cast':float, 'col':19},
-    'dR2'     : {'cast':float, 'col':20},
+    'nDSA'     : {'cast':int  , 'col':22},
+    'nDSACln'  : {'cast':int  , 'col':23},
+    'nPPM'     : {'cast':int  , 'col':24},
+    'nPPP'     : {'cast':int  , 'col':25},
+    'nPP'      : {'cast':int  , 'col':26},
 
-    'fpte1'   : {'cast':float, 'col':22},
-    'fpte2'   : {'cast':float, 'col':23},
-    'phi1'    : {'cast':float, 'col':24},
-    'phi2'    : {'cast':float, 'col':25},
-    'rphi1'   : {'cast':float, 'col':26},
-    'rphi2'   : {'cast':float, 'col':27},
+    'trkChi21' : {'cast':float, 'col':28},
+    'trkChi22' : {'cast':float, 'col':29},
 
-    'nDSA'    : {'cast':int  , 'col':28},
+    'PCA'      : {'cast':float, 'col':31},
+    'PCA_XY'   : {'cast':float, 'col':32},
+    'PCA_Z'    : {'cast':float, 'col':33},
+
+    'nCSC1'    : {'cast':int  , 'col':35},
+    'nCSC2'    : {'cast':int  , 'col':36},
+    'nDT1'     : {'cast':int  , 'col':37},
+    'nDT2'     : {'cast':int  , 'col':38},
 }
 
 
 f = open(args.FILE)
 
-c = 0
-nDR7 = 0
 for line in f:
+
     cols = line.strip('\n').split()
+
+    # normalize the number of columns in case the first entry is a number (signalpoint)
+    try:
+        int(cols[0])
+        cols = ['{}_{}_{}'.format(*cols[:3])]+cols[3:]
+    except:
+        pass
+
+    # extract the values
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
-    if vals['fpte1'] < 0.01 or vals['fpte2'] < 0.01 or vals['fpte1'] > 1. or vals['fpte2'] > 1.:
-        c += 1
+    h['trkChi2'].Fill(vals['trkChi21'])
+    h['trkChi2'].Fill(vals['trkChi22'])
 
-        if vals['event'] in l:
-            print vals['event']
+    h['maxtrkChi2'].Fill(max(vals['trkChi21'], vals['trkChi22']))
 
-    if vals['dR1'] < 0.07 or vals['dR2'] < 0.07:
-        nDR7 += 1
+    for val in ('PCA', 'PCA_XY', 'PCA_Z', 'LxySig', 'vtxChi2'):
+        h[val].Fill(vals[val])
 
-    for i in ('1', '2'):
-        if vals['fpte'+i] < 0.01:
-            h['d0Sig-S'].Fill(vals['d0Sig'+i])
-            h['d0-S']   .Fill(vals['d0'+i])
-            h['dPhi-S'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
+    h['d0Sig'].Fill(vals['d0Sig1'])
+    h['d0Sig'].Fill(vals['d0Sig2'])
+    h['mind0Sig'].Fill(min(vals['d0Sig1'], vals['d0Sig2']))
+
+    for idx in ('1', '2'):
+        nCSC, nDT = vals['nCSC'+idx], vals['nDT'+idx]
+        if nCSC == 0:
+            h['nDTHits'].Fill(nDT)
+        elif nDT == 0:
+            h['nCSCHits'].Fill(nCSC)
         else:
-            h['d0Sig-B'].Fill(vals['d0Sig'+i])
-            h['d0-B']   .Fill(vals['d0'+i])
-            h['dPhi-B'] .Fill(deltaPhi(vals['phi'+i], vals['rphi'+i]))
+            h['nHitsScat'].Fill(nCSC, nDT)
 
-        if vals['nDSA'] < 10:
-            if i == '2' and vals['type'] == 'HYB': continue
-            if vals['dR'+i] > .4 and vals['dR'+i] != float('inf'): print line.strip('\n')
-            if 'Data' not in vals['name'] and 'QCD' not in vals['name']: continue
-            h['dR'].Fill(vals['dR'+i])
+dtype = 'Data'
+if args.SIG: dtype = 'Signal'
 
+# make plots, special things for 2D
+for key in ('trkChi2', 'maxtrkChi2', 'PCA', 'PCA_XY', 'PCA_Z', 'd0Sig', 'mind0Sig', 'LxySig', 'vtxChi2', 'nDTHits', 'nCSCHits', 'nHitsScat'):
+    IS2D = 'Scat' in key
+    logy = (args.SIG and ('PCA' in key or key.endswith('Hits')))
 
-print c
-print nDR7
-
-if args.HYB:
-    rtype = 'DSA-PAT'
-    fname = '-HYB'
-else:
-    rtype = 'DSA-DSA'
-    fname = ''
-
-if args.MC:
-    dtype = 'MC'
-else:
-    dtype = 'Data'
-
-for i in ('d0', 'd0Sig', 'dPhi'):
-    name = i
-    c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype), logy=name=='dPhi')
-    p = {
-        'small':Plotter.Plot(h[name+'-S'], 'refitted #sigma_{p_{T}}/p_{T} < 1%', 'l', 'hist'),
-        'big'  :Plotter.Plot(h[name+'-B'], 'refitted #sigma_{p_{T}}/p_{T} > 1%', 'l', 'hist'),
-    }
-    c.addMainPlot(p['small'])
-    c.addMainPlot(p['big']  )
-    p['small'].setColor(R.kRed, which='L')
-    p['big'].setColor(R.kBlue, which='L')
-    if 'dPhi' not in name:
-        c.mainPad.SetLogx()
-    c.setMaximum()
-    c.makeLegend(lWidth=.3, pos='tr')
-    c.legend.resizeHeight()
-    p1 = c.makeStatsBox(p['small'], color=R.kRed)
-    p2 = c.makeStatsBox(p['big'], color=R.kBlue)
-    Plotter.MOVE_OBJECT(p1, Y=-.1)
-    Plotter.MOVE_OBJECT(p2, Y=-.3)
-    p2.SetX1(p1.GetX1())
-    c.firstPlot.scaleTitleOffsets(1.2, axes='X')
-    c.cleanup('{}{}.pdf'.format(name, fname))
-
-if True:
-    c = Plotter.Canvas(lumi='DSA muons in {} dimuons in {}'.format(rtype, dtype))
-    p = Plotter.Plot(h['dR'], '', '', 'hist')
+    c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in {}'.format(dtype), logy=logy)
+    p = Plotter.Plot(h[key], '', '', 'hist' if not IS2D else 'text')
     c.addMainPlot(p)
     p.setColor(R.kBlue, which='L')
     c.setMaximum()
-    pave = c.makeStatsBox(p, color=R.kBlue)
+
+    if not IS2D:
+        pave = c.makeStatsBox(p, color=R.kBlue)
+
     c.firstPlot.scaleTitleOffsets(1.2, axes='X')
-    c.cleanup('dR{}.pdf'.format(fname))
+
+    if IS2D:
+        # scale down if you want a percent
+        if True:
+            p.Scale(100./p.GetEntries())
+            R.gStyle.SetPaintTextFormat('.1f')
+        if True:
+            R.gStyle.SetPaintTextFormat('.0f')
+        c.mainPad.SetLogz()
+        c.scaleMargins(1.75, edges='R')
+        c.scaleMargins(0.8, edges='L')
+
+    c.cleanup('{}-{}.pdf'.format(key, dtype))
+
+# cumulative plots
+for key in ('nDTHits', 'nCSCHits'):
+    z = h[key].GetCumulative()
+    z.Scale(1./h[key].Integral(0, h[key].GetNbinsX()+1))
+    c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in {}'.format(dtype), logy=True)
+    p = Plotter.Plot(z, '', '', 'hist')
+    c.addMainPlot(p)
+    p.setColor(R.kBlue, which='L')
+    c.firstPlot.SetMaximum(1.)
+    c.firstPlot.SetMinimum(1.e-3)
+    c.cleanup('{}-Cum-{}.pdf'.format(key, dtype))
