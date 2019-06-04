@@ -205,11 +205,11 @@ void DimuonBranches::FillDimuon(int i, int j,
 
   //Calculate dimuon isolation (using momentum direction to define cone)
   reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-  float dimuon_isoPmumu = DimuonIsolation(pmumuDir, rv,dimu_p4, beamspot, generalTracks,debug);
+  float dimuon_isoPmumu = DimuonIsolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
   //Calculate dimuon isolation (using SV-PV to define cone)
   reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-  float dimuon_isoLxy = DimuonIsolation(lxyDir, rv,dimu_p4, beamspot, generalTracks,debug);
+  float dimuon_isoLxy = DimuonIsolation(lxyDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
 
   // delta phi
@@ -460,7 +460,7 @@ reco::Vertex DimuonBranches::RefittedVertex(
 
 
 using namespace muonisolation;
-/* @brief Determines if a dimuon, described with decay vertex rv, and momentum dimuon
+/* @brief Determines if a dimuon, described with primary vertex pv, and momentum dimuon
  * is isolated with respect to other tracks found within the event.
  *
  * Function modelled from:
@@ -471,7 +471,7 @@ using namespace muonisolation;
  */
 float DimuonBranches::DimuonIsolation(
 		const reco::isodeposit::Direction& isoConeDirection,
-		const reco::Vertex& rv,
+		const reco::Vertex& pv,
 		const TLorentzVector& dimuon,
 		const reco::BeamSpot &beamspot,
 		const reco::TrackCollection &generalTracks,
@@ -491,10 +491,8 @@ float DimuonBranches::DimuonIsolation(
 	const float chi2ProbMin = -1;
 	const float ptMin = -1;
 
-	const float vtx_z = rv.z();
+	const float vtx_z = pv.z();
 
-	//currently using direction of momentum to define cone
-	//reco::isodeposit::Direction muonDir(dimuon.Eta(), dimuon.Phi());
 
 	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
 			diffR, isoConeDirection, dRmax,beamspot.position());

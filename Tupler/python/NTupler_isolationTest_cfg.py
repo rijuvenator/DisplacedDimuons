@@ -18,11 +18,21 @@ FINALSTATE = ''
 GENS_TAG   = ('prunedGenParticles', '', 'PAT')
 SOURCE     = 'PAT'
 
-#fill in the INPUTFILES array
-inputregex = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/MC2016_QCDMuEnr20toInf_MMYYYY-vXX/190514_152506/0000/pat_*.root'
 
-for filename in glob.glob(inputregex):
-    INPUTFILES.append('file:'+filename)
+#
+# QCD SAMPLE
+#
+#fill in the INPUTFILES array
+#inputregex = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8/MC2016_QCDMuEnr20toInf_MMYYYY-vXX/190514_152506/0000/pat_*.root'
+
+#for filename in glob.glob(inputregex):
+#    INPUTFILES.append('file:'+filename)
+    
+#
+# ISOLATED SAMPLE
+#
+
+INPUTFILES.append('file:/eos/cms/store/user/valuev/DisplacedDimuons/PATFilter/MC2016_Hto2Xto2mu2j_1000_150_1000_07May19.root')
 
 ###############################
 ##### BASIC CONFIGURATION #####

@@ -310,7 +310,7 @@ class DimuonBranches : public BranchCollection
 
     static float DimuonIsolation(
     		const reco::isodeposit::Direction& isoConeDirection,
-			const reco::Vertex& rv,
+			const reco::Vertex& pv,
 			const TLorentzVector& dimuon,
 			const reco::BeamSpot &beamspot,
 			const reco::TrackCollection &generalTracks,
