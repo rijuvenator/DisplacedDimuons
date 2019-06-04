@@ -19,6 +19,7 @@ def declareHistograms(self, Params=None):
     for tag in ('DSA','PAT','HYBRID'):
         self.HISTS[tag+'-Lxy-Isolation'] = R.TH1D(tag+'-Lxy-Isolation',tag+' Selected Dimuon Lxy Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events',8, np.logspace(-5, 3, 9) )
         self.HISTS[tag+'-Pmumu-Isolation'] = R.TH1D(tag+'-Pmumu-Isolation',tag+' Selected Dimuon P_{#mu#mu} Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Events',8, np.logspace(-5, 3, 9) )
+
     
 
 def analyze(self, E, PARAMS=None):
