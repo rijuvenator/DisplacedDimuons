@@ -293,6 +293,7 @@ def matchedTrigger(HLTMuons, uncutDSAMuons, saveDeltaR=False, threshold=0.4, pri
             mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
 
             # found a pair of muons that fired; now look for closest DSA muons
+            # mass cut is 9.99996 because of DoubleMuon2016G-07Aug17 Run 279844 Lumi 73 Event 15943296
             if mass > 9.99996 and angle < 2.5:
                 HLTMuonMatches[(i, j)] = {}
                 # find all the matching DSA muons, sort them by deltaR...
