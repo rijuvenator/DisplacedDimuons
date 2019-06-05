@@ -1,9 +1,8 @@
 import ROOT as R
 import DisplacedDimuons.Analysis.Selections as Selections
 import DisplacedDimuons.Analysis.Analyzer as Analyzer
-import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Common.Utilities as Utilities
-from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons, numberOfParallelPairs
+from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 import DisplacedDimuons.Analysis.PrimitivesPrinter as Printer
 
@@ -12,7 +11,8 @@ Printer.COLORON = True
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    pass
+    self.COUNTS = {0.:0, 1.:0, 3.:0, 5.:0, 7.:0}
+    self.MATCH  = {0.:0, 1.:0, 3.:0, 5.:0, 7.:0}
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -26,8 +26,7 @@ def analyze(self, E, PARAMS=None):
     Event = E.getPrimitives('EVENT')
 
     # take 10% of data: event numbers ending in 7
-    # unmask data if we're sure we're in the |deltaPhi| > pi/2 range
-    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
+    if 'DoubleMuon' in self.NAME:
         if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
@@ -42,8 +41,9 @@ def analyze(self, E, PARAMS=None):
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, self.CUTS, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
+    selectedDimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA']
 
-    def getOriginalMuons(dim, DSAmuons):
+    def getOriginalMuons(dim):
         if dim.composition == 'PAT':
             return PATmuons[dim.idx1], PATmuons[dim.idx2]
         elif dim.composition == 'DSA':
@@ -51,40 +51,49 @@ def analyze(self, E, PARAMS=None):
         else:
             return DSAmuons[dim.idx1], PATmuons[dim.idx2]
 
-    def modifiedName(name):
-        if 'DoubleMuon' in name:
-            return 'Data'+name[17]
-        if 'QCD' in name:
-            return 'QCD'
-        if 'HTo2X' in name:
-            return '{:4d} {:3d} {:4d}'.format(*self.SP.SP)
-        return name
-
-    cleanMuons = [d for d in DSAmuons if d.nCSCHits+d.nDTHits>12 and d.pt>5.]
-
     for dim in selectedDimuons:
-        if dim.composition != 'DSA': continue
-        #if not (dim.composition == 'DSA' or dim.composition == 'HYBRID'): continue
+        for val in self.COUNTS:
+            if dim.LxySig() > val:
+                self.COUNTS[val] += 1
 
-        mu1, mu2 = getOriginalMuons(dim, DSAmuons)
-        nMinusPP, nPlusPP = numberOfParallelPairs(DSAmuons)
+    if len(selectedDimuons) == 0: return
 
-        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:6.3f} {:.3e} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} ::: {:2d} {:2d} {:2d} {:2d} {:2d} ::: {:6.3f} {:6.3f} ::: {:.3e} {:.3e} {:.3e} ::: {:2d} {:2d} {:2d} {:2d} ::: {:6.4f} ::: {:2d} {:2d} {:2d} {:2d}'.format(
-                modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
-                dim.composition[:3], dim.idx1, dim.idx2,
-                dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, dim.cosAlphaOriginal, dim.DCA,
-                mu1.d0(), mu2.d0(), mu1.d0Sig(), mu2.d0Sig(),
-                len(DSAmuons), len(cleanMuons), nMinusPP, nPlusPP, nMinusPP+nPlusPP,
-                mu1.normChi2, mu2.normChi2,
-                dim.pos.Dist(dim.PCA), dim.pos.Proj2D().Dist(dim.PCA.Proj2D()), abs(dim.z-dim.z_PCA),
-                mu1.nCSCHits, mu2.nCSCHits, mu1.nDTHits, mu2.nDTHits,
-                dim.deltaPhi,
-                mu1.charge, mu2.charge, dim.mu1.charge, dim.mu2.charge,
-        )
+    if '4Mu' in self.NAME:
+        mu11, mu12, mu21, mu22, X1, X2, H, P, extramu = E.getPrimitives('GEN')
+        genMuons = (mu11, mu12, mu21, mu22)
+        genMuonPairs = ((mu11, mu12), (mu21, mu22))
+    elif '2Mu2J' in self.NAME:
+        mu1, mu2, j1, j2, X, XP, H, P, extramu = E.getPrimitives('GEN')
+        genMuons = (mu1, mu2)
+        genMuonPairs = ((mu1, mu2),)
+
+    # do the signal matching
+    if len(genMuonPairs) == 1:
+        genMuonPair = genMuonPairs[0]
+        dimuonMatches, muonMatches, exitcode = matchedDimuons(genMuonPair, selectedDimuons)
+        if len(dimuonMatches) > 0:
+            realMatches = {0:dimuonMatches[0]}
+        else:
+            realMatches = {}
+    else:
+        realMatches, dimuonMatches, muon0Matches, muon1Matches = matchedDimuonPairs(genMuonPairs, selectedDimuons)
+
+    for pairIndex in realMatches:
+        genMuon = genMuonPairs[pairIndex][0]
+        dim = realMatches[pairIndex]['dim']
+
+        for val in self.COUNTS:
+            if dim.LxySig() > val:
+                self.MATCH[val] += 1
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    pass
+    data = []
+    for dic in ('COUNTS', 'MATCH'):
+        d = getattr(self, dic)
+        for val in (0., 1., 3., 5., 7.):
+            data.append(d[val])
+    print '{:4d} {:3d} {:4d} ::: {:5d} {:5d} {:5d} {:5d} {:5d} ::: {:5d} {:5d} {:5d} {:5d} {:5d}'.format(self.SP.mH, self.SP.mX, self.SP.cTau, *data)
 
 #### RUN ANALYSIS ####
 if __name__ == '__main__':

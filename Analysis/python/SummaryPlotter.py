@@ -60,6 +60,7 @@ def makeSummaryPlot(
     FNAME,
     LEGPOS='bl',
     LOGY=False,
+    LEGWIDTH=0.15,
     ):
 
     h = {}
@@ -78,7 +79,7 @@ def makeSummaryPlot(
     DRAWLEGEND = len(KEYS) > 1
 
     if DRAWLEGEND:
-        canvas.makeLegend(lWidth=.15, pos=LEGPOS)
+        canvas.makeLegend(lWidth=LEGWIDTH, pos=LEGPOS)
         canvas.legend.SetFillStyle(1001)
         canvas.legend.SetFillColor(R.kWhite)
         canvas.legend.SetBorderSize(1)

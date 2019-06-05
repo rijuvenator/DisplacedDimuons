@@ -40,6 +40,10 @@ Date | Talks
 [2019     March  7](https://indico.cern.ch/event/804260/) | Riju, Sebastian
 [2019     March 21](https://indico.cern.ch/event/807968/) | Riju, Alberto, Sebastian
 [2019     April  4](https://indico.cern.ch/event/811831/) | Riju
+[2019     April 18](https://indico.cern.ch/event/815040/) | Riju, Alberto, Sebastian
+[2019       May  9](https://indico.cern.ch/event/819804/) | Riju, Alberto, Slava
+[2019       May 16](https://indico.cern.ch/event/821429/) | Alberto, Sebastian
+[2019       May 22](https://indico.cern.ch/event/822766/) | Riju, Sebastian
 
 ## External Talks
 
@@ -48,3 +52,5 @@ Date | Talk | Speaker
 [2018 September 14](https://indico.cern.ch/event/754333/) | Status Report @ LL EXO Meeting                | Riju
 [2018  November  1](https://indico.cern.ch/event/754758/) | Status Report @ CMS EXO Workshop 2018, Athens | Alberto
 [2019  February 11](https://indico.cern.ch/event/794061/) | MC Request @ MC&I Meeting                     | Suchita
+[2019       May 24](https://indico.cern.ch/event/820277/) | Cosmic Muon Data Studies @ LL EXO Meeting     | Sebastian
+[2019       May 24](https://indico.cern.ch/event/820277/) | Status Report @ LL EXO Meeting                | Riju

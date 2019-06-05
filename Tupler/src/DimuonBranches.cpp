@@ -4,18 +4,21 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
+#include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 #include "PhysicsTools/RecoUtils/interface/CheckHitPattern.h"
+#include "RecoVertex/VertexTools/interface/InvariantMassFromVertex.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 bool DimuonBranches::alreadyPrinted_ = false;
 
 void DimuonBranches::Fill(const edm::EventSetup& iSetup,
-    const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
-    const edm::ESHandle<TransientTrackBuilder>& ttB,
-    const edm::Handle<reco::VertexCollection> &verticesHandle,
-    const edm::Handle<reco::BeamSpot> &beamspotHandle,
-    const edm::Handle<pat::MuonCollection> &patmuonsHandle)
+			  const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
+			  const edm::ESHandle<TransientTrackBuilder>& ttB,
+			  const edm::Handle<reco::VertexCollection> &verticesHandle,
+			  const edm::Handle<reco::BeamSpot> &beamspotHandle,
+			  const edm::Handle<pat::MuonCollection> &patmuonsHandle,
+			  const edm::ESHandle<MagneticField>& magfield)
 {
   Reset();
   static bool debug = false;
@@ -29,7 +32,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
   reco::TrackCollection::const_iterator ptk, qtk;
   for (i = 0, ptk = dsamuons.begin(); ptk != dsamuons.end(); ptk++, i++) {
     for (j = i+1, qtk = ptk+1; qtk != dsamuons.end(); qtk++, j++) {
-      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, debug);
+      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
     }
   }
 
@@ -60,7 +63,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
 
       // Increment the muon index by 1000 to flag global/tracker
       // muons.
-      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, debug);
+      FillDimuon(1000+i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
 
     }
   }
@@ -73,20 +76,21 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
       if (!qmu->isGlobalMuon() && qmu->numberOfMatchedStations() <= 1)
         continue;
       const reco::TrackRef qtk = qmu->tunePMuonBestTrack();
-      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, debug);
+      FillDimuon(i, 1000+j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, debug);
     }
   }
 }
 
 void DimuonBranches::FillDimuon(int i, int j,
-    const reco::Track& tk1, const reco::Track& tk2,
-    const edm::EventSetup& iSetup,
-    const edm::ESHandle<TransientTrackBuilder>& ttB,
-    const edm::Handle<reco::VertexCollection> &verticesHandle,
-    const edm::Handle<reco::BeamSpot> &beamspotHandle,
-    bool debug)
+				const reco::Track& tk1, const reco::Track& tk2,
+				const edm::EventSetup& iSetup,
+				const edm::ESHandle<TransientTrackBuilder>& ttB,
+				const edm::Handle<reco::VertexCollection> &verticesHandle,
+				const edm::Handle<reco::BeamSpot> &beamspotHandle,
+				const edm::ESHandle<MagneticField>& magfield,
+				bool debug)
 {
-  static float mass = .105658375;
+  static float muon_mass = .105658375;
   DisplacedMuonFiller muf;
   const reco::BeamSpot &beamspot = *beamspotHandle;
 
@@ -112,10 +116,14 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Default fitter settings
   KalmanVertexFitter kvf(true);
 
+  CachingVertex<5> cv;
   TransientVertex tv;
   try
   {
-    tv = kvf.vertex(trackVector);
+    //tv = kvf.vertex(trackVector);
+    // Find CachingVertex vertex first in order to calculate inv. mass uncertainty
+    cv = kvf.vertex(trackVector);
+    tv = TransientVertex(cv);
   }
   catch ( VertexException & e )
   {
@@ -171,13 +179,15 @@ void DimuonBranches::FillDimuon(int i, int j,
   // DSA muons.
   if (i >= 1000) {
     //checkHitPattern.print(tk1);
-    hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), true);
+    //hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), true);
+    hitPattern = checkHitPattern.analyze(iSetup, tk1, tv.vertexState(), false);
     cand1_hitsInFrontOfVert = hitPattern.hitsInFrontOfVert;
     cand1_missHitsAfterVert = hitPattern.missHitsAfterVert;
   }
   if (j >= 1000) {
     //checkHitPattern.print(tk2);
-    hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), true);
+    //hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), true);
+    hitPattern = checkHitPattern.analyze(iSetup, tk2, tv.vertexState(), false);
     cand2_hitsInFrontOfVert = hitPattern.hitsInFrontOfVert;
     cand2_missHitsAfterVert = hitPattern.missHitsAfterVert;
   }
@@ -185,8 +195,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Refitted transient tracks
   reco::TransientTrack rtt1 = tv.refittedTrack(ott1);
   reco::TransientTrack rtt2 = tv.refittedTrack(ott2);
-  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(mass,2.)));
-  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(mass,2.)));
+  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(muon_mass,2.)));
 
   // Dimuon 4-vector
   TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
@@ -199,6 +209,40 @@ void DimuonBranches::FillDimuon(int i, int j,
 
   // delta R between the tracks
   float dR = rt1_p4.DeltaR(rt2_p4);
+
+  // Dimuon invariant mass and its uncertainty
+  InvariantMassFromVertex imfv;
+  Measurement1D dimuon_mass = imfv.invariantMass(cv, muon_mass);
+
+  // cos(alpha) and dR between the original tracks
+  TLorentzVector ot1_p4(ott1.track().px(), ott1.track().py(), ott1.track().pz(), sqrt(pow(ott1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector ot2_p4(ott2.track().px(), ott2.track().py(), ott2.track().pz(), sqrt(pow(ott2.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector dimu_orig_p4 = ot1_p4 + ot2_p4;
+  float cosAlpha_orig = ot1_p4.Vect().Dot(ot2_p4.Vect())/ot1_p4.P()/ot2_p4.P();
+  float dR_orig = ot1_p4.DeltaR(ot2_p4);
+
+  // minimum distance between two original tracks (two helices)
+  FreeTrajectoryState fts1(GlobalPoint(tk1.vx(), tk1.vy(), tk1.vz()),
+			   GlobalVector(tk1.px(), tk1.py(), tk1.pz()),
+			   tk1.charge(), magfield.product());
+  FreeTrajectoryState fts2(GlobalPoint(tk2.vx(), tk2.vy(), tk2.vz()),
+			   GlobalVector(tk2.px(), tk2.py(), tk2.pz()),
+			   tk2.charge(), magfield.product());
+  // TwoTrackMinimumDistance ttMinDist(TwoTrackMinimumDistance::SlowMode);
+  TwoTrackMinimumDistance ttMinDist;
+  bool dca_ok = ttMinDist.calculate(fts1, fts2);
+  float dca = -999.;
+  GlobalPoint pca;
+  if (dca_ok) {
+    // minimum distance in 3D
+    dca = ttMinDist.distance();
+    // arithmetic mean of the two points of closest approach
+    pca = ttMinDist.crossingPoint();
+  }
+  else
+    std::cout
+      << "+++ Warning: TwoTrackMinimumDistance failed to calculate dca +++"
+      << std::endl;
 
   // refitted muon candidates
   DisplacedMuon muon_cand1 = muf.Fill(rtt1.track(), ttB, verticesHandle, beamspotHandle, false);
@@ -216,11 +260,16 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_pt       .push_back(dimu_p4.Pt ());
   dim_eta      .push_back(dimu_p4.Eta());
   dim_phi      .push_back(dimu_p4.Phi());
-  dim_mass     .push_back(dimu_p4.M  ());
   dim_p        .push_back(dimu_p4.P  ());
+  dim_mass     .push_back(dimuon_mass.value());
+  dim_massunc  .push_back(dimuon_mass.error());
   dim_x        .push_back(rv_x         );
   dim_y        .push_back(rv_y         );
   dim_z        .push_back(rv_z         );
+  dim_dca      .push_back(dca          );
+  dim_pca_x    .push_back(pca.x()      );
+  dim_pca_y    .push_back(pca.y()      );
+  dim_pca_z    .push_back(pca.z()      );
   dim_normChi2 .push_back(rv_normChi2  );
   dim_Lxy_pv   .push_back(Lxy_pv       );
   dim_LxySig_pv.push_back(Lxysig_pv    );
@@ -229,6 +278,7 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_deltaPhi .push_back(dPhi         );
   dim_deltaR   .push_back(dR           );
   dim_cosAlpha .push_back(cosAlpha     );
+  dim_cosAlphaOrig.push_back(cosAlpha_orig);
 
   // First muon candidate resulting from the common-vertex fit.  The
   // refitted track does not have chi2, ndof, and hitpattern set; the
@@ -292,9 +342,10 @@ void DimuonBranches::FillDimuon(int i, int j,
   if (debug)
   {
     std::cout << "Dimuon info: muon id's = " << i << " " << j
-      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
-      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
-      << " mass = " << dimu_p4.M() << std::endl;
+	      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
+	      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
+	      << " mass = " << dimuon_mass.value()
+	      << " +/- "    << dimuon_mass.error() << std::endl;
     std::cout << "  Common vertex: (x; y; z): ("
       << rv_x << ";" << rv_y << ";" << rv_z 
       << ") chi2/ndof = "
@@ -306,6 +357,12 @@ void DimuonBranches::FillDimuon(int i, int j,
       << " Lxy(BS) significance = " << Lxysig_bs << std::endl;
     std::cout << "  dR = "         << dR       << " dphi = " << dPhi
       << " cos(alpha) = "  << cosAlpha << std::endl;
+    std::cout << "  dR_orig = "         << dR_orig
+	      << " cos(alpha_orig) = "  << cosAlpha_orig
+	      << " mass = "             << dimu_orig_p4.M()
+	      << " min dist = " << dca << " pca (x; y; z): ("
+	      << pca.x() << ";" << pca.y() << ";" << pca.z() << ")"
+	      << std::endl;
     std::cout << " hitsInFrontOfVert mu1 / mu2: " << cand1_hitsInFrontOfVert
       << " / " << cand2_hitsInFrontOfVert
       << " missHitsAfterVert mu1 / mu2: " << cand1_missHitsAfterVert

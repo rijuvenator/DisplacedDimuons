@@ -84,7 +84,36 @@ void GenBranches::Fill(
       int bx = pi->getBunchCrossing();
       if (bx == 0)
       {
-	      gen_tnpv = pi->getTrueNumInteractions();
+	gen_tnpv = pi->getTrueNumInteractions();
+
+	if (debug) {
+	  std::cout << " N pileup veritices: "
+		    << pi->getPU_NumInteractions()
+		    << "; Z positions: " << std::endl;
+	  const std::vector<float>& zpositions = pi->getPU_zpositions();
+	  for (std::vector<float>::const_iterator zpos = zpositions.begin(); zpos != zpositions.end(); ++zpos) {
+	    std::cout << *zpos << " ";
+	  }
+	  std::cout << std::endl;
+
+	  /* These vectors below do not seem to be filled */
+	  /* 
+	     const std::vector<int>& ntrks_high = pi->getPU_ntrks_highpT();
+	     std::cout << " Pileup N tracks (high pT): " << std::endl;
+	     for (std::vector<int>::const_iterator ntrkh = ntrks_high.begin(); ntrkh != ntrks_high.end(); ++ntrkh) {
+	     std::cout << *ntrkh << " ";
+	     }
+	     std::cout << std::endl;
+
+	     const std::vector<float>& sumpt_high = pi->getPU_sumpT_highpT();
+	     std::cout << " Pileup sum pT (high pT): " << std::endl;
+	     for (std::vector<float>::const_iterator pth = sumpt_high.begin(); pth != sumpt_high.end(); ++pth) {
+	     std::cout << *pth << " ";
+	     }
+	     std::cout << std::endl;
+	  */
+	}
+
 	      continue;
       }
     }
@@ -190,7 +219,7 @@ void GenBranches::Fill(
 		<< "|" << std::setw(7)  << gen_x[i]
 		<< " " << std::setw(7)  << gen_y[i]
 		<< " " << std::setw(7)  << gen_z[i];
-      if (gen_bs_pt[i] > 0.) 
+      if (gen_bs_pt[i] > -1.) 
 	std::cout      << "|" << std::setw(7) << gen_d0[i]
 		       << "|" << std::setw(7) << gen_dz[i]
 		       << "|" << std::setw(7) << gen_bs_pt[i]

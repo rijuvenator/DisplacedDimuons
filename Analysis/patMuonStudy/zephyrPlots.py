@@ -10,22 +10,31 @@ import DisplacedDimuons.Analysis.Selector as Selector
 # axes are split off into their own containers so that they can be
 # different for each dimuon/muon type
 
+MINNHITSLAMBDA = lambda m1, m2: min(m1.nCSCHits+m1.nDTHits,m2.nCSCHits+m2.nDTHits)
+
 DIMQUANTITIES = {
-    'Lxy'     : {'LAMBDA': lambda dim: dim.Lxy()                     , 'PRETTY':'L_{xy} [cm]'               },
-    'LxySig'  : {'LAMBDA': lambda dim: dim.LxySig()                  , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'    },
-    'LxyErr'  : {'LAMBDA': lambda dim: dim.LxyErr()                  , 'PRETTY':'#sigma_{L_{xy}} [cm]'      },
-    'vtxChi2' : {'LAMBDA': lambda dim: dim.normChi2                  , 'PRETTY':'vtx #chi^{2}/dof'          },
-    'mass'    : {'LAMBDA': lambda dim: dim.mass                      , 'PRETTY':'M(#mu#mu) [GeV]'           },
-    'deltaPhi': {'LAMBDA': lambda dim: dim.deltaPhi                  , 'PRETTY':'|#Delta#Phi|'              },
-    'deltaR'  : {'LAMBDA': lambda dim: dim.deltaR                    , 'PRETTY':'#DeltaR(#mu#mu)'           },
-    'cosAlpha': {'LAMBDA': lambda dim: dim.cosAlpha                  , 'PRETTY':'cos(#alpha)'               },
-    'mind0Sig': {'LAMBDA': lambda m1, m2: min(m1.d0Sig(),m2.d0Sig()) , 'PRETTY':'min |d_{0}|/#sigma_{d_{0}}'},
+    'Lxy'       : {'LAMBDA': lambda dim: dim.Lxy()                     , 'PRETTY':'L_{xy} [cm]'               },
+    'LxySig'    : {'LAMBDA': lambda dim: dim.LxySig()                  , 'PRETTY':'L_{xy}/#sigma_{L_{xy}}'    },
+    'LxyErr'    : {'LAMBDA': lambda dim: dim.LxyErr()                  , 'PRETTY':'#sigma_{L_{xy}} [cm]'      },
+    'vtxChi2'   : {'LAMBDA': lambda dim: dim.normChi2                  , 'PRETTY':'vtx #chi^{2}/dof'          },
+    'mass'      : {'LAMBDA': lambda dim: dim.mass                      , 'PRETTY':'M(#mu#mu) [GeV]'           },
+    'deltaPhi'  : {'LAMBDA': lambda dim: dim.deltaPhi                  , 'PRETTY':'|#Delta#Phi|'              },
+    'deltaR'    : {'LAMBDA': lambda dim: dim.deltaR                    , 'PRETTY':'#DeltaR(#mu#mu)'           },
+    'cosAlpha'  : {'LAMBDA': lambda dim: dim.cosAlpha                  , 'PRETTY':'cos(#alpha)'               },
+    'cosAlpha-O': {'LAMBDA': lambda dim: dim.cosAlphaOriginal          , 'PRETTY':'original cos(#alpha)'      },
+    'DCA'       : {'LAMBDA': lambda dim: dim.DCA                       , 'PRETTY':'D.C.A. [cm]'               },
+    'pTOverM'   : {'LAMBDA': lambda dim: dim.pt/dim.mass               , 'PRETTY':'p_{T}/M(#mu#mu)'           },
+
+    'mind0Sig'  : {'LAMBDA': lambda m1, m2: min(m1.d0Sig(),m2.d0Sig()) , 'PRETTY':'min |d_{0}|/#sigma_{d_{0}}'},
+    'minNHits'  : {'LAMBDA': MINNHITSLAMBDA                            , 'PRETTY':'min N(CSC+DT Hits)'        },
+    'qsum'      : {'LAMBDA': lambda m1, m2: m1.charge + m2.charge      , 'PRETTY':'q_{1} + q_{2}'             },
 }
 
 DSAQUANTITIES = {
     'pT'       : {'LAMBDA': lambda mu: mu.pt                         , 'PRETTY':'p_{T} [GeV]'           },
     'eta'      : {'LAMBDA': lambda mu: mu.eta                        , 'PRETTY':'#eta'                  },
     'phi'      : {'LAMBDA': lambda mu: mu.phi                        , 'PRETTY':'#phi'                  },
+    'd0'       : {'LAMBDA': lambda mu: mu.d0()                       , 'PRETTY':'d_{0} [cm]'            },
     'FPTE'     : {'LAMBDA': lambda mu: mu.ptError/mu.pt              , 'PRETTY':'#sigma_{p_{T}}/p_{T}'  },
     'd0Sig'    : {'LAMBDA': lambda mu: mu.d0Sig()                    , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
     'trkChi2'  : {'LAMBDA': lambda mu: mu.normChi2                   , 'PRETTY':'trk #chi^{2}/dof'      },
@@ -36,6 +45,7 @@ PATQUANTITIES = {
     'pT'        : {'LAMBDA': lambda mu: mu.pt             , 'PRETTY':'p_{T} [GeV]'           },
     'eta'       : {'LAMBDA': lambda mu: mu.eta            , 'PRETTY':'#eta'                  },
     'phi'       : {'LAMBDA': lambda mu: mu.phi            , 'PRETTY':'#phi'                  },
+    'd0'        : {'LAMBDA': lambda mu: mu.d0()           , 'PRETTY':'d_{0} [cm]'            },
     'relTrkIso' : {'LAMBDA': lambda mu: mu.trackIso/mu.pt , 'PRETTY':'rel. track iso.'       },
     'd0Sig'     : {'LAMBDA': lambda mu: mu.d0Sig()        , 'PRETTY':'|d_{0}|/#sigma_{d_{0}}'},
     'trkChi2'   : {'LAMBDA': lambda mu: mu.normChi2       , 'PRETTY':'trk #chi^{2}/dof'      },
@@ -45,55 +55,72 @@ PI = R.TMath.Pi()
 
 AXES = {
     'DSA' : {
-        'Lxy'      : ( 800,   0.  ,  400.   ), # 0.5  cm bins
-        'LxySig'   : ( 100,   0.  ,   50.   ), # 0.5     bins
-        'LxyErr'   : (1000,   0.  ,   50.   ), # 0.05 cm bins
-        'vtxChi2'  : (1000,   0.  ,   50.   ), # 0.05    bins
-        'mass'     : (1000,   0.  , 1000.   ), # 1   GeV bins
-        'mind0Sig' : (  50,   0.  ,    5.   ), # 0.1     bins
-        'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
-        'deltaR'   : (1000,   0.  ,    5.   ), # 5e-3    bins
-        'cosAlpha' : ( 200,  -1.  ,    1.   ), # 0.01    bins
-        'LxyRes'   : (1000, -50.  ,   50.   ), # 0.1  cm bins
+        'Lxy'        : ( 800,   0.  ,  400.   ), # 0.5  cm bins
+        'LxySig'     : ( 100,   0.  ,   50.   ), # 0.5     bins
+        'LxyErr'     : (1000,   0.  ,   50.   ), # 0.05 cm bins
+        'vtxChi2'    : (1000,   0.  ,   50.   ), # 0.05    bins
+        'mass'       : (1000,   0.  , 1000.   ), # 1   GeV bins
+        'mind0Sig'   : (  50,   0.  ,    5.   ), # 0.1     bins
+        'deltaPhi'   : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'     : (1000,   0.  ,    5.   ), # 5e-3    bins
+        'LxyRes'     : (1000, -50.  ,   50.   ), # 0.1  cm bins
+        'cosAlpha'   : ( 200,  -1.  ,    1.   ), # 0.01    bins
+        'cosAlpha-O' : ( 200,  -1.  ,    1.   ), # 0.01    bins
+        'minNHits'   : (  50,   0.  ,   50.   ), # 1       bins
+        'qsum'       : (   5,  -2.  ,    3.   ), # 1       bins
+        'DCA'        : (1000,   0.  ,  100.   ), # 0.1  cm bins
+        'pTOverM'    : (1000,   0.  ,  100.   ), # 0.1     bins
 
-        'pT'       : (1000,   0.  , 1000.   ), # 1 GeV   bins
-        'eta'      : ( 600,  -3.  ,    3.   ), # 0.01    bins
-        'phi'      : ( 200, -PI   ,   PI    ), # pi/100  bins
-        'FPTE'     : (1000,   0.  ,    1.   ), # 1e-3    bins
-        'd0Sig'    : ( 800,   0.  ,   80.   ), # 0.1     bins
-        'trkChi2'  : ( 150,   0.  ,   15.   ), # 0.1     bins
-        'nStations': (  15,   0.  ,   15.   ),
+        'pT'         : (1000,   0.  , 1000.   ), # 1 GeV   bins
+        'eta'        : ( 600,  -3.  ,    3.   ), # 0.01    bins
+        'phi'        : ( 200, -PI   ,   PI    ), # pi/100  bins
+        'd0'         : ( 300,   0.  ,  300.   ), # 1 cm    bins
+        'FPTE'       : (1000,   0.  ,    1.   ), # 1e-3    bins
+        'd0Sig'      : ( 800,   0.  ,   80.   ), # 0.1     bins
+        'trkChi2'    : ( 150,   0.  ,   15.   ), # 0.1     bins
+        'nStations'  : (  15,   0.  ,   15.   ),
     },
     'PAT' : {
-        'Lxy'      : ( 140,   0.  ,   70.   ),
-        'LxySig'   : ( 500,   0.  ,  250.   ),
-        'LxyErr'   : (1000,   0.  ,     .1  ), # 1e-4 cm bins
-        'vtxChi2'  : (1000,   0.  ,   50.   ),
-        'mass'     : (1000,   0.  , 1000.   ),
-        'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
-        'deltaR'   : (1000,   0.  ,    5.   ),
-        'cosAlpha' : ( 200,  -1.  ,    1.   ),
-        'mind0Sig' : ( 500,   0.  ,   50.   ),
-        'LxyRes'   : (1000,   -.05,     .05 ), # 1e-4 cm bins
+        'Lxy'        : ( 140,   0.  ,   70.   ),
+        'LxySig'     : ( 500,   0.  ,  250.   ),
+        'LxyErr'     : (1000,   0.  ,     .1  ), # 1e-4 cm bins
+        'vtxChi2'    : (1000,   0.  ,   50.   ),
+        'mass'       : (1000,   0.  , 1000.   ),
+        'mind0Sig'   : ( 500,   0.  ,   50.   ),
+        'deltaPhi'   : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'     : (1000,   0.  ,    5.   ),
+        'LxyRes'     : (1000,   -.05,     .05 ), # 1e-4 cm bins
+        'cosAlpha'   : ( 200,  -1.  ,    1.   ),
+        'cosAlpha-O' : ( 200,  -1.  ,    1.   ),
+        'minNHits'   : (  50,   0.  ,   50.   ),
+        'qsum'       : (   5,  -2.  ,    3.   ),
+        'DCA'        : (1000,   0.  ,    1.   ),
+        'pTOverM'    : (1000,   0.  ,  100.   ),
 
-        'pT'       : (1000,   0.  , 1000.   ),
-        'eta'      : ( 600,  -3.  ,    3.   ),
-        'phi'      : ( 200, -PI   ,   PI    ),
-        'relTrkIso': (1000,   0.  ,     .5  ), # 5e-4    bins
-        'd0Sig'    : (2000,   0.  ,  200.   ),
-        'trkChi2'  : ( 150,   0.  ,   15.   ),
+        'pT'         : (1000,   0.  , 1000.   ),
+        'eta'        : ( 600,  -3.  ,    3.   ),
+        'phi'        : ( 200, -PI   ,   PI    ),
+        'd0'         : ( 300,   0.  ,   30.   ),
+        'relTrkIso'  : (1000,   0.  ,     .5  ), # 5e-4    bins
+        'd0Sig'      : (2000,   0.  ,  200.   ),
+        'trkChi2'    : ( 150,   0.  ,   15.   ),
     },
     'HYB' : {
-        'Lxy'      : ( 140,   0.  ,   70.   ),
-        'LxySig'   : ( 300,   0.  ,  150.   ),
-        'LxyErr'   : (1000,   0.  ,   25.   ), # 0.05 cm bins
-        'vtxChi2'  : (1000,   0.  ,   50.   ),
-        'mass'     : (1000,   0.  , 1000.   ),
-        'deltaPhi' : ( 100,   0.  ,   PI    ), # pi/100  bins
-        'deltaR'   : (1000,   0.  ,    5.   ),
-        'cosAlpha' : ( 200,  -1.  ,    1.   ),
-        'mind0Sig' : ( 500,   0.  ,   50.   ),
-        'LxyRes'   : (1000, -25.  ,   25.   ), # 0.05 cm bins
+        'Lxy'        : ( 140,   0.  ,   70.   ),
+        'LxySig'     : ( 300,   0.  ,  150.   ),
+        'LxyErr'     : (1000,   0.  ,   25.   ), # 0.05 cm bins
+        'vtxChi2'    : (1000,   0.  ,   50.   ),
+        'mass'       : (1000,   0.  , 1000.   ),
+        'mind0Sig'   : ( 500,   0.  ,   50.   ),
+        'deltaPhi'   : ( 100,   0.  ,   PI    ), # pi/100  bins
+        'deltaR'     : (1000,   0.  ,    5.   ),
+        'LxyRes'     : (1000, -25.  ,   25.   ), # 0.05 cm bins
+        'cosAlpha'   : ( 200,  -1.  ,    1.   ),
+        'cosAlpha-O' : ( 200,  -1.  ,    1.   ),
+        'minNHits'   : (  50,   0.  ,   50.   ),
+        'qsum'       : (   5,  -2.  ,    3.   ),
+        'DCA'        : (1000,   0.  ,  100.   ),
+        'pTOverM'    : (1000,   0.  ,  100.   ),
     },
 }
 
@@ -127,10 +154,14 @@ def begin(self, PARAMS=None):
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
     # dimuon multiplicity
-    self.HistInit('nDimuon', ';N(dimuons);Counts', 2, 1., 3.)
+    self.HistInit('nDimuon'   , ';N(dimuons);Counts'                    ,  2, 1.,  3.)
+    self.HistInit('nDSA'      , ';N(DSA);Counts'                        , 40, 0., 40.)
+    self.HistInit('nDSA12'    , ';N(DSA) 12 hits;Counts'                , 40, 0., 40.)
+    self.HistInit('nDSA12-pT' , ';N(DSA) 12 hits + p_{T} > 5 GeV;Counts', 40, 0., 40.)
+    self.HistInit('nDSA-DT'   , ';N(DSA) DT only;Counts'                , 40, 0., 40.)
 
     # for Bob
-    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 12, np.logspace(-10., 2., 13))
+    self.HISTS['REF-DSA-FPTE'] = R.TH1F('REF-DSA-FPTE_'+self.NAME, ';refitted #sigma_{p_{T}}/p_{T};Counts', 60, np.logspace(-10., 2., 61))
 
     for QKEY in DIMQUANTITIES:
         XTIT = DIMQUANTITIES[QKEY]['PRETTY']
@@ -148,6 +179,9 @@ def declareHistograms(self, PARAMS=None):
         for RTYPE in ('PAT',):
             self.HistInit(       RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
             self.HistInit('HYB-'+RTYPE+'-'+QKEY, ';'+XTIT+';Counts', *AXES[RTYPE][QKEY])
+
+    for RTYPE in ('DSA', 'PAT', 'HYB'):
+        self.HistInit('{R}-LxySigVSdeltaPhi'.format(R=RTYPE), ';|#delta#Phi|;L_{xy}/#sigma_{L_{xy}};Counts', *(AXES[RTYPE]['deltaPhi']+AXES[RTYPE]['LxySig']))
 
     # temporary 2D histograms
     PAT2DQ=PAT2DQUANTITIES
@@ -169,7 +203,7 @@ def declareHistograms(self, PARAMS=None):
     if self.SP is not None:
         for RTYPE in ('DSA', 'PAT', 'HYB'):
             AR = AXES[RTYPE]
-            self.HistInit('{R}-LxyRes'            .format(R=RTYPE),  ';reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                                     .format(R=RTYPE), *AR['LxyRes']               )
+            self.HistInit('{R}-LxyRes'            .format(R=RTYPE), ';reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                                      .format(R=RTYPE), *AR['LxyRes']               )
             self.HistInit('{R}-LxyPull'           .format(R=RTYPE), ';(reco {R} L_{{xy}} #minus gen L_{{xy}})/#sigma_{{L_{{xy}}}};Counts'                     .format(R=RTYPE), *LxyPull                    )
             self.HistInit('GEN-Lxy-{R}'           .format(R=RTYPE), ';gen L_{xy} [cm];Counts'                                                                                 , *GenLxy                     )
             self.HistInit('{R}-LxyResVSGEN-Lxy'   .format(R=RTYPE), ';gen L_{{xy}} [cm];reco {R} L_{{xy}} #minus gen L_{{xy}} [cm];Counts'                    .format(R=RTYPE), *(GenLxy+AR['LxyRes'])      )
@@ -189,7 +223,7 @@ def analyze(self, E, PARAMS=None):
     Event = E.getPrimitives('EVENT')
 
     # take 10% of data: event numbers ending in 7
-    if 'DoubleMuon' in self.NAME:
+    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
         self.DATACOUNTER['all'] += 1
         if Event.event % 10 != 7: return
         self.DATACOUNTER['selected'] += 1
@@ -209,7 +243,11 @@ def analyze(self, E, PARAMS=None):
 
     for dim in selectedDimuons:
         if dim.composition == 'DSA':
-            self.HISTS['nDimuon'].Fill(len(selectedDimuons))
+            self.HISTS['nDimuon'  ].Fill(len(selectedDimuons                                                 ), eventWeight)
+            self.HISTS['nDSA'     ].Fill(len(DSAmuons                                                        ), eventWeight)
+            self.HISTS['nDSA12'   ].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12]              ), eventWeight)
+            self.HISTS['nDSA12-pT'].Fill(len([d for d in DSAmuons if d.nCSCHits+d.nDTHits > 12 and d.pt > 5.]), eventWeight)
+            self.HISTS['nDSA-DT'  ].Fill(len([d for d in DSAmuons if d.nCSCHits == 0]                        ), eventWeight)
             break
 
     def getOriginalMuons(dim):
@@ -224,10 +262,12 @@ def analyze(self, E, PARAMS=None):
         RTYPE = dim.composition[:3]
         for QKEY in DIMQUANTITIES:
             KEY = RTYPE+'-'+QKEY
-            if QKEY != 'mind0Sig':
+            if QKEY not in ('mind0Sig', 'minNHits', 'qsum'):
                 self.HISTS[KEY].Fill(DIMQUANTITIES[QKEY]['LAMBDA'](dim), eventWeight)
-            else:
+            elif QKEY in ('mind0Sig', 'minNHits'):
                 self.HISTS[KEY].Fill(DIMQUANTITIES[QKEY]['LAMBDA'](*getOriginalMuons(dim)), eventWeight,) # ew
+            else:
+                self.HISTS[KEY].Fill(DIMQUANTITIES[QKEY]['LAMBDA'](dim.mu1, dim.mu2), eventWeight)
 
         if RTYPE == 'DSA':
             for QKEY in DSAQUANTITIES:
@@ -251,6 +291,8 @@ def analyze(self, E, PARAMS=None):
             for QKEY in PATQUANTITIES:
                 KEY = 'HYB-PAT'+'-'+QKEY
                 self.HISTS[KEY].Fill(PATQUANTITIES[QKEY]['LAMBDA'](PATmu), eventWeight)
+
+        self.HISTS[RTYPE+'-LxySigVSdeltaPhi'].Fill(DIMQUANTITIES['deltaPhi']['LAMBDA'](dim), DIMQUANTITIES['LxySig']['LAMBDA'](dim), eventWeight)
 
         # temporary 2D histograms
         if dim.composition != 'DSA':
@@ -394,5 +436,4 @@ if __name__ == '__main__':
     )
 
     # write plots
-    #analyzer.writeHistograms('../analyzers/roots/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
-    analyzer.writeHistograms('../analyzers/roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))
+    analyzer.writeHistograms('roots/mcbg/ZephyrPlots{}{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else '', ARGS.CUTS))

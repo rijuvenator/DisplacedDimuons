@@ -361,7 +361,7 @@ python {SCRIPT} {ARGS}
 
 condorExecutable = '''
 #!/bin/bash
-export SCRAM_ARCH='slc6_amd64_gcc530'
+export SCRAM_ARCH='slc7_amd64_gcc530'
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd {CMSSW_BASE}/src/
 eval `scramv1 runtime -sh`
@@ -381,8 +381,6 @@ log                    = logs/run{runNum}/{logname}_{index}.log
 error                  = logs/run{runNum}/{logname}_{index}.err
 arguments              = {ARGS}
 {proxy_literal}
-requirements           = (OpSysAndVer =?= "SLCern6")
-#image_size             = 28000
 should_transfer_files  = NO
 +JobFlavour            = "{flavour}"
 queue 1

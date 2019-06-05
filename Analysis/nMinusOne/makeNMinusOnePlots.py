@@ -6,61 +6,117 @@ import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.PlotterParser as PP
 
+PP.PARSER.add_argument('--bump', dest='BUMP', action='store_true')
+PP.PARSER.add_argument('--idphi', dest='IDPHI', action='store_true')
+ARGS = PP.PARSER.parse_args()
+BUMPSTRING = ''
+if ARGS.BUMP:
+    BUMPSTRING = '_Bump'
+IDPHISTRING = ''
+if ARGS.IDPHI:
+    IDPHISTRING = '_IDPHI'
+
+DODATA = True
+DATASCALE = 1433921./14334550.
+if ARGS.IDPHI:
+    DATASCALE = 1.
+
 FILES = {
-    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig_HTo2XTo2Mu2J.root'),
-    'MC'    : R.TFile.Open('roots/NM1Plots_MC.root'               )
+    '2Mu2J' : R.TFile.Open('roots/NM1Plots_Trig{}_HTo2XTo2Mu2J.root'.format(BUMPSTRING             )),
+    'MC'    : R.TFile.Open('roots/NM1Plots{}{}_MC.root'               .format(BUMPSTRING, IDPHISTRING)),
+    'Data'  : R.TFile.Open('roots/NM1Plots{}{}_DATA.root'             .format(BUMPSTRING, IDPHISTRING)),
 }
 
-CUTS = ('NS', 'NH', 'FPTE', 'HLT', 'PT', 'LXYE', 'MASS', 'CHI2')
-PRETTY = ('n_{st}', 'n_{hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}')
+CUTS = ['NS_NH', 'FPTE', 'HLT', 'PT', 'DCA', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA_NPP', 'LXYSIG', 'TRK', 'NDT', 'DPHI']
+PRETTY = ('n_{st/hits}', '#sigma_{p_{T}}/p_{T}', 'HLT-m', 'p_{T}', 'DCA', '#sigma_{L_{xy}}', 'M(#mu#mu)', 'vtx #chi^{2}', 'pv', 'cosm.', 'Lxy sig.', 'trk #chi^{2}', 'N(DT)', '|#Delta#Phi|')
 #PRETTY = CUTS[:]
 PRETTY = dict(zip(CUTS, PRETTY))
 
-def setBinLabels(canvas):
-    xaxis = canvas.firstPlot.GetXaxis()
+def setBinLabels(canvas, plot=None):
+    if plot is None:
+        plot = canvas.firstPlot
+    else:
+        plot = canvas.rat
+
+    xaxis = plot.GetXaxis()
     xaxis.SetBinLabel(1, 'none')
     for ibin, cut in enumerate(CUTS):
         xaxis.SetBinLabel(ibin+2, PRETTY[cut])
 
-    canvas.firstPlot.scaleLabels(1.4, axes='X')
+    Plotter.Plot.scaleLabels(plot, 1.4, axes='X')
 
-def makeIntegratedSEQMC():
-    HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], 'SEQ')
-    HISTS = HISTS['SEQ']
-    PConfig = PConfig['SEQ']
+def makeIntegratedSEQMC(hkey='SEQ'):
+    if DODATA:
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey, extraScale=DATASCALE)
+        DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data'], hkey)
+    else:
+        HISTS, PConfig = HG.getBackgroundHistograms(FILES['MC'], hkey)
+
+    HISTS = HISTS[hkey]
+    PConfig = PConfig[hkey]
+
+    if DODATA:
+        DATAHISTS = DATAHISTS[hkey]
+        PConfig['data'] = DataPConfig[hkey]['data']
 
     PLOTS = {}
     for key in HG.BGORDER + ('stack',):
         PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
 
-    canvas = Plotter.Canvas(lumi='MC', logy=True)
+    if DODATA:
+        PLOTS['data'] = Plotter.Plot(DATAHISTS['data'], *PConfig['data'])
+
+    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1600,)
+#       ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
 
     canvas.addMainPlot(PLOTS['stack'])
 
+    if DODATA:
+        canvas.addMainPlot(PLOTS['data'])
+
     setBinLabels(canvas)
 
-    canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+    canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)# if not DODATA else 1.)
+    if DODATA:
+        canvas.addLegendEntry(PLOTS['data'])
     for ref in reversed(HG.BGORDER):
         canvas.addLegendEntry(PLOTS[ref])
     canvas.legend.resizeHeight()
+    canvas.legend.moveLegend(X=.1)
 
     canvas.firstPlot.setTitles(X='Cut', Y='Normalized Counts')
     canvas.firstPlot.SetMaximum(2.e7)
-    canvas.firstPlot.SetMinimum(1.e4)
+    canvas.firstPlot.SetMinimum(1.e4 if 'DSA' not in hkey else 1.e-1)
 
-    canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format('SEQ'))
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+    R.TGaxis.SetExponentOffset(0., 0.02, "y")
+
+#    if DODATA:
+#        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
+#        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
+#        setBinLabels(canvas, '')
+
+    #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
+    #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
+    #canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
+    #canvas.deleteCanvas()
+    canvas.cleanup('pdfs/NM1_{}{}{}_MC.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedSEQMC()
+makeIntegratedSEQMC(hkey='DSA-SEQ')
 
-def makeIntegratedSEQSignal():
-    HISTS = HG.getAddedSignalHistograms(FILES['2Mu2J'], '2Mu2J', 'SEQ')
+def makeIntegratedSEQSignal(hkey='SEQ'):
+    HISTS = HG.getAddedSignalHistograms(FILES['2Mu2J'], '2Mu2J', hkey)
 
-    h = HISTS['SEQ']
+    h = HISTS[hkey]
     p = Plotter.Plot(h, '', '', 'hist')
 
-    canvas = Plotter.Canvas(lumi='2Mu2J')
+    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1600)
     canvas.addMainPlot(p)
 
     p.SetLineColor(R.kBlue)
@@ -68,18 +124,23 @@ def makeIntegratedSEQSignal():
     setBinLabels(canvas)
 
     canvas.firstPlot.setTitles(X='Cut', Y='Normalized Counts')
-    canvas.firstPlot.SetMaximum(3.e5)
+    canvas.firstPlot.SetMaximum(3.e5 if 'DSA' not in hkey else 1.e5)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}_2Mu2J.pdf'.format('SEQ'))
-makeIntegratedSEQSignal()
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+    R.TGaxis.SetExponentOffset(0., 0.02, "y")
 
-def makeIntegratedNM1MC():
+    canvas.cleanup('pdfs/NM1_{}{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
+makeIntegratedSEQSignal()
+makeIntegratedSEQSignal(hkey='DSA-SEQ')
+
+def makeIntegratedNM1MC(hkey='NM1'):
 
     ### modified version of getBackgroundHistograms
 
     FILE = FILES['MC']
-    keylist = ['NM1']
+    keylist = [hkey]
     stack = True
     addFlows=False
     rebin=None
@@ -101,6 +162,8 @@ def makeIntegratedNM1MC():
             #    RT.addFlows(HISTS[key][ref])
 
             HISTS[key][ref].Scale(HG.PLOTCONFIG[ref]['WEIGHT'])
+            if DODATA:
+                HISTS[key][ref].Scale(DATASCALE)
 
             #if rebin is not None and (rebinVeto is None or (rebinVeto is not None and not rebinVeto(key))):
             #    is2D = 'TH2' in str(HISTS[key][ref].__class__)
@@ -135,35 +198,76 @@ def makeIntegratedNM1MC():
 
     ### end modified version of getBackgroundHistograms
 
-    HISTS = HISTS['NM1']
-    PConfig = PConfig['NM1']
+    HISTS = HISTS[hkey]
+    PConfig = PConfig[hkey]
+
+    if DODATA:
+        DATAHISTS, DataPConfig = HG.getDataHistograms(FILES['Data'], hkey)
+        DATAHISTS = DATAHISTS[hkey]
+        PConfig['data'] = DataPConfig[hkey]['data']
+        #PConfig['data'] = ('DoubleMuon2016', 'pe', 'pe')
+
+        totalBin1 = DATAHISTS['data'].GetBinContent(1)
+        for ibin in range(1, len(CUTS)+2):
+            totalBin = DATAHISTS['data'].GetBinContent(ibin)
+            scaleFactor = totalBin1/totalBin
+            DATAHISTS['data'].SetBinContent(ibin, DATAHISTS['data'].GetBinContent(ibin)/totalBin*scaleFactor)
+
+        for ibin in range(1, len(CUTS)+2):
+            DATAHISTS['data'].SetBinError(ibin, 1.e-7)
 
     PLOTS = {}
     for key in HG.BGORDER + ('stack',):
         PLOTS[key] = Plotter.Plot(HISTS[key], *PConfig[key])
 
-    canvas = Plotter.Canvas(lumi='MC', logy=False)
+    if DODATA:
+        PLOTS['data'] = Plotter.Plot(DATAHISTS['data'], *PConfig['data'])
+
+    canvas = Plotter.Canvas(lumi='MC' if not DODATA else 'MC + Data', logy=True, cWidth=1600,)
+#       ratioFactor=0. if not DODATA else 1./3., fontscale=1. if not DODATA else 1.+1./3.)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
 
     canvas.addMainPlot(PLOTS['stack'])
 
+    if DODATA:
+        canvas.addMainPlot(PLOTS['data'])
+
     setBinLabels(canvas)
 
-    canvas.makeLegend(lWidth=.27, pos='tr', autoOrder=False, fontscale=0.8)
+    canvas.makeLegend(lWidth=.27, pos='bl', autoOrder=False, fontscale=0.8)# if not DODATA else 1.)
+    if DODATA:
+        canvas.addLegendEntry(PLOTS['data'])
     for ref in reversed(HG.BGORDER):
         canvas.addLegendEntry(PLOTS[ref])
     canvas.legend.resizeHeight()
 
     canvas.firstPlot.setTitles(X='Cut', Y='n#minus1 Eff.')
     canvas.firstPlot.SetMaximum(1.e0)
-    canvas.firstPlot.SetMinimum(1.e-3)
+    canvas.firstPlot.SetMinimum(1.e-3 if 'DSA' not in hkey else 1.e-6)
 
-    canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format('NM1'))
+#    if DODATA:
+#        canvas.makeRatioPlot(PLOTS['data'].plot, PLOTS['stack'].plot.GetStack().Last())
+#        canvas.firstPlot.scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat      .scaleTitleOffsets(0.8, axes='Y')
+#        canvas.rat.setTitles(X='', copy=canvas.firstPlot.plot)
+#        setBinLabels(canvas, '')
+#        for ibin in range(1, len(CUTS)+2):
+#            canvas.rat.SetBinError(ibin, 1.e-7)
+
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+
+    #canvas.cleanup('pdfs/NM1_{}_MC.pdf'.format(hkey))
+    #canvas.finishCanvas(extrascale=1. if not DODATA else 1.+1./3.)
+    #canvas.save('pdfs/NM1_{}{}_MC.pdf'.format(hkey, BUMPSTRING))
+    #canvas.deleteCanvas()
+    canvas.cleanup('pdfs/NM1_{}{}{}_MC.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedNM1MC()
+makeIntegratedNM1MC(hkey='DSA-NM1')
 
-def makeIntegratedNM1Signal():
+def makeIntegratedNM1Signal(hkey='NM1'):
 
     #HISTS, INDIV = HG.getAddedSignalHistograms(FILES['2Mu2J'], '2Mu2J', 'NM1', getIndividuals=True)
 
@@ -174,17 +278,17 @@ def makeIntegratedNM1Signal():
     #    for ref in SIGNALPOINTS:
     #        INDIV['NM1'][ref].SetBinContent(ibin, INDIV['NM1'][ref].GetBinContent(ibin)/totalBin*scaleFactor)
 
-    HISTS = HG.getAddedSignalHistograms(FILES['2Mu2J'], '2Mu2J', 'NM1')
-    totalBin1 = HISTS['NM1'].GetBinContent(1)
+    HISTS = HG.getAddedSignalHistograms(FILES['2Mu2J'], '2Mu2J', hkey)
+    totalBin1 = HISTS[hkey].GetBinContent(1)
     for ibin in range(1, len(CUTS)+2):
-        totalBin = HISTS['NM1'].GetBinContent(ibin)
+        totalBin = HISTS[hkey].GetBinContent(ibin)
         scaleFactor = totalBin1/totalBin
-        HISTS['NM1'].SetBinContent(ibin, scaleFactor)
+        HISTS[hkey].SetBinContent(ibin, scaleFactor)
 
-    h = HISTS['NM1']
+    h = HISTS[hkey]
     p = Plotter.Plot(h, '', '', 'hist')
 
-    canvas = Plotter.Canvas(lumi='2Mu2J')
+    canvas = Plotter.Canvas(lumi='2Mu2J', cWidth=1600)
     canvas.addMainPlot(p)
 
     p.SetLineColor(R.kBlue)
@@ -192,8 +296,12 @@ def makeIntegratedNM1Signal():
     setBinLabels(canvas)
 
     canvas.firstPlot.setTitles(X='Cut', Y='n#minus1 Eff.')
-    canvas.firstPlot.SetMaximum(1.1)
+    canvas.firstPlot.SetMaximum(1.2)
     canvas.firstPlot.SetMinimum(0.)
 
-    canvas.cleanup('pdfs/NM1_{}_2Mu2J.pdf'.format('NM1'))
+    canvas.scaleMargins(.5, 'L')
+    canvas.firstPlot.scaleTitleOffsets(.5, 'Y')
+
+    canvas.cleanup('pdfs/NM1_{}{}{}_2Mu2J.pdf'.format(hkey, BUMPSTRING, IDPHISTRING))
 makeIntegratedNM1Signal()
+makeIntegratedNM1Signal(hkey='DSA-NM1')
