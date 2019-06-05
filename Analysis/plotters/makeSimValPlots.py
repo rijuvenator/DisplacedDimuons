@@ -7,33 +7,36 @@ import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
 import DisplacedDimuons.Analysis.HistogramGetter as HistogramGetter
 
-MC_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/analyzer_roots/shouldercheck_simulation/hadded_HTo2XTo2Mu2J_reHLT_HLT-CosmicSeed_etaLT0p5_nCSCDTHitsGT12_nStationsGT1_pTSigLT1p0_oneLegMatched_HTo2XTo2Mu2J_reHLT_CosmicSeed_merged.root"
 # MC_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/HTo2XTo2Mu2J_reHLT_HLT-CosmicSeed_merged.root"
-data_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed.root"
+# data_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/Cosmics2016_UGMT-bottomOnly_HLT-CosmicSeed.root"
 
-# MC_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/HTo2XTo2Mu2J_reHLT_HLT-ppSeed_merged.root"
-# data_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed.root"
+MC_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/HTo2XTo2Mu2J_reHLT_HLT-ppSeed_merged.root"
+data_filepath = "/afs/cern.ch/work/s/stempl/private/DDM/cosmics-studies/simulation-validation/Cosmics2016_UGMT-bottomOnly_HLT-ppSeed.root"
 
 # Cosmic or pp-seeded path? (colors are chosen according to this setting)
-IS_COSMIC_SEED = True
-# IS_COSMIC_SEED = False
+# IS_COSMIC_SEED = True
+IS_COSMIC_SEED = False
 
 # specify legend names
 legend_name_MC = "Signal MC"
 legend_name_data = "Cosmics data"
 
 # specify which variable to plot ("L1pTresVAR" or "L2pTresVAR")
-RESOLUTIONVARIABLE = "L1pTresVAR"
+RESOLUTIONVARIABLE = "L2pTresVAR"
+
+# choose which peak characterization strategy to use ("max" / "gaussfit")
+# STRATEGY="gaussfit"
+STRATEGY="max"
 
 # output file name (w/o file extension), resolution variable name to be filled
 # in dynamically
-FILENAME_TEMPLATE = "resVsD0_{RESOLUTIONVARIABLE}"
+FILENAME_TEMPLATE = "resVsD0_{RESOLUTIONVARIABLE}_{SEEDING}"
 
 # (sub)set of d0 bins which are to be plotted (they must exist as histograms
 # in the cosmicsPlots.py analyzer output file)
 d0intervals = []
-d0intervals += [(i, i + 5.0) for i in np.arange(0.0, 10.0, 5.0)]
-d0intervals += [(i, i + 10.0) for i in np.arange(10.0, 100.0, 10.0)]
+d0intervals += [(i, i + 5.0) for i in np.arange(0.0, 30.0, 5.0)]
+d0intervals += [(i, i + 10.0) for i in np.arange(30.0, 100.0, 10.0)]
 
 
 def interpolateX(x0, y0, x1, y1, y):
@@ -44,7 +47,7 @@ def interpolateX(x0, y0, x1, y1, y):
 def autoRebin(
     h,
     error_fraction=0.05,
-    neighboring_bins=5,
+    neighboring_bins=6,
     min_nBins_in_interval=15,
     interval=[-1.0, 0.5],
 ):
@@ -328,7 +331,7 @@ def extractD0Values(d0str):
     return d0min, d0max
 
 
-def generateGraphData(reshists, d0hists, d0intervals=None, strategy="max"):
+def generateGraphData(reshists, d0hists, d0intervals=None, strategy="max", fraction=0.5):
     graphdata = {
         "d0_mean": [],
         "d0_min": [],
@@ -369,7 +372,7 @@ def generateGraphData(reshists, d0hists, d0intervals=None, strategy="max"):
 
         # find vertical coordinates
         peakpos, peakpos_error, peakwidth, peakwidth_error, params = getPeakPosition(
-            h, strategy="max"
+            h, strategy=strategy,
         )
         graphdata["res_val"].append(peakpos)
         graphdata["res_val_err"].append(peakpos_error)
@@ -462,7 +465,7 @@ def saveHistogram(hist, filename, rebin=None):
 
 
 def makeResolutionVsD0Plots(
-    RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals
+    RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals, strategy="max",
 ):
     HISTS_data = HistogramGetter.getHistograms(data_filepath)
     HISTS_MC = HistogramGetter.getHistograms(MC_filepath)
@@ -487,8 +490,10 @@ def makeResolutionVsD0Plots(
         excludes=["EffNum", "EffDen"],
     )
 
-    resVsD0_data = generateGraphData(data_hists, data_d0hists, d0intervals=d0intervals)
-    resVsD0_MC = generateGraphData(MC_hists, MC_d0hists, d0intervals=d0intervals)
+    resVsD0_data = generateGraphData(data_hists, data_d0hists, d0intervals=d0intervals,
+            strategy=STRATEGY)
+    resVsD0_MC = generateGraphData(MC_hists, MC_d0hists, d0intervals=d0intervals,
+            strategy=STRATEGY)
 
     canvas = Plotter.Canvas(lumi="2016 MC vs. Cosmics data")
 
@@ -502,10 +507,13 @@ def makeResolutionVsD0Plots(
     graph_data_width = generateGraph(
         resVsD0_data, distribution="res_width", error_axes=""
     )
-    canvas.addMainPlot(
-        Plotter.Plot(graph_data_width, legend_name_data + " std. dev.", "elp", "pe")
-    )
-    # canvas.addMainPlot(Plotter.Plot(graph_data_width, legend_name_data + " FWHM", "elp", "pe"))
+    if STRATEGY == "max":
+        canvas.addMainPlot(
+            Plotter.Plot(graph_data_width, legend_name_data + " std. dev.", "elp", "pe")
+        )
+    elif STRATEGY == "gaussfit":
+        canvas.addMainPlot(Plotter.Plot(graph_data_width, legend_name_data + " FWHM", "elp", "pe"))
+
     graph_data_width.SetLineColor(R.kBlue if IS_COSMIC_SEED else R.kRed)
     graph_data_width.SetMarkerColor(R.kBlue if IS_COSMIC_SEED else R.kRed)
     graph_data_width.SetMarkerStyle(R.kMultiply)
@@ -571,11 +579,284 @@ def makeResolutionVsD0Plots(
 
     canvas.finishCanvas()
     canvas.save(
-        "pdfs/" + FILENAME_TEMPLATE.format(RESOLUTIONVARIABLE=RESOLUTIONVARIABLE),
+        "pdfs/" + FILENAME_TEMPLATE.format(
+            RESOLUTIONVARIABLE=RESOLUTIONVARIABLE,
+            SEEDING="CosmicSeed" if IS_COSMIC_SEED else "ppSeed"
+        ),
         extList=[".pdf", ".root"],
     )
     canvas.deleteCanvas()
     # canvas.cleanup("pdfs/new_resVsd0_{}.pdf".format(RESOLUTIONVARIABLE))
 
 
-makeResolutionVsD0Plots(RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals)
+def makeSystematicsPlots(RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals, strategy="max"):
+    HISTS_data = HistogramGetter.getHistograms(data_filepath)
+    HISTS_MC = HistogramGetter.getHistograms(MC_filepath)
+
+    # make sure that all given d0 interval limits are actually floats
+    d0intervals = [(float(l), float(u)) for l, u in d0intervals]
+
+    data_hists, data_d0hists = importHistogram(
+        HISTS_data,
+        RESOLUTIONVARIABLE,
+        includes=["DSA_lowerLeg", RESOLUTIONVARIABLE],
+        excludes=["EffNum", "EffDen"],
+    )
+    MC_hists, MC_d0hists = importHistogram(
+        HISTS_MC,
+        RESOLUTIONVARIABLE,
+        includes=["DSA_lowerLeg", RESOLUTIONVARIABLE],
+        excludes=["EffNum", "EffDen"],
+    )
+
+    # define a set of d0 bins for the plots
+    d0intervals = [(i,i+5.) for i in np.arange(0., 30., 5.)]
+    d0intervals += [(i,i+10.) for i in np.arange(30., 100., 10.)]
+
+    def varyRebinningParameter(number_of_rebins_range=range(11)):
+        plot_data = {}
+
+        for hists, histtypes in (
+            (data_hists, "CosmicsData"),
+            (MC_hists, "SignalMC"),
+        ):
+
+            plot_data[histtypes] = []
+
+            for h in hists:
+                # x coordinates are defined by the varying rebin parameter
+                for x_val in number_of_rebins_range:
+                    h_vary = h.Clone()
+                    h_autoRebin = h.Clone()
+                    auto_rebin_parameter = autoRebin(h_autoRebin)
+
+                    # y coordinates are defined by the d0 bins
+                    d0min, d0max = extractD0Values(h_vary.GetName())
+                    if (d0min, d0max) not in d0intervals: continue
+                    y_val = d0min
+
+                    if x_val > 0:
+                        h_vary.Rebin(2*x_val)
+                        # z coordinates are defined by the peak position value
+                        z_val = h_vary.GetXaxis().GetBinCenter(h_vary.GetMaximumBin())
+                    else:
+                        # z coordinates are defined by the peak position value
+                        z_val = getPeakPosition(h_vary, strategy=strategy)[0]
+                        # z_val = h_vary.GetXaxis().GetBinCenter(h_vary.GetMaximumBin())
+
+                    plot_data[histtypes].append((x_val, y_val, z_val, auto_rebin_parameter))
+
+        return plot_data
+
+    def varyRebinningErrorFraction(fraction_range=np.arange(0, 0.3, 0.01)):
+        plot_data = {}
+
+        for hists, histtypes in (
+            (data_hists, "CosmicsData"),
+            (MC_hists, "SignalMC"),
+        ):
+            plot_data[histtypes] = []
+
+            for h in hists:
+                # x coordinates are defined by the varying fraction parameter
+                for x_val in fraction_range:
+                    h_vary = h.Clone()
+
+                    # y coordinates are defined by the d0 bins
+                    d0min, d0max = extractD0Values(h_vary.GetName())
+                    if (d0min, d0max) not in d0intervals: continue
+                    y_val = d0min
+
+                    # z coordinates are defined by the peak position value
+                    autoRebin(h_vary, error_fraction=x_val)
+                    z_val = getPeakPosition(h_vary, strategy=strategy)[0]
+                    # z_val = h_vary.GetXaxis().GetBinCenter(h_vary.GetMaximumBin())
+
+                    plot_data[histtypes].append((x_val, y_val, z_val, None))
+
+        return plot_data
+
+
+    def varyRebinningNeighbors(nNeighbors_range=range(1,11)):
+        plot_data = {}
+
+        for hists, histtypes in (
+            (data_hists, "CosmicsData"),
+            (MC_hists, "SignalMC"),
+        ):
+            plot_data[histtypes] = []
+
+            for h in hists:
+                # x coordinates are defined by the varying nNeighbors parameter
+                for x_val in nNeighbors_range:
+                    h_vary = h.Clone()
+
+                    # y coordinates are defined by the d0 bins
+                    d0min, d0max = extractD0Values(h_vary.GetName())
+                    if (d0min, d0max) not in d0intervals: continue
+                    y_val = d0min
+
+                    # z coordinates are defined by the peak position value
+                    autoRebin(h_vary, neighboring_bins=x_val)
+                    z_val = getPeakPosition(h_vary, strategy=strategy)[0]
+                    # z_val = h_vary.GetXaxis().GetBinCenter(h_vary.GetMaximumBin())
+
+                    plot_data[histtypes].append((x_val, y_val, z_val, None))
+
+        return plot_data
+
+
+    def make2DPlot(
+            RESOLUTIONVARIABLE,
+            data,
+            name="",
+            title="",
+            lumi="",
+            xlabel="",
+            ylabel="",
+            zlabel="",
+            nbinsx=10,
+            xrange_min=0,
+            xrange_max=10,
+            nbinsy=10,
+            yrange_min=0,
+            yrange_max=100,
+            vline=None,
+        ):
+
+        hist2D = R.TH2F(name, title,
+            nbinsx, xrange_min, xrange_max,
+            nbinsy, yrange_min, yrange_max
+        )
+        hist2D.GetXaxis().SetTitle(xlabel)
+        hist2D.GetYaxis().SetTitle(ylabel)
+        hist2D.GetZaxis().SetTitle(zlabel)
+
+        # initialize histogram bins
+        for bx in range(1, hist2D.GetNbinsX()+1):
+            for by in range(1, hist2D.GetNbinsY()+1):
+                # initialize with value below the z axis minimum in order to
+                # make empty bins appear transparent (requires z axis range to be set
+                # explicitly)
+                hist2D.SetBinContent(hist2D.GetBin(bx, by), -999)
+
+        for d in data:
+            hist2D.SetBinContent(hist2D.FindBin((d[0]), (d[1])), d[2])
+
+        # fill in the blanks
+        for bx in range(1, hist2D.GetNbinsX()+1):
+            for by in range(1, hist2D.GetNbinsY()+1):
+                if hist2D.GetBinContent(hist2D.GetBin(bx, by)) == -999:
+                    hist2D.SetBinContent(
+                        hist2D.GetBin(bx, by),
+                        hist2D.GetBinContent(bx, by-1)
+                    )
+
+        canvas = Plotter.Canvas(lumi=lumi)
+        canvas.addMainPlot(Plotter.Plot(hist2D, "", "colz", "colz"))
+
+        pave = []
+        for d in data:
+            if d[3] is None: continue
+
+            marker_bin_xcoord = hist2D.GetXaxis().GetBinCenter(hist2D.GetXaxis().FindBin(d[3]))
+            marker_bin_ycoord = hist2D.GetYaxis().GetBinCenter(hist2D.GetYaxis().FindBin(d[1]))
+
+            if marker_bin_ycoord <= 30:
+                pave.append(R.TPaveText(marker_bin_xcoord-0.5, marker_bin_ycoord-2.5, marker_bin_xcoord+0.5, marker_bin_ycoord+2.5))
+            else:
+                pave.append(R.TPaveText(marker_bin_xcoord-0.5, marker_bin_ycoord-2.5, marker_bin_xcoord+0.5, marker_bin_ycoord+7.5))
+            pave[-1].SetTextAlign(13)
+            pave[-1].SetTextFont(42)
+            pave[-1].SetMargin(0)
+            pave[-1].SetFillStyle(0)
+            pave[-1].SetFillColor(0)
+            pave[-1].SetLineStyle(0)
+            pave[-1].SetLineColor(0)
+            pave[-1].SetBorderSize(1)
+            pave[-1].AddText(0.5, 0.5, "")
+            pave[-1].Draw()
+
+        if vline:
+            l = R.TLine(vline, yrange_min, vline, yrange_max)
+            l.SetLineColor(R.kWhite)
+            l.SetLineWidth(1)
+            l.Draw()
+
+        hist2D.GetZaxis().SetRangeUser(-1.0, 0.2)
+
+        canvas.mainPad.SetRightMargin(0.16)
+
+        canvas.finishCanvas()
+        canvas.save(
+            "pdfs/test_{}_{}_{}_{}".format(
+                RESOLUTIONVARIABLE,
+                name,
+                lumi.replace(" ", ""),
+                "CosmicSeed" if IS_COSMIC_SEED else "ppSeed"
+            ),
+            extList=[".pdf", ".root"]
+        )
+        canvas.deleteCanvas()
+
+
+    for datatype, lumi in (
+        ("CosmicsData", "2016 Cosmics data"),
+        ("SignalMC", "2016 MC signal samples"),
+    ):
+        varyRebinningParameter_data = varyRebinningParameter()
+        make2DPlot(
+            RESOLUTIONVARIABLE,
+            varyRebinningParameter_data[datatype],
+            name="varyRebinningParameter",
+            lumi=lumi,
+            xlabel="number of rebinning steps",
+            ylabel="d0 [cm]",
+            zlabel="position of maximum bin" if "L1pTres" in RESOLUTIONVARIABLE else "fitted resolution mean",
+            nbinsx=10,
+            xrange_min=0,
+            xrange_max=10,
+            nbinsy=20,
+            yrange_min=0,
+            yrange_max=100,
+        )
+
+        varyRebinningErrorFraction_data = varyRebinningErrorFraction()
+        make2DPlot(
+            RESOLUTIONVARIABLE,
+            varyRebinningErrorFraction_data[datatype],
+            name="varyRebinningErrorFraction",
+            lumi=lumi,
+            xlabel="bin error fraction (rebinning)",
+            ylabel="d0 [cm]",
+            zlabel="position of maximum bin" if "L1pTres" in RESOLUTIONVARIABLE else "fitted resolution mean",
+            nbinsx=30,
+            xrange_min=0,
+            xrange_max=0.3,
+            nbinsy=20,
+            yrange_min=0,
+            yrange_max=100,
+            vline=0.05,
+        )
+
+        varyRebinningNeighbors_data = varyRebinningNeighbors()
+        make2DPlot(
+            RESOLUTIONVARIABLE,
+            varyRebinningNeighbors_data[datatype],
+            name="varyRebinningNeighbors",
+            lumi=lumi,
+            xlabel="number of neighbors (rebinning)",
+            ylabel="d0 [cm]",
+            zlabel="position of maximum bin" if "L1pTres" in RESOLUTIONVARIABLE else "fitted resolution mean",
+            nbinsx=9,
+            xrange_min=1,
+            xrange_max=10,
+            nbinsy=20,
+            yrange_min=0,
+            yrange_max=100,
+            vline=6,
+        )
+
+
+makeResolutionVsD0Plots(RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals, STRATEGY)
+makeSystematicsPlots(RESOLUTIONVARIABLE, data_filepath, MC_filepath, d0intervals, STRATEGY)
