@@ -5,7 +5,7 @@ import DisplacedDimuons.Common.Utilities as Utilities
 from DisplacedDimuons.Analysis.AnalysisTools import matchedDimuons
 import DisplacedDimuons.Analysis.Selector as Selector
 
-CUTS = ['NS_NH', 'FPTE', 'HLT', 'PT', 'DCA', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA_NPP', 'LXYSIG', 'TRK', 'NDT', 'DPHI']
+CUTS = ['NS_NH', 'FPTE', 'HLT', 'PT', 'DCA', 'LXYE', 'MASS', 'CHI2', 'VTX', 'COSA_NPP', 'LXYSIG', 'TRK', 'NDT', 'DPHI', 'OS']
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
