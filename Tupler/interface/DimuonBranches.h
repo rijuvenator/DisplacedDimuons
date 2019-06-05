@@ -62,6 +62,8 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_deltaR                 ;
     std::vector<float> dim_cosAlpha               ;
     std::vector<float> dim_cosAlphaOrig           ;
+    std::vector<float> dim_isoPmumu               ;
+    std::vector<float> dim_isoLxy                 ;
 
     std::vector<int  > dim_mu1_idx                ;
     std::vector<float> dim_mu1_px                 ;
@@ -145,6 +147,8 @@ class DimuonBranches : public BranchCollection
       Declare("dim_deltaR"                 , dim_deltaR                 );
       Declare("dim_cosAlpha"               , dim_cosAlpha               );
       Declare("dim_cosAlphaOrig"           , dim_cosAlphaOrig           );
+      Declare("dim_isoPmumu"               , dim_isoPmumu               );
+      Declare("dim_isoLxy"                 , dim_isoLxy                 );
 
       Declare("dim_mu1_idx"                , dim_mu1_idx                );
       Declare("dim_mu1_px"                 , dim_mu1_px                 );
@@ -225,6 +229,8 @@ class DimuonBranches : public BranchCollection
       dim_deltaR                 .clear();
       dim_cosAlpha               .clear();
       dim_cosAlphaOrig           .clear();
+      dim_isoPmumu               .clear();
+      dim_isoLxy                 .clear();
 
       dim_mu1_idx                .clear();
       dim_mu1_px                 .clear();
@@ -287,7 +293,8 @@ class DimuonBranches : public BranchCollection
 	      const edm::Handle<reco::VertexCollection> &verticesHandle,
 	      const edm::Handle<reco::BeamSpot> &beamspotHandle,
 	      const edm::Handle<pat::MuonCollection> &patmuonsHandle,
-	      const edm::ESHandle<MagneticField>& magfield);
+	      const edm::ESHandle<MagneticField>& magfield,
+	      const edm::Handle<reco::TrackCollection> &generalTracksHandle);
 
     void FillDimuon(int i, int j,
 		    const reco::Track& tk1, const reco::Track& tk2,
@@ -296,6 +303,7 @@ class DimuonBranches : public BranchCollection
 		    const edm::Handle<reco::VertexCollection> &verticesHandle,
 		    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 		    const edm::ESHandle<MagneticField>& magfield,
+		    const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 		    bool debug);
 
     reco::Vertex RefittedVertex(const edm::ESHandle<TransientTrackBuilder>& ttB,
@@ -304,6 +312,13 @@ class DimuonBranches : public BranchCollection
         const reco::TransientTrack& tt1,
         const reco::TransientTrack& tt2,
         const bool debug = false);
+
+    static float DimuonIsolation(const reco::isodeposit::Direction& isoConeDirection,
+				 const reco::Vertex& pv,
+				 const TLorentzVector& dimuon,
+				 const reco::BeamSpot &beamspot,
+				 const reco::TrackCollection &generalTracks,
+				 bool debug = false);
 
     virtual bool alreadyPrinted() { return alreadyPrinted_; }
     virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
