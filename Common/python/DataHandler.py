@@ -284,9 +284,15 @@ def getHTo2XTo2Mu2JSamples():
 
 # aliased wrapper for convenience
 # get HTo2LongLivedTo2mu2jets_reHLT MC samples
-def getHTo2XTo2Mu2JSamples_reHLT():
+def getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples():
     return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J') \
-            and '_reHLT' in s.name]
+            and all([t in s.name for t in ('_reHLT', '_CosmicSeed')])]
+
+# aliased wrapper for convenience
+# get HTo2LongLivedTo2mu2jets_reHLT MC samples
+def getHTo2XTo2Mu2J_reHLT_ppSeedSamples():
+    return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J') \
+            and all([t in s.name for t in ('_reHLT', '_ppSeed')])]
 
 # aliased wrapper for convenience
 # get background MC samples
@@ -301,7 +307,8 @@ def getDataSamples():
 # aliased wrapper for convenience
 # get all samples, return as dictionary
 def getAllSamples():
-    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2JSamples_reHLT() + getBackgroundSamples() + getDataSamples()}
+    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples() + getHTo2XTo2Mu2J_reHLT_ppSeedSamples() + getBackgroundSamples() + getDataSamples()}
+    # return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples() + getBackgroundSamples() + getDataSamples()}
 
 # get NTuple info
 # this loads the information in NTuples.dat into a dictionary at module level
