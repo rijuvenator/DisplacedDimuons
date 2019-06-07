@@ -62,6 +62,7 @@ config.General.workArea      = 'crab'
 config.General.transferLogs  = True
 config.JobType.pluginName    = 'Analysis'
 config.JobType.psetName      = '{PSET_NAME}'
+config.JobType.allowUndistributedCMSSW = {ALLOWUNDISTRIBUTEDCMSSW}
 config.Data.inputDataset     = '{INPUT_DATASET}'
 config.Data.inputDBS         = '{INPUT_DBS}'
 config.Data.publication      = {PUBLISH}
