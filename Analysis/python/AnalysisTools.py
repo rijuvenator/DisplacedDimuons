@@ -672,3 +672,12 @@ def ZPL(nOn, nOff, tau):
     term1 = nOn  * R.TMath.Log(nOn  * (1. + tau) /        (nOn + nOff) ) if nOn  != 0. else 0.
     term2 = nOff * R.TMath.Log(nOff * (1. + tau) / (tau * (nOn + nOff))) if nOff != 0. else 0.
     return R.TMath.Sqrt(2.)*R.TMath.Sqrt(term1 + term2)
+
+##############################
+##### SIGNAL REWEIGHTING #####
+##############################
+
+def SignalWeight(cTauRef, cTauNew, genMuon, X):
+    tRef, tNew = float(cTauRef)/10., float(cTauNew)/10.
+    t = genMuon.Lxy() * X.mass / X.pt
+    return tRef/tNew * R.TMath.Exp(t/tRef - t/tNew)
