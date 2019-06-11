@@ -36,7 +36,7 @@ Date | Talks
 [2019   January 24](https://indico.cern.ch/event/792621/) | Alberto, Sebastian
 [2019   January 31](https://indico.cern.ch/event/794936/) | Suchita, Sebastian, Slava
 [2019  February 14](https://indico.cern.ch/event/798959/) | Riju, Sebastian
-[2019  February 21](https://indico.cern.ch/event/800782/) | Riju, Alberto
+[2019  February 21](https://indico.cern.ch/event/800782/) | Riju, Alberto, Sebastian
 [2019     March  7](https://indico.cern.ch/event/804260/) | Riju, Sebastian
 [2019     March 21](https://indico.cern.ch/event/807968/) | Riju, Alberto, Sebastian
 [2019     April  4](https://indico.cern.ch/event/811831/) | Riju
@@ -49,8 +49,9 @@ Date | Talks
 
 Date | Talk | Speaker
 ---|---|---
-[2018 September 14](https://indico.cern.ch/event/754333/) | Status Report @ LL EXO Meeting                | Riju
-[2018  November  1](https://indico.cern.ch/event/754758/) | Status Report @ CMS EXO Workshop 2018, Athens | Alberto
-[2019  February 11](https://indico.cern.ch/event/794061/) | MC Request @ MC&I Meeting                     | Suchita
-[2019       May 24](https://indico.cern.ch/event/820277/) | Cosmic Muon Data Studies @ LL EXO Meeting     | Sebastian
-[2019       May 24](https://indico.cern.ch/event/820277/) | Status Report @ LL EXO Meeting                | Riju
+[2018 September 14](https://indico.cern.ch/event/754333/) | Status Report @ LL EXO Meeting                                                             | Riju
+[2018  November  1](https://indico.cern.ch/event/754758/) | Status Report @ CMS EXO Workshop 2018, Athens                                              | Alberto
+[2019  February 11](https://indico.cern.ch/event/794061/) | MC Request @ MC&I Meeting                                                                  | Suchita
+[2019       May 24](https://indico.cern.ch/event/820277/) | Cosmic Muon Data Studies @ LL EXO Meeting                                                  | Sebastian
+[2019       May 24](https://indico.cern.ch/event/820277/) | Status Report @ LL EXO Meeting                                                             | Riju
+[2019       Jun  3](https://indico.cern.ch/event/824625/) | Reconstruction and trigger efficiency for displaced muons using cosmics @ Muon POG Meeting | Sebastian
