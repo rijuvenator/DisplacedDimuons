@@ -204,13 +204,14 @@ void DimuonBranches::FillDimuon(int i, int j,
   TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
 
   //Calculate dimuon isolation (using momentum direction to define cone)
+  if(debug) std::cout << "-- Calculating dimuon pmumu isolation -- " << std::endl;
   reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-  float dimuon_isoPmumu = DimuonIsolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks,debug);
+  float dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
   //Calculate dimuon isolation (using SV-PV to define cone)
+  if(debug) std::cout << "-- Calculating dimuon lxy isolation -- " << std::endl;
   reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-  float dimuon_isoLxy = DimuonIsolation(lxyDir, pv,dimu_p4, beamspot, generalTracks,debug);
-
+  float dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
   // delta phi
   float dPhi = fabs(deltaPhi(diffP.Phi(), dimu_p4.Phi()));
@@ -256,6 +257,14 @@ void DimuonBranches::FillDimuon(int i, int j,
   DisplacedMuon muon_cand2 = muf.Fill(rtt2.track(), ttB, verticesHandle, beamspotHandle, false);
   muon_cand1.idx = i;
   muon_cand2.idx = j;
+
+  if(debug) std::cout << "-- Calculating muon_cand1 isolation -- " << std::endl;
+  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
+  float muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, generalTracks,debug);
+
+  if(debug) std::cout << "-- Calculating muon_cand1 isolation -- " << std::endl;
+  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
+  float muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, generalTracks,debug);
 
   // Attempt to refit the primary vertex w/o the candidate muon
   // tracks.  Requires "reco::Tracks generalTracks" collection,
@@ -318,6 +327,7 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu1_dzsig_bs_lin       .push_back(     muon_cand1.dzsig_bs_lin);
   dim_mu1_hitsBeforeVtx      .push_back(cand1_hitsInFrontOfVert     );
   dim_mu1_missingHitsAfterVtx.push_back(cand1_missHitsAfterVert     );
+  dim_mu1_iso				 .push_back(muon_cand1_iso			    );
 
   // second muon candidate resulting from the common-vertex fit
   dim_mu2_idx                .push_back(     muon_cand2.idx         );
@@ -346,6 +356,7 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu2_dzsig_bs_lin       .push_back(     muon_cand2.dzsig_bs_lin);
   dim_mu2_hitsBeforeVtx      .push_back(cand2_hitsInFrontOfVert     );
   dim_mu2_missingHitsAfterVtx.push_back(cand2_missHitsAfterVert     );
+  dim_mu2_iso				 .push_back(muon_cand2_iso		        );
 
   if (debug)
   {
@@ -376,6 +387,8 @@ void DimuonBranches::FillDimuon(int i, int j,
       << " / " << cand2_missHitsAfterVert << std::endl;
     std::cout << "Pmumu Isolation: " << dimuon_isoPmumu << std::endl;
     std::cout << "Lxy   Isolation: " << dimuon_isoLxy << std::endl;
+    //TODO: Change Displaced Muon class to hold isolation information or calculate it itself?
+    std::cout << "Muon1 Iso: " << muon_cand1_iso << " Muon2 Iso: " << muon_cand2_iso << std::endl;
     std::cout << "Refitted DSA muon info:" << muon_cand1;
     std::cout << "Refitted DSA muon info:" << muon_cand2;
   }
@@ -460,19 +473,19 @@ reco::Vertex DimuonBranches::RefittedVertex(
 
 
 using namespace muonisolation;
-/* @brief Determines if a dimuon, described with primary vertex pv, and momentum dimuon
- * is isolated with respect to other tracks found within the event.
+/* @brief Determines if a track, described with primary vertex pv, and momentum momentum
+ * pointing in direction isoConeDirection is isolated with respect to other tracks found within the event.
  *
  * Function modelled from:
  *
  * https://github.com/cms-sw/cmssw/blob/f092629e3aac118bcf206450291a0c042c87769d/RecoMuon/MuonIsolation/plugins/TrackExtractor.cc
  *
- * returns (Sum of other tracks momentum in cone) / (Sum of dimuon momentum)
+ * returns (Sum of other tracks transverse momentum in cone) / (track transverse momentum)
  */
-float DimuonBranches::DimuonIsolation(
+float DimuonBranches::Isolation(
 		const reco::isodeposit::Direction& isoConeDirection,
 		const reco::Vertex& pv,
-		const TLorentzVector& dimuon,
+		const TLorentzVector& momentum,
 		const reco::BeamSpot &beamspot,
 		const reco::TrackCollection &generalTracks,
 		bool debug)
@@ -515,5 +528,5 @@ float DimuonBranches::DimuonIsolation(
 		sumGeneralPt += (*it)->pt();
 	}
 
-	return sumGeneralPt/dimuon.Perp();
+	return sumGeneralPt/momentum.Perp();
 }

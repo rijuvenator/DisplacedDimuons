@@ -474,6 +474,7 @@ class RecoMuon(Muon):
             if     self.nSeg_ProxMatch   < 0   : self.nSeg_ProxMatch   = None
         # only refitted PAT has these attributes
         if 'REF' in tag:
+            self.set('iso',E, prefix+'iso',i)
             if 'PAT' in self.tag:
                 for attr in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
                     self.set(attr, E, prefix+attr, i)

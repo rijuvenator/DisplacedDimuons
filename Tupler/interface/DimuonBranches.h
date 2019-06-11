@@ -95,6 +95,8 @@ class DimuonBranches : public BranchCollection
     // number of missing hits between the vertex position
     // and the innermost valid hit on the track
     std::vector<int  > dim_mu1_missingHitsAfterVtx;
+    //isolation variable
+    std::vector<float> dim_mu1_iso				  ;
 
     std::vector<int  > dim_mu2_idx                ;
     std::vector<float> dim_mu2_px                 ;
@@ -122,7 +124,7 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_mu2_dzsig_bs_lin       ;
     std::vector<int  > dim_mu2_hitsBeforeVtx      ;
     std::vector<int  > dim_mu2_missingHitsAfterVtx;
-
+    std::vector<float> dim_mu2_iso				  ;
 
     // methods
     void Declarations()
@@ -177,6 +179,7 @@ class DimuonBranches : public BranchCollection
       Declare("dim_mu1_dzsig_bs_lin"       , dim_mu1_dzsig_bs_lin       );
       Declare("dim_mu1_hitsBeforeVtx"      , dim_mu1_hitsBeforeVtx      );
       Declare("dim_mu1_missingHitsAfterVtx", dim_mu1_missingHitsAfterVtx);
+      Declare("dim_mu1_iso"				   , dim_mu1_iso				);
 
       Declare("dim_mu2_idx"                , dim_mu2_idx                );
       Declare("dim_mu2_px"                 , dim_mu2_px                 );
@@ -204,6 +207,7 @@ class DimuonBranches : public BranchCollection
       Declare("dim_mu2_dzsig_bs_lin"       , dim_mu2_dzsig_bs_lin       );
       Declare("dim_mu2_hitsBeforeVtx"      , dim_mu2_hitsBeforeVtx      );
       Declare("dim_mu2_missingHitsAfterVtx", dim_mu2_missingHitsAfterVtx);
+      Declare("dim_mu2_iso"				   , dim_mu2_iso				);
     }
 
     void Reset()
@@ -258,6 +262,7 @@ class DimuonBranches : public BranchCollection
       dim_mu1_dzsig_bs_lin       .clear();
       dim_mu1_hitsBeforeVtx      .clear();
       dim_mu1_missingHitsAfterVtx.clear();
+      dim_mu1_iso				 .clear();
 
       dim_mu2_idx                .clear();
       dim_mu2_px                 .clear();
@@ -285,6 +290,7 @@ class DimuonBranches : public BranchCollection
       dim_mu2_dzsig_bs_lin       .clear();
       dim_mu2_hitsBeforeVtx      .clear();
       dim_mu2_missingHitsAfterVtx.clear();
+      dim_mu2_iso				 .clear();
     }
 
 
@@ -308,10 +314,10 @@ class DimuonBranches : public BranchCollection
 		    bool debug);
 
 
-    static float DimuonIsolation(
+    static float Isolation(
     		const reco::isodeposit::Direction& isoConeDirection,
 			const reco::Vertex& pv,
-			const TLorentzVector& dimuon,
+			const TLorentzVector& momentum,
 			const reco::BeamSpot &beamspot,
 			const reco::TrackCollection &generalTracks,
 			bool debug = false);
