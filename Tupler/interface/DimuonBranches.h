@@ -324,6 +324,11 @@ class DimuonBranches : public BranchCollection
 			const reco::TrackCollection &generalTracks,
 			bool debug = false);
 
+    static const reco::TrackCollection RemoveTracksFromCollection(
+    		const reco::TrackCollection& trackCollection,
+			const std::vector<reco::TransientTrack> tracksToRemove,
+			bool debug = false);
+
     reco::Vertex RefittedVertex(const edm::ESHandle<TransientTrackBuilder>& ttB,
         const reco::Vertex& pv,
         const reco::BeamSpot& bs,

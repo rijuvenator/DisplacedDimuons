@@ -12,9 +12,7 @@
 #include "PhysicsTools/RecoUtils/interface/CheckHitPattern.h"
 #include "RecoVertex/VertexTools/interface/InvariantMassFromVertex.h"
 
-#include "RecoMuon/MuonIsolation/plugins/TrackSelector.h"
-//TODO: Figure out how to just include library
-//#include "RecoMuon/MuonIsolation/plugins/TrackSelector.cc"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -267,21 +265,29 @@ void DimuonBranches::FillDimuon(int i, int j,
   if (!generalTracksHandle.failedToGet()) {
 	  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
+	  //clean up the general tracks so that they don't contain the muons we are using
+	  std::vector<reco::TransientTrack> muonTracks;
+	  muonTracks.push_back(rtt1);
+	  muonTracks.push_back(rtt2);
+
+	  const reco::TrackCollection& cleanedTracks = RemoveTracksFromCollection(generalTracks,muonTracks,debug);
+	  std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
+
 	  // using momentum direction to define cone
 	  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks, debug);
+	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
 
 	  // using SV-PV to define cone
 	  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, generalTracks, debug);
+	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
 
 	  //first muon individually
 	  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
-	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, generalTracks,debug);
+	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, cleanedTracks,debug);
 
 	  //second muon individually
 	  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
-	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, generalTracks,debug);
+	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, cleanedTracks,debug);
   }
   else {
 	  if (gtWarning == false) {
@@ -558,4 +564,37 @@ float DimuonBranches::Isolation(
 	}
 
 	return sumGeneralPt/momentum.Perp();
+}
+
+/* @brief Remove a subset of tracks (tracksToRemove) from a general
+ * collection of tracks (trackCollection), returning a collection
+ * without those in tracksToRemove if matches are found in the main
+ * collection.
+ */
+const reco::TrackCollection DimuonBranches::RemoveTracksFromCollection(
+		const reco::TrackCollection& trackCollection,
+		const std::vector<reco::TransientTrack> tracksToRemove, //TODO: Ask Slava, what is a Transient track?
+		bool debug)
+{
+	//for now, just use dR matching
+	float DR_THRESHOLD = 0.1;
+
+	reco::TrackCollection cleanedCollection;
+	//this algorithm could remove more tracks in the collection than
+	//there are tracks to remove, if the dR is small enough to match to multiple tracks
+	for(auto& trackInCollection : trackCollection){
+		bool isClean = true;
+		for(auto& trackToRemove: tracksToRemove){
+			if(deltaR(trackInCollection.eta(),
+					trackInCollection.phi(),
+					trackToRemove.track().eta(), //is this correct? .track().eta()?
+					trackToRemove.track().phi())
+					< DR_THRESHOLD) {
+				isClean=false;
+				break;
+			}
+		}
+		if(isClean) cleanedCollection.push_back(trackInCollection);
+	}
+	return cleanedCollection;
 }
