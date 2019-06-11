@@ -35,20 +35,19 @@ SimpleNTupler = cms.EDAnalyzer('SimpleNTupler',
 #### ANALYSIS COLLECTIONS ####
 ##############################
 
-        patMet               = cms.InputTag('patMETs'),
-        filters              = cms.InputTag('TriggerResults', '', 'PAT'),
-        beamspot             = cms.InputTag('offlineBeamSpot'),
-        vertices             = cms.InputTag('offlinePrimaryVerticesWithBS'),
-#       vertices             = cms.InputTag('offlinePrimaryVertices'),
-        muons                = cms.InputTag('cleanPatMuons'),
-        gens                 = cms.InputTag('prunedGenParticles', '', 'PAT'),
-        GEIP                 = cms.InputTag('generator'),
-        pileupInfo           = cms.InputTag('addPileupInfo'),
-        dsaMuons             = cms.InputTag('displacedStandAloneMuons', '', 'RECO'),
-        rsaMuons             = cms.InputTag('refittedStandAloneMuons', '', 'RECO'),
-        inputTrackCollection = cms.InputTag('generalTracks'),
-        dgbMuons             = cms.InputTag('displacedGlobalMuons', '', 'RECO')
-
+        patMet         = cms.InputTag('patMETs'),
+        filters        = cms.InputTag('TriggerResults', '', 'PAT'),
+        beamspot       = cms.InputTag('offlineBeamSpot'),
+        vertices       = cms.InputTag('offlinePrimaryVerticesWithBS'),
+#       vertices       = cms.InputTag('offlinePrimaryVertices'),
+        tracks         = cms.InputTag('generalTracks'),
+        muons          = cms.InputTag('cleanPatMuons'),
+        gens           = cms.InputTag('prunedGenParticles', '', 'PAT'),
+        GEIP           = cms.InputTag('generator'),
+        pileupInfo     = cms.InputTag('addPileupInfo'),
+        dsaMuons       = cms.InputTag('displacedStandAloneMuons', '', 'RECO'),
+        rsaMuons       = cms.InputTag('refittedStandAloneMuons', '', 'RECO'),
+        dgbMuons       = cms.InputTag('displacedGlobalMuons', '', 'RECO')
     )
 )
 

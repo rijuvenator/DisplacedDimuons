@@ -10,6 +10,11 @@
 
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 #include "PhysicsTools/RecoUtils/interface/CheckHitPattern.h"
+#include "RecoVertex/VertexTools/interface/InvariantMassFromVertex.h"
+
+#include "RecoMuon/MuonIsolation/plugins/TrackSelector.h"
+//TODO: Figure out how to just include library
+//#include "RecoMuon/MuonIsolation/plugins/TrackSelector.cc"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -36,7 +41,7 @@ void DimuonBranches::Fill(const edm::EventSetup& iSetup,
   reco::TrackCollection::const_iterator ptk, qtk;
   for (i = 0, ptk = dsamuons.begin(); ptk != dsamuons.end(); ptk++, i++) {
     for (j = i+1, qtk = ptk+1; qtk != dsamuons.end(); qtk++, j++) {
-      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle,debug);
+      FillDimuon(i, j, *ptk, *qtk, iSetup, ttB, verticesHandle, beamspotHandle, magfield, generalTracksHandle, debug);
     }
   }
 
@@ -95,10 +100,10 @@ void DimuonBranches::FillDimuon(int i, int j,
 				const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 				bool debug)
 {
-  static float mass = .105658375;
+  static bool gtWarning = false;
+  static float muon_mass = .105658375;
   DisplacedMuonFiller muf;
   const reco::BeamSpot &beamspot = *beamspotHandle;
-  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
   reco::TransientTrack ott1 = ttB->build(tk1);
   if (!ott1.isValid()) return;
@@ -122,10 +127,14 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Default fitter settings
   KalmanVertexFitter kvf(true);
 
+  CachingVertex<5> cv;
   TransientVertex tv;
   try
   {
-    tv = kvf.vertex(trackVector);
+    //tv = kvf.vertex(trackVector);
+    // Find CachingVertex vertex first in order to calculate inv. mass uncertainty
+    cv = kvf.vertex(trackVector);
+    tv = TransientVertex(cv);
   }
   catch ( VertexException & e )
   {
@@ -197,21 +206,11 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Refitted transient tracks
   reco::TransientTrack rtt1 = tv.refittedTrack(ott1);
   reco::TransientTrack rtt2 = tv.refittedTrack(ott2);
-  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(mass,2.)));
-  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(mass,2.)));
+  TLorentzVector rt1_p4(rtt1.track().px(), rtt1.track().py(), rtt1.track().pz(), sqrt(pow(rtt1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector rt2_p4(rtt2.track().px(), rtt2.track().py(), rtt2.track().pz(), sqrt(pow(rtt2.track().p(),2.)+pow(muon_mass,2.)));
 
   // Dimuon 4-vector
   TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
-
-  //Calculate dimuon isolation (using momentum direction to define cone)
-  if(debug) std::cout << "-- Calculating dimuon pmumu isolation -- " << std::endl;
-  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-  float dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks,debug);
-
-  //Calculate dimuon isolation (using SV-PV to define cone)
-  if(debug) std::cout << "-- Calculating dimuon lxy isolation -- " << std::endl;
-  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-  float dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, generalTracks,debug);
 
   // delta phi
   float dPhi = fabs(deltaPhi(diffP.Phi(), dimu_p4.Phi()));
@@ -222,9 +221,13 @@ void DimuonBranches::FillDimuon(int i, int j,
   // delta R between the tracks
   float dR = rt1_p4.DeltaR(rt2_p4);
 
+  // Dimuon invariant mass and its uncertainty
+  InvariantMassFromVertex imfv;
+  Measurement1D dimuon_mass = imfv.invariantMass(cv, muon_mass);
+
   // cos(alpha) and dR between the original tracks
-  TLorentzVector ot1_p4(ott1.track().px(), ott1.track().py(), ott1.track().pz(), sqrt(pow(ott1.track().p(),2.)+pow(mass,2.)));
-  TLorentzVector ot2_p4(ott2.track().px(), ott2.track().py(), ott2.track().pz(), sqrt(pow(ott2.track().p(),2.)+pow(mass,2.)));
+  TLorentzVector ot1_p4(ott1.track().px(), ott1.track().py(), ott1.track().pz(), sqrt(pow(ott1.track().p(),2.)+pow(muon_mass,2.)));
+  TLorentzVector ot2_p4(ott2.track().px(), ott2.track().py(), ott2.track().pz(), sqrt(pow(ott2.track().p(),2.)+pow(muon_mass,2.)));
   TLorentzVector dimu_orig_p4 = ot1_p4 + ot2_p4;
   float cosAlpha_orig = ot1_p4.Vect().Dot(ot2_p4.Vect())/ot1_p4.P()/ot2_p4.P();
   float dR_orig = ot1_p4.DeltaR(ot2_p4);
@@ -258,13 +261,35 @@ void DimuonBranches::FillDimuon(int i, int j,
   muon_cand1.idx = i;
   muon_cand2.idx = j;
 
-  if(debug) std::cout << "-- Calculating muon_cand1 isolation -- " << std::endl;
-  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
-  float muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, generalTracks,debug);
+  // Calculate dimuon isolation if generalTracks collection is available
+  float dimuon_isoPmumu = -999., dimuon_isoLxy = -999.;
+  float muon_cand1_iso = -999., muon_cand2_iso = -999.;
+  if (!generalTracksHandle.failedToGet()) {
+	  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
-  if(debug) std::cout << "-- Calculating muon_cand1 isolation -- " << std::endl;
-  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
-  float muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, generalTracks,debug);
+	  // using momentum direction to define cone
+	  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
+	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks, debug);
+
+	  // using SV-PV to define cone
+	  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
+	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, generalTracks, debug);
+
+	  //first muon individually
+	  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
+	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, generalTracks,debug);
+
+	  //second muon individually
+	  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
+	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, generalTracks,debug);
+  }
+  else {
+	  if (gtWarning == false) {
+		  edm::LogWarning("DimuonBranches")
+		  << "+++ Warning: generalTracks collection is not found +++";
+		  gtWarning = true;
+	  }
+  }
 
   // Attempt to refit the primary vertex w/o the candidate muon
   // tracks.  Requires "reco::Tracks generalTracks" collection,
@@ -276,8 +301,9 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_pt       .push_back(dimu_p4.Pt ());
   dim_eta      .push_back(dimu_p4.Eta());
   dim_phi      .push_back(dimu_p4.Phi());
-  dim_mass     .push_back(dimu_p4.M  ());
   dim_p        .push_back(dimu_p4.P  ());
+  dim_mass     .push_back(dimuon_mass.value());
+  dim_massunc  .push_back(dimuon_mass.error());
   dim_x        .push_back(rv_x         );
   dim_y        .push_back(rv_y         );
   dim_z        .push_back(rv_z         );
@@ -361,9 +387,10 @@ void DimuonBranches::FillDimuon(int i, int j,
   if (debug)
   {
     std::cout << "Dimuon info: muon id's = " << i << " " << j
-      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
-      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
-      << " mass = " << dimu_p4.M() << std::endl;
+	      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
+	      << " eta = " << dimu_p4.Eta() << " phi = " << dimu_p4.Phi()
+	      << " mass = " << dimuon_mass.value()
+	      << " +/- "    << dimuon_mass.error() << std::endl;
     std::cout << "  Common vertex: (x; y; z): ("
       << rv_x << ";" << rv_y << ";" << rv_z 
       << ") chi2/ndof = "
@@ -381,6 +408,9 @@ void DimuonBranches::FillDimuon(int i, int j,
 	      << " min dist = " << dca << " pca (x; y; z): ("
 	      << pca.x() << ";" << pca.y() << ";" << pca.z() << ")"
 	      << std::endl;
+    if (dimuon_isoPmumu > -99. || dimuon_isoLxy > -99.)
+      std::cout << "  iso(Pmumu) = " << dimuon_isoPmumu
+		<< " iso(Lxy) = " << dimuon_isoLxy << std::endl;
     std::cout << " hitsInFrontOfVert mu1 / mu2: " << cand1_hitsInFrontOfVert
       << " / " << cand2_hitsInFrontOfVert
       << " missHitsAfterVert mu1 / mu2: " << cand1_missHitsAfterVert
@@ -472,7 +502,6 @@ reco::Vertex DimuonBranches::RefittedVertex(
 }
 
 
-using namespace muonisolation;
 /* @brief Determines if a track, described with primary vertex pv, and momentum momentum
  * pointing in direction isoConeDirection is isolated with respect to other tracks found within the event.
  *
@@ -507,7 +536,7 @@ float DimuonBranches::Isolation(
 	const float vtx_z = pv.z();
 
 
-	TrackSelector::Parameters pars(TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
+	muonisolation::TrackSelector::Parameters pars(muonisolation::TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
 			diffR, isoConeDirection, dRmax,beamspot.position());
 
 	pars.nHitsMin = nHitsMin;
@@ -515,8 +544,8 @@ float DimuonBranches::Isolation(
 	pars.chi2ProbMin = chi2ProbMin;
 	pars.ptMin = ptMin;
 
-	TrackSelector selection(pars);
-	TrackSelector::result_type sel_tracks = selection(generalTracks);
+	muonisolation::TrackSelector selection(pars);
+	muonisolation::TrackSelector::result_type sel_tracks = selection(generalTracks);
 
 	if(debug) std::cout << "Isolation - All Tracks: " << generalTracks.size()
 			<< " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;

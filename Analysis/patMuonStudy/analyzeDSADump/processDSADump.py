@@ -11,6 +11,7 @@ config = {
     'idx2'     : {'cast':int  , 'col': 8},
 
     'LxySig'   : {'cast':float, 'col':10},
+    'Lxy'      : {'cast':float, 'col':11},
     'vtxChi2'  : {'cast':float, 'col':12},
     'cosAlpha' : {'cast':float, 'col':13},
     'cosAlphaO': {'cast':float, 'col':14},
@@ -40,6 +41,11 @@ config = {
     'nDT2'     : {'cast':int  , 'col':38},
 
     'deltaPhi' : {'cast':float, 'col':40},
+
+    'q1'       : {'cast':int  , 'col':42},
+    'q2'       : {'cast':int  , 'col':43},
+    'rq1'      : {'cast':int  , 'col':44},
+    'rq2'      : {'cast':int  , 'col':45},
 }
 
 f = open(sys.argv[1])
@@ -47,6 +53,8 @@ f = open(sys.argv[1])
 MODE = 'PCA'
 MODE = 'HITS'
 MODE = 'DPHI'
+MODE = 'CHARGE'
+MODE = 'PRUNE'
 
 for line in f:
 
@@ -78,3 +86,11 @@ for line in f:
     if MODE == 'DPHI':
         if vals['deltaPhi'] < 1.5707963268:
             print line.strip('\n')
+
+    if MODE == 'CHARGE':
+        if vals['DCA'] > 30.: print line.strip('\n')
+
+    if MODE == 'PRUNE':
+        print '{:5s} {:6d} {:4d} {:10d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:5.2f} ::: {:6.4f} ::: {:2d} {:2d} ::: {:2d} {:2d}'.format(
+            *(vals[z] for z in ('name', 'run', 'lumi', 'event', 'LxySig', 'Lxy', 'vtxChi2', 'cosAlphaO', 'DCA', 'deltaPhi', 'nDSA', 'nPP', 'q1', 'q2'))
+        )

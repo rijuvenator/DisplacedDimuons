@@ -44,8 +44,9 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_pt                     ;
     std::vector<float> dim_eta                    ;
     std::vector<float> dim_phi                    ;
-    std::vector<float> dim_mass                   ;
     std::vector<float> dim_p                      ;
+    std::vector<float> dim_mass                   ;
+    std::vector<float> dim_massunc                ;
     std::vector<float> dim_x                      ;
     std::vector<float> dim_y                      ;
     std::vector<float> dim_z                      ;
@@ -62,9 +63,8 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_deltaR                 ;
     std::vector<float> dim_cosAlpha               ;
     std::vector<float> dim_cosAlphaOrig           ;
-	std::vector<float> dim_isoPmumu				  ;
-	std::vector<float> dim_isoLxy  				  ;
-
+    std::vector<float> dim_isoPmumu               ;
+    std::vector<float> dim_isoLxy                 ;
 
     std::vector<int  > dim_mu1_idx                ;
     std::vector<float> dim_mu1_px                 ;
@@ -132,8 +132,9 @@ class DimuonBranches : public BranchCollection
       Declare("dim_pt"                     , dim_pt                     );
       Declare("dim_eta"                    , dim_eta                    );
       Declare("dim_phi"                    , dim_phi                    );
-      Declare("dim_mass"                   , dim_mass                   );
       Declare("dim_p"                      , dim_p                      );
+      Declare("dim_mass"                   , dim_mass                   );
+      Declare("dim_massunc"                , dim_massunc                );
       Declare("dim_x"                      , dim_x                      );
       Declare("dim_y"                      , dim_y                      );
       Declare("dim_z"                      , dim_z                      );
@@ -150,8 +151,8 @@ class DimuonBranches : public BranchCollection
       Declare("dim_deltaR"                 , dim_deltaR                 );
       Declare("dim_cosAlpha"               , dim_cosAlpha               );
       Declare("dim_cosAlphaOrig"           , dim_cosAlphaOrig           );
-      Declare("dim_isoPmumu" 			   , dim_isoPmumu 				);
-      Declare("dim_isoLxy"   			   , dim_isoLxy   				);
+      Declare("dim_isoPmumu"               , dim_isoPmumu               );
+      Declare("dim_isoLxy"                 , dim_isoLxy                 );
 
       Declare("dim_mu1_idx"                , dim_mu1_idx                );
       Declare("dim_mu1_px"                 , dim_mu1_px                 );
@@ -215,8 +216,9 @@ class DimuonBranches : public BranchCollection
       dim_pt                     .clear();
       dim_eta                    .clear();
       dim_phi                    .clear();
-      dim_mass                   .clear();
       dim_p                      .clear();
+      dim_mass                   .clear();
+      dim_massunc                .clear();
       dim_x                      .clear();
       dim_y                      .clear();
       dim_z                      .clear();
@@ -233,8 +235,8 @@ class DimuonBranches : public BranchCollection
       dim_deltaR                 .clear();
       dim_cosAlpha               .clear();
       dim_cosAlphaOrig           .clear();
-      dim_isoPmumu .clear();
-      dim_isoLxy   .clear();
+      dim_isoPmumu               .clear();
+      dim_isoLxy                 .clear();
 
       dim_mu1_idx                .clear();
       dim_mu1_px                 .clear();
@@ -301,7 +303,7 @@ class DimuonBranches : public BranchCollection
 	      const edm::Handle<reco::BeamSpot> &beamspotHandle,
 	      const edm::Handle<pat::MuonCollection> &patmuonsHandle,
 	      const edm::ESHandle<MagneticField>& magfield,
-		  const edm::Handle<reco::TrackCollection> &generalTracksHandle);
+	      const edm::Handle<reco::TrackCollection> &generalTracksHandle);
 
     void FillDimuon(int i, int j,
 		    const reco::Track& tk1, const reco::Track& tk2,
@@ -310,7 +312,7 @@ class DimuonBranches : public BranchCollection
 		    const edm::Handle<reco::VertexCollection> &verticesHandle,
 		    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 		    const edm::ESHandle<MagneticField>& magfield,
-			const edm::Handle<reco::TrackCollection> &generalTracksHandle,
+		    const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 		    bool debug);
 
 

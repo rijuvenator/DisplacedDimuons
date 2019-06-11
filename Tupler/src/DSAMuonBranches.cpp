@@ -46,16 +46,29 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
             hit != dsamu.recHitsEnd(); ++hit) {
           if (!(*hit)->isValid()) continue;
           DetId id = (*hit)->geographicalId();
-          if (id.det() == DetId::Muon)
-            if (id.subdetId() == MuonSubdetId::DT ||
-                id.subdetId() == MuonSubdetId::CSC) {
+          if (id.det() == DetId::Muon) {
+	    int muonSubdetId = id.subdetId();
+            if (muonSubdetId == MuonSubdetId::DT ||
+		muonSubdetId == MuonSubdetId::CSC) {
+	      int station;
+	      if (muonSubdetId == MuonSubdetId::DT) {
+		DTChamberId segId(id.rawId());
+		station = segId.station();
+	      }
+	      else if (muonSubdetId == MuonSubdetId::CSC) {
+		CSCDetId segId(id.rawId());
+		station = segId.station();
+	      }
+
               std::cout << "DSA muon segment: subdet "
                 << ((id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
+                << " station = " << station
                 << " id = "    << id.rawId()
                 << " x = "     << (*hit)->localPosition().x()
                 << " y = "     << (*hit)->localPosition().y()
                 << std::endl;
             }
+	  }
         }
       }
 
@@ -91,23 +104,37 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
         if (debug) {
           for (chamber = patmu.matches().begin();
               chamber != patmu.matches().end(); ++chamber) {
-            if (chamber->id.det() == DetId::Muon)
-              if (chamber->id.subdetId() == MuonSubdetId::DT ||
-                  chamber->id.subdetId() == MuonSubdetId::CSC) {
+            if (chamber->id.det() == DetId::Muon) {
+	      int muonSubdetId = chamber->id.subdetId();
+              if (muonSubdetId == MuonSubdetId::DT ||
+                  muonSubdetId == MuonSubdetId::CSC) {
+
+		int station;
+		if (muonSubdetId == MuonSubdetId::DT) {
+		  DTChamberId segId(chamber->id.rawId());
+		  station = segId.station();
+		}
+		else if (muonSubdetId == MuonSubdetId::CSC) {
+		  CSCDetId segId(chamber->id.rawId());
+		  station = segId.station();
+		}
+
                 for (segment = chamber->segmentMatches.begin();
-                    segment != chamber->segmentMatches.end(); ++segment) {
+		     segment != chamber->segmentMatches.end(); ++segment) {
                   // select the only segment that belongs to track and is
                   // the best in station by dR
                   // if (!(segment->isMask(reco::MuonSegmentMatch::BestInStationByDR) &&
                   //	  segment->isMask(reco::MuonSegmentMatch::BelongsToTrackByDR)))
                   //  continue;
                   std::cout << "PAT muon segment: subdet "
-                    << ((chamber->id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
-                    << " id = " << chamber->id.rawId()
-                    << " x = " << segment->x
-                    << " y = " << segment->y << std::endl;
+			    << ((chamber->id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
+			    << " station = " << station
+			    << " id = " << chamber->id.rawId()
+			    << " x = " << segment->x
+			    << " y = " << segment->y << std::endl;
                 }
               }
+	    }
           }
         }
 

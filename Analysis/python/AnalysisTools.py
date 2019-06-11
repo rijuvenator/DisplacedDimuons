@@ -2,6 +2,10 @@ import math
 import ROOT as R
 import DisplacedDimuons.Analysis.Primitives as Primitives
 
+######################################
+##### MATCHING RELATED FUNCTIONS #####
+######################################
+
 # defines a proximity match between two muons, in any order
 # if deltaR < threshold, return deltaR; otherwise, return None
 def proximityMatch(muon1, muon2, vertex=None, threshold=0.2):
@@ -289,6 +293,7 @@ def matchedTrigger(HLTMuons, uncutDSAMuons, saveDeltaR=False, threshold=0.4, pri
             mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
 
             # found a pair of muons that fired; now look for closest DSA muons
+            # mass cut is 9.99996 because of DoubleMuon2016G-07Aug17 Run 279844 Lumi 73 Event 15943296
             if mass > 9.99996 and angle < 2.5:
                 HLTMuonMatches[(i, j)] = {}
                 # find all the matching DSA muons, sort them by deltaR...
@@ -403,6 +408,10 @@ def matchedDimuonPairs(genMuonPairs, dimuons, recoMuons=None, vertex=None, thres
 
     return realMatches, dimuonMatches, muon0Matches, muon1Matches
 
+############################
+##### PAIRING CRITERIA #####
+############################
+
 # apply the pairing criteria recipe developed in the pairing criteria study
 # returns a list of 0, 1, or 2 dimuons, based on how many muons there are and the result of applying the recipe
 def applyPairingCriteria(muons, dimuons, doAMD=False):
@@ -491,6 +500,11 @@ def applyPairingCriteria(muons, dimuons, doAMD=False):
     # there weren't any dimuons so return an empty list
     else:
         return []
+
+
+##################################
+##### DSA -> PAT REPLACEMENT #####
+##################################
 
 # function for replacing DSA muons with PAT muons, and DSA dimuons with PAT or HYBRID dimuons
 # The input selectedPATmuons list is probably a list of PAT muons, at this moment, unselected, but possibly passing quality cuts
@@ -620,6 +634,10 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # where selectedDimuons is a Dimuons3 type list
     return filteredDSAmuons, filteredPATmuons, filteredDimuons
 
+####################################################
+##### N PARALLEL PAIRS -- COSMIC SHOWER FINDER #####
+####################################################
+
 # "cosmic shower finder"
 # finds the number of parallel (or antiparallel) pairs from the original list of DSA muons
 # if this number is particularly high, it's very likely a cosmic event
@@ -640,7 +658,26 @@ def numberOfParallelPairs(DSAmuons):
 def computeCosAlpha(d1, d2):
     return d1.p4.Vect().Dot(d2.p4.Vect())/d1.p4.P()/d2.p4.P()
 
+###############################################
+##### STATISTICAL SIGNIFICANCE ESTIMATORS #####
+###############################################
+
 # function for computing ZBi given nOn, nOff, and tau
 def ZBi(nOn, nOff, tau):
     PBi = R.TMath.BetaIncomplete(1./(1.+tau),nOn,nOff+1)
     return R.TMath.Sqrt(2.)*R.TMath.ErfInverse(1. - 2.*PBi)
+
+# function for computing ZPL given nOn, nOff, and tau
+def ZPL(nOn, nOff, tau):
+    term1 = nOn  * R.TMath.Log(nOn  * (1. + tau) /        (nOn + nOff) ) if nOn  != 0. else 0.
+    term2 = nOff * R.TMath.Log(nOff * (1. + tau) / (tau * (nOn + nOff))) if nOff != 0. else 0.
+    return R.TMath.Sqrt(2.)*R.TMath.Sqrt(term1 + term2)
+
+##############################
+##### SIGNAL REWEIGHTING #####
+##############################
+
+def SignalWeight(cTauRef, cTauNew, genMuon, X):
+    tRef, tNew = float(cTauRef)/10., float(cTauNew)/10.
+    t = genMuon.Lxy() * X.mass / X.pt
+    return tRef/tNew * R.TMath.Exp(t/tRef - t/tNew)

@@ -92,13 +92,13 @@ class SimpleNTupler : public edm::EDAnalyzer
     edm::EDGetTokenT<edm::TriggerResults           > filtersToken;
     edm::EDGetTokenT<reco::BeamSpot                > beamspotToken;
     edm::EDGetTokenT<reco::VertexCollection        > vertexToken;
+    edm::EDGetTokenT<reco::TrackCollection         > trackToken;
     edm::EDGetTokenT<reco::GenParticleCollection   > genToken;
     edm::EDGetTokenT<GenEventInfoProduct           > GEIPToken;
     edm::EDGetTokenT<std::vector<PileupSummaryInfo>> pileupToken;
     edm::EDGetTokenT<pat::MuonCollection           > muonToken;
     edm::EDGetTokenT<reco::TrackCollection         > dsaMuonToken;
     edm::EDGetTokenT<reco::TrackCollection         > rsaMuonToken;
-    edm::EDGetTokenT<reco::TrackCollection		   > trackToken;
     edm::EDGetTokenT<reco::TrackCollection         > dgbMuonToken;
 
 };
@@ -125,23 +125,21 @@ SimpleNTupler::SimpleNTupler(const edm::ParameterSet& iConfig):
   dgbMuonData (tree, source != "GEN"),
   dimData     (tree, source != "GEN"),
 
-
-  triggerEventToken(consumes<pat::TriggerEvent             >(iConfig.getParameter<edm::InputTag>("triggerEvent" 	   ))),
-  prescalesToken   (consumes<pat::PackedTriggerPrescales   >(iConfig.getParameter<edm::InputTag>("prescales"   		   ))),
-  triggerToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("triggerResults"	   ))),
-  patMetToken      (consumes<pat::METCollection            >(iConfig.getParameter<edm::InputTag>("patMet"  		       ))),
-  filtersToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("filters"  	       ))),
-  beamspotToken    (consumes<reco::BeamSpot                >(iConfig.getParameter<edm::InputTag>("beamspot" 	       ))),
-  vertexToken      (consumes<reco::VertexCollection        >(iConfig.getParameter<edm::InputTag>("vertices"  	       ))),
-  genToken         (consumes<reco::GenParticleCollection   >(iConfig.getParameter<edm::InputTag>("gens"    		       ))),
-  GEIPToken        (consumes<GenEventInfoProduct           >(iConfig.getParameter<edm::InputTag>("GEIP"        		   ))),
-  pileupToken      (consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupInfo" 		   ))),
-  muonToken        (consumes<pat::MuonCollection           >(iConfig.getParameter<edm::InputTag>("muons"    	       ))),
-  dsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dsaMuons"    		   ))),
-  rsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("rsaMuons"     	   ))),
-  trackToken	   (consumes<reco::TrackCollection		   >(iConfig.getParameter<edm::InputTag>("inputTrackCollection"))),
-  dgbMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dgbMuons"     	   )))
-
+  triggerEventToken(consumes<pat::TriggerEvent             >(iConfig.getParameter<edm::InputTag>("triggerEvent"  ))),
+  prescalesToken   (consumes<pat::PackedTriggerPrescales   >(iConfig.getParameter<edm::InputTag>("prescales"     ))),
+  triggerToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("triggerResults"))),
+  patMetToken      (consumes<pat::METCollection            >(iConfig.getParameter<edm::InputTag>("patMet"        ))),
+  filtersToken     (consumes<edm::TriggerResults           >(iConfig.getParameter<edm::InputTag>("filters"       ))),
+  beamspotToken    (consumes<reco::BeamSpot                >(iConfig.getParameter<edm::InputTag>("beamspot"      ))),
+  vertexToken      (consumes<reco::VertexCollection        >(iConfig.getParameter<edm::InputTag>("vertices"      ))),
+  trackToken	   (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("tracks"        ))),
+  genToken         (consumes<reco::GenParticleCollection   >(iConfig.getParameter<edm::InputTag>("gens"          ))),
+  GEIPToken        (consumes<GenEventInfoProduct           >(iConfig.getParameter<edm::InputTag>("GEIP"          ))),
+  pileupToken      (consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupInfo"    ))),
+  muonToken        (consumes<pat::MuonCollection           >(iConfig.getParameter<edm::InputTag>("muons"         ))),
+  dsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dsaMuons"      ))),
+  rsaMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("rsaMuons"      ))),
+  dgbMuonToken     (consumes<reco::TrackCollection         >(iConfig.getParameter<edm::InputTag>("dgbMuons"      )))
 {};
 
 // wrapper for failedToGet
@@ -314,9 +312,9 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *******************
   if (source != "GEN")
   {
-	//tracks used for isolation
-	 edm::Handle<reco::TrackCollection> generalTracks;
-	 iEvent.getByToken(trackToken, generalTracks);
+    // Tracks used for isolation
+    edm::Handle<reco::TrackCollection> generalTracks;
+    iEvent.getByToken(trackToken, generalTracks);
 
     if (dsaMuonData.isValid() && vertexData.isValid())
       dimData.Fill(iSetup, dsaMuons, ttB, vertices, beamspot, patMuons, magfield, generalTracks);
