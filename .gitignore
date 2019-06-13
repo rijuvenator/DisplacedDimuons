@@ -10,3 +10,12 @@ tmp*
 out*
 pdfs
 pngs
+.autotools
+.cproject
+.project
+.pydevproject
+.settings/
+Analysis/analyzers/BW.C
+Analysis/analyzers/makeOverlayPlots-Will.py
+Analysis/analyzers/makeOverlayPlots-d0.py
+Analysis/analyzers/makeOverlayPlots-massH.py
