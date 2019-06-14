@@ -19,6 +19,8 @@ DEFAULT_OUTFILE     = 'ntuple_{}.root'
 DEFAULT_DATASETS = {
     'HTo2XTo4Mu'   : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
     'HTo2XTo2Mu2J' : {'PAT':'PAT', 'GEN':'May2018-AOD-v1', 'AOD':'May2018-AOD-v1'},
+    'HTo2XTo2Mu2J_reHLT_CosmicSeed' : {'PAT':'PAT', 'GEN':'April2019reHLT-AOD-v1', 'AOD':'April2019reHLT-AOD-v1'},
+    'HTo2XTo2Mu2J_reHLT_ppSeed' : {'PAT':'PAT', 'GEN':'April2019reHLT-AOD-v1', 'AOD':'April2019reHLT-AOD-v1'},
     'DEFAULT'      : {'PAT':'PAT', 'GEN':'PAT'           , 'AOD':'EDM'           },
 }
 
@@ -138,7 +140,7 @@ def getConfiguration(returnArgs=False):
 # get the list of samples and the Dataset object associated with the parameters
 def findSample(args):
     # signal
-    if args.NAME == 'HTo2XTo4Mu' or args.NAME == 'HTo2XTo2Mu2J':
+    if 'HTo2XTo4Mu' in args.NAME or 'HTo2XTo2Mu2J' in args.NAME:
         samples = getattr(DH, 'get'+args.NAME+'Samples')()
         SIGNALPOINT = tuple(args.SIGNALPOINT)
         DKEY = 'PAT'
@@ -152,9 +154,23 @@ def findSample(args):
             print '[DATAHANDLER ERROR]: No {} dataset found with signal point {} and process {}'.format(args.NAME, SIGNALPOINT, DATASET)
             exit()
 
-    # data
+    # DoubleMuon data
     elif args.NAME.startswith('DoubleMuon'):
-        samples = DH.getDataSamples()
+        samples = DH.getDoubleMuonDataSamples()
+        for data in samples:
+            if data.name == args.NAME:
+                return data
+
+    # Cosmics data
+    elif args.NAME.startswith('Cosmics'):
+        samples = DH.getCosmicsDataSamples()
+        for data in samples:
+            if data.name == args.NAME:
+                return data
+
+    # NoBPTX data
+    elif args.NAME.startswith('NoBPTX'):
+        samples = DH.getNoBPTXDataSamples()
         for data in samples:
             if data.name == args.NAME:
                 return data

@@ -24,6 +24,10 @@ removeMCUse(process)
 process.hltFilter = cms.EDFilter("HLTHighLevel",
                                  TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
                                  HLTPaths = cms.vstring("HLT_L2DoubleMu*_NoVertex*"), # provide list of HLT paths (or patterns) you want
+
+                                 # filter for NoBPTX dataset
+                                 # HLTPaths = cms.vstring("HLT_L2Mu*NoVertex*"), # provide list of HLT paths (or patterns) you want
+
                                  andOr = cms.bool(True), # to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
                                  throw = cms.bool(True)  # throw exception on unknown path names
                                  )
@@ -65,6 +69,11 @@ if __name__ == '__main__' and 'submit' in sys.argv:
         ('DoubleMuonRun2016G-07Aug17', '/DoubleMuon/Run2016G-07Aug17-v1/AOD'),
         # 2016H: runs 281613-284044; 48,912,812 events; 12.8 TB
         ('DoubleMuonRun2016H-07Aug17', '/DoubleMuon/Run2016H-07Aug17-v1/AOD')
+
+        # # 2016D: NoBPTX
+        # ('NoBPTXRun2016D-07Aug17', '/NoBPTX/Run2016D-07Aug17-v1/AOD'),
+        # # 2016E: NoBPTX
+        # ('NoBPTXRun2016E-07Aug17', '/NoBPTX/Run2016E-07Aug17-v1/AOD'),
         ]
 
     # load the CRAB configuration

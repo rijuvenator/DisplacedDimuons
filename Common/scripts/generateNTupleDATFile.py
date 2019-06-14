@@ -6,48 +6,84 @@ import os
 ##### It is required by the DataHandler library for setting nTuple info
 ##### and therefore by Analysis
 
-# At the moment, Constants.DIR_EOS is /eos/cms/store/user/adasgupt/DisplacedDimuons/
-# except if the username is stempl, in which case it gets set to something else
-# Keep that in mind if running this script
-
-F_NTUPLE = os.path.join(Constants.DIR_EOS, 'NTuples/ntuple_{}.root')
-
+def parseNTuplePath(user, tupleName):
+    path = Constants.NTUPLES_ROOTDIR[user]
+    ntuple = 'ntuple_{}.root'.format(tupleName)
+    return os.path.join(path, ntuple)
+    
 output = ''
 
 # Signal samples
 for SP in Constants.SIGNALPOINTS:
     for FS in ('4Mu', '2Mu2J'):
         NAME = 'HTo2XTo{FS}_{SPSTR}'.format(FS=FS, SPSTR=Utilities.SPStr(SP))
-        FNAME = F_NTUPLE.format(NAME)
+        FNAME = parseNTuplePath('valuev', NAME)
+        # FNAME = F_NTUPLE.format(NAME)
         output += '{NAME} {FNAME}\n'.format(**locals())
 
-for NAME in (
+# Signal samples (re-HLT)
+for SP in Constants.REHLT_SIGNALPOINTS:
+    for FS in ('2Mu2J',):
+        for SEEDING in ('CosmicSeed', 'ppSeed'):
+            NAME = 'reHLT_HTo2XTo{FS}_{SEEDING}_{SPSTR}'.format(
+                    FS=FS, SPSTR=Utilities.SPStr(SP), SEEDING=SEEDING)
+            FNAME = parseNTuplePath('stempl', NAME)
+            # FNAME = F_NTUPLE.format(NAME)
+            output += '{NAME} {FNAME}\n'.format(**locals())
+
+for NAME, USER in (
     # Background MC
-    'DY10to50'                     ,
-    'DY50toInf'                    ,
-    'tW'                           ,
-    'tbarW'                        ,
-    'ttbar'                        ,
-    'WW'                           ,
-    'WJets'                        ,
-    'WZ'                           ,
-#   'WZ-ext'                       ,
-    'ZZ'                           ,
-#   'ZZ-ext'                       ,
-    'QCD20toInf-ME'                ,
-    'QCD30to50'                    ,
-    'QCD50to80'                    ,
-    'QCD80to120'                   ,
+    ('DY10to50'                     , 'valuev'),
+    ('DY50toInf'                    , 'valuev'),
+    ('tW'                           , 'valuev'),
+    ('tbarW'                        , 'valuev'),
+    ('ttbar'                        , 'valuev'),
+    ('WW'                           , 'valuev'),
+    ('WJets'                        , 'valuev'),
+    ('WZ'                           , 'valuev'),
+#   ('WZ-ext'                       , 'valuev'),
+    ('ZZ'                           , 'valuev'),
+#   ('ZZ-ext'                       , 'valuev'),
+    ('QCD20toInf-ME'                , 'valuev'),
+    ('QCD30to50'                    , 'valuev'),
+    ('QCD50to80'                    , 'valuev'),
+    ('QCD80to120'                   , 'valuev'),
     # Data
-    'DoubleMuonRun2016B-07Aug17-v2',
-    'DoubleMuonRun2016C-07Aug17'   ,
-    'DoubleMuonRun2016D-07Aug17'   ,
-    'DoubleMuonRun2016E-07Aug17'   ,
-    'DoubleMuonRun2016F-07Aug17'   ,
-    'DoubleMuonRun2016G-07Aug17'   ,
-    'DoubleMuonRun2016H-07Aug17'   ,
+    ('DoubleMuonRun2016B-07Aug17-v2', 'valuev'),
+    ('DoubleMuonRun2016C-07Aug17'   , 'valuev'),
+    ('DoubleMuonRun2016D-07Aug17'   , 'valuev'),
+    ('DoubleMuonRun2016E-07Aug17'   , 'valuev'),
+    ('DoubleMuonRun2016F-07Aug17'   , 'valuev'),
+    ('DoubleMuonRun2016G-07Aug17'   , 'valuev'),
+    ('DoubleMuonRun2016H-07Aug17'   , 'valuev'),
+    # Cosmics data
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed'               , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed'               , 'stempl'),
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'                   , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'                   , 'stempl'),
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-CosmicSeed'                          , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed'                          , 'stempl'),
+    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-ppSeed'                              , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-ppSeed'                              , 'stempl'),
+    # ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'                    , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'                    , 'stempl'),
+    # ('CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'                        , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'                        , 'stempl'),
+    ('CosmicsRun2016D_reAOD-HLT_StoppedPtlsSubsetJSON_HLT-CosmicSeed'    , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_StoppedPtlsSubsetJSON_HLT-CosmicSeed'    , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed-SingleMuOpen'       , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed-SingleMuOpen'           , 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed_reHLTvalidation_run276936', 'stempl'),
+    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed_reHLTvalidation_run276910', 'stempl'),
+    # NoBPTX data
+    ('NoBPTXRun2016D-07Aug17_StoppedPtlsSubsetJSON'       , 'stempl'),
+    ('NoBPTXRun2016E-07Aug17_StoppedPtlsSubsetJSON'       , 'stempl'),
+    ('NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path', 'stempl'),
+    ('NoBPTXRun2016D-07Aug17_reAOD-HLT_pp-seeded-path'    , 'stempl'),
+    ('NoBPTXRun2016E-07Aug17_reHLTvalidation_run276936'   , 'stempl'),
+    ('NoBPTXRun2016E-07Aug17_reHLTvalidation_run276910'   , 'stempl'),
     ):
-    FNAME = F_NTUPLE.format(NAME)
+    FNAME = parseNTuplePath(USER, NAME)
     output += '{NAME} {FNAME}\n'.format(**locals())
 
 open('NTuples.dat', 'w').write(output)
