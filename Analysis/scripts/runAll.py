@@ -9,7 +9,7 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS, REHLT_SIGNALPOINTS
 #### GLOBAL CONFIGURATION PARAMETERS ####
 #########################################
 
-# 8 + 136 + 73 = 217 background jobs
+# MC background samples: 8 + 136 + 73 = 217 jobs
 BGSampleList = (
     ('DY10to50'     , None        ),
     ('WJets'        , None        ),
@@ -25,7 +25,7 @@ BGSampleList = (
     ('DY50toInf'    , (136, 50000)), # 6.76M events
     ('ttbar'        , (73,  50000)), # 3.65M events
 )
-# 291 data jobs
+# DoubleMuon data samples: 291 jobs
 DataSampleList = (
     ('DoubleMuonRun2016B-07Aug17-v2', (43, 50000)), # 2.12M events
     ('DoubleMuonRun2016C-07Aug17'   , (20, 50000)), # 0.96M events
@@ -36,7 +36,7 @@ DataSampleList = (
     ('DoubleMuonRun2016H-07Aug17'   , (73, 50000)), # 3.63M events
 )
 
-# 33 data jobs when using skim
+# DoubleMuon data samples (skim): 33 jobs
 SkimDataSampleList = (
     ('DoubleMuonRun2016B-07Aug17-v2', ( 5, 50000)), # 211338 events
     ('DoubleMuonRun2016C-07Aug17'   , ( 2, 50000)), # 96535  events
@@ -47,70 +47,79 @@ SkimDataSampleList = (
     ('DoubleMuonRun2016H-07Aug17'   , ( 8, 50000)), # 363262 events
 )
 
-# NoBPTX data: 58 jobs in total
+# NoBPTX data: 58 jobs
 DataSampleList_NoBPTX = (
-    ('NoBPTXRun2016D-07Aug17', (31, 25000)), # 752442 events
-    ('NoBPTXRun2016E-07Aug17', (27, 25000)), # 669686 events
+    ('NoBPTXRun2016D-07Aug17_StoppedPtlsSubsetJSON', (31, 25000)), # 752442 events
+    ('NoBPTXRun2016E-07Aug17_StoppedPtlsSubsetJSON', (27, 25000)), # 669686 events
 )
 
+# NoBPTX data samples (run 276910): 15 jobs
 DataSampleList_NoBPTX_reHLTvalidation_run276910 = (
     ('NoBPTXRun2016E-07Aug17_reHLTvalidation_run276910', (15, 25000)), # 373817 events
 )
 
+# Cosmics data samples (run 276910): 15 jobs
 DataSampleList_Cosmics_reHLTvalidation_run276910 = (
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed_reHLTvalidation_run276910', (15, 25000)), # 373617 events
 )
 
+# NoBPTX data samples (reHLT validation, subset of StoppedPtls JSON): 59 jobs
 DataSampleList_NoBPTX_reHLTvalidation_StoppedPtlsSubsetJSON = (
-    ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-CosmicSeed_StoppedPtlsSubsetJSON', (31, 25000)), # 751968 events
-    ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed_StoppedPtlsSubsetJSON', (28, 25000)), # 669410 events
+    ('CosmicsRun2016D_reAOD-HLT_CosmicSeed_StoppedPtlsSubsetJSON_HLT-CosmicSeed', (31, 25000)), # 751968 events
+    ('CosmicsRun2016E_reAOD-HLT_CosmicSeed_StoppedPtlsSubsetJSON_HLT-CosmicSeed', (28, 25000)), # 669410 events
 )
 
-
+# NoBPTX data samples (run 276936): 8 jobs
 DataSampleList_NoBPTX_reHLTvalidation_run276936 = (
     ('NoBPTXRun2016E-07Aug17_reHLTvalidation_run276936', (8, 25000)), # 184824 events
 )
 
+# Cosmics data samples (run 276936): 9 jobs
 DataSampleList_Cosmics_reHLTvalidation_run276936 = (
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed_reHLTvalidation_run276936', (9, 25000)), # 209283 events
 )
 
-# NoBPTX data (re-HLT; cosmic seed): 30 jobs in total
+# NoBPTX data samples (re-HLT; cosmic seed): 30 jobs in total
 DataSampleList_NoBPTX_reHLT_CosmicSeed = (
     ('NoBPTXRun2016D-07Aug17_reAOD-HLT_cosmic-seeded-path', (30, 25000)), # 742904 events
 )
 
-# NoBPTX data (re-HLT; pp seed): 15 jobs in total
+# NoBPTX data samples (re-HLT; pp seed): 15 jobs in total
 DataSampleList_NoBPTX_reHLT_ppSeed = (
     ('NoBPTXRun2016D-07Aug17_reAOD-HLT_pp-seeded-path', (15, 25000)), # 370759 events
 )
 
-# Cosmcis data: 591 jobs in total
+# Cosmcis data samples (re-HLT; base & bottomOnly UGMT mode; cosmic seed): 174 jobs
 DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed = (
     ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed', (70, 25000)), # 1733944 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed', (104, 25000)), # 2591141 events
 )
 
+# Cosmics data samples (re-HLT; base & bottomOnly UGMT mode; pp seed): 121 jobs
 DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed = (
     ('CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed', (53, 25000)), # 1322612 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed', (68, 25000)), # 1676444 events
 )
 
+# Cosmics data samples (re-HLT; base UGMT mode; cosmic seed): 102 jobs
 DataSampleList_Cosmics_UGMT_base_CosmicSeed = (
     ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-CosmicSeed', (70, 25000)), # 1733944 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-CosmicSeed', (32, 25000)), # 778138 events
 )
 
+# Cosmics data samples (re-HLT; base UGMT mode; pp seed): 77 jobs
 DataSampleList_Cosmics_UGMT_base_ppSeed = (
     ('CosmicsRun2016D_reAOD-HLT_UGMT-base_HLT-ppSeed', (53, 25000)), # 1322612 events
     ('CosmicsRun2016E_reAOD-HLT_UGMT-base_HLT-ppSeed', (24, 25000)), # 595818 events
 )
 
+# Cosmics data samples (re-HLT; bottomOnly UGMT mode; cosmic seed): 73 jobs
 DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed = (
     # no selected LS in 2016D data
     ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed', (73, 25000)), # 1813003 events
 )
 
+# Cosmics data samples (re-HLT; bottomOnly UGMT mode; pp seed): 44 jobs
 DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed = (
     # no selected LS in 2016D data
     ('CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed', (44, 25000)), # 1080626 events
@@ -193,70 +202,41 @@ elif MODE == 'LXBATCH':
 # all data samples are huge and must be split up
 if args.FILE == '':
     ArgsList = []
-    if 'S' in args.SAMPLES and not 'reHLT' in args.SAMPLES:
+    if 'S' in args.SAMPLES and not 'rehlt' in args.SAMPLES.lower():
         ArgsList.extend(['--name HTo2XTo4Mu   --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-    if '2' in args.SAMPLES and not 'reHLT' in args.SAMPLES:
+    if '2' in args.SAMPLES and not 'rehlt' in args.SAMPLES.lower():
         ArgsList.extend(['--name HTo2XTo2Mu2J --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in SIGNALPOINTS])
-    if all([a in args.SAMPLES for a in ('2', 'reHLT', 'CosmicSeed')]):
+    if '2_rehlt_cosmicseed' in args.SAMPLES:
         ArgsList.extend(['--name HTo2XTo2Mu2J_reHLT_CosmicSeed --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in REHLT_SIGNALPOINTS])
-    if all([a in args.SAMPLES for a in ('2', 'reHLT', 'ppSeed')]):
+    if '2_rehlt_ppseed' in args.SAMPLES:
         ArgsList.extend(['--name HTo2XTo2Mu2J_reHLT_ppSeed --signalpoint {} {} {}'.format(mH, mX, cTau) for mH, mX, cTau in REHLT_SIGNALPOINTS])
-    if 'B' in args.SAMPLES:
-        for NAME, SPLITTING in BGSampleList:
-            if SPLITTING is None or SCRIPT in SplittingVetoList:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-    if 'D' in args.SAMPLES:
-        # if "skim" is in the extra list (passed to Analyzer), use the SkimDataSampleList
-        # The Analyzer replaces ntuple with skim in the file name, smaller files
-        RealDataSampleList = DataSampleList if '__skim' not in EXTRA else SkimDataSampleList
-        for NAME, SPLITTING in RealDataSampleList:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-    if 'N_orig' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_NoBPTX:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-    if 'N_rehlt_cosmicseed' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLT_CosmicSeed:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-    if 'N_rehlt_ppseed' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLT_ppSeed:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
-    cosmics_dict = {
-        'C_base_bottomonly_cosmicseed': DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed,
-        'C_base_bottomonly_ppseed'    : DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed,
-        'C_base_cosmicseed'           : DataSampleList_Cosmics_UGMT_base_CosmicSeed,
-        'C_base_ppseed'               : DataSampleList_Cosmics_UGMT_base_ppSeed,
-        'C_bottomonly_cosmicseed'     : DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed,
-        'C_bottomonly_ppseed'         : DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed,
+    # Dictionary that matches identifier strings with data sample lists:
+    # The first (capital) letter denotes the main type of data sample, the rest of the
+    # identifier specifies particular sample versions and should be in lower case
+    # characters to avoid ambiguitites in selecting the appropriate samples.
+    DataSamples_dict = {
+        'B'                                      : BGSampleList,
+        'D'                                      : DataSampleList if '__skim' not in EXTRA else SkimDataSampleList,
+        'N_orig'                                 : DataSampleList_NoBPTX,
+        'N_rehlt_cosmicseed'                     : DataSampleList_NoBPTX_reHLT_CosmicSeed,
+        'N_rehlt_ppseed'                         : DataSampleList_NoBPTX_reHLT_ppSeed,
+        'C_base_bottomonly_cosmicseed'           : DataSampleList_Cosmics_UGMT_base_bottomOnly_CosmicSeed,
+        'C_base_bottomonly_ppseed'               : DataSampleList_Cosmics_UGMT_base_bottomOnly_ppSeed,
+        'C_base_cosmicseed'                      : DataSampleList_Cosmics_UGMT_base_CosmicSeed,
+        'C_base_ppseed'                          : DataSampleList_Cosmics_UGMT_base_ppSeed,
+        'C_bottomonly_cosmicseed'                : DataSampleList_Cosmics_UGMT_bottomOnly_CosmicSeed,
+        'C_bottomonly_ppseed'                    : DataSampleList_Cosmics_UGMT_bottomOnly_ppSeed,
         'C_base_cosmicseed_stoppedptlssubsetjson': DataSampleList_NoBPTX_reHLTvalidation_StoppedPtlsSubsetJSON,
+        'N_rehltvalidation_matchinglumisrun'     : DataSampleList_NoBPTX_reHLTvalidation_run276910,
+        'C_rehltvalidation_matchinglumisrun'     : DataSampleList_Cosmics_reHLTvalidation_run276910,
+        'N_rehltvalidation_differinglumisrun'    : DataSampleList_NoBPTX_reHLTvalidation_run276936,
+        'C_rehltvalidation_differinglumisrun'    : DataSampleList_Cosmics_reHLTvalidation_run276936,
     }
-    for identifier in cosmics_dict:
+
+    for identifier in DataSamples_dict:
         if identifier in args.SAMPLES:
-            for NAME, SPLITTING in cosmics_dict[identifier]:
+            for NAME, SPLITTING in DataSamples_dict[identifier]:
                 if SPLITTING is None:
                     ArgsList.append('--name {}'.format(NAME))
                 else:
@@ -264,41 +244,6 @@ if args.FILE == '':
                     for i in xrange(NJOBS):
                         ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
-    if 'N_rehltvalidation_matchinglumisrun' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLTvalidation_run276910:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-
-    if 'C_rehltvalidation_matchinglumisrun' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_Cosmics_reHLTvalidation_run276910:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-
-    if 'N_rehltvalidation_differinglumisrun' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_NoBPTX_reHLTvalidation_run276936:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
-
-    if 'C_rehltvalidation_differinglumisrun' in args.SAMPLES:
-        for NAME, SPLITTING in DataSampleList_Cosmics_reHLTvalidation_run276936:
-            if SPLITTING is None:
-                ArgsList.append('--name {}'.format(NAME))
-            else:
-                NJOBS, NEVENTS = SPLITTING
-                for i in xrange(NJOBS):
-                    ArgsList.append('--name {} --splitting {} {}'.format(NAME, NEVENTS, i))
 
 # if a file is given, make the arguments the lines in the file instead
 # the script name should be in the arguments, so pass a dummy argument to SCRIPT and set it to nothing here
