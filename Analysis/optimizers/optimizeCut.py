@@ -5,9 +5,12 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM
 
 FIGURE_OF_MERIT = 'ZBi'
-FIGURE_OF_MERIT = 'ZPL'
+#FIGURE_OF_MERIT = 'ZPL'
+
+PRETTY_LEG = {'ZBi':'Z_{Bi}', 'ZPL':'Z_{PL}'}[FIGURE_OF_MERIT]
 
 R.gStyle.SetPadTickY(0)
 
@@ -17,45 +20,6 @@ FILES = {
     'Signal' : R.TFile.Open('../nMinusOne/roots/NM1Distributions_Trig_HTo2XTo2Mu2J.root'),
     'Data'   : R.TFile.Open('../nMinusOne/roots/NM1Distributions_IDPHI_DATA.root'),
 }
-
-SignalInfo = {
-#   (1000, 350,   35) : {'nEvents':27999, 'sigmaBLimit' : 0.     },
-    (1000, 350,  350) : {'nEvents':29997, 'sigmaBLimit' : 2.5e-3 },
-    (1000, 350, 3500) : {'nEvents':27999, 'sigmaBLimit' : 3.5e-3 },
-#   (1000, 150,   10) : {'nEvents':26000, 'sigmaBLimit' : 0.     },
-    (1000, 150,  100) : {'nEvents':30000, 'sigmaBLimit' : 4.0e-3 },
-    (1000, 150, 1000) : {'nEvents':29000, 'sigmaBLimit' : 1.7e-3 },
-#   (1000,  50,    4) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    (1000,  50,   40) : {'nEvents':28000, 'sigmaBLimit' : 2.1e-2 },
-    (1000,  50,  400) : {'nEvents':30000, 'sigmaBLimit' : 4.1e-3 },
-#   (1000,  20,    2) : {'nEvents':29000, 'sigmaBLimit' : 0.     },
-    (1000,  20,   20) : {'nEvents':27000, 'sigmaBLimit' : 1.0    },
-    (1000,  20,  200) : {'nEvents':30000, 'sigmaBLimit' : 1.5e-1 },
-#   ( 400, 150,   40) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 400, 150,  400) : {'nEvents':30000, 'sigmaBLimit' : 2.7e-3 },
-    ( 400, 150, 4000) : {'nEvents':30000, 'sigmaBLimit' : 4.4e-3 },
-#   ( 400,  50,    8) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 400,  50,   80) : {'nEvents':28000, 'sigmaBLimit' : 1.0e-2 },
-    ( 400,  50,  800) : {'nEvents':30000, 'sigmaBLimit' : 2.7e-3 },
-#   ( 400,  20,    4) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 400,  20,   40) : {'nEvents':30000, 'sigmaBLimit' : 4.8e-2 },
-    ( 400,  20,  400) : {'nEvents':30000, 'sigmaBLimit' : 9.6e-3 },
-#   ( 200,  50,   20) : {'nEvents':25000, 'sigmaBLimit' : 0.     },
-    ( 200,  50,  200) : {'nEvents':30000, 'sigmaBLimit' : 8.8e-3 },
-    ( 200,  50, 2000) : {'nEvents':30000, 'sigmaBLimit' : 9.7e-3 },
-#   ( 200,  20,    7) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 200,  20,   70) : {'nEvents':29000, 'sigmaBLimit' : 4.3e-2 },
-    ( 200,  20,  700) : {'nEvents':30000, 'sigmaBLimit' : 9.2e-3 },
-#   ( 125,  50,   50) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 125,  50,  500) : {'nEvents':30000, 'sigmaBLimit' : 2.7e-2 },
-    ( 125,  50, 5000) : {'nEvents':30000, 'sigmaBLimit' : 6.8e-2 },
-#   ( 125,  20,   13) : {'nEvents':30000, 'sigmaBLimit' : 0.     },
-    ( 125,  20,  130) : {'nEvents':30000, 'sigmaBLimit' : 4.8e-2 },
-    ( 125,  20, 1300) : {'nEvents':30000, 'sigmaBLimit' : 4.3e-2 },
-}
-
-def ScaleFactor(sp):
-    return SignalInfo[sp]['sigmaBLimit'] / SignalInfo[sp]['nEvents'] * HG.INTEGRATED_LUMINOSITY_2016
 
 CONFIG = {
     'nHits'   : {'forward':False, 'pretty':'muon N(CSC+DT Hits'     },
@@ -96,34 +60,36 @@ def optimizeCut(fs, sp, quantity):
     fom  = sCum.Clone()
 
     print '**** Data (|DeltaPhi| > Pi/2) vs. HTo2XTo{} ({} GeV, {} GeV, {} mm) (|DeltaPhi| < Pi/2)'.format(fs, *sp)
-    print '**** Quantity = {:s} ::: Passing (N-1) = {:.0f} ::: N_gen = {:d} ::: Sigma*B = {:.3f} pb ::: 2016 ILumi = 35922 /pb'.format(
-            CONFIG[quantity]['pretty'], n, SignalInfo[sp]['nEvents'], SignalInfo[sp]['sigmaBLimit'])
+    print '**** Quantity = {:s} ::: Passing (N-1) = {:.0f} ::: N_gen = {:.0f} ::: Sigma*B = {:.3f} pb ::: 2016 ILumi = 35922 /pb'.format(
+            CONFIG[quantity]['pretty'], n, SignalInfo[sp]['sumWeights'][1], SignalInfo[sp]['sigmaBLimit'])
     print '{:>8s} {:>7s} {:>7s} {:>7s} {:>6s} {:>6s}'.format('CutVal', 'S', 'B=nOff', 'S+B=nOn', 'ZBi', 'ZPL')
 
     # fill f.o.m. histogram, and keep track of max f.o.m. and cut value
     nBins = sCum.GetNbinsX()
     xAxis = sCum.GetXaxis()
+
     fom_max = 0.
     opt_cut = 0.
+    opt_s   = 0.
+    opt_b   = 0.
+
     for ibin in range(1,nBins+1):
-        if not CONFIG[quantity]['forward']:
-            sCum.SetBinContent(ibin, sCum.GetBinContent(ibin)+s.GetBinContent(nBins+1))
-        S = sCum.GetBinContent(ibin)
-        B = bCum.GetBinContent(ibin)
-        val = FOM(S+B, B)
-        ZBi = AT.ZBi(S+B, B, 1.)
-        ZPL = AT.ZPL(S+B, B, 1.)
-        print '{:8.3f} {:7.3f} {:7.3f} {:7.3f} {:6.3f} {:6.3f}'.format(xAxis.GetBinCenter(ibin), S, B, S+B, ZBi, ZPL)
-        if val > fom_max:
-            fom_max = val
-            opt_cut = xAxis.GetBinCenter(ibin)
-        fom.SetBinContent(ibin, val)
+        S, B, cutVal, FOMs = calculateFOM(s, b, sCum, bCum, nBins, ibin, xAxis, CONFIG[quantity]['forward'])
+        print '{:8.3f} {:7.3f} {:7.3f} {:7.3f} {:6.3f} {:6.3f}'.format(cutVal, S, B, S+B, FOMs['ZBi'], FOMs['ZPL'])
+
+        if FOMs[FIGURE_OF_MERIT] > fom_max:
+            fom_max = FOMs[FIGURE_OF_MERIT]
+            opt_cut = cutVal
+            opt_s   = S
+            opt_b   = B
+
+        fom.SetBinContent(ibin, FOMs[FIGURE_OF_MERIT])
 
     # make plots
     p = {}
-    p['sig'] = Plotter.Plot(sCum, 'signal' , 'l', 'hist')
-    p['bg' ] = Plotter.Plot(bCum, 'data'   , 'l', 'hist')
-    p['fom'] = Plotter.Plot(fom , FOMLeg   , 'l', 'hist')
+    p['sig'] = Plotter.Plot(sCum, 'signal'   , 'l', 'hist')
+    p['bg' ] = Plotter.Plot(bCum, 'data'     , 'l', 'hist')
+    p['fom'] = Plotter.Plot(fom , PRETTY_LEG , 'l', 'hist')
 
     # make canvas, colors, maximum
     canvas = Plotter.Canvas(lumi=SPLumiStr(fs, *sp))
@@ -162,7 +128,7 @@ def optimizeCut(fs, sp, quantity):
     line.Draw()
 
     # save
-    canvas.cleanup('OPT_{}_{}_HTo2XTo{}_{}.pdf'.format(quantity, FIGURE_OF_MERIT, fs, SPStr(sp)))
+    canvas.cleanup('pdfs/OPT_{}_{}_HTo2XTo{}_{}.pdf'.format(quantity, FIGURE_OF_MERIT, fs, SPStr(sp)))
 
 for fs in ('2Mu2J',):
     for sp in ((1000, 150, 1000),):

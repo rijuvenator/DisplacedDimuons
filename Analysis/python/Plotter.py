@@ -608,7 +608,7 @@ class Canvas(R.TCanvas):
         return pave
     
     # draws the lumi text, 'CMS', extra text, and legend 
-    def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
+    def finishCanvas(self, mode=None, extrascale=1., drawCMS=True):
         self.makeTransparent()
         self.moveExponent()
         self.cd()
@@ -617,7 +617,7 @@ class Canvas(R.TCanvas):
         tBaseline = 1-self.margins['t']+0.02
         LEFT, RIGHT = self.margins['l'], 1-self.margins['r']
 
-        if mode == '':
+        if mode is None:
             if drawCMS:
                 # 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
                 CMSOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth * extrascale
@@ -627,6 +627,8 @@ class Canvas(R.TCanvas):
             else:
                 self.drawText(text=self.extra, pos=(LEFT          , tBaseline), align='bl', fontcode=self.fontcode,fontscale=1.  *extrascale)
                 self.drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
+        elif mode == 'LUMI':
+            self    .drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
         elif mode == 'BOB':
             self    .drawText(text=self.lumi , pos=((RIGHT+LEFT)/2, tBaseline), align='bc', fontcode=self.fontcode,fontscale=1.5 *extrascale)
 
@@ -651,8 +653,8 @@ class Canvas(R.TCanvas):
         R.gROOT.ProcessLine('delete gROOT->FindObject("c");')
 
     # performs a standard finishCanvas, save, and delete
-    def cleanup(self, filename):
-        self.finishCanvas()
+    def cleanup(self, filename, **kwargs):
+        self.finishCanvas(**kwargs)
         #R.SetOwnership(self, False)
         self.save(filename)
         self.deleteCanvas()
