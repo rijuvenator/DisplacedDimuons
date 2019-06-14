@@ -251,8 +251,9 @@ class DataSample(Dataset):
 def getSamples(TYPE):
     VARS = {
         'HTo2X'        : {'FILE' : 'SignalMCSamples.dat'     , 'CLASS' : globals()['SignalSample'    ]},
+        'reHLT_HTo2X'  : {'FILE' : 'ReHLTSignalMCSamples.dat', 'CLASS' : globals()['SignalSample'    ]},
         'BackgroundMC' : {'FILE' : 'BackgroundMCSamples.dat' , 'CLASS' : globals()['BackgroundSample']},
-        'Data'         : {'FILE' : 'DataSamples.dat'         , 'CLASS' : globals()['DataSample'      ]}
+        'Data'         : {'FILE' : 'DataSamples.dat'         , 'CLASS' : globals()['DataSample'      ]},
     }
     FILE  = VARS[TYPE]['FILE' ]
     CLASS = VARS[TYPE]['CLASS']
@@ -285,14 +286,12 @@ def getHTo2XTo2Mu2JSamples():
 # aliased wrapper for convenience
 # get HTo2LongLivedTo2mu2jets_reHLT MC samples
 def getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples():
-    return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J') \
-            and all([t in s.name for t in ('_reHLT', '_CosmicSeed')])]
+    return [s for s in getSamples('reHLT_HTo2X') if '_CosmicSeed' in s.name]
 
 # aliased wrapper for convenience
 # get HTo2LongLivedTo2mu2jets_reHLT MC samples
 def getHTo2XTo2Mu2J_reHLT_ppSeedSamples():
-    return [s for s in getSamples('HTo2X') if s.name.startswith('HTo2XTo2Mu2J') \
-            and all([t in s.name for t in ('_reHLT', '_ppSeed')])]
+    return [s for s in getSamples('reHLT_HTo2X') if '_ppSeed' in s.name]
 
 # aliased wrapper for convenience
 # get background MC samples
@@ -300,15 +299,34 @@ def getBackgroundSamples():
     return getSamples('BackgroundMC')
 
 # aliased wrapper for convenience
-# get data samples
-def getDataSamples():
-    return getSamples('Data')
+# get DoubleMuon data samples
+def getDoubleMuonDataSamples():
+    return [s for s in getSamples('Data') if s.name.startswith('DoubleMuonRun')]
+
+# aliased wrapper for convenience
+# get Cosmics data samples
+def getCosmicsDataSamples():
+    return [s for s in getSamples('Data') if s.name.startswith('CosmicsRun')]
+
+# aliased wrapper for convenience
+# get NoBPTX data samples
+def getNoBPTXDataSamples():
+    return [s for s in getSamples('Data') if s.name.startswith('NoBPTXRun')]
 
 # aliased wrapper for convenience
 # get all samples, return as dictionary
 def getAllSamples():
-    return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples() + getHTo2XTo2Mu2J_reHLT_ppSeedSamples() + getBackgroundSamples() + getDataSamples()}
-    # return {s.name:s for s in getHTo2XTo4MuSamples() + getHTo2XTo2Mu2JSamples() + getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples() + getBackgroundSamples() + getDataSamples()}
+    return {
+        s.name: s
+        for s in getHTo2XTo4MuSamples()
+        + getHTo2XTo2Mu2JSamples()
+        + getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples()
+        + getHTo2XTo2Mu2J_reHLT_ppSeedSamples()
+        + getBackgroundSamples()
+        + getDoubleMuonDataSamples()
+        + getCosmicsDataSamples()
+        + getNoBPTXDataSamples()
+    }
 
 # get NTuple info
 # this loads the information in NTuples.dat into a dictionary at module level
@@ -331,43 +349,32 @@ NTUPLEDICT = getNTuples()
 
 if __name__ == '__main__':
 
-    print '\n\033[32m-----HTO2XTO4MU SIGNAL SAMPLES-----\n\033[m'
-    HTo2XTo4MuSamples = getHTo2XTo4MuSamples()
-    for ds in HTo2XTo4MuSamples:
-        for process in ds.datasets:
-            if 'AOD' in process:
-                print process, ds.signalPoint()
-                print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
-        print '   ', ds.nTupleInfo
+    signal_sets = (
+        ('HTO2XTO4MU SIGNAL SAMPLES'                       , getHTo2XTo4MuSamples                   ),
+        ('HTO2XTO2MU2J SIGNAL SAMPLES'                     , getHTo2XTo2Mu2JSamples                 ),
+        ('HTO2XTO2MU2J SIGNAL SAMPLES (REHLT, COSMIC SEED)', getHTo2XTo2Mu2J_reHLT_CosmicSeedSamples),
+        ('HTO2XTO2MU2J SIGNAL SAMPLES (REHLT, PP SEED)'    , getHTo2XTo2Mu2J_reHLT_ppSeedSamples    ),
+    )
 
-    print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES-----\n\033[m'
-    HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples()
-    for ds in HTo2XTo2Mu2JSamples:
-        for process in ds.datasets:
-            if 'AOD' in process:
-                print process, ds.signalPoint()
-                print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
-        print '   ', ds.nTupleInfo
+    data_sets = (
+        ('BACKGROUND MC SAMPLES'  , getBackgroundSamples    ),
+        ('DOUBLEMUON DATA SAMPLES', getDoubleMuonDataSamples),
+        ('COSMICS DATA SAMPLES'   , getCosmicsDataSamples   ),
+        ('NOBPTX DATA SAMPLES'    , getNoBPTXDataSamples    ),
+    )
 
-    print '\n\033[32m-----HTO2XTO2MU2J SIGNAL SAMPLES (reHLT)-----\n\033[m'
-    HTo2XTo2Mu2JSamples = getHTo2XTo2Mu2JSamples_reHLT()
-    for ds in HTo2XTo2Mu2JSamples:
-        for process in ds.datasets:
-            if 'AOD' in process:
-                print process, ds.signalPoint()
-                print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
-        print '   ', ds.nTupleInfo
+    for sample_name, sample_set in signal_sets:
+        print '\n\033[32m-----{}-----\n\033[m'.format(sample_name)
+        for ds in sample_set():
+            for process in ds.datasets:
+                if 'AOD' in process:
+                    print process, ds.signalPoint()
+                    print '   ', ds.getFiles(dataset=process, instance='phys03')[0]
+            print '   ', ds.nTupleInfo
 
-    print '\n\033[32m-----BACKGROUND MC SAMPLES-----\n\033[m'
-    BackgroundSamples = getBackgroundSamples()
-    for ds in BackgroundSamples:
-        print ds.name, ds.crossSection
-        print '   ', ds.getFiles(dataset='EDM', instance='global')[0]
-        print '   ', ds.nTupleInfo
-
-    print '\n\033[32m-----DATA SAMPLES-----\n\033[m'
-    DataSamples = getDataSamples()
-    for ds in DataSamples:
-        print ds.name
-        print '   ', ds.getFiles(dataset='PAT', instance='phys03')[0]
-        print '   ', ds.nTupleInfo
+    for sample_name, sample_set in data_sets:
+        print '\n\033[32m-----{}-----\n\033[m'.format(sample_name)
+        for ds in sample_set():
+            print ds.name
+            print '   ', ds.getFiles(dataset='PAT', instance='phys03')[0]
+            print '   ', ds.nTupleInfo
