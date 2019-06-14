@@ -442,7 +442,7 @@ elif MODE == 'CONDOR':
         PROXY_LITERAL = 'x509userproxy = $ENV(X509_USER_PROXY)\nuse_x509userproxy = true'
 
     else:
-        PROXY_LITERAL = ''
+        PROXY_LITERAL = '#'
 
     # make the logs directory if it doesn't exist
     bash.call('mkdir -p logs', shell=True)
