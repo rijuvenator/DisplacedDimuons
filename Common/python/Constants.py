@@ -16,6 +16,14 @@ else:
     PREFIX_FNAL  = 'root://cmseos.fnal.gov/'
     PREFIX_HEPHY = 'root://hephyse.oeaw.ac.at/'
 
+
+# set paths to ntuple root directories of the different users
+NTUPLES_ROOTDIR = {
+    'adasgupt': '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/',
+    'valuev'  : '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Apr26/',
+    'stempl'  : '/eos/user/s/stempl/public/DisplacedDimuons/NTuples/',
+}
+
 CMSSW_BASE   = os.environ['CMSSW_BASE']
 DIR_DD = os.path.join(os.environ['CMSSW_BASE'], 'src/DisplacedDimuons')
 
