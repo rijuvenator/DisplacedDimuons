@@ -57,30 +57,30 @@ if CONFIG.CRAB and not CONFIG.TEST:
     CRAB_CFG = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
-config.General.requestName   = 'nTupler_{NAME}'
-config.General.workArea      = 'crab'
-config.General.transferLogs  = True
-config.JobType.pluginName    = 'Analysis'
-config.JobType.psetName      = '{PSET_NAME}'
+config.General.requestName             = 'nTupler_{NAME}'
+config.General.workArea                = 'crab'
+config.General.transferLogs            = True
+config.JobType.pluginName              = 'Analysis'
+config.JobType.psetName                = '{PSET_NAME}'
 config.JobType.allowUndistributedCMSSW = {ALLOWUNDISTRIBUTEDCMSSW}
-config.Data.inputDataset     = '{INPUT_DATASET}'
-config.Data.inputDBS         = '{INPUT_DBS}'
-config.Data.publication      = {PUBLISH}
-config.Data.publishDBS       = '{PUBLISH_DBS}'
-config.Data.ignoreLocality   = {IGNORE_LOCALITY}
-config.Data.splitting        = '{SPLITTING}'
-config.Data.totalUnits       = {TOTAL_UNITS}
-config.Data.unitsPerJob      = {UNITS_PER_JOB}
-config.Data.runRange         = '{RUN_RANGE}'
-config.Data.lumiMask         = '{LUMI_MASK}'
-config.Data.outLFNDirBase    = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
-config.Data.outputDatasetTag = 'ntuple_{NAME}'
+config.Data.inputDataset               = '{INPUT_DATASET}'
+config.Data.inputDBS                   = '{INPUT_DBS}'
+config.Data.publication                = {PUBLISH}
+config.Data.publishDBS                 = '{PUBLISH_DBS}'
+config.Data.ignoreLocality             = {IGNORE_LOCALITY}
+config.Data.splitting                  = '{SPLITTING}'
+config.Data.totalUnits                 = {TOTAL_UNITS}
+config.Data.unitsPerJob                = {UNITS_PER_JOB}
+config.Data.runRange                   = '{RUN_RANGE}'
+config.Data.lumiMask                   = '{LUMI_MASK}'
+config.Data.outLFNDirBase              = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
+config.Data.outputDatasetTag           = 'ntuple_{NAME}'
 if getUsernameFromSiteDB() in ('escalant', 'stempl'):
     STORAGESITE = 'T2_AT_Vienna'
 else:
     STORAGESITE = 'T2_CH_CERN'
-config.Site.storageSite      = STORAGESITE
-config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
+config.Site.storageSite                = STORAGESITE
+config.Site.whitelist                  = ['T2_CH_CERN', 'T2_AT_Vienna']
 '''
     CRAB_CFG = CRAB_CFG.format(
         NAME                    = CONFIG.DATA.name + ('_GEN' if CONFIG.SOURCE == 'GEN' else '') + ('_AOD' if CONFIG.SOURCE == 'AOD' else ''),

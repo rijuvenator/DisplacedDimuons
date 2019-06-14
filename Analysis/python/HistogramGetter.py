@@ -17,10 +17,10 @@ INTEGRATED_LUMINOSITY_2016 = 35922.
 # These regexes help do exactly that
 
 Patterns = {
-    'HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'HTo2XTo2Mu2J_reHLT' : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT-(CosmicSeed|ppSeed)_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
-    'merged_HTo2XTo4Mu' : re.compile(r'(.*)_HTo2XTo4Mu(_reHLT)?(-CosmicSeed|-ppSeed)?\Z'),
+    'HTo2XTo4Mu'          : re.compile(r'(.*)_HTo2XTo4Mu_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J'        : re.compile(r'(.*)_HTo2XTo2Mu2J_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'HTo2XTo2Mu2J_reHLT'  : re.compile(r'(.*)_HTo2XTo2Mu2J_reHLT-(CosmicSeed|ppSeed)_(\d{3,4})_(\d{2,3})_(\d{1,4})'),
+    'merged_HTo2XTo4Mu'   : re.compile(r'(.*)_HTo2XTo4Mu(_reHLT)?(-CosmicSeed|-ppSeed)?\Z'),
     'merged_HTo2XTo2Mu2J' : re.compile(r'(.*)_HTo2XTo2Mu2J(_reHLT)?(-CosmicSeed|-ppSeed)?\Z'),
 }
 for sample in (
@@ -37,27 +37,27 @@ for sample in (
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 for sample in (
-    'DoubleMuonRun2016B-07Aug17-v2',
-    'DoubleMuonRun2016C-07Aug17'   ,
-    'DoubleMuonRun2016D-07Aug17'   ,
-    'DoubleMuonRun2016E-07Aug17'   ,
-    'DoubleMuonRun2016F-07Aug17'   ,
-    'DoubleMuonRun2016G-07Aug17'   ,
-    'DoubleMuonRun2016H-07Aug17'   ,
-    'NoBPTXRun2016D-07Aug17'       ,
-    'NoBPTXRun2016E-07Aug17'       ,
+    'DoubleMuonRun2016B-07Aug17-v2'                                ,
+    'DoubleMuonRun2016C-07Aug17'                                   ,
+    'DoubleMuonRun2016D-07Aug17'                                   ,
+    'DoubleMuonRun2016E-07Aug17'                                   ,
+    'DoubleMuonRun2016F-07Aug17'                                   ,
+    'DoubleMuonRun2016G-07Aug17'                                   ,
+    'DoubleMuonRun2016H-07Aug17'                                   ,
+    'NoBPTXRun2016D-07Aug17'                                       ,
+    'NoBPTXRun2016E-07Aug17'                                       ,
     'CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed',
     'CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-CosmicSeed',
-    'CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed',
-    'CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed',
-    'CosmicsRun2016D_reAOD-HLT_UGMT-base-HLT-CosmicSeed',
-    'CosmicsRun2016E_reAOD-HLT_UGMT-base-HLT-CosmicSeed',
-    'CosmicsRun2016D_reAOD-HLT_UGMT-base-HLT-ppSeed',
-    'CosmicsRun2016E_reAOD-HLT_UGMT-base-HLT-ppSeed',
-    'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed',
-    'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed',
-    'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed',
-    'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed',
+    'CosmicsRun2016D_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'    ,
+    'CosmicsRun2016E_reAOD-HLT_UGMT-base-bottomOnly_HLT-ppSeed'    ,
+    'CosmicsRun2016D_reAOD-HLT_UGMT-base-HLT-CosmicSeed'           ,
+    'CosmicsRun2016E_reAOD-HLT_UGMT-base-HLT-CosmicSeed'           ,
+    'CosmicsRun2016D_reAOD-HLT_UGMT-base-HLT-ppSeed'               ,
+    'CosmicsRun2016E_reAOD-HLT_UGMT-base-HLT-ppSeed'               ,
+    'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'     ,
+    'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-CosmicSeed'     ,
+    'CosmicsRun2016D_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'         ,
+    'CosmicsRun2016E_reAOD-HLT_UGMT-bottomOnly_HLT-ppSeed'         ,
     ):
     Patterns[sample] = re.compile(r'(.*)_'+sample)
 
