@@ -1,5 +1,6 @@
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.AnalysisTools as AT
+import argparse
 
 # a dictionary of the limits on sigmaB for different signal points
 # I eyeballed the plots / used an online digitizer, which was tedious
@@ -86,3 +87,6 @@ def calculateFOM(sHist, bHist, sCum, bCum, nBins, ibin, xAxis, FORWARD):
     cutVal = xAxis.GetBinUpEdge(ibin) if FORWARD else xAxis.GetBinLowEdge(ibin)
 
     return S, B, cutVal, FOMs
+
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument('--fom', dest='FOM', choices=['ZBi', 'ZPL'], default='ZBi')

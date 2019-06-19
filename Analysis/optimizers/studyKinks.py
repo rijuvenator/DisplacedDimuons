@@ -6,10 +6,10 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import numpy as np
-from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM, PARSER
 
-FIGURE_OF_MERIT = 'ZBi'
-#FIGURE_OF_MERIT = 'ZPL'
+ARGS = PARSER.parse_args()
+FIGURE_OF_MERIT = ARGS.FOM
 
 PRETTY_LEG = {'ZBi':'Z_{Bi}', 'ZPL':'Z_{PL}'}[FIGURE_OF_MERIT]
 
@@ -68,11 +68,11 @@ def makeKinkDistPlot(quantity, masses):
     c.setMaximum()
     RT.addBinWidth(c.firstPlot)
 
-    c.cleanup('pdfs/KINK_Dist_{}_{}_{}.pdf'.format(quantity, masses[0], masses[1], FIGURE_OF_MERIT))
+    c.cleanup('pdfs/KINK_Dist_{}_{}_{}_{}.pdf'.format(quantity, masses[0], masses[1], FIGURE_OF_MERIT))
 
 # this plots the two ZBi curves near each other, with some options for tweaking what cross section to use
 # this shows you what is going on with finding the optimum of the curves
-def makeKinkFOMPlot(quantity, masses, sigmaBMode='DEFAULT'):
+def makeKinkFOMPlot(quantity, masses, sigmaBMode='GLOBAL'):
     points = sorted([sp for sp in SignalInfo if sp[0] == masses[0] and sp[1] == masses[1]], key=lambda x: x[2])
     s = {
         points[0] : HG.getHistogram(FILES['Signal'], (fs, points[0]), '{}_1' .format(quantity)).Clone(),
@@ -87,12 +87,12 @@ def makeKinkFOMPlot(quantity, masses, sigmaBMode='DEFAULT'):
     elif sigmaBMode == 'SAME':
         s[points[0]].Scale(ScaleFactor(points[0], 1 ))
         s[points[1]].Scale(ScaleFactor(points[0], 1 ))
-        extra = 'SAME'
+        extra = '_SAME'
 
     elif sigmaBMode == 'GLOBAL':
         s[points[0]].Scale(ScaleFactor(points[0], 1 , 1.e-2))
-        s[points[1]].Scale(ScaleFactor(points[0], 1 , 1.e-2))
-        extra = 'GLOBAL'
+        s[points[1]].Scale(ScaleFactor(points[1], 1 , 1.e-2))
+        extra = '_GLOBAL'
 
     DHists, DPConfig = HG.getDataHistograms(FILES['Data'], '{}_1'.format(quantity), addFlows=False)
     b = DHists['{}_1'.format(quantity)]['data']
@@ -157,7 +157,7 @@ def makeKinkFOMPlot(quantity, masses, sigmaBMode='DEFAULT'):
     c.firstPlot.setTitles(Y=PRETTY_LEG)
     RT.addBinWidth(c.firstPlot)
 
-    c.cleanup('pdfs/KINK_FOM{}_{}_{}_{}.pdf'.format(extra, quantity, masses[0], masses[1], FIGURE_OF_MERIT))
+    c.cleanup('pdfs/KINK_FOM{}_{}_{}_{}_{}.pdf'.format(extra, quantity, masses[0], masses[1], FIGURE_OF_MERIT))
 
 for fs in ('2Mu2J',):
     done = []

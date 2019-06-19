@@ -6,10 +6,10 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import re, itertools
-from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM, PARSER
 
-FIGURE_OF_MERIT = 'ZBi'
-#FIGURE_OF_MERIT = 'ZPL'
+ARGS = PARSER.parse_args()
+FIGURE_OF_MERIT = ARGS.FOM
 
 R.gStyle.SetPadTickY(0)
 

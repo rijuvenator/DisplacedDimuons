@@ -6,10 +6,10 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import numpy as np
-from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM, PARSER
 
-FIGURE_OF_MERIT = 'ZBi'
-#FIGURE_OF_MERIT = 'ZPL'
+ARGS = PARSER.parse_args()
+FIGURE_OF_MERIT = ARGS.FOM
 
 PRETTY_LEG = {'ZBi':'Z_{Bi}', 'ZPL':'Z_{PL}'}[FIGURE_OF_MERIT]
 
@@ -103,6 +103,22 @@ def makePlot(quantity, masses):
     c.addMainPlot(p)
     c.mainPad.SetLogx()
 
+    parameters = {
+        (1000, 20):{'c':4. , 's':3. , 'm':23.},
+        (1000, 50):{'c':3. , 's':3. , 'm':23.},
+        (1000,150):{'c':4. , 's':3. , 'm':23.},
+        (1000,350):{'c':10., 's':1.5, 'm':23.},
+        (400 , 20):{'c':7. , 's':1.5, 'm':23.},
+        (400 , 50):{'c':7. , 's':1.5, 'm':23.},
+        (400 ,150):{'c':25., 's':1.5, 'm':23.},
+        (200 , 20):{'c':8. , 's':2. , 'm':23.},
+        (200 , 50):{'c':15., 's':2. , 'm':23.},
+        (125 , 50):{'c':10., 's':2. , 'm':13.},
+        (125 , 20):{'c':9. , 's':2. , 'm':23.},
+    }
+    f = R.TF1("f", "{m}*exp({s}*TMath::Log(x/{c}))/(1+exp({s}*TMath::Log(x/{c})))".format(**parameters[masses]), .1, 1000.)
+    f.Draw("same")
+
     p.setColor(R.kBlue, which='LM')
     d.setColor(R.kWhite, which='M')
     c.firstPlot.setTitles(X='c#tau [cm]', Y=CONFIG[quantity]['pretty']+' Cut Value')
@@ -129,20 +145,23 @@ def makeGlobal(quantity):
         c.addMainPlot(p[masses])
     c.mainPad.SetLogx()
 
+    colors = {1000:R.kRed, 400:R.kBlue, 200:R.kGreen, 125:R.kMagenta}
+
     d.setColor(R.kWhite, which='M')
     for masses in p:
-        p[masses].setColor(R.kBlue, which='LM')
+        #p[masses].setColor(R.kBlue, which='LM')
+        p[masses].setColor(colors[masses[0]], which='LM')
     c.firstPlot.setTitles(X='c#tau [cm]', Y=CONFIG[quantity]['pretty']+' Cut Value')
 
     c.cleanup('pdfs/RW_{}_Global_{}.pdf'.format(quantity, FIGURE_OF_MERIT))
 
 for fs in ('2Mu2J',):
     done = []
-    for sp in SignalInfo:
-    #for sp in ((1000, 150, 1000),):
-        masses = (sp[0], sp[1])
-        if masses not in done:
-            done.append(masses)
-            for quantity in CONFIG:
+    for quantity in CONFIG:
+        makeGlobal(quantity)
+        for sp in SignalInfo:
+        #for sp in ((1000, 150, 1000),):
+            masses = (sp[0], sp[1])
+            if masses not in done:
+                done.append(masses)
                 makePlot(quantity, masses)
-                makeGlobal(quantity)

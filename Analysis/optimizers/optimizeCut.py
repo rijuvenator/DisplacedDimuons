@@ -5,10 +5,10 @@ from DisplacedDimuons.Common.Constants import SIGNALPOINTS
 from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
-from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM, PARSER
 
-FIGURE_OF_MERIT = 'ZBi'
-#FIGURE_OF_MERIT = 'ZPL'
+ARGS = PARSER.parse_args()
+FIGURE_OF_MERIT = ARGS.FOM
 
 PRETTY_LEG = {'ZBi':'Z_{Bi}', 'ZPL':'Z_{PL}'}[FIGURE_OF_MERIT]
 
@@ -22,18 +22,18 @@ FILES = {
 }
 
 CONFIG = {
-    'nHits'   : {'forward':False, 'pretty':'muon N(CSC+DT Hits'     },
-    'FPTE'    : {'forward':True , 'pretty':'muon sigma pT / pT'     },
-    'pT'      : {'forward':False, 'pretty':'muon pT'                },
-    'DCA'     : {'forward':True , 'pretty':'dimuon D.C.A.'          },
-    'LxyErr'  : {'forward':True , 'pretty':'dimuon sigma Lxy'       },
-    'mass'    : {'forward':False, 'pretty':'dimuon M(mu mu)'        },
-    'vtxChi2' : {'forward':True , 'pretty':'dimuon vtx chi^2'       },
-    'cosAlpha': {'forward':False, 'pretty':'dimuon orig. cos(alpha)'},
-    'Npp'     : {'forward':True , 'pretty':'event N(parallel pairs)'},
+#   'nHits'   : {'forward':False, 'pretty':'muon N(CSC+DT Hits'     },
+#   'FPTE'    : {'forward':True , 'pretty':'muon sigma pT / pT'     },
+#   'pT'      : {'forward':False, 'pretty':'muon pT'                },
+#   'DCA'     : {'forward':True , 'pretty':'dimuon D.C.A.'          },
+#   'LxyErr'  : {'forward':True , 'pretty':'dimuon sigma Lxy'       },
+#   'mass'    : {'forward':False, 'pretty':'dimuon M(mu mu)'        },
+#   'vtxChi2' : {'forward':True , 'pretty':'dimuon vtx chi^2'       },
+#   'cosAlpha': {'forward':False, 'pretty':'dimuon orig. cos(alpha)'},
+#   'Npp'     : {'forward':True , 'pretty':'event N(parallel pairs)'},
     'LxySig'  : {'forward':False, 'pretty':'dimuon Lxy / sigma Lxy' },
-    'trkChi2' : {'forward':True , 'pretty':'muon trk chi^2/dof'     },
-    'nDTHits' : {'forward':False, 'pretty':'barrel muon N(DT Hits)' },
+#   'trkChi2' : {'forward':True , 'pretty':'muon trk chi^2/dof'     },
+#   'nDTHits' : {'forward':False, 'pretty':'barrel muon N(DT Hits)' },
 }
 
 if FIGURE_OF_MERIT == 'ZBi':
@@ -131,6 +131,6 @@ def optimizeCut(fs, sp, quantity):
     canvas.cleanup('pdfs/OPT_{}_{}_HTo2XTo{}_{}.pdf'.format(quantity, FIGURE_OF_MERIT, fs, SPStr(sp)))
 
 for fs in ('2Mu2J',):
-    for sp in ((1000, 150, 1000),):
+    for sp in ((400, 50, 800),):
         for quantity in CONFIG:
             optimizeCut(fs, sp, quantity)
