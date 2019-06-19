@@ -25,6 +25,9 @@ def declareHistograms(self, Params=None):
         self.HISTS[tag+'-Mu2-Isolation'] = R.TH1D(tag+'-Mu2-Isolation',tag+'-Mu2-Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Dimuons',8,np.logspace(-5, 3, 9))
         self.HISTS[tag+'-SingleMuonMax-Isolation'] = R.TH1D(tag+'-SingleMuonMax-Isolation',tag+'-SingleMuonMax-Isolation; #Sigma p_T{cone} / p_{#mu#mu}; Dimuons', 8,np.logspace(-5, 3, 9))
     
+    
+#TODO: remove this later...
+counter = 0
 
 def analyze(self, E, PARAMS=None):
     
@@ -54,6 +57,10 @@ def analyze(self, E, PARAMS=None):
         self.HISTS[dimuon.composition+'-Mu2-Isolation'].Fill(dimuon.mu2.iso)
         self.HISTS[dimuon.composition+'-SingleMuonMax-Isolation'].Fill(max(dimuon.mu1.iso,dimuon.mu2.iso))
         if dimuon.composition == 'DSA':
+            global counter
+            print "Event: " + str(counter)
+            counter = counter +1
+            print dimuon
             foundDSADimuon = True
             self.HISTS['DSA p_{T} Spectrum'].Fill(min(dimuon.mu1.pt,dimuon.mu2.pt))
         

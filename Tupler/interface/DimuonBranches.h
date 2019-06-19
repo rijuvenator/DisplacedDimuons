@@ -321,7 +321,7 @@ class DimuonBranches : public BranchCollection
 			const reco::Vertex& pv,
 			const TLorentzVector& momentum,
 			const reco::BeamSpot &beamspot,
-			const reco::TrackCollection &generalTracks,
+			const reco::TrackCollection &cleanedTracks,
 			bool debug = false);
 
     static const reco::TrackCollection RemoveTracksFromCollection(

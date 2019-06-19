@@ -1,5 +1,10 @@
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
 
+//TODO:Where to put this? For QCD Gen Study
+#include "TGraph.h"
+#include "TCanvas.h"
+#include "TH2D.h"
+
 bool GenBranches::alreadyPrinted_ = false;
 bool GenBranches::alreadyPrinted_GEIP = false;
 
@@ -527,11 +532,46 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   }
 }
 
+//TODO: this is very poor design... need to get event number to do this correctly
+static unsigned int eventCount = 0;
+
 // fill gen branches for some other MC type, simply filling everything
 void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 {
+  std::cout << "----- New Event: " << eventCount << " -----" << std::endl;
+  TFile f("genInfo.root","update");
+  TCanvas* c = new TCanvas(("decay-chain"+std::to_string(eventCount++)).c_str());
+  std::vector<TGraph*> graphs;
+  float minX = 0;
+  float maxX = 0;
+  float minY = 0;
+  float maxY = 0;
+
+  unsigned int color = 1;
   for (const auto &p : gens)
   {
+    if(abs(p.pdgId()) == PDGID::MUON) {
+    	std::cout << "== Found Muon ==" << std::endl;
+    	std::vector<math::XYZPoint> decayLocations;
+    	getAncestry(p,decayLocations);
+    	//make into an array
+    	unsigned int n = decayLocations.size();
+    	float x[n],y[n];
+    	for(unsigned int i =0; i < n; i++){
+    		auto point = decayLocations.at(i);
+    		x[i] = point.x();
+    		if(x[i] > maxX) maxX = x[i];
+    		if(x[i] < minX) minX = x[i];
+    		y[i] = point.y();
+    		if(y[i] > maxY) maxY = y[i];
+    		if(y[i] < minY) minY = y[i];
+    	}
+    	graphs.push_back(new TGraph(n,x,y));
+    	graphs.back()->SetLineColor(color++);
+    	graphs.back()->SetLineWidth(2);
+
+    	//graphs.size() == 1? graphs.back()->Draw("apl") : graphs.back()->Draw("pl same");
+    }
     gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
     gen_px    .push_back(p.px    ());
@@ -552,6 +592,12 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 
     gen_mother.push_back(mIndex    );
   }
+  TH2D* axesHist = new TH2D("",";X [cm];Y[cm]",100,1.1*minX,1.1*maxX,100, 1.1*minY,1.1*maxY);
+  axesHist->Draw();
+  for(auto graph : graphs) graph->Draw("pl same");
+  c->Write();
+  f.Write("",TObject::kOverwrite);
+  f.Close();
 }
 
 // Propagate parameters of gen particle with index idx to the point of
@@ -571,4 +617,19 @@ FreeTrajectoryState GenBranches::PropagateToBeamSpot(
   FreeTrajectoryState ftsPCABS(propagator->propagate(fts, beamspot));
 
   return ftsPCABS;
+}
+
+void GenBranches::getAncestry(const reco::Candidate& gen,std::vector<math::XYZPoint>& decayChain) const{
+	if(gen.numberOfMothers() != 0) {
+		getAncestry(*gen.mother(),decayChain);
+		std::cout << "|" << std::endl;
+		std::cout << "v" << std::endl;
+	}
+	std::string name = PDG_NAMES.find(gen.pdgId()) != PDG_NAMES.end()? PDG_NAMES.at(gen.pdgId()) : "???";
+	std::cout << std::setw(10) << name << " (" << std::setw(6) << gen.pdgId() << ")\t at [ "
+			<< std::setprecision(3)<< std::setw(6) << gen.vx() << ", " << std::setw(6)<<gen.vy() << ", " << std::setw(6) << gen.vz() << "]"
+			" with nDaughters: " <<std::setw(3) << gen.numberOfDaughters()<< std::endl;
+	math::XYZPoint p;
+	p.SetCoordinates(gen.vx(),gen.vy(),gen.vz());
+	decayChain.push_back(p);
 }

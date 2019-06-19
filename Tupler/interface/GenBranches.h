@@ -16,6 +16,9 @@
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
+//pdgid-include
+#include <map>
+
 // gen particle branch collection
 class GenBranches : public BranchCollection
 {
@@ -179,6 +182,62 @@ class GenBranches : public BranchCollection
 
   virtual bool alreadyPrinted() { return alreadyPrinted_ && alreadyPrinted_GEIP; }
   virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
+
+  void getAncestry(const reco::Candidate& gen, std::vector<math::XYZPoint>& decayChain) const;
+
+  //TODO: put this in the correct spot?
+  const std::map<int, std::string> PDG_NAMES = {
+		  {1,"d"},
+		  {-1,"dbar"},
+		  {2,"u"},
+		  {-2,"ubar"},
+		  {3,"s"},
+		  {-3,"sbar"},
+		  {4,"c"},
+		  {-4,"cbar"},
+		  {5,"b"},
+		  {-5,"bbar"},
+		  {6,"t"},
+		  {-6,"tbar"},
+		  {13,"mu+"},
+		  {-13,"mu-"},
+		  {21, "g"},
+		  {113, "rho0"},
+		  {-113, "rho0bar"},
+		  {213, "rho+"},
+		  {-213, "rho-"},
+		  {211, "pi+"},
+		  {-211, "pi-"},
+		  {321, "K+"},
+		  {-321, "K-"},
+		  {311, "K0"},
+		  {-311, "K0bar"},
+		  {313, "K0*"},
+		  {-313, "K0*bar"},
+		  {411,"D+"},
+		  {-411,"D-"},
+		  {413,"D*+"},
+		  {-413,"D*-"},
+		  {421,"D0"},
+		  {-421,"D0bar"},
+		  {-423,"D*0"},
+		  {423,"D*bar0"},
+		  {443,"J/Psi"},
+		  {-443,"J/Psibar"},
+		  {521,"B+"},
+		  {-521,"B-"},
+		  {523,"B*+"},
+		  {-523,"B*-"},
+		  {511, "B0"},
+		  {-511, "B0bar"},
+		  {513, "B*0"},
+		  {-513, "B*0bar"},
+		  {531, "B0s"},
+		  {-531, "B0sbar"},
+		  {2212,"proton"},
+		  {5122, "lambda_b0"},
+		  {-5122, "lambda_b0bar"}
+  };
 };
 
 #endif

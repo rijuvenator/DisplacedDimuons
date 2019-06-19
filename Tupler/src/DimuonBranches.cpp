@@ -16,6 +16,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include <assert.h>
+
 bool DimuonBranches::alreadyPrinted_ = false;
 
 void DimuonBranches::Fill(const edm::EventSetup& iSetup,
@@ -265,28 +267,39 @@ void DimuonBranches::FillDimuon(int i, int j,
   if (!generalTracksHandle.failedToGet()) {
 	  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
+	  if(debug) {
+		  std::cout << "-------- Looking at Isolation --------" << std::endl;
+		  std::cout << "dim-pT: " << dimu_p4.Pt () << std::endl;
+		  std::cout << "mu1-pT: " << rtt1.track().pt() << std::endl;
+		  std::cout << "mu2-pT: " << rtt2.track().pt() << std::endl;
+	  }
+
 	  //clean up the general tracks so that they don't contain the muons we are using
 	  std::vector<reco::TransientTrack> muonTracks;
 	  muonTracks.push_back(rtt1);
 	  muonTracks.push_back(rtt2);
 
 	  const reco::TrackCollection& cleanedTracks = RemoveTracksFromCollection(generalTracks,muonTracks,debug);
-	  std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
+	  if(debug)std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
 
 	  // using momentum direction to define cone
 	  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
+	  if(debug) std::cout << "== Isolating Dimuon Around Pmumu == " << std::endl;
 	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
 
 	  // using SV-PV to define cone
 	  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
+	  if(debug) std::cout << "== Isolating Dimuon Around Lxy == " << std::endl;
 	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
 
 	  //first muon individually
 	  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
+	  if(debug) std::cout << "== Isolating Mu1 == " << std::endl;
 	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, cleanedTracks,debug);
 
 	  //second muon individually
 	  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
+	  if(debug) std::cout << "== Isolating Mu2 == " << std::endl;
 	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, cleanedTracks,debug);
   }
   else {
@@ -522,7 +535,7 @@ float DimuonBranches::Isolation(
 		const reco::Vertex& pv,
 		const TLorentzVector& momentum,
 		const reco::BeamSpot &beamspot,
-		const reco::TrackCollection &generalTracks,
+		const reco::TrackCollection &cleanedTracks,
 		bool debug)
 {
 	const float dRmax = 0.3;
@@ -550,32 +563,56 @@ float DimuonBranches::Isolation(
 	pars.ptMin = ptMin;
 
 	muonisolation::TrackSelector selection(pars);
-	muonisolation::TrackSelector::result_type sel_tracks = selection(generalTracks);
+	muonisolation::TrackSelector::result_type sel_tracks = selection(cleanedTracks);
 
 	if (debug) {
-	    std::cout << "Isolation - All Tracks: " << generalTracks.size()
-		      << " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;
-	    std::cout << " Dimuon isolation: zmin = " << vtx_z-diffZ
+	    std::cout << "Isolation - All Tracks: " << cleanedTracks.size()
+		      << " Selected tracks for  Isolation: " << sel_tracks.size() << std::endl;
+	    std::cout << " Isolation: zmin = " << vtx_z-diffZ
 		      << " zmax = " << vtx_z+diffZ << " d0max = " << diffR
 		      << " axis eta = " << isoConeDirection.eta()
 		      << " axis phi = " << isoConeDirection.phi() << std::endl;
+
+	    std::vector<float> nSelectedTracksPt;
 	    unsigned int itrk = 0;
-	    for (auto it = generalTracks.begin(); it != generalTracks.end(); ++it, itrk++) {
-	      double pt = it->pt();
-	      if (pt > 1.0) {
-		double z   = it->vz();
-		double d0  = it->dxy(beamspot.position());
-		double eta = it->eta();
-		double phi = it->phi();
-		double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));
-		std::cout << "  general track #" << itrk
-			  << " pT = " << pt << " d0 = " << d0 << " z = " << z
-			  << " eta = " << eta << " phi = " << phi << " dR = " << dr << std::endl;
-		if (pars.zRange.inside(z) && pars.rRange.inside(d0) &&
-		    dr < pars.drMax)
-		  std::cout << "  track #" << itrk << " selected! " << std::endl;
-	      }
+	    for (auto it = cleanedTracks.begin(); it != cleanedTracks.end(); ++it, itrk++) {
+	    	double pt = it->pt();
+
+	    	double z   = it->vz();
+	    	double d0  = fabs(it->dxy(beamspot.position()));
+	    	double eta = it->eta();
+	    	double phi = it->phi();
+	    	double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));
+	    	/*
+	    	if(pt >2)std::cout << "  general track #" << itrk
+	    			<< " pT = " << pt << " d0 = " << d0 << " z = " << z
+					<< " eta = " << eta << " phi = " << phi << " dR = " << dr <<std::endl;
+					*/
+	    	if(!pars.zRange.inside(z)) continue;
+	    	if(pt < pars.ptMin) continue;
+	    	if(!pars.rRange.inside(d0)) continue;
+	    	if(dr > pars.drMax) continue;
+	    	if(it->normalizedChi2() > pars.chi2NdofMax) continue;
+
+	    	std::cout << "  general track #" << itrk
+	    			<< " selected! pT = " << pt << " d0 = " << d0 << " z = " << z
+					<< " eta = " << eta << " phi = " << phi << " dR = " << dr <<std::endl;
+
+	    	nSelectedTracksPt.push_back(pt);
 	    }
+
+	    if(sel_tracks.size() != nSelectedTracksPt.size()){
+	    	std::cout << "self_selected_pt" << std::endl;
+	    	for(auto pt: nSelectedTracksPt){
+	    		std::cout << pt << std::endl;
+	    	}
+	    	std::cout << "auto_selected_pt" << std::endl;
+	    	for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
+	    		std::cout << (*it)->pt() << std::endl;
+	    	}
+	    	std::cout << "object pT: " << momentum.Perp() << std::endl;
+	    }
+	    assert(sel_tracks.size() == nSelectedTracksPt.size() && "Error: Isolation Algorithms give different answers!");
 	}
 
 	// total pT from all other tracks within cone
@@ -615,7 +652,15 @@ const reco::TrackCollection DimuonBranches::RemoveTracksFromCollection(
 				break;
 			}
 		}
-		if(isClean) cleanedCollection.push_back(trackInCollection);
+		if(isClean) {
+			cleanedCollection.push_back(trackInCollection);
+		}else{
+			if(debug) std::cout << "removed track from collection with"
+			<< " pT:" << trackInCollection.pt()
+			<< " eta: " << trackInCollection.eta()
+			<< " phi: " << trackInCollection.phi()
+			<< std::endl;
+		}
 	}
 	return cleanedCollection;
 }
