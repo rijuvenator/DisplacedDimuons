@@ -538,7 +538,7 @@ float DimuonBranches::DimuonIsolation(
       double pt = it->pt();
       if (pt > 1.0) {
 	double z   = it->vz();
-	double d0  = it->dxy(beamspot.position());
+	double d0  = fabs(it->dxy(beamspot.position()));
 	double eta = it->eta();
 	double phi = it->phi();
 	double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));

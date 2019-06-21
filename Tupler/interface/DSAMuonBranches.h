@@ -54,6 +54,7 @@ class DSAMuonBranches : public BranchCollection
   std::vector<int  > dsamu_nCSCHits        ;
   std::vector<int  > dsamu_nDTStations     ;
   std::vector<int  > dsamu_nCSCStations    ;
+  std::vector<int  > dsamu_nSegments       ;
 
   std::vector<float> dsamu_d0_pv           ;
   std::vector<float> dsamu_d0_bs           ;
@@ -73,10 +74,23 @@ class DSAMuonBranches : public BranchCollection
   std::vector<float> dsamu_dzsig_pv_lin    ;
   std::vector<float> dsamu_dzsig_bs_lin    ;
 
-  std::vector<int>   dsamu_idx_ProxMatch   ;
-  std::vector<std::vector<int>> dsamu_idx_SegMatch;
-  std::vector<float> dsamu_deltaR_ProxMatch;
-  std::vector<int>   dsamu_nSegms_ProxMatch;
+  // Segment-based matches: PAT mu idx; number of segments matched;
+  // dR(DSA position; PAT direction); dR(DSA position; PAT
+  // extrapolated position)
+  std::vector<std::vector<int>>   dsamu_idx_SegmMatch      ;
+  std::vector<std::vector<int>>   dsamu_nSegms_SegmMatch   ;
+  std::vector<std::vector<float>> dsamu_deltaR_pd_SegmMatch;
+  std::vector<std::vector<float>> dsamu_deltaR_pp_SegmMatch;
+
+  // Closest PAT muon(s) for two types of matches [(position;
+  // direction) and (position; position)]: idx; number of segments
+  // matched; dR
+  std::vector<int>   dsamu_idx_pd_ProxMatch   ;
+  std::vector<int>   dsamu_nSegms_pd_ProxMatch;
+  std::vector<float> dsamu_deltaR_pd_ProxMatch;
+  std::vector<int>   dsamu_idx_pp_ProxMatch   ;
+  std::vector<int>   dsamu_nSegms_pp_ProxMatch;
+  std::vector<float> dsamu_deltaR_pp_ProxMatch;
 
   // methods
   void Declarations()
@@ -104,6 +118,7 @@ class DSAMuonBranches : public BranchCollection
     Declare("dsamu_nCSCHits"        , dsamu_nCSCHits        );
     Declare("dsamu_nDTStations"     , dsamu_nDTStations     );
     Declare("dsamu_nCSCStations"    , dsamu_nCSCStations    );
+    Declare("dsamu_nSegments"       , dsamu_nSegments       );
 
     Declare("dsamu_d0_pv"           , dsamu_d0_pv           );
     Declare("dsamu_d0_bs"           , dsamu_d0_bs           );
@@ -123,10 +138,17 @@ class DSAMuonBranches : public BranchCollection
     Declare("dsamu_dzsig_pv_lin"    , dsamu_dzsig_pv_lin    );
     Declare("dsamu_dzsig_bs_lin"    , dsamu_dzsig_bs_lin    );
 
-    Declare("dsamu_idx_ProxMatch"   , dsamu_idx_ProxMatch   );
-    Declare("dsamu_idx_SegMatch"    , dsamu_idx_SegMatch    );
-    Declare("dsamu_deltaR_ProxMatch", dsamu_deltaR_ProxMatch);
-    Declare("dsamu_nSegms_ProxMatch", dsamu_nSegms_ProxMatch);
+    Declare("dsamu_idx_SegmMatch"      , dsamu_idx_SegmMatch      );
+    Declare("dsamu_nSegms_SegmMatch"   , dsamu_nSegms_SegmMatch   );
+    Declare("dsamu_deltaR_pd_SegmMatch", dsamu_deltaR_pd_SegmMatch);
+    Declare("dsamu_deltaR_pp_SegmMatch", dsamu_deltaR_pp_SegmMatch);
+
+    Declare("dsamu_idx_pd_ProxMatch"   , dsamu_idx_pd_ProxMatch   );
+    Declare("dsamu_nSegms_pd_ProxMatch", dsamu_nSegms_pd_ProxMatch);
+    Declare("dsamu_deltaR_pd_ProxMatch", dsamu_deltaR_pd_ProxMatch);
+    Declare("dsamu_idx_pp_ProxMatch"   , dsamu_idx_pp_ProxMatch   );
+    Declare("dsamu_nSegms_pp_ProxMatch", dsamu_nSegms_pp_ProxMatch);
+    Declare("dsamu_deltaR_pp_ProxMatch", dsamu_deltaR_pp_ProxMatch);
   }
 
   void Reset()
@@ -154,6 +176,7 @@ class DSAMuonBranches : public BranchCollection
     dsamu_nCSCHits        .clear();
     dsamu_nDTStations     .clear();
     dsamu_nCSCStations    .clear();
+    dsamu_nSegments       .clear();
 
     dsamu_d0_pv           .clear();
     dsamu_d0_bs           .clear();
@@ -173,10 +196,17 @@ class DSAMuonBranches : public BranchCollection
     dsamu_dzsig_pv_lin    .clear();
     dsamu_dzsig_bs_lin    .clear();
 
-    dsamu_idx_ProxMatch   .clear();
-    dsamu_idx_SegMatch    .clear();
-    dsamu_deltaR_ProxMatch.clear();
-    dsamu_nSegms_ProxMatch.clear();
+    dsamu_idx_SegmMatch      .clear();
+    dsamu_nSegms_SegmMatch   .clear();
+    dsamu_deltaR_pd_SegmMatch.clear();
+    dsamu_deltaR_pp_SegmMatch.clear();
+
+    dsamu_idx_pd_ProxMatch   .clear();
+    dsamu_deltaR_pd_ProxMatch.clear();
+    dsamu_nSegms_pd_ProxMatch.clear();
+    dsamu_idx_pp_ProxMatch   .clear();
+    dsamu_deltaR_pp_ProxMatch.clear();
+    dsamu_nSegms_pp_ProxMatch.clear();
   }
 
   void Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
@@ -187,10 +217,11 @@ class DSAMuonBranches : public BranchCollection
 	    const edm::ESHandle<MagneticField>& magfield,
 	    const edm::Handle<pat::MuonCollection> &patmuonsHandle);
 
-  double DRExtrapTrackToDSA(const reco::Track& track,
-			    const reco::Track& dsamuon,
-			    const edm::ESHandle<Propagator>& propagator,
-			    const edm::ESHandle<MagneticField>& magfield);
+  void DRExtrapTrackToDSA(const reco::Track& track,
+			  const reco::Track& dsamuon,
+			  const edm::ESHandle<Propagator>& propagator,
+			  const edm::ESHandle<MagneticField>& magfield,
+			  double& dR_pd, double& dR_pp);
 
   virtual bool alreadyPrinted() { return alreadyPrinted_; }
   virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
