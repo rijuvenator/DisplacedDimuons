@@ -293,6 +293,7 @@ def matchedTrigger(HLTMuons, uncutDSAMuons, saveDeltaR=False, threshold=0.4, pri
             mass, angle = hltDimuon.M(), hltMuon1.p3.Angle(hltMuon2.p3)
 
             # found a pair of muons that fired; now look for closest DSA muons
+            # mass cut is 9.99996 because of DoubleMuon2016G-07Aug17 Run 279844 Lumi 73 Event 15943296
             if mass > 9.99996 and angle < 2.5:
                 HLTMuonMatches[(i, j)] = {}
                 # find all the matching DSA muons, sort them by deltaR...
@@ -671,3 +672,12 @@ def ZPL(nOn, nOff, tau):
     term1 = nOn  * R.TMath.Log(nOn  * (1. + tau) /        (nOn + nOff) ) if nOn  != 0. else 0.
     term2 = nOff * R.TMath.Log(nOff * (1. + tau) / (tau * (nOn + nOff))) if nOff != 0. else 0.
     return R.TMath.Sqrt(2.)*R.TMath.Sqrt(term1 + term2)
+
+##############################
+##### SIGNAL REWEIGHTING #####
+##############################
+
+def SignalWeight(cTauRef, cTauNew, genMuon, X):
+    tRef, tNew = float(cTauRef)/10., float(cTauNew)/10.
+    t = genMuon.Lxy() * X.mass / X.pt
+    return tRef/tNew * R.TMath.Exp(t/tRef - t/tNew)

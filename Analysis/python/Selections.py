@@ -72,7 +72,7 @@ CUTS = {
     'goodVtx'    :      Cut('goodVtx'  , lambda fil: fil.PrimaryVertexFilter        , operator.eq,       True       ),
 
 ### N(DSA) MUONS CUT ###
-    'nPP'        :      Cut('nPP'      , lambda npp: npp                            , operator.lt,         10       ),
+    'nPP'        :      Cut('nPP'      , lambda npp: npp                            , operator.lt,          6       ),
 
 ### GEN ACCEPTANCE CUTS ###
     'a_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         25.      ),
@@ -105,7 +105,7 @@ CUTS = {
                                                                                                     'HYB': 50.      }, lambda dim: dim.composition[:3]),
     'd_cosAlpha' :      Cut('cosAlpha' , lambda dim: dim.cosAlpha                   , operator.gt,         -0.8     ),
     'd_cosAlphaO':      Cut('cosAlphaO', lambda dim: dim.cosAlphaOriginal           , operator.gt,         -0.8     ),
-    'd_DCA'      :      Cut('DCA'      , lambda dim: dim.DCA                        , operator.lt,        100.      ),
+    'd_DCA'      :      Cut('DCA'      , lambda dim: dim.DCA                        , operator.lt,         50.      ),
     'd_d0Sig'    : DimMuCut('d0Sig'    , lambda ref: ref.d0Sig()                    , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda ref: ref.tag[4:7]       ),
     'd_LxySig'   : MultiCut('LxySig'   , lambda dim: dim.LxySig()                   , operator.gt, {'DSA':  5.       ,
