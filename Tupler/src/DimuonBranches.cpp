@@ -516,7 +516,7 @@ float DimuonBranches::DimuonIsolation(
   const float vtx_z = pv.z();
 
   muonisolation::TrackSelector::Parameters pars(muonisolation::TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
-						diffR, isoConeDirection, dRmax,beamspot.position());
+						diffR, isoConeDirection, dRmax, beamspot.position());
 
   pars.nHitsMin = nHitsMin;
   pars.chi2NdofMax = chi2NdofMax;
@@ -526,12 +526,35 @@ float DimuonBranches::DimuonIsolation(
   muonisolation::TrackSelector selection(pars);
   muonisolation::TrackSelector::result_type sel_tracks = selection(generalTracks);
 
-  if (debug) std::cout << "Isolation - All Tracks: " << generalTracks.size()
-		      << " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;
+  if (debug) {
+    std::cout << "Isolation - All Tracks: " << generalTracks.size()
+	      << " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;
+    std::cout << " Dimuon isolation: zmin = " << vtx_z-diffZ
+	      << " zmax = " << vtx_z+diffZ << " d0max = " << diffR
+	      << " axis eta = " << isoConeDirection.eta()
+	      << " axis phi = " << isoConeDirection.phi() << std::endl;
+    unsigned int itrk = 0;
+    for (auto it = generalTracks.begin(); it != generalTracks.end(); ++it, itrk++) {
+      double pt = it->pt();
+      if (pt > 1.0) {
+	double z   = it->vz();
+	double d0  = fabs(it->dxy(beamspot.position()));
+	double eta = it->eta();
+	double phi = it->phi();
+	double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));
+	std::cout << "  general track #" << itrk
+		  << " pT = " << pt << " d0 = " << d0 << " z = " << z
+		  << " eta = " << eta << " phi = " << phi << " dR = " << dr << std::endl;
+	if (pars.zRange.inside(z) && pars.rRange.inside(d0) &&
+	    dr < pars.drMax)
+	  std::cout << "  track #" << itrk << " selected! " << std::endl;
+      }
+    }
+  }
 
-  //total Pt from all other tracks within cone
+  // total pT from all other tracks within cone
   float sumGeneralPt = 0;
-  for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
+  for (auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it) {
     sumGeneralPt += (*it)->pt();
   }
 
