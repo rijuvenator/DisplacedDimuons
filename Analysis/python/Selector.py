@@ -16,6 +16,8 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     HLT       = '_HLT'      in CUTS
     REP       = '_REP'      in CUTS
     PT        = '_PT'       in CUTS
+    TRKCHI2   = '_TRK'      in CUTS
+    NDTHITS   = '_NDT'      in CUTS
     DCA       = '_DCA'      in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
@@ -25,8 +27,6 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     COSA      = '_COSA'     in CUTS
     NPP       = '_NPP'      in CUTS
     LXYSIG    = '_LXYSIG'   in CUTS
-    TRKCHI2   = '_TRK'      in CUTS
-    NDTHITS   = '_NDT'      in CUTS
     DPHI      = '_DPHI'     in CUTS
     IDPHI     = '_IDPHI'    in CUTS
     OS        = '_OS'       in CUTS
@@ -90,9 +90,11 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
             cutList.append('d_oppSign')
         return cutList
 
-    # determine "all muon" post-dimuon cut list based on string values
-    def boolsToAllMuonCutList(TRKCHI2, NDTHITS):
+    # determine "all muon" object selection cut list based on string values
+    def boolsToAllMuonCutList(PT, TRKCHI2, NDTHITS):
         cutList = []
+        if PT:
+            cutList.append('m_pT')
         if TRKCHI2:
             cutList.append('m_trkChi2')
         if NDTHITS:
@@ -112,6 +114,9 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         if not Selections.CUTS['nPP'].apply(nPPm+nPPp): return failedReturnList
 
     # for PROMPT and NOPROMPT event selections
+    # this is probably long deprecated, but just in case one wants to do it in the future
+    # As long as COMBINED is present (or at least PROMPT and NOPROMPT are not)
+    # this block will do nothing
     if PROMPT or NOPROMPT:
         highLxySigExists = False
         for dimuon in Dimuons3:
@@ -226,12 +231,18 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         'PAT' : {muon.idx:Selections.MuonSelection(muon, cutList='AllMuonCutList') for muon in selectedMuons['PAT']}
     }
 
-    # pT cut
-    # here, only one cut needs to be applied, so I will not do a cutList and just get the value directly
-    if PT:
+    # DSA muon object selection: pT cut, trk chi^2/dof cut and N(DT hits)
+    # note the MultiCuts! They behave differently depending on muon parameters like the type!
+    # in particular, the "type" for NDTHITS is True or False depending on the number of CSC hits!
+    if PT or TRKCHI2 or NDTHITS:
+        # MuonSelections is already computed
+
+        # figure out which cuts we actually care about
+        cutList = boolsToAllMuonCutList(PT, TRKCHI2, NDTHITS) # no D0SIG
+
         selectedIndices = {'DSA':set(), 'PAT':set()}
         for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if MuonSelections[tag][mu.idx]['m_pT']]
+            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if MuonSelections[tag][mu.idx].allOf(*cutList)]
             selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
 
         selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
@@ -289,21 +300,6 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
             selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
-
-    # track chi^2/dof cut and N(DT hits) cut are applied to muons
-    # note the MultiCuts! They behave differently depending on muon parameters like the type!
-    if TRKCHI2 or NDTHITS:
-        # MuonSelections is already computed
-
-        # figure out which cuts we actually care about
-        cutList = boolsToAllMuonCutList(TRKCHI2, NDTHITS) # no D0SIG
-
-        selectedIndices = {'DSA':set(), 'PAT':set()}
-        for tag in selectedMuons:
-            selectedMuons  [tag] = [mu for mu in selectedMuons[tag] if MuonSelections[tag][mu.idx].allOf(*cutList)]
-            selectedIndices[tag] = set([mu.idx for mu in selectedMuons[tag]])
-
-        selectedDimuons = [dim for dim in selectedDimuons if dimuonFilter(dim, selectedIndices)]
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if NSTATIONS:
