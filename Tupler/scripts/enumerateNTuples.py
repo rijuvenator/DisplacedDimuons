@@ -2,8 +2,8 @@ import os, re
 import subprocess as bash
 import ROOT as R
 
-DIR = '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/'
-#DIR = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/'
+#DIR = '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/'
+DIR = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Jun23/'
 COMMAND = r'''echo 'TTree* t = (TTree*) _file0->Get("SimpleNTupler/DDTree");;cout << t->GetEntries() << endl;' | \root -l {FNAME}'''
 
 fileList = filter(lambda fname: re.match(r'ntuple_.*\.root', fname), os.listdir(DIR))

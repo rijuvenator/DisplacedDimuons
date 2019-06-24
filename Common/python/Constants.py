@@ -20,7 +20,7 @@ else:
 # set paths to ntuple root directories of the different users
 NTUPLES_ROOTDIR = {
     'adasgupt': '/eos/cms/store/user/adasgupt/DisplacedDimuons/NTuples/',
-    'valuev'  : '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Apr26/',
+    'valuev'  : '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Jun23/',
     'stempl'  : '/eos/user/s/stempl/public/DisplacedDimuons/NTuples/',
 }
 
