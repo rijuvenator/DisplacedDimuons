@@ -11,7 +11,7 @@ import operator, itertools
 
 PI = R.TMath.Pi()
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_TRK_OS_NDT_DPHI'
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_OS_DPHI'
 
 CONFIG = {
         'LxySig'  : ((100, 0., 50.), 'L_{xy}/#sigma_{L_{xy}}', 'DIM', lambda dim: dim.LxySig()),

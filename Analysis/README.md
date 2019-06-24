@@ -179,6 +179,8 @@ As of 2019 most of the current analyzers live in _nMinusOne_ and _patMuonStudy_;
   * **B**ackground, or
   * **D**ata.
 
+`--use-proxy`, when used in combination with `--condor`, passes the GRID certificate to the CONDOR workers so that they can access certain data samples (the proxy is _not_ copied per default)
+
 For example, at the moment, `signalRecoEffPlots.py` only runs on signal samples, so one would produce the appropriate plots with
 
 ```python

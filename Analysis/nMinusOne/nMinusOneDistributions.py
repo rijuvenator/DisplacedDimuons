@@ -7,7 +7,7 @@ import DisplacedDimuons.Analysis.Selector as Selector
 
 PI = R.TMath.Pi()
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_TRK_NDT_DPHI_OS'
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_DPHI_OS'
 
 CONFIG = {
         'nHits'   : (( 50,  0.,   50.), 'N(CSC+DT Hits)'        , '_NS_NH'   , lambda  mu:  mu.nCSCHits+mu.nDTHits),
@@ -15,7 +15,7 @@ CONFIG = {
         'pT'      : ((100,  0., 1000.), 'p_{T} [GeV]'           , '_PT'      , lambda  mu:  mu.pt                 ),
         'DCA'     : ((100,  0., 1000.), 'D.C.A. [cm]'           , '_DCA'     , lambda dim: dim.DCA                ),
         'LxyErr'  : ((100,  0.,  100.), '#sigma_{L_{xy}} [cm]'  , '_LXYE'    , lambda dim: dim.LxyErr()           ),
-        'mass'    : (( 80,  0.,  400.), 'M(#mu#mu) [GeV]'       , '_MASS'    , lambda dim: dim.mass               ),
+        'mass'    : ((800,  0.,  400.), 'M(#mu#mu) [GeV]'       , '_MASS'    , lambda dim: dim.mass               ),
         'vtxChi2' : ((100,  0.,   50.), 'vtx #chi^{2}'          , '_CHI2'    , lambda dim: dim.normChi2           ),
         'cosAlpha': (( 50, -1.,    1.), 'cos(#alpha)'           , '_COSA_NPP', lambda dim: dim.cosAlphaOriginal   ),
         'Npp'     : (( 20,  0.,   20.), 'N(parallel pairs)'     , '_COSA_NPP', numberOfParallelPairs              ),

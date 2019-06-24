@@ -36,7 +36,7 @@ PARSER.add_argument('--skim'       , dest='SKIM'       , action='store_true'    
 # using self.SAMPLE.nEvents or self.SAMPLE.negFrac
 SAMPLES = DH.getAllSamples()
 def setSample(ARGS):
-    if ARGS.NAME.startswith('HTo2X'):
+    if ARGS.NAME.startswith('HTo2X') or ARGS.NAME.startswith('reHLT_HTo2X'):
         if ARGS.SIGNALPOINT is None:
             raise Exception('Need a signal point for HTo2X MC signal.')
         ARGS.SAMPLE = SAMPLES[ARGS.NAME + '_' + Utilities.SPStr(ARGS.SIGNALPOINT)]
@@ -125,7 +125,7 @@ class Analyzer(object):
             raise Exception('Invalid signature: expecting 5 or 8 arguments')
 
         # set HNAME to NAME_SampleName
-        # remember self.NAME is HTo2XTo**_SPStr for signal
+        # remember NAME is HTo2XTo**_SPStr for signal
         HNAME = NAME+'_{}'.format(self.NAME)
 
         # declare the histogram

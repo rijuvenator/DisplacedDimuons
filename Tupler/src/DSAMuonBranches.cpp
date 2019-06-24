@@ -25,7 +25,9 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
   const pat::MuonCollection &patmuons = *patmuonsHandle;
 
   unsigned int idx = 0;
-  double dR_thr = 0.4; // very generous, should probably be tightened downstream
+  double dR_thr = 0.4; // very generous, should be tightened downstream
+  double min_fraction_matched_segm = 0.49; // min. fraction of matched
+					   // segments for storing
   DisplacedMuonFiller muf;
   for (const auto &dsamu : dsamuons) {
     if (debug)
@@ -33,10 +35,25 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     DisplacedMuon muon_cand = muf.Fill(dsamu, ttB, verticesHandle, beamspotHandle, false);
     muon_cand.idx = idx;
 
+    // Number of DT+CSC segments
+    unsigned int nsegments = 0;
+    for (trackingRecHit_iterator hit = dsamu.recHitsBegin();
+	 hit != dsamu.recHitsEnd(); ++hit) {
+      if (!(*hit)->isValid()) continue;
+      DetId id = (*hit)->geographicalId();
+      if (id.det() != DetId::Muon) continue;
+      if (id.subdetId() == MuonSubdetId::DT ||
+	  id.subdetId() == MuonSubdetId::CSC) {
+	nsegments++;
+      }
+    }
+
     // Look for a matched PAT (global or tracker) muon.
-    int idx_patmu_matched_prox = -999, nmatches_prox = -999;
-    std::vector<int> idx_patmu_matched_segm;
-    double dR_min = 999.;
+    int idx_patmu_closest_pd = -999, idx_patmu_closest_pp = -999;
+    int nmatches_closest_pd  = -999, nmatches_closest_pp = -999;
+    std::vector<int>   idx_patmu_matched_segm, n_matched_segm;
+    std::vector<float> dR_pd_matched_segm, dR_pp_matched_segm;
+    double dR_pd_min = 999., dR_pp_min = 999.;
     // Do not waste time trying to match DSA muons with no valid hits.
     if (muon_cand.n_MuonHits > 0) {
       // Print the list of DT and CSC segments belonging to a given
@@ -82,25 +99,30 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
 	//const reco::Track* tk = patmu.combinedMuon().get();
 	//const reco::Track* tk = patmu.innerTrack().get();
 
-        // Compute delta R between the extrapolated global/tracker
-        // tracks and the position of the innermost hit of the DSA
-        // muon.
-        double dR = DRExtrapTrackToDSA(*tk, dsamu, propagator, magfield);
+        // Compute delta R between the position or direction of
+        // extrapolated global/tracker tracks and the position of the
+        // innermost hit of the DSA muon.
+	double dR_pd, dR_pp;
+	DRExtrapTrackToDSA(*tk, dsamu, propagator, magfield, dR_pd, dR_pp);
         if (debug)
           std::cout << "DSA muon #" << idx << " PAT muon #" << idx_patmu
-            << " dR = " << dR << std::endl;
+		    << " dR(pos; dir) = " << dR_pd
+		    << " dR(pos; pos) = " << dR_pp << std::endl;
 
         // Proximity match: take the smallest dR below the delta R
         // threshold.
-        if (dR < dR_thr && dR < dR_min) {
-          dR_min = dR;
-          idx_patmu_matched_prox = idx_patmu;
+        if (dR_pd < dR_thr && dR_pd < dR_pd_min) {
+          dR_pd_min = dR_pd;
+          idx_patmu_closest_pd = idx_patmu;
+        }
+        if (dR_pp < dR_thr && dR_pp < dR_pp_min) {
+          dR_pp_min = dR_pp;
+          idx_patmu_closest_pp = idx_patmu;
         }
 
         std::vector<reco::MuonChamberMatch>::const_iterator chamber;
         std::vector<reco::MuonSegmentMatch>::const_iterator segment;
-        // Print the list of DT and CSC segments matched to a given
-        // PAT muon.
+        // Print the list of DT and CSC segments for a given PAT muon.
         if (debug) {
           for (chamber = patmu.matches().begin();
               chamber != patmu.matches().end(); ++chamber) {
@@ -141,7 +163,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
         // Segment match: consider global/tracker and DSA muons
         // matched if the segments used to build the DSA muon are the
         // same as or a subset of segments of the global/tracker muon.
-        unsigned int nsegments = 0, nmatches = 0;
+        unsigned int nmatches = 0;
         for (trackingRecHit_iterator hit = dsamu.recHitsBegin();
             hit != dsamu.recHitsEnd(); ++hit) {
           if (!(*hit)->isValid()) continue;
@@ -149,7 +171,6 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
           if (id.det() != DetId::Muon) continue;
           if (id.subdetId() == MuonSubdetId::DT ||
               id.subdetId() == MuonSubdetId::CSC) {
-            nsegments++;
             for (chamber = patmu.matches().begin();
                 chamber != patmu.matches().end(); ++chamber) {
               if (chamber->id.rawId() != id.rawId()) continue;
@@ -170,54 +191,55 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
             }
           }
         }
-        if (nsegments > 0 && nsegments == nmatches) {
-          idx_patmu_matched_segm.push_back(idx_patmu);
-          if (debug)
-            std::cout << "DSA-PAT segment match found! DSA muon #" << idx
-              << " PAT muon #" << idx_patmu
-              << " N(matched segments) = " << nmatches << std::endl;
-        }
+
+        if (nsegments > 0) {
+	  if (float(nmatches)/nsegments > min_fraction_matched_segm) {
+	    idx_patmu_matched_segm.push_back(idx_patmu);
+	    n_matched_segm.push_back(nmatches);
+	    dR_pd_matched_segm.push_back(dR_pd);
+	    dR_pp_matched_segm.push_back(dR_pp);
+	    if (debug)
+	      std::cout << "DSA muon #" << idx << " shares " << nmatches << "/"
+			<< nsegments << " segments with PAT muon #" << idx_patmu
+			<< " dR(pos; dir) = " << dR_pd
+			<< " dR(pos; pos) = " << dR_pp << std::endl;
+	  }
+	}
 
 	// Number of matched segments for the closest muon
-	if (idx_patmu == idx_patmu_matched_prox) {
-	  nmatches_prox = nmatches;
+	if (idx_patmu == idx_patmu_closest_pd) {
+	  nmatches_closest_pd = nmatches;
+	}
+	if (idx_patmu == idx_patmu_closest_pp) {
+	  nmatches_closest_pp = nmatches;
 	}
 
         idx_patmu++;
       }
 
       if (debug) {
-        if (idx_patmu_matched_prox >= 0)
-          std::cout << "DSA-PAT proximity match found! DSA muon #" << idx
-		    << " PAT muon #" << idx_patmu_matched_prox
-		    << " dR = " << dR_min << " N(matched segments) = " << nmatches_prox
-		    << std::endl;
-
-        if (idx_patmu_matched_segm.size() > 0 || idx_patmu_matched_prox >= 0) {
-          bool matches_agree = false;
-          for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
-            if (idx_patmu_matched_segm[itrk] == idx_patmu_matched_prox) {
-              std::cout << " Proximity and segment matches agree" << std::endl;
-              matches_agree = true;
-              break;
-            }
-          }
-          if (!matches_agree) {
-            std::cout << " Proximity and segment matches do not agree\n"
-              << "   DSA muon #" << idx
-              << " proximity-matched PAT muon # " << idx_patmu_matched_prox
-              << " segment-matched PAT muon #";
-            if (idx_patmu_matched_segm.size() > 0) {
-              for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
-                std::cout << " " << idx_patmu_matched_segm[itrk];
-              }
-            }
-            else {
-              std::cout << " -999";
-            }
-            std::cout << std::endl;
-          }
-        }
+	if (idx_patmu_closest_pd >= 0) {
+	  std::cout << "  PAT muon closest in (pos; dir): #"
+		    << idx_patmu_closest_pd << " dR = " << dR_pd_min
+		    << " N(matched segments) = " << nmatches_closest_pd
+		    << "/" << nsegments << std::endl;
+	}
+	if (idx_patmu_closest_pp >= 0) {
+	  std::cout << "  PAT muon closest in (pos; pos): #"
+		    << idx_patmu_closest_pp << " dR = " << dR_pp_min
+		    << " N(matched segments) = " << nmatches_closest_pp
+		    << "/" << nsegments << std::endl;
+	}
+        if (idx_patmu_matched_segm.size() > 0) {
+	  std::cout << "  PAT muon(s) with matched segments:\n";
+	  for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
+	    std::cout << "    #" << idx_patmu_matched_segm[itrk]
+		      << " dR(pos; dir) = " << dR_pd_matched_segm[itrk]
+		      << " dR(pos; pos) = " << dR_pp_matched_segm[itrk]
+		      << " N(matched segments) = " << n_matched_segm[itrk]
+		      << "/" << nsegments << std::endl;
+	  }
+	}
       }
     }
 
@@ -245,6 +267,7 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     dsamu_nCSCHits        .push_back(     muon_cand.n_CSCHits    );
     dsamu_nDTStations     .push_back(     muon_cand.n_DTStations );
     dsamu_nCSCStations    .push_back(     muon_cand.n_CSCStations);
+    dsamu_nSegments       .push_back(     nsegments              );
 
     dsamu_d0_pv           .push_back(fabs(muon_cand.d0_pv       ));
     dsamu_d0_bs           .push_back(fabs(muon_cand.d0_bs       ));
@@ -264,25 +287,20 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     dsamu_dzsig_pv_lin    .push_back(     muon_cand.dzsig_pv_lin );
     dsamu_dzsig_bs_lin    .push_back(     muon_cand.dzsig_bs_lin );
 
-    dsamu_idx_ProxMatch   .push_back(     idx_patmu_matched_prox );
-    dsamu_deltaR_ProxMatch.push_back(     dR_min                 );
-    dsamu_nSegms_ProxMatch.push_back(     nmatches_prox          );
-    dsamu_idx_SegMatch    .push_back(     idx_patmu_matched_segm );
+    dsamu_idx_SegmMatch      .push_back(idx_patmu_matched_segm );
+    dsamu_nSegms_SegmMatch   .push_back(n_matched_segm         );
+    dsamu_deltaR_pd_SegmMatch.push_back(dR_pd_matched_segm     );
+    dsamu_deltaR_pp_SegmMatch.push_back(dR_pp_matched_segm     );
+
+    dsamu_idx_pd_ProxMatch   .push_back(idx_patmu_closest_pd   );
+    dsamu_nSegms_pd_ProxMatch.push_back(nmatches_closest_pd    );
+    dsamu_deltaR_pd_ProxMatch.push_back(dR_pd_min              );
+    dsamu_idx_pp_ProxMatch   .push_back(idx_patmu_closest_pp   );
+    dsamu_nSegms_pp_ProxMatch.push_back(nmatches_closest_pp    );
+    dsamu_deltaR_pp_ProxMatch.push_back(dR_pp_min              );
 
     if (debug) {
       std::cout << "DSA muon info:" << muon_cand;
-      std::cout << "  proximity-matched PAT muon: " << idx_patmu_matched_prox
-		<< " (dR = " << dR_min << " N(matched segments) = " << nmatches_prox
-		<< "); segment-matched PAT muon:";
-      if (idx_patmu_matched_segm.size() > 0) {
-        for (unsigned int itrk = 0; itrk < idx_patmu_matched_segm.size(); itrk++) {
-          std::cout << " " << idx_patmu_matched_segm[itrk];
-        }
-      }
-      else {
-        std::cout << " -999";
-      }
-      std::cout << std::endl;
     }
 
     idx++;
@@ -293,11 +311,11 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
 // to the innermost hit of DSA muons and calculate delta R between
 // eta/phi of the extrapolated global/tracker tracks and eta/phi of
 // the position of the innermost hit of the DSA muon.
-double DSAMuonBranches::DRExtrapTrackToDSA(
+void DSAMuonBranches::DRExtrapTrackToDSA(
     const reco::Track& track,
     const reco::Track& dsamuon,
     const edm::ESHandle<Propagator>& propagator,
-    const edm::ESHandle<MagneticField>& magfield)
+    const edm::ESHandle<MagneticField>& magfield, double& dR_pd, double& dR_pp)
 {
   // Create a free trajectory state of the track to be extrapolated
   // (global or tracker muon).
@@ -324,10 +342,8 @@ double DSAMuonBranches::DRExtrapTrackToDSA(
   << " phi: "    << dsamuon.innerPosition().phi() << std::endl;
   */
 
-  double dR = deltaR(ftsPCA.momentum().eta(),
-      ftsPCA.momentum().phi(),
-      dsamuon.innerPosition().eta(),
-      dsamuon.innerPosition().phi());
-
-  return dR;
+  dR_pd = deltaR(ftsPCA.momentum().eta(),       ftsPCA.momentum().phi(),
+		 dsamuon.innerPosition().eta(), dsamuon.innerPosition().phi());
+  dR_pp = deltaR(ftsPCA.position().eta(),       ftsPCA.position().phi(),
+		 dsamuon.innerPosition().eta(), dsamuon.innerPosition().phi());
 }

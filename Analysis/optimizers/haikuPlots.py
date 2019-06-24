@@ -10,7 +10,7 @@ import operator, itertools
 
 PI = R.TMath.Pi()
 
-ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_DCA_PC_LXYE_MASS_VTX_COSA_NPP_NDT_DPHI_OS'
+ALL = '_Combined_NS_NH_FPTE_HLT_REP_PT_NDT_DCA_PC_LXYE_MASS_VTX_COSA_NPP_OS_DPHI'
 
 CONFIG = {
         'vtxChi2' : ((100,  0.,   50.), 'vtx #chi^{2}'          , 'DIM', lambda dim     : dim.normChi2                   , (50, 20, 10, 5, 1)       , operator.lt),

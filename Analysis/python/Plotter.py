@@ -566,9 +566,10 @@ class Canvas(R.TCanvas):
             latex.DrawLatex(pos[0], pos[1], text)
         return latex
 
-    # makes a stat box, given a ROOT color number
-    def makeStatsBox(self, plot, color=1):
-        entries = ('mean', 'stddev', 'nentries', 'underflow', 'overflow')
+    # makes a stat box, given a ROOT color number, for the specified list of entries
+    def makeStatsBox(self, plot, color=1,
+            entries=('mean', 'stddev', 'nentries', 'underflow', 'overflow')):
+        supported_entries = ('mean', 'stddev', 'nentries', 'underflow', 'overflow')
         texts = (
             '{:.4f}'.format(plot.GetMean()),
             '{:.4f}'.format(plot.GetStdDev()),
@@ -599,8 +600,9 @@ class Canvas(R.TCanvas):
         pave.SetBorderSize(0)
 
         # add all the entries and draw, then move the pave
-        for i, (entry, text, name) in enumerate(zip(entries, texts, names)):
-            pave.AddText(0., 1.-float(i)/len(entries)-0.1, '#color[{C}]{{{N} = {T}}}'.format(C=color, N=name, T=text))
+        for i, (entry, text, name) in enumerate(zip(supported_entries, texts, names)):
+            if entry in entries:
+                pave.AddText(0., 1.-float(i)/len(entries)-0.1, '#color[{C}]{{{N} = {T}}}'.format(C=color, N=name, T=text))
         pave.Draw()
         MOVE_OBJECT(pave, Y=.08*len(entries)*self.fontsize)
 
@@ -608,7 +610,7 @@ class Canvas(R.TCanvas):
         return pave
     
     # draws the lumi text, 'CMS', extra text, and legend 
-    def finishCanvas(self, mode='', extrascale=1., drawCMS=True):
+    def finishCanvas(self, mode=None, extrascale=1., drawCMS=True):
         self.makeTransparent()
         self.moveExponent()
         self.cd()
@@ -617,7 +619,7 @@ class Canvas(R.TCanvas):
         tBaseline = 1-self.margins['t']+0.02
         LEFT, RIGHT = self.margins['l'], 1-self.margins['r']
 
-        if mode == '':
+        if mode is None:
             if drawCMS:
                 # 'CMS' is approximately 2.75 times wide as tall, so draw extra at 2.75 * charheight to the right of CMS as a fraction of width
                 CMSOffset = self.fontsize * self.cHeight * (1-self.ratioFactor) * 2.75 / self.cWidth * extrascale
@@ -627,6 +629,8 @@ class Canvas(R.TCanvas):
             else:
                 self.drawText(text=self.extra, pos=(LEFT          , tBaseline), align='bl', fontcode=self.fontcode,fontscale=1.  *extrascale)
                 self.drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
+        elif mode == 'LUMI':
+            self    .drawText(text=self.lumi , pos=(RIGHT         , tBaseline), align='br', fontcode=self.fontcode,fontscale=1.  *extrascale)
         elif mode == 'BOB':
             self    .drawText(text=self.lumi , pos=((RIGHT+LEFT)/2, tBaseline), align='bc', fontcode=self.fontcode,fontscale=1.5 *extrascale)
 
@@ -651,8 +655,8 @@ class Canvas(R.TCanvas):
         R.gROOT.ProcessLine('delete gROOT->FindObject("c");')
 
     # performs a standard finishCanvas, save, and delete
-    def cleanup(self, filename):
-        self.finishCanvas()
+    def cleanup(self, filename, **kwargs):
+        self.finishCanvas(**kwargs)
         #R.SetOwnership(self, False)
         self.save(filename)
         self.deleteCanvas()
@@ -663,7 +667,8 @@ class Canvas(R.TCanvas):
 # integers in the case of ROOT).
 # colorState: position of the color to start with (defaults to the beginning of
 # the color palette list, i.e., zero)
-# getColor(): returns the current color state
+# getColor(): returns the color of the current color state
+# getColorState(): returns the current color state (integer for color position)
 # getNextColor(): returns the current color state and sets the color state to
 # the next color in the palette (modulo the total number of colors)
 # resetColor(): reverts the color state to a given color in the palette
@@ -684,14 +689,24 @@ class ColorPalette:
             self.palette = self.__palettes['defaultPalette']
 
     def getColor(self):
+        return self.palette[self.colorState]
+
+    def getColorState(self):
         return self.colorState
+
+    def advanceColorState(self, amount=1):
+        if self.colorState < len(self.palette)-amount:
+            self.colorState += amount
+        else:
+            self.colorState = 0
 
     def getNextColor(self):
         color = self.palette[self.colorState]
-        if self.colorState < len(self.palette)-1:
-            self.colorState += 1
-        else:
-            self.colorState = 0
+        self.advanceColorState()
+        # if self.colorState < len(self.palette)-1:
+        #     self.colorState += 1
+        # else:
+        #     self.colorState = 0
         return color
 
     def resetColor(self, colorState=0):

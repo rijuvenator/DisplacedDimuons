@@ -542,6 +542,7 @@ float DimuonBranches::Isolation(
 		const reco::TrackCollection &cleanedTracks,
 		bool debug)
 {
+<<<<<<< HEAD
 	const float dRmax = 0.3;
 
 	/* Taken from
@@ -626,7 +627,7 @@ float DimuonBranches::Isolation(
 	}
 	if(debug) std::cout << "isolation = " << sumGeneralPt/momentum.Perp() <<  " = " << sumGeneralPt << "/" << momentum.Perp() << std::endl;
 	return sumGeneralPt/momentum.Perp();
-}
+}}
 
 /* @brief Remove a subset of tracks (tracksToRemove) from a general
  * collection of tracks (trackCollection), returning a collection

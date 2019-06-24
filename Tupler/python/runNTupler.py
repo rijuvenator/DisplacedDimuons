@@ -57,43 +57,48 @@ if CONFIG.CRAB and not CONFIG.TEST:
     CRAB_CFG = '''
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
-config.General.requestName   = 'nTupler_{NAME}'
-config.General.workArea      = 'crab'
-config.General.transferLogs  = True
-config.JobType.pluginName    = 'Analysis'
-config.JobType.psetName      = '{PSET_NAME}'
-config.Data.inputDataset     = '{INPUT_DATASET}'
-config.Data.inputDBS         = '{INPUT_DBS}'
-config.Data.publication      = {PUBLISH}
-config.Data.publishDBS       = '{PUBLISH_DBS}'
-config.Data.ignoreLocality   = {IGNORE_LOCALITY}
-config.Data.splitting        = '{SPLITTING}'
-config.Data.totalUnits       = {TOTAL_UNITS}
-config.Data.unitsPerJob      = {UNITS_PER_JOB}
-config.Data.runRange         = '{RUN_RANGE}'
-config.Data.lumiMask         = '{LUMI_MASK}'
-config.Data.outLFNDirBase    = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
-config.Data.outputDatasetTag = 'ntuple_{NAME}'
+config.General.requestName             = 'nTupler_{NAME}'
+config.General.workArea                = 'crab'
+config.General.transferLogs            = True
+config.JobType.pluginName              = 'Analysis'
+config.JobType.psetName                = '{PSET_NAME}'
+config.JobType.allowUndistributedCMSSW = {ALLOWUNDISTRIBUTEDCMSSW}
+config.Data.inputDataset               = '{INPUT_DATASET}'
+config.Data.inputDBS                   = '{INPUT_DBS}'
+config.Data.publication                = {PUBLISH}
+config.Data.publishDBS                 = '{PUBLISH_DBS}'
+config.Data.ignoreLocality             = {IGNORE_LOCALITY}
+config.Data.splitting                  = '{SPLITTING}'
+config.Data.totalUnits                 = {TOTAL_UNITS}
+config.Data.unitsPerJob                = {UNITS_PER_JOB}
+config.Data.runRange                   = '{RUN_RANGE}'
+config.Data.lumiMask                   = '{LUMI_MASK}'
+config.Data.outLFNDirBase              = '/store/user/%s/DisplacedDimuons/CRAB/' % (getUsernameFromSiteDB())
+config.Data.outputDatasetTag           = 'ntuple_{NAME}'
 if getUsernameFromSiteDB() in ('escalant', 'stempl'):
     STORAGESITE = 'T2_AT_Vienna'
 else:
     STORAGESITE = 'T2_CH_CERN'
-config.Site.storageSite      = STORAGESITE
-config.Site.whitelist        = ['T2_CH_CERN', 'T2_AT_Vienna']
+config.Site.storageSite                = STORAGESITE
+config.Site.whitelist                  = ['T2_CH_CERN', 'T2_AT_Vienna']
 '''
     CRAB_CFG = CRAB_CFG.format(
-        NAME            = CONFIG.DATA.name + ('_GEN' if CONFIG.SOURCE == 'GEN' else '') + ('_AOD' if CONFIG.SOURCE == 'AOD' else ''),
-        PSET_NAME       = F_CMS_CFG,
-        INPUT_DATASET   = CONFIG.DATA.datasets[DATASETKEY],
-        INPUT_DBS       = CONFIG.DATA.instances[DATASETKEY].replace('prod/', ''),
-        PUBLISH         = False,
-        PUBLISH_DBS     = 'phys03',
-        IGNORE_LOCALITY = True,
-        SPLITTING       = 'FileBased',
-        TOTAL_UNITS     = -1,
-        UNITS_PER_JOB   = 20,
-        RUN_RANGE       = '',
-        LUMI_MASK       = '',
+        NAME                    = CONFIG.DATA.name + ('_GEN' if CONFIG.SOURCE == 'GEN' else '') + ('_AOD' if CONFIG.SOURCE == 'AOD' else ''),
+        PSET_NAME               = F_CMS_CFG,
+        ALLOWUNDISTRIBUTEDCMSSW = True,
+        INPUT_DATASET           = CONFIG.DATA.datasets[DATASETKEY],
+        INPUT_DBS               = CONFIG.DATA.instances[DATASETKEY].replace('prod/', ''),
+        PUBLISH                 = False,
+        PUBLISH_DBS             = 'phys03',
+        IGNORE_LOCALITY         = True,
+        SPLITTING               = 'FileBased',
+        TOTAL_UNITS             = -1,
+        UNITS_PER_JOB           = 500,
+        RUN_RANGE               = '',
+        # LUMI_MASK               = '/afs/cern.ch/user/s/stempl/public/DDM/StoppPtls_json_subset.txt',
+        LUMI_MASK               = '/afs/cern.ch/user/s/stempl/public/DDM/cosmics-jsons/CosmicJSON_E_D_UGMT_base_and_bottomOnly.txt',
+        # LUMI_MASK               = '/afs/cern.ch/user/s/stempl/public/DDM/cosmics-jsons/reHLT-validationJSON_sameLScontent.txt',
+        # LUMI_MASK               = '/afs/cern.ch/user/s/stempl/public/DDM/cosmics-jsons/reHLT-validationJSON_differentLScontent.txt',
     )
     # comment out lines not needed -- to be improved by doing it based on data vs mc
     COMMENTS = ('transferLogs', 'ignoreLocality', 'runRange', 'lumiMask')

@@ -6,65 +6,17 @@ from DisplacedDimuons.Common.Utilities import SPStr, SPLumiStr
 import DisplacedDimuons.Analysis.AnalysisTools as AT
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import numpy as np
+from OptimizerTools import SignalInfo, ScaleFactor, calculateFOM, PARSER
 
-FIGURE_OF_MERIT = 'ZBi'
-#FIGURE_OF_MERIT = 'ZPL'
+ARGS = PARSER.parse_args()
+FIGURE_OF_MERIT = ARGS.FOM
+
+PRETTY_LEG = {'ZBi':'Z_{Bi}', 'ZPL':'Z_{PL}'}[FIGURE_OF_MERIT]
 
 FILES = {
     'Signal' : R.TFile.Open('roots/ReweightedPlots_Trig_HTo2XTo2Mu2J.root'),
     'Data'   : R.TFile.Open('roots/ReweightedPlots_IDPHI_DATA.root'),
 }
-
-SignalInfo = {
-#   (1000, 350,   35) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    (1000, 350,  350) : {'sigmaBLimit' : 2.5e-3 , 'sumWeights' : {}},
-    (1000, 350, 3500) : {'sigmaBLimit' : 3.5e-3 , 'sumWeights' : {}},
-#   (1000, 150,   10) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    (1000, 150,  100) : {'sigmaBLimit' : 4.0e-3 , 'sumWeights' : {}},
-    (1000, 150, 1000) : {'sigmaBLimit' : 1.7e-3 , 'sumWeights' : {}},
-#   (1000,  50,    4) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    (1000,  50,   40) : {'sigmaBLimit' : 2.1e-2 , 'sumWeights' : {}},
-    (1000,  50,  400) : {'sigmaBLimit' : 4.1e-3 , 'sumWeights' : {}},
-#   (1000,  20,    2) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    (1000,  20,   20) : {'sigmaBLimit' : 1.0    , 'sumWeights' : {}},
-    (1000,  20,  200) : {'sigmaBLimit' : 1.5e-1 , 'sumWeights' : {}},
-#   ( 400, 150,   40) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 400, 150,  400) : {'sigmaBLimit' : 2.7e-3 , 'sumWeights' : {}},
-    ( 400, 150, 4000) : {'sigmaBLimit' : 4.4e-3 , 'sumWeights' : {}},
-#   ( 400,  50,    8) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 400,  50,   80) : {'sigmaBLimit' : 1.0e-2 , 'sumWeights' : {}},
-    ( 400,  50,  800) : {'sigmaBLimit' : 2.7e-3 , 'sumWeights' : {}},
-#   ( 400,  20,    4) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 400,  20,   40) : {'sigmaBLimit' : 4.8e-2 , 'sumWeights' : {}},
-    ( 400,  20,  400) : {'sigmaBLimit' : 9.6e-3 , 'sumWeights' : {}},
-#   ( 200,  50,   20) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 200,  50,  200) : {'sigmaBLimit' : 8.8e-3 , 'sumWeights' : {}},
-    ( 200,  50, 2000) : {'sigmaBLimit' : 9.7e-3 , 'sumWeights' : {}},
-#   ( 200,  20,    7) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 200,  20,   70) : {'sigmaBLimit' : 4.3e-2 , 'sumWeights' : {}},
-    ( 200,  20,  700) : {'sigmaBLimit' : 9.2e-3 , 'sumWeights' : {}},
-#   ( 125,  50,   50) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 125,  50,  500) : {'sigmaBLimit' : 2.7e-2 , 'sumWeights' : {}},
-    ( 125,  50, 5000) : {'sigmaBLimit' : 6.8e-2 , 'sumWeights' : {}},
-#   ( 125,  20,   13) : {'sigmaBLimit' : 0.     , 'sumWeights' : {}},
-    ( 125,  20,  130) : {'sigmaBLimit' : 4.8e-2 , 'sumWeights' : {}},
-    ( 125,  20, 1300) : {'sigmaBLimit' : 4.3e-2 , 'sumWeights' : {}},
-}
-
-# this is the result of catting the output files
-# from the reweightedPlots jobs
-# lines are of the format mH mX cTau ::: factor weight
-f = open('SignalSumWeights.txt')
-for line in f:
-    cols = line.strip('\n').split()
-    sp = tuple(map(int, cols[:3]))
-    if sp not in SignalInfo: continue
-    factor = int(cols[4])
-    weight = float(cols[5])
-    SignalInfo[sp]['sumWeights'][factor] = weight
-
-def ScaleFactor(sp, factor):
-    return SignalInfo[sp]['sigmaBLimit'] / SignalInfo[sp]['sumWeights'][factor] * HG.INTEGRATED_LUMINOSITY_2016
 
 FACTORS = (1, 2, 5, 10)
 
@@ -86,8 +38,7 @@ def fillData(fs, sp, quantity, factor):
 
     if SignalInfo[sp]['sigmaBLimit'] == 0.: return
 
-    n = s.Integral(0, s.GetNbinsX()+1)
-    s.Scale(ScaleFactor(sp, factor))
+    s.Scale(ScaleFactor(sp, factor, 1.e-2))
 
     # get cumulatives
     sCum = s.GetCumulative(CONFIG[quantity]['forward'])
@@ -103,18 +54,9 @@ def fillData(fs, sp, quantity, factor):
     opt_b   = 0.
 
     for ibin in range(1,nBins+1):
-        S = sCum.GetBinContent(ibin)
-        B = bCum.GetBinContent(ibin)
-        if not CONFIG[quantity]['forward']:
-            S += s.GetBinContent(nBins+1)
-            B += b.GetBinContent(nBins+1)
-        ZBiVal = AT.ZBi(S+B, B, 1.)
-        ZPLVal = AT.ZPL(S+B, B, 1.)
-        cutVal = xAxis.GetBinUpEdge(ibin) if CONFIG[quantity]['forward'] else xAxis.GetBinLowEdge(ibin)
-
-        val = ZBiVal if FIGURE_OF_MERIT == 'ZBi' else ZPLVal
-        if val > fom_max:
-            fom_max = val
+        S, B, cutVal, FOMs = calculateFOM(s, b, sCum, bCum, nBins, ibin, xAxis, CONFIG[quantity]['forward'])
+        if FOMs[FIGURE_OF_MERIT] > fom_max:
+            fom_max = FOMs[FIGURE_OF_MERIT]
             opt_cut = cutVal
             opt_s   = S
             opt_b   = B
@@ -156,25 +98,70 @@ def makePlot(quantity, masses):
     p = Plotter.Plot(g, '', '', 'pl')
     d = Plotter.Plot(dummyG, '', '', 'p')
 
-    c = Plotter.Canvas(lumi='({} GeV, {} GeV)'.format(*masses))
+    c = Plotter.Canvas(lumi='({} GeV, {} GeV) by {}'.format(masses[0], masses[1], PRETTY_LEG))
     c.addMainPlot(d)
     c.addMainPlot(p)
     c.mainPad.SetLogx()
+
+    parameters = {
+        (1000, 20):{'c':4. , 's':3. , 'm':23.},
+        (1000, 50):{'c':3. , 's':3. , 'm':23.},
+        (1000,150):{'c':4. , 's':3. , 'm':23.},
+        (1000,350):{'c':10., 's':1.5, 'm':23.},
+        (400 , 20):{'c':7. , 's':1.5, 'm':23.},
+        (400 , 50):{'c':7. , 's':1.5, 'm':23.},
+        (400 ,150):{'c':25., 's':1.5, 'm':23.},
+        (200 , 20):{'c':8. , 's':2. , 'm':23.},
+        (200 , 50):{'c':15., 's':2. , 'm':23.},
+        (125 , 50):{'c':10., 's':2. , 'm':13.},
+        (125 , 20):{'c':9. , 's':2. , 'm':23.},
+    }
+    f = R.TF1("f", "{m}*exp({s}*TMath::Log(x/{c}))/(1+exp({s}*TMath::Log(x/{c})))".format(**parameters[masses]), .1, 1000.)
+    f.Draw("same")
 
     p.setColor(R.kBlue, which='LM')
     d.setColor(R.kWhite, which='M')
     c.firstPlot.setTitles(X='c#tau [cm]', Y=CONFIG[quantity]['pretty']+' Cut Value')
 
-    c.cleanup('RW_{}_{}_{}_{}.pdf'.format(quantity, masses[0], masses[1], FIGURE_OF_MERIT))
+    c.cleanup('pdfs/RW_{}_{}_{}_{}.pdf'.format(quantity, masses[0], masses[1], FIGURE_OF_MERIT))
 
-# technically, this is wasteful because it makes
-# (mH, mX) plots twice: one for cTau and one for cTau/10
-# I could keep track of which masses had been done with
-# some list and skip if it had already been done
+def makeGlobal(quantity):
+    dummyX, dummyY = np.array([.1, 1000.]), np.array([0., 25.])
+    dummyG = R.TGraph(2, dummyX, dummyY)
+    d = Plotter.Plot(dummyG, '', '', 'p')
+
+    n, x, y, g, p = {}, {}, {}, {}, {}
+    for masses in DATA:
+        n[masses] = len(DATA[masses][quantity]['x'])
+        x[masses] = np.array(DATA[masses][quantity]['x'])
+        y[masses] = np.array(DATA[masses][quantity]['y'])
+
+        g[masses] = R.TGraph(n[masses], x[masses], y[masses])
+        p[masses] = Plotter.Plot(g[masses], '', '', 'pl')
+
+    c = Plotter.Canvas(lumi='{}'.format(PRETTY_LEG))
+    c.addMainPlot(d)
+    for masses in p:
+        c.addMainPlot(p[masses])
+    c.mainPad.SetLogx()
+
+    colors = {1000:R.kRed, 400:R.kBlue, 200:R.kGreen, 125:R.kMagenta}
+
+    d.setColor(R.kWhite, which='M')
+    for masses in p:
+        #p[masses].setColor(R.kBlue, which='LM')
+        p[masses].setColor(colors[masses[0]], which='LM')
+    c.firstPlot.setTitles(X='c#tau [cm]', Y=CONFIG[quantity]['pretty']+' Cut Value')
+
+    c.cleanup('pdfs/RW_{}_Global_{}.pdf'.format(quantity, FIGURE_OF_MERIT))
+
 for fs in ('2Mu2J',):
-    for sp in SignalInfo:
-        masses = (sp[0], sp[1])
-        for quantity in CONFIG:
-            makePlot(quantity, masses)
-
-
+    done = []
+    for quantity in CONFIG:
+        makeGlobal(quantity)
+        for sp in SignalInfo:
+        #for sp in ((1000, 150, 1000),):
+            masses = (sp[0], sp[1])
+            if masses not in done:
+                done.append(masses)
+                makePlot(quantity, masses)
