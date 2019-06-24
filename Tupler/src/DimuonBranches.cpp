@@ -262,7 +262,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   muon_cand2.idx = j;
 
   //testing DSA isolation criteria
-  const bool iso_debug = Lxysig_pv  > 10 && i < 1000 && j < 1000;
+  //const bool iso_debug = Lxysig_pv  > 10 && i < 1000 && j < 1000;
+  const bool iso_debug = false;
 
   // Calculate dimuon isolation if generalTracks collection is available
   float dimuon_isoPmumu = -999., dimuon_isoLxy = -999.;
@@ -542,7 +543,6 @@ float DimuonBranches::Isolation(
 		const reco::TrackCollection &cleanedTracks,
 		bool debug)
 {
-<<<<<<< HEAD
 	const float dRmax = 0.3;
 
 	/* Taken from
@@ -627,7 +627,7 @@ float DimuonBranches::Isolation(
 	}
 	if(debug) std::cout << "isolation = " << sumGeneralPt/momentum.Perp() <<  " = " << sumGeneralPt << "/" << momentum.Perp() << std::endl;
 	return sumGeneralPt/momentum.Perp();
-}}
+}
 
 /* @brief Remove a subset of tracks (tracksToRemove) from a general
  * collection of tracks (trackCollection), returning a collection

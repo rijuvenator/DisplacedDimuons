@@ -590,11 +590,12 @@ static unsigned int eventCount = 0;
 // fill gen branches for some other MC type, simply filling everything
 void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 {
-  std::cout << "\n\n----- New Event: " << eventCount << " -----" << std::endl;
+  bool otherDebug = false;
+  if(otherDebug) std::cout << "\n\n----- New Event: " << eventCount << " -----" << std::endl;
 
   for (const auto &p : gens)
   {
-    if(abs(p.pdgId()) == PDGID::MUON && p.pt() > 2) {
+    if(otherDebug && abs(p.pdgId()) == PDGID::MUON && p.pt() > 2) {
     	std::cout << "== Found Muon ==" << std::endl;
     	printAncestry(p);
 
