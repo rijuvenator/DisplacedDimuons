@@ -1,10 +1,5 @@
 #include "DisplacedDimuons/Tupler/interface/GenBranches.h"
 
-//TODO:Where to put this? For QCD Gen Study
-#include "TGraph.h"
-#include "TCanvas.h"
-#include "TH2D.h"
-
 bool GenBranches::alreadyPrinted_ = false;
 bool GenBranches::alreadyPrinted_GEIP = false;
 
@@ -15,6 +10,63 @@ namespace PDGID
   const int LLX    = 6000113;
   const int HIGGS  = 35;
   const int PROTON = 2212;
+
+  const std::map<int, std::string> NAMES = {
+		  {1,"d"},
+		  {-1,"dbar"},
+		  {2,"u"},
+		  {-2,"ubar"},
+		  {3,"s"},
+		  {-3,"sbar"},
+		  {4,"c"},
+		  {-4,"cbar"},
+		  {5,"b"},
+		  {-5,"bbar"},
+		  {6,"t"},
+		  {-6,"tbar"},
+		  {-13,"mu+"},
+		  {13,"mu-"},
+		  {21, "g"},
+		  {113, "rho0"},
+		  {-113, "rho0bar"},
+		  {213, "rho+"},
+		  {-213, "rho-"},
+		  {211, "pi+"},
+		  {-211, "pi-"},
+		  {321, "K+"},
+		  {-321, "K-"},
+		  {311, "K0"},
+		  {-311, "K0bar"},
+		  {313, "K0*"},
+		  {-313, "K0*bar"},
+		  {411,"D+"},
+		  {-411,"D-"},
+		  {413,"D*+"},
+		  {-413,"D*-"},
+		  {421,"D0"},
+		  {-421,"D0bar"},
+		  {-423,"D*0"},
+		  {423,"D*bar0"},
+		  {443,"J/Psi"},
+		  {-443,"J/Psibar"},
+		  {521,"B+"},
+		  {-521,"B-"},
+		  {523,"B*+"},
+		  {-523,"B*-"},
+		  {511, "B0"},
+		  {-511, "B0bar"},
+		  {513, "B*0"},
+		  {-513, "B*0bar"},
+		  {531, "B0s"},
+		  {-531, "B0sbar"},
+		  {533, "B*_s0"},
+		  {-533, "B*_s0bar"},
+		  {2212,"proton"},
+		  {5122, "lambda_b0"},
+		  {-5122, "lambda_b0bar"} ,
+		  {6000111, "LLXP"},
+		  {6000113, "LLX"}
+  };
 }
 
 bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
@@ -538,39 +590,14 @@ static unsigned int eventCount = 0;
 // fill gen branches for some other MC type, simply filling everything
 void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 {
-  std::cout << "----- New Event: " << eventCount << " -----" << std::endl;
-  TFile f("genInfo.root","update");
-  TCanvas* c = new TCanvas(("decay-chain"+std::to_string(eventCount++)).c_str());
-  std::vector<TGraph*> graphs;
-  float minX = 0;
-  float maxX = 0;
-  float minY = 0;
-  float maxY = 0;
+  std::cout << "\n\n----- New Event: " << eventCount << " -----" << std::endl;
 
-  unsigned int color = 1;
   for (const auto &p : gens)
   {
-    if(abs(p.pdgId()) == PDGID::MUON) {
+    if(abs(p.pdgId()) == PDGID::MUON && p.pt() > 2) {
     	std::cout << "== Found Muon ==" << std::endl;
-    	std::vector<math::XYZPoint> decayLocations;
-    	getAncestry(p,decayLocations);
-    	//make into an array
-    	unsigned int n = decayLocations.size();
-    	float x[n],y[n];
-    	for(unsigned int i =0; i < n; i++){
-    		auto point = decayLocations.at(i);
-    		x[i] = point.x();
-    		if(x[i] > maxX) maxX = x[i];
-    		if(x[i] < minX) minX = x[i];
-    		y[i] = point.y();
-    		if(y[i] > maxY) maxY = y[i];
-    		if(y[i] < minY) minY = y[i];
-    	}
-    	graphs.push_back(new TGraph(n,x,y));
-    	graphs.back()->SetLineColor(color++);
-    	graphs.back()->SetLineWidth(2);
+    	printAncestry(p);
 
-    	//graphs.size() == 1? graphs.back()->Draw("apl") : graphs.back()->Draw("pl same");
     }
     gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
@@ -592,12 +619,6 @@ void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 
     gen_mother.push_back(mIndex    );
   }
-  TH2D* axesHist = new TH2D("",";X [cm];Y[cm]",100,1.1*minX,1.1*maxX,100, 1.1*minY,1.1*maxY);
-  axesHist->Draw();
-  for(auto graph : graphs) graph->Draw("pl same");
-  c->Write();
-  f.Write("",TObject::kOverwrite);
-  f.Close();
 }
 
 // Propagate parameters of gen particle with index idx to the point of
@@ -619,17 +640,15 @@ FreeTrajectoryState GenBranches::PropagateToBeamSpot(
   return ftsPCABS;
 }
 
-void GenBranches::getAncestry(const reco::Candidate& gen,std::vector<math::XYZPoint>& decayChain) const{
+void GenBranches::printAncestry(const reco::Candidate& gen) const{
 	if(gen.numberOfMothers() != 0) {
-		getAncestry(*gen.mother(),decayChain);
+		printAncestry(*gen.mother());
 		std::cout << "|" << std::endl;
 		std::cout << "v" << std::endl;
 	}
-	std::string name = PDG_NAMES.find(gen.pdgId()) != PDG_NAMES.end()? PDG_NAMES.at(gen.pdgId()) : "???";
-	std::cout << std::setw(10) << name << " (" << std::setw(6) << gen.pdgId() << ")\t at [ "
-			<< std::setprecision(3)<< std::setw(6) << gen.vx() << ", " << std::setw(6)<<gen.vy() << ", " << std::setw(6) << gen.vz() << "]"
-			" with nDaughters: " <<std::setw(3) << gen.numberOfDaughters()<< std::endl;
-	math::XYZPoint p;
-	p.SetCoordinates(gen.vx(),gen.vy(),gen.vz());
-	decayChain.push_back(p);
+	std::string name = PDGID::NAMES.find(gen.pdgId()) != PDGID::NAMES.end()? PDGID::NAMES.at(gen.pdgId()) : "???";
+	std::cout << std::setw(10) << name << " (" << std::setw(6) << gen.pdgId() << ")\t with pt: " << std::setw(3) << gen.pt() <<" at [eta: "
+			<< std::setprecision(3)<< std::setw(6) << gen.eta() << ", phi: " << std::setw(6)<<gen.phi() <<
+			"] at ("<< std::setw(6) << gen.vx() << ", " << std::setw(6)<<gen.vy() << ", "<< std::setw(6)<<gen.vz() <<
+			") with nDaughters: " <<std::setw(3) << gen.numberOfDaughters()<< std::endl;
 }

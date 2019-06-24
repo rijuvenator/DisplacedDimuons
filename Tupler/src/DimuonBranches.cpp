@@ -261,17 +261,20 @@ void DimuonBranches::FillDimuon(int i, int j,
   muon_cand1.idx = i;
   muon_cand2.idx = j;
 
+  //testing DSA isolation criteria
+  const bool iso_debug = Lxysig_pv  > 10 && i < 1000 && j < 1000;
+
   // Calculate dimuon isolation if generalTracks collection is available
   float dimuon_isoPmumu = -999., dimuon_isoLxy = -999.;
   float muon_cand1_iso = -999., muon_cand2_iso = -999.;
   if (!generalTracksHandle.failedToGet()) {
 	  const reco::TrackCollection &generalTracks = *generalTracksHandle;
 
-	  if(debug) {
+	  if(debug||iso_debug) {
 		  std::cout << "-------- Looking at Isolation --------" << std::endl;
-		  std::cout << "dim-pT: " << dimu_p4.Pt () << std::endl;
-		  std::cout << "mu1-pT: " << rtt1.track().pt() << std::endl;
-		  std::cout << "mu2-pT: " << rtt2.track().pt() << std::endl;
+		  std::cout << "dim-pT: " << dimu_p4.Pt () << " eta: "<< dimu_p4.Eta() << " phi: " << dimu_p4.Phi ()<< std::endl;
+		  std::cout << "mu1-pT: " << rtt1.track().pt()<< " eta: "<< rtt1.track().eta() << " phi: "<< rtt1.track().phi() << std::endl;
+		  std::cout << "mu2-pT: " << rtt2.track().pt()<< " eta: "<< rtt2.track().eta() << " phi: "<< rtt2.track().phi() << std::endl;
 	  }
 
 	  //clean up the general tracks so that they don't contain the muons we are using
@@ -279,28 +282,28 @@ void DimuonBranches::FillDimuon(int i, int j,
 	  muonTracks.push_back(rtt1);
 	  muonTracks.push_back(rtt2);
 
-	  const reco::TrackCollection& cleanedTracks = RemoveTracksFromCollection(generalTracks,muonTracks,debug);
-	  if(debug)std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
+	  const reco::TrackCollection& cleanedTracks = RemoveTracksFromCollection(generalTracks,muonTracks,debug||iso_debug);
+	  if(debug||iso_debug)std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
 
 	  // using momentum direction to define cone
 	  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-	  if(debug) std::cout << "== Isolating Dimuon Around Pmumu == " << std::endl;
-	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
+	  if(debug||iso_debug) std::cout << "== Isolating Dimuon Around Pmumu == " << std::endl;
+	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, cleanedTracks, debug||iso_debug);
 
 	  // using SV-PV to define cone
 	  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-	  if(debug) std::cout << "== Isolating Dimuon Around Lxy == " << std::endl;
-	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, cleanedTracks, debug);
+	  if(debug||iso_debug) std::cout << "== Isolating Dimuon Around Lxy == " << std::endl;
+	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, cleanedTracks, debug||iso_debug);
 
 	  //first muon individually
 	  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
-	  if(debug) std::cout << "== Isolating Mu1 == " << std::endl;
-	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, cleanedTracks,debug);
+	  if(debug||iso_debug) std::cout << "== Isolating Mu1 == " << std::endl;
+	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, cleanedTracks,debug||iso_debug);
 
 	  //second muon individually
 	  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
-	  if(debug) std::cout << "== Isolating Mu2 == " << std::endl;
-	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, cleanedTracks,debug);
+	  if(debug||iso_debug) std::cout << "== Isolating Mu2 == " << std::endl;
+	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, cleanedTracks,debug||iso_debug);
   }
   else {
 	  if (gtWarning == false) {
@@ -403,7 +406,8 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu2_missingHitsAfterVtx.push_back(cand2_missHitsAfterVert     );
   dim_mu2_iso				 .push_back(muon_cand2_iso		        );
 
-  if (debug)
+  //if (debug)
+  if (debug||iso_debug)
   {
     std::cout << "Dimuon info: muon id's = " << i << " " << j
 	      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
@@ -594,7 +598,7 @@ float DimuonBranches::Isolation(
 	    	if(dr > pars.drMax) continue;
 	    	if(it->normalizedChi2() > pars.chi2NdofMax) continue;
 
-	    	std::cout << "  general track #" << itrk
+	    	if(pt >1)std::cout << "  general track #" << itrk
 	    			<< " selected! pT = " << pt << " d0 = " << d0 << " z = " << z
 					<< " eta = " << eta << " phi = " << phi << " dR = " << dr <<std::endl;
 
@@ -620,7 +624,7 @@ float DimuonBranches::Isolation(
 	for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
 		sumGeneralPt += (*it)->pt();
 	}
-
+	if(debug) std::cout << "isolation = " << sumGeneralPt/momentum.Perp() <<  " = " << sumGeneralPt << "/" << momentum.Perp() << std::endl;
 	return sumGeneralPt/momentum.Perp();
 }
 
