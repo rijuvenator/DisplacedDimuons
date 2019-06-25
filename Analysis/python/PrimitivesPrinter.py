@@ -162,9 +162,9 @@ def RecoMuonPrint(obj, title=True, header=True, lines=(1, 2, 3), alt=None):
             d = dict(obj.__dict__)
 
             if RTYPE == 'DSA':
-                d['IDXPROX'] = -1 if obj.idx_ProxMatch is None else obj.idx_ProxMatch 
-                d['DRPROX'] = obj.deltaR_ProxMatch
-                d['SEGM'] = ', '.join(map(str, obj.idx_SegMatch)) if obj.idx_SegMatch is not None else '-'
+                d['IDXPROX'] = -1 if obj.ProxMatchPD.idx is None else obj.ProxMatchPD.idx
+                d['DRPROX']  = obj.ProxMatchPD.deltaR
+                d['SEGM']    = ', '.join(map(str, obj.SegMatchPD.idx)) if obj.SegMatchPD.idx is not None else '-'
 
             if RTYPE == 'PAT':
                 d['isGlobal'] = str(d['isGlobal'])

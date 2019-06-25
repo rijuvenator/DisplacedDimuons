@@ -465,13 +465,12 @@ class RecoMuon(Muon):
             self.normChi2_Global = self.chi2_Global/self.ndof_Global if self.ndof_Global != 0 else float('inf')
         # only DSA has these attributes
         if tag in ('DSA',):
-            for attr in ('idx_ProxMatch', 'idx_SegMatch', 'deltaR_ProxMatch'):
+            for attr in ('nSegments',):
                 self.set(attr, E, prefix+attr, i)
-            self.set('nSeg_ProxMatch', E, prefix+'nSegms_ProxMatch', i)
-            if     self.idx_ProxMatch    < 0   : self.idx_ProxMatch    = None
-            if len(self.idx_SegMatch)   == 0   : self.idx_SegMatch     = None
-            if     self.deltaR_ProxMatch > 500.: self.deltaR_ProxMatch = float('inf')
-            if     self.nSeg_ProxMatch   < 0   : self.nSeg_ProxMatch   = None
+            self.ProxMatchPD = PATMatch(E, i, prefix, 'Prox', 'PD')
+            self.ProxMatchPP = PATMatch(E, i, prefix, 'Prox', 'PP')
+            self.SegMatchPD  = PATMatch(E, i, prefix, 'Seg' , 'PD')
+            self.SegMatchPP  = PATMatch(E, i, prefix, 'Seg' , 'PP')
         # only refitted PAT has these attributes
         if 'REF' in tag:
             if 'PAT' in self.tag:
@@ -482,6 +481,28 @@ class RecoMuon(Muon):
         if name in ('d0', 'dz', 'd0Sig', 'dzSig', 'd0Err', 'dzErr'):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
+
+class PATMatch(Primitive):
+    def __init__(self, E, i, prefix, matchType, vectorType):
+        Primitive.__init__(self)
+        self.matchType  = matchType
+        self.vectorType = vectorType
+        mapping = {
+            'idx'   :'idx_{}{}Match'     .format('' if matchType == 'Seg' else vectorType.lower() + '_', matchType + ('' if matchType == 'Prox' else 'm')),
+            'nSeg'  :'nSegms_{}{}Match'  .format('' if matchType == 'Seg' else vectorType.lower() + '_', matchType + ('' if matchType == 'Prox' else 'm')),
+            'deltaR':'deltaR_{}_{}Match' .format(                              vectorType.lower()      , matchType + ('' if matchType == 'Prox' else 'm')),
+        }
+        for attr in mapping:
+            self.set(attr, E, prefix+mapping[attr], i)
+
+        if matchType == 'Prox':
+            if self.idx          < 0    : self.idx    = None
+            if self.deltaR       > 500. : self.deltaR = float('inf')
+            if self.nSeg         < 0    : self.nSeg   = None
+        elif matchType == 'Seg':
+            if len(self.idx   ) == 0    : self.idx    = None
+            if len(self.deltaR) == 0    : self.deltaR = None
+            if len(self.nSeg  ) == 0    : self.nSeg   = None
 
 # impact parameter wrapper class for
 # d0 and dz, their significances,

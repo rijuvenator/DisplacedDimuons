@@ -31,26 +31,21 @@ config = {
     'trkChi21' : {'cast':float, 'col':28},
     'trkChi22' : {'cast':float, 'col':29},
 
-    'PCA'      : {'cast':float, 'col':31},
-    'PCA_XY'   : {'cast':float, 'col':32},
-    'PCA_Z'    : {'cast':float, 'col':33},
+    'nCSC1'    : {'cast':int  , 'col':31},
+    'nCSC2'    : {'cast':int  , 'col':32},
+    'nDT1'     : {'cast':int  , 'col':33},
+    'nDT2'     : {'cast':int  , 'col':34},
 
-    'nCSC1'    : {'cast':int  , 'col':35},
-    'nCSC2'    : {'cast':int  , 'col':36},
-    'nDT1'     : {'cast':int  , 'col':37},
-    'nDT2'     : {'cast':int  , 'col':38},
+    'deltaPhi' : {'cast':float, 'col':36},
 
-    'deltaPhi' : {'cast':float, 'col':40},
-
-    'q1'       : {'cast':int  , 'col':42},
-    'q2'       : {'cast':int  , 'col':43},
-    'rq1'      : {'cast':int  , 'col':44},
-    'rq2'      : {'cast':int  , 'col':45},
+    'q1'       : {'cast':int  , 'col':38},
+    'q2'       : {'cast':int  , 'col':39},
+    'rq1'      : {'cast':int  , 'col':40},
+    'rq2'      : {'cast':int  , 'col':41},
 }
 
 f = open(sys.argv[1])
 
-MODE = 'PCA'
 MODE = 'HITS'
 MODE = 'DPHI'
 MODE = 'CHARGE'
@@ -71,10 +66,6 @@ for line in f:
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
     # some useful expressions... nothing yet
-
-    if MODE == 'PCA':
-        if vals['PCA'] > 200.:
-            print line.strip('\n')
 
     if MODE == 'HITS':
         nCSC1, nCSC2, nDT1, nDT2 = vals['nCSC1'], vals['nCSC2'], vals['nDT1'], vals['nDT2']

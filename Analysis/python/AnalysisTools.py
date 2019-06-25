@@ -521,12 +521,14 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # defines a SegMatch, returns a pair of indices (called candidate)
     # uses inputPATs, above
     def lookForSegMatch(DSAmuon):
-        if DSAmuon.idx_SegMatch is None:
+        if DSAmuon.SegMatchPD.idx is None:
             return None
+
+        selectedSegMatches = [idx for idx, nSeg in zip(DSAmuon.SegMatchPD.idx, DSAmuon.SegMatchPD.nSeg) if nSeg == DSAmuon.nSegments]
 
         # only consider segMatches that are selectedPATmuons
         # don't do this anymore
-        # segMatches = [idx for idx in DSAmuon.idx_SegMatch if idx in inputPATs]
+        # segMatches = [idx for idx in DSAmuon.SegMatchPD.idx if idx in inputPATs]
 
         # ONLY if there are multiple segment matches,
         # filter the segment matches based on some selections
@@ -537,12 +539,12 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         # if it gets down to 2+, great -- prox will disambiguate
         # if it gets down to 0, the filtering would cause us to lose the match,
         # so pretend the filtering didn't happen
-        if len(DSAmuon.idx_SegMatch) > 1 and PATSelections is not None:
-            segMatches = [idx for idx in DSAmuon.idx_SegMatch if PATSelections[idx].allOf(*cutList)]
+        if len(selectedSegMatches) > 1 and PATSelections is not None:
+            segMatches = [idx for idx in selectedSegMatches if PATSelections[idx].allOf(*cutList)]
             if len(segMatches) == 0:
-                segMatches = DSAmuon.idx_SegMatch
+                segMatches = selectedSegMatches
         else:
-            segMatches = DSAmuon.idx_SegMatch
+            segMatches = selectedSegMatches
 
         # if 0, no matches
         # if 1, take the match
@@ -551,8 +553,8 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
             return None
 
         if len(segMatches) > 1:
-            if DSAmuon.idx_ProxMatch in segMatches:
-                candidate = DSAmuon.idx_ProxMatch
+            if DSAmuon.ProxMatchPD.idx in segMatches:
+                candidate = DSAmuon.ProxMatchPD.idx
             else:
                 # take first entry
                 # which is the smallest index = largest pT
@@ -568,19 +570,22 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     # as a last resort, use the proximity match in certain cases
     def lookForProximityMatch(DSAmuon):
         # only do this if there are NO segment matches
-        if DSAmuon.idx_SegMatch is not None: return None
-        if DSAmuon.idx_ProxMatch is None: return None
+
+        # to do: this line used to read  if DSAmuon.SegMatchPD.idx is not None: return None
+        # but now, it being None doesn't mean there ARE valid SegMatches
+        #if DSAmuon.SegMatchPD.idx is not None: return None
+        if DSAmuon.ProxMatchPD.idx is None: return None
 
         # option 1: proximity match is global ONLY and within deltaR of 0.1
-        if         inputPATs[DSAmuon.idx_ProxMatch].isGlobal  \
-           and not inputPATs[DSAmuon.idx_ProxMatch].isTracker \
-           and     DSAmuon.deltaR_ProxMatch < 0.1:
-            return DSAmuon.idx_ProxMatch
+        if         inputPATs[DSAmuon.ProxMatchPD.idx].isGlobal  \
+           and not inputPATs[DSAmuon.ProxMatchPD.idx].isTracker \
+           and     DSAmuon.ProxMatchPD.deltaR < 0.1:
+            return DSAmuon.ProxMatchPD.idx
 
         # option 2: proximity match is within deltaR of 0.05
         thresh = 0.15
-        if DSAmuon.deltaR_ProxMatch < thresh:
-            return DSAmuon.idx_ProxMatch
+        if DSAmuon.ProxMatchPD.deltaR < thresh:
+            return DSAmuon.ProxMatchPD.idx
 
         return None
 

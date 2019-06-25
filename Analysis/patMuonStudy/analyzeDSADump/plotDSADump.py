@@ -62,21 +62,17 @@ config = {
     'trkChi21' : {'cast':float, 'col':28},
     'trkChi22' : {'cast':float, 'col':29},
 
-    'PCA'      : {'cast':float, 'col':31},
-    'PCA_XY'   : {'cast':float, 'col':32},
-    'PCA_Z'    : {'cast':float, 'col':33},
+    'nCSC1'    : {'cast':int  , 'col':31},
+    'nCSC2'    : {'cast':int  , 'col':32},
+    'nDT1'     : {'cast':int  , 'col':33},
+    'nDT2'     : {'cast':int  , 'col':34},
 
-    'nCSC1'    : {'cast':int  , 'col':35},
-    'nCSC2'    : {'cast':int  , 'col':36},
-    'nDT1'     : {'cast':int  , 'col':37},
-    'nDT2'     : {'cast':int  , 'col':38},
+    'deltaPhi' : {'cast':float, 'col':36},
 
-    'deltaPhi' : {'cast':float, 'col':40},
-
-    'q1'       : {'cast':int  , 'col':42},
-    'q2'       : {'cast':int  , 'col':43},
-    'rq1'      : {'cast':int  , 'col':44},
-    'rq2'      : {'cast':int  , 'col':45},
+    'q1'       : {'cast':int  , 'col':38},
+    'q2'       : {'cast':int  , 'col':39},
+    'rq1'      : {'cast':int  , 'col':40},
+    'rq2'      : {'cast':int  , 'col':41},
 }
 
 
@@ -101,7 +97,7 @@ for line in f:
 
     h['maxtrkChi2'].Fill(max(vals['trkChi21'], vals['trkChi22']))
 
-    for val in ('PCA', 'PCA_XY', 'PCA_Z', 'LxySig', 'vtxChi2'):
+    for val in ('LxySig', 'vtxChi2'):
         h[val].Fill(vals[val])
 
     h['d0Sig'].Fill(vals['d0Sig1'])
@@ -121,9 +117,9 @@ dtype = 'Data'
 if args.SIG: dtype = 'Signal'
 
 # make plots, special things for 2D
-for key in ('trkChi2', 'maxtrkChi2', 'PCA', 'PCA_XY', 'PCA_Z', 'd0Sig', 'mind0Sig', 'LxySig', 'vtxChi2', 'nDTHits', 'nCSCHits', 'nHitsScat'):
+for key in ('trkChi2', 'maxtrkChi2', 'd0Sig', 'mind0Sig', 'LxySig', 'vtxChi2', 'nDTHits', 'nCSCHits', 'nHitsScat'):
     IS2D = 'Scat' in key
-    logy = (args.SIG and ('PCA' in key or key.endswith('Hits')))
+    logy = (args.SIG and (key.endswith('Hits')))
 
     c = Plotter.Canvas(lumi='DSA muons in DSA-DSA dimuons in {}'.format(dtype), logy=logy)
     p = Plotter.Plot(h[key], '', '', 'hist' if not IS2D else 'text')

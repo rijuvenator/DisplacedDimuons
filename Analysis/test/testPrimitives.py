@@ -10,7 +10,7 @@ if not 'lxplus' in os.environ['HOSTNAME']:
 else:
     PREFIX = ''
 #F_NTUPLE = PREFIX+Constants.DIR_EOS+'NTuples/ntuple_HTo2XTo4Mu_125_20_13.root'
-F_NTUPLE = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Apr26/ntuple_HTo2XTo4Mu_125_20_13.root'
+F_NTUPLE = '/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Jun23/ntuple_HTo2XTo4Mu_125_20_13.root'
 
 def tprint(msg):
     print '\033[32mPRIMITIVES TEST: ' + msg + '\033[m'
