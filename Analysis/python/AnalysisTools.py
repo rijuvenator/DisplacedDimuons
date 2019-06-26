@@ -524,7 +524,11 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         if DSAmuon.SegMatchPD.idx is None:
             return None
 
-        selectedSegMatches = [idx for idx, nSeg in zip(DSAmuon.SegMatchPD.idx, DSAmuon.SegMatchPD.nSeg) if nSeg == DSAmuon.nSegments]
+        # define what a segment match is
+        # the tuples contain segment matches with 50% matched segments and above
+        # fSeg sets the actual threshold to 2/3
+        fSeg = 0.66
+        selectedSegMatches = [idx for idx, nSeg in zip(DSAmuon.SegMatchPD.idx, DSAmuon.SegMatchPD.nSeg) if float(nSeg)/DSAmuon.nSegments > fSeg]
 
         # only consider segMatches that are selectedPATmuons
         # don't do this anymore
@@ -582,9 +586,8 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
            and     DSAmuon.ProxMatchPD.deltaR < 0.1:
             return DSAmuon.ProxMatchPD.idx
 
-        # option 2: proximity match is within deltaR of 0.05
-        thresh = 0.15
-        if DSAmuon.ProxMatchPD.deltaR < thresh:
+        # option 2: proximity match is within deltaR of 0.15
+        if DSAmuon.ProxMatchPD.deltaR < 0.15:
             return DSAmuon.ProxMatchPD.idx
 
         return None
