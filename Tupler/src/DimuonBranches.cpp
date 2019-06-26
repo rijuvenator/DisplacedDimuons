@@ -3,16 +3,20 @@
 
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/RecoCandidate/interface/IsoDepositDirection.h"
+#include "RecoMuon/MuonIsolation/plugins/TrackSelector.h"
+//TODO: Figure out how to just include library
+#include "RecoMuon/MuonIsolation/plugins/TrackSelector.cc"
 
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 #include "PhysicsTools/RecoUtils/interface/CheckHitPattern.h"
 #include "RecoVertex/VertexTools/interface/InvariantMassFromVertex.h"
 
-#include "RecoMuon/MuonIsolation/plugins/TrackSelector.h"
-//TODO: Figure out how to just include library
-#include "RecoMuon/MuonIsolation/plugins/TrackSelector.cc"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include <assert.h>
 
 bool DimuonBranches::alreadyPrinted_ = false;
 
@@ -208,27 +212,6 @@ void DimuonBranches::FillDimuon(int i, int j,
   // Dimuon 4-vector
   TLorentzVector dimu_p4 = rt1_p4 + rt2_p4;
 
-  // Calculate dimuon isolation if generalTracks collection is available
-  float dimuon_isoPmumu = -999., dimuon_isoLxy = -999.;
-  if (!generalTracksHandle.failedToGet()) {
-    const reco::TrackCollection &generalTracks = *generalTracksHandle;
-
-    // using momentum direction to define cone
-    reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
-    dimuon_isoPmumu = DimuonIsolation(pmumuDir, pv,dimu_p4, beamspot, generalTracks, debug);
-
-    // using SV-PV to define cone
-    reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
-    dimuon_isoLxy = DimuonIsolation(lxyDir, pv,dimu_p4, beamspot, generalTracks, debug);
-  }
-  else {
-    if (gtWarning == false) {
-      edm::LogWarning("DimuonBranches")
-	<< "+++ Warning: generalTracks collection is not found +++";
-      gtWarning = true;
-    }
-  }
-
   // delta phi
   float dPhi = fabs(deltaPhi(diffP.Phi(), dimu_p4.Phi()));
 
@@ -277,6 +260,59 @@ void DimuonBranches::FillDimuon(int i, int j,
   DisplacedMuon muon_cand2 = muf.Fill(rtt2.track(), ttB, verticesHandle, beamspotHandle, false);
   muon_cand1.idx = i;
   muon_cand2.idx = j;
+
+  //testing DSA isolation criteria
+  //const bool iso_debug = Lxysig_pv  > 10 && i < 1000 && j < 1000;
+  const bool iso_debug = false;
+
+  // Calculate dimuon isolation if generalTracks collection is available
+  float dimuon_isoPmumu = -999., dimuon_isoLxy = -999.;
+  float muon_cand1_iso = -999., muon_cand2_iso = -999.;
+  if (!generalTracksHandle.failedToGet()) {
+	  const reco::TrackCollection &generalTracks = *generalTracksHandle;
+
+	  if(debug||iso_debug) {
+		  std::cout << "-------- Looking at Isolation --------" << std::endl;
+		  std::cout << "dim-pT: " << dimu_p4.Pt () << " eta: "<< dimu_p4.Eta() << " phi: " << dimu_p4.Phi ()<< std::endl;
+		  std::cout << "mu1-pT: " << rtt1.track().pt()<< " eta: "<< rtt1.track().eta() << " phi: "<< rtt1.track().phi() << std::endl;
+		  std::cout << "mu2-pT: " << rtt2.track().pt()<< " eta: "<< rtt2.track().eta() << " phi: "<< rtt2.track().phi() << std::endl;
+	  }
+
+	  //clean up the general tracks so that they don't contain the muons we are using
+	  std::vector<reco::TransientTrack> muonTracks;
+	  muonTracks.push_back(rtt1);
+	  muonTracks.push_back(rtt2);
+
+	  const reco::TrackCollection& cleanedTracks = RemoveTracksFromCollection(generalTracks,muonTracks,debug||iso_debug);
+	  if(debug||iso_debug)std::cout << "generalTracks.size(): " << generalTracks.size() << " cleanedTracks.size(): " << cleanedTracks.size() << std::endl;
+
+	  // using momentum direction to define cone
+	  reco::isodeposit::Direction pmumuDir(dimu_p4.Eta(), dimu_p4.Phi());
+	  if(debug||iso_debug) std::cout << "== Isolating Dimuon Around Pmumu == " << std::endl;
+	  dimuon_isoPmumu = Isolation(pmumuDir, pv,dimu_p4, beamspot, cleanedTracks, debug||iso_debug);
+
+	  // using SV-PV to define cone
+	  reco::isodeposit::Direction lxyDir(diffP.Eta(), diffP.Phi());
+	  if(debug||iso_debug) std::cout << "== Isolating Dimuon Around Lxy == " << std::endl;
+	  dimuon_isoLxy = Isolation(lxyDir, pv,dimu_p4, beamspot, cleanedTracks, debug||iso_debug);
+
+	  //first muon individually
+	  reco::isodeposit::Direction muon1Dir(muon_cand1.eta, muon_cand1.phi);
+	  if(debug||iso_debug) std::cout << "== Isolating Mu1 == " << std::endl;
+	  muon_cand1_iso = Isolation(muon1Dir, pv,rt1_p4, beamspot, cleanedTracks,debug||iso_debug);
+
+	  //second muon individually
+	  reco::isodeposit::Direction muon2Dir(muon_cand2.eta, muon_cand2.phi);
+	  if(debug||iso_debug) std::cout << "== Isolating Mu2 == " << std::endl;
+	  muon_cand2_iso = Isolation(muon2Dir, pv,rt2_p4, beamspot, cleanedTracks,debug||iso_debug);
+  }
+  else {
+	  if (gtWarning == false) {
+		  edm::LogWarning("DimuonBranches")
+		  << "+++ Warning: generalTracks collection is not found +++";
+		  gtWarning = true;
+	  }
+  }
 
   // Attempt to refit the primary vertex w/o the candidate muon
   // tracks.  Requires "reco::Tracks generalTracks" collection,
@@ -340,6 +376,7 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu1_dzsig_bs_lin       .push_back(     muon_cand1.dzsig_bs_lin);
   dim_mu1_hitsBeforeVtx      .push_back(cand1_hitsInFrontOfVert     );
   dim_mu1_missingHitsAfterVtx.push_back(cand1_missHitsAfterVert     );
+  dim_mu1_iso				 .push_back(muon_cand1_iso			    );
 
   // second muon candidate resulting from the common-vertex fit
   dim_mu2_idx                .push_back(     muon_cand2.idx         );
@@ -368,8 +405,10 @@ void DimuonBranches::FillDimuon(int i, int j,
   dim_mu2_dzsig_bs_lin       .push_back(     muon_cand2.dzsig_bs_lin);
   dim_mu2_hitsBeforeVtx      .push_back(cand2_hitsInFrontOfVert     );
   dim_mu2_missingHitsAfterVtx.push_back(cand2_missHitsAfterVert     );
+  dim_mu2_iso				 .push_back(muon_cand2_iso		        );
 
-  if (debug)
+  //if (debug)
+  if (debug||iso_debug)
   {
     std::cout << "Dimuon info: muon id's = " << i << " " << j
 	      << " pt = "  << dimu_p4.Pt()  << " p = "   << dimu_p4.P()
@@ -400,6 +439,10 @@ void DimuonBranches::FillDimuon(int i, int j,
       << " / " << cand2_hitsInFrontOfVert
       << " missHitsAfterVert mu1 / mu2: " << cand1_missHitsAfterVert
       << " / " << cand2_missHitsAfterVert << std::endl;
+    std::cout << "Pmumu Isolation: " << dimuon_isoPmumu << std::endl;
+    std::cout << "Lxy   Isolation: " << dimuon_isoLxy << std::endl;
+    //TODO: Change Displaced Muon class to hold isolation information or calculate it itself?
+    std::cout << "Muon1 Iso: " << muon_cand1_iso << " Muon2 Iso: " << muon_cand2_iso << std::endl;
     std::cout << "Refitted DSA muon info:" << muon_cand1;
     std::cout << "Refitted DSA muon info:" << muon_cand2;
   }
@@ -482,81 +525,147 @@ reco::Vertex DimuonBranches::RefittedVertex(
   return newvtx;
 }
 
-//using namespace muonisolation;
-/* @brief Determines if a dimuon, described with primary vertex pv, and momentum dimuon
- * is isolated with respect to other tracks found within the event.
+
+/* @brief Determines if a track, described with primary vertex pv, and momentum momentum
+ * pointing in direction isoConeDirection is isolated with respect to other tracks found within the event.
  *
  * Function modelled from:
  *
  * https://github.com/cms-sw/cmssw/blob/f092629e3aac118bcf206450291a0c042c87769d/RecoMuon/MuonIsolation/plugins/TrackExtractor.cc
  *
- * returns (Sum of other tracks momentum in cone) / (Sum of dimuon momentum)
+ * returns (Sum of other tracks transverse momentum in cone) / (track transverse momentum)
  */
-float DimuonBranches::DimuonIsolation(
+float DimuonBranches::Isolation(
 		const reco::isodeposit::Direction& isoConeDirection,
 		const reco::Vertex& pv,
-		const TLorentzVector& dimuon,
+		const TLorentzVector& momentum,
 		const reco::BeamSpot &beamspot,
-		const reco::TrackCollection &generalTracks,
+		const reco::TrackCollection &cleanedTracks,
 		bool debug)
 {
-  const float dRmax = 0.3;
+	const float dRmax = 0.3;
 
-  /* Taken from
-   *
-   * https://github.com/cms-sw/cmssw/blob/02d4198c0b6615287fd88e9a8ff650aea994412e/RecoMuon/MuonIsolationProducers/python/trackExtractorBlocks_cff.py
-   */
-  const float diffZ = 0.2;
-  const float diffR = 0.1;
-  const int nHitsMin = 0;
-  const int chi2NdofMax = 1e9;
-  const float chi2ProbMin = -1;
-  const float ptMin = -1;
+	/* Taken from
+	 *
+	 * https://github.com/cms-sw/cmssw/blob/02d4198c0b6615287fd88e9a8ff650aea994412e/RecoMuon/MuonIsolationProducers/python/trackExtractorBlocks_cff.py
+	 */
+	const float diffZ = 0.2;
+	const float diffR = 0.1;
+	const int nHitsMin = 0;
+	const int chi2NdofMax = 1e9;
+	const float chi2ProbMin = -1;
+	const float ptMin = -1;
 
-  const float vtx_z = pv.z();
+	const float vtx_z = pv.z();
 
-  muonisolation::TrackSelector::Parameters pars(muonisolation::TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
-						diffR, isoConeDirection, dRmax, beamspot.position());
 
-  pars.nHitsMin = nHitsMin;
-  pars.chi2NdofMax = chi2NdofMax;
-  pars.chi2ProbMin = chi2ProbMin;
-  pars.ptMin = ptMin;
+	muonisolation::TrackSelector::Parameters pars(muonisolation::TrackSelector::Range(vtx_z-diffZ, vtx_z+diffZ),
+			diffR, isoConeDirection, dRmax, beamspot.position());
 
-  muonisolation::TrackSelector selection(pars);
-  muonisolation::TrackSelector::result_type sel_tracks = selection(generalTracks);
+	pars.nHitsMin = nHitsMin;
+	pars.chi2NdofMax = chi2NdofMax;
+	pars.chi2ProbMin = chi2ProbMin;
+	pars.ptMin = ptMin;
 
-  if (debug) {
-    std::cout << "Isolation - All Tracks: " << generalTracks.size()
-	      << " Selected tracks for Dimuon Isolation: " << sel_tracks.size() << std::endl;
-    std::cout << " Dimuon isolation: zmin = " << vtx_z-diffZ
-	      << " zmax = " << vtx_z+diffZ << " d0max = " << diffR
-	      << " axis eta = " << isoConeDirection.eta()
-	      << " axis phi = " << isoConeDirection.phi() << std::endl;
-    unsigned int itrk = 0;
-    for (auto it = generalTracks.begin(); it != generalTracks.end(); ++it, itrk++) {
-      double pt = it->pt();
-      if (pt > 1.0) {
-	double z   = it->vz();
-	double d0  = fabs(it->dxy(beamspot.position()));
-	double eta = it->eta();
-	double phi = it->phi();
-	double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));
-	std::cout << "  general track #" << itrk
-		  << " pT = " << pt << " d0 = " << d0 << " z = " << z
-		  << " eta = " << eta << " phi = " << phi << " dR = " << dr << std::endl;
-	if (pars.zRange.inside(z) && pars.rRange.inside(d0) &&
-	    dr < pars.drMax)
-	  std::cout << "  track #" << itrk << " selected! " << std::endl;
-      }
-    }
-  }
+	muonisolation::TrackSelector selection(pars);
+	muonisolation::TrackSelector::result_type sel_tracks = selection(cleanedTracks);
 
-  // total pT from all other tracks within cone
-  float sumGeneralPt = 0;
-  for (auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it) {
-    sumGeneralPt += (*it)->pt();
-  }
+	if (debug) {
+	    std::cout << "Isolation - All Tracks: " << cleanedTracks.size()
+		      << " Selected tracks for  Isolation: " << sel_tracks.size() << std::endl;
+	    std::cout << " Isolation: zmin = " << vtx_z-diffZ
+		      << " zmax = " << vtx_z+diffZ << " d0max = " << diffR
+		      << " axis eta = " << isoConeDirection.eta()
+		      << " axis phi = " << isoConeDirection.phi() << std::endl;
 
-  return sumGeneralPt/dimuon.Perp();
+	    std::vector<float> nSelectedTracksPt;
+	    unsigned int itrk = 0;
+	    for (auto it = cleanedTracks.begin(); it != cleanedTracks.end(); ++it, itrk++) {
+	    	double pt = it->pt();
+
+	    	double z   = it->vz();
+	    	double d0  = fabs(it->dxy(beamspot.position()));
+	    	double eta = it->eta();
+	    	double phi = it->phi();
+	    	double dr  = pars.dir.deltaR(reco::isodeposit::Direction(eta, phi));
+	    	/*
+	    	if(pt >2)std::cout << "  general track #" << itrk
+	    			<< " pT = " << pt << " d0 = " << d0 << " z = " << z
+					<< " eta = " << eta << " phi = " << phi << " dR = " << dr <<std::endl;
+					*/
+	    	if(!pars.zRange.inside(z)) continue;
+	    	if(pt < pars.ptMin) continue;
+	    	if(!pars.rRange.inside(d0)) continue;
+	    	if(dr > pars.drMax) continue;
+	    	if(it->normalizedChi2() > pars.chi2NdofMax) continue;
+
+	    	if(pt >1)std::cout << "  general track #" << itrk
+	    			<< " selected! pT = " << pt << " d0 = " << d0 << " z = " << z
+					<< " eta = " << eta << " phi = " << phi << " dR = " << dr <<std::endl;
+
+	    	nSelectedTracksPt.push_back(pt);
+	    }
+
+	    if(sel_tracks.size() != nSelectedTracksPt.size()){
+	    	std::cout << "self_selected_pt" << std::endl;
+	    	for(auto pt: nSelectedTracksPt){
+	    		std::cout << pt << std::endl;
+	    	}
+	    	std::cout << "auto_selected_pt" << std::endl;
+	    	for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
+	    		std::cout << (*it)->pt() << std::endl;
+	    	}
+	    	std::cout << "object pT: " << momentum.Perp() << std::endl;
+	    }
+	    assert(sel_tracks.size() == nSelectedTracksPt.size() && "Error: Isolation Algorithms give different answers!");
+	}
+
+	// total pT from all other tracks within cone
+	float sumGeneralPt = 0;
+	for(auto it = sel_tracks.begin(); it != sel_tracks.end(); ++it){
+		sumGeneralPt += (*it)->pt();
+	}
+	if(debug) std::cout << "isolation = " << sumGeneralPt/momentum.Perp() <<  " = " << sumGeneralPt << "/" << momentum.Perp() << std::endl;
+	return sumGeneralPt/momentum.Perp();
+}
+
+/* @brief Remove a subset of tracks (tracksToRemove) from a general
+ * collection of tracks (trackCollection), returning a collection
+ * without those in tracksToRemove if matches are found in the main
+ * collection.
+ */
+const reco::TrackCollection DimuonBranches::RemoveTracksFromCollection(
+		const reco::TrackCollection& trackCollection,
+		const std::vector<reco::TransientTrack> tracksToRemove, //TODO: Ask Slava, what is a Transient track?
+		bool debug)
+{
+	//for now, just use dR matching
+	float DR_THRESHOLD = 0.1;
+
+	reco::TrackCollection cleanedCollection;
+	//this algorithm could remove more tracks in the collection than
+	//there are tracks to remove, if the dR is small enough to match to multiple tracks
+	for(auto& trackInCollection : trackCollection){
+		bool isClean = true;
+		for(auto& trackToRemove: tracksToRemove){
+			if(deltaR(trackInCollection.eta(),
+					trackInCollection.phi(),
+					trackToRemove.track().eta(), //is this correct? .track().eta()?
+					trackToRemove.track().phi())
+					< DR_THRESHOLD) {
+				isClean=false;
+				break;
+			}
+		}
+		if(isClean) {
+			cleanedCollection.push_back(trackInCollection);
+		}else{
+			if(debug) std::cout << "removed track from collection with"
+			<< " pT:" << trackInCollection.pt()
+			<< " eta: " << trackInCollection.eta()
+			<< " phi: " << trackInCollection.phi()
+			<< std::endl;
+		}
+	}
+	return cleanedCollection;
 }

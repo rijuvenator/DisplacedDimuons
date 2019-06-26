@@ -16,6 +16,7 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "RecoVertex/AdaptiveVertexFit/interface/AdaptiveVertexFitter.h"
 #include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
+#include "DataFormats/RecoCandidate/interface/IsoDepositDirection.h"
 
 // local includes
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
@@ -94,6 +95,8 @@ class DimuonBranches : public BranchCollection
     // number of missing hits between the vertex position
     // and the innermost valid hit on the track
     std::vector<int  > dim_mu1_missingHitsAfterVtx;
+    //isolation variable
+    std::vector<float> dim_mu1_iso				  ;
 
     std::vector<int  > dim_mu2_idx                ;
     std::vector<float> dim_mu2_px                 ;
@@ -121,6 +124,7 @@ class DimuonBranches : public BranchCollection
     std::vector<float> dim_mu2_dzsig_bs_lin       ;
     std::vector<int  > dim_mu2_hitsBeforeVtx      ;
     std::vector<int  > dim_mu2_missingHitsAfterVtx;
+    std::vector<float> dim_mu2_iso				  ;
 
     // methods
     void Declarations()
@@ -176,6 +180,7 @@ class DimuonBranches : public BranchCollection
       Declare("dim_mu1_dzsig_bs_lin"       , dim_mu1_dzsig_bs_lin       );
       Declare("dim_mu1_hitsBeforeVtx"      , dim_mu1_hitsBeforeVtx      );
       Declare("dim_mu1_missingHitsAfterVtx", dim_mu1_missingHitsAfterVtx);
+      Declare("dim_mu1_iso"				   , dim_mu1_iso				);
 
       Declare("dim_mu2_idx"                , dim_mu2_idx                );
       Declare("dim_mu2_px"                 , dim_mu2_px                 );
@@ -203,6 +208,7 @@ class DimuonBranches : public BranchCollection
       Declare("dim_mu2_dzsig_bs_lin"       , dim_mu2_dzsig_bs_lin       );
       Declare("dim_mu2_hitsBeforeVtx"      , dim_mu2_hitsBeforeVtx      );
       Declare("dim_mu2_missingHitsAfterVtx", dim_mu2_missingHitsAfterVtx);
+      Declare("dim_mu2_iso"				   , dim_mu2_iso				);
     }
 
     void Reset()
@@ -258,6 +264,7 @@ class DimuonBranches : public BranchCollection
       dim_mu1_dzsig_bs_lin       .clear();
       dim_mu1_hitsBeforeVtx      .clear();
       dim_mu1_missingHitsAfterVtx.clear();
+      dim_mu1_iso				 .clear();
 
       dim_mu2_idx                .clear();
       dim_mu2_px                 .clear();
@@ -285,7 +292,9 @@ class DimuonBranches : public BranchCollection
       dim_mu2_dzsig_bs_lin       .clear();
       dim_mu2_hitsBeforeVtx      .clear();
       dim_mu2_missingHitsAfterVtx.clear();
+      dim_mu2_iso				 .clear();
     }
+
 
     void Fill(const edm::EventSetup& iSetup,
 	      const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
@@ -306,6 +315,20 @@ class DimuonBranches : public BranchCollection
 		    const edm::Handle<reco::TrackCollection> &generalTracksHandle,
 		    bool debug);
 
+
+    static float Isolation(
+    		const reco::isodeposit::Direction& isoConeDirection,
+			const reco::Vertex& pv,
+			const TLorentzVector& momentum,
+			const reco::BeamSpot &beamspot,
+			const reco::TrackCollection &cleanedTracks,
+			bool debug = false);
+
+    static const reco::TrackCollection RemoveTracksFromCollection(
+    		const reco::TrackCollection& trackCollection,
+			const std::vector<reco::TransientTrack> tracksToRemove,
+			bool debug = false);
+
     reco::Vertex RefittedVertex(const edm::ESHandle<TransientTrackBuilder>& ttB,
         const reco::Vertex& pv,
         const reco::BeamSpot& bs,
@@ -313,15 +336,9 @@ class DimuonBranches : public BranchCollection
         const reco::TransientTrack& tt2,
         const bool debug = false);
 
-    static float DimuonIsolation(const reco::isodeposit::Direction& isoConeDirection,
-				 const reco::Vertex& pv,
-				 const TLorentzVector& dimuon,
-				 const reco::BeamSpot &beamspot,
-				 const reco::TrackCollection &generalTracks,
-				 bool debug = false);
-
     virtual bool alreadyPrinted() { return alreadyPrinted_; }
     virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
+
 };
 
 #endif

@@ -10,6 +10,63 @@ namespace PDGID
   const int LLX    = 6000113;
   const int HIGGS  = 35;
   const int PROTON = 2212;
+
+  const std::map<int, std::string> NAMES = {
+		  {1,"d"},
+		  {-1,"dbar"},
+		  {2,"u"},
+		  {-2,"ubar"},
+		  {3,"s"},
+		  {-3,"sbar"},
+		  {4,"c"},
+		  {-4,"cbar"},
+		  {5,"b"},
+		  {-5,"bbar"},
+		  {6,"t"},
+		  {-6,"tbar"},
+		  {-13,"mu+"},
+		  {13,"mu-"},
+		  {21, "g"},
+		  {113, "rho0"},
+		  {-113, "rho0bar"},
+		  {213, "rho+"},
+		  {-213, "rho-"},
+		  {211, "pi+"},
+		  {-211, "pi-"},
+		  {321, "K+"},
+		  {-321, "K-"},
+		  {311, "K0"},
+		  {-311, "K0bar"},
+		  {313, "K0*"},
+		  {-313, "K0*bar"},
+		  {411,"D+"},
+		  {-411,"D-"},
+		  {413,"D*+"},
+		  {-413,"D*-"},
+		  {421,"D0"},
+		  {-421,"D0bar"},
+		  {-423,"D*0"},
+		  {423,"D*bar0"},
+		  {443,"J/Psi"},
+		  {-443,"J/Psibar"},
+		  {521,"B+"},
+		  {-521,"B-"},
+		  {523,"B*+"},
+		  {-523,"B*-"},
+		  {511, "B0"},
+		  {-511, "B0bar"},
+		  {513, "B*0"},
+		  {-513, "B*0bar"},
+		  {531, "B0s"},
+		  {-531, "B0sbar"},
+		  {533, "B*_s0"},
+		  {-533, "B*_s0bar"},
+		  {2212,"proton"},
+		  {5122, "lambda_b0"},
+		  {-5122, "lambda_b0bar"} ,
+		  {6000111, "LLXP"},
+		  {6000113, "LLX"}
+  };
 }
 
 bool GenBranches::FailedToGet(const edm::Handle<reco::GenParticleCollection> &gensHandle,
@@ -527,11 +584,22 @@ void GenBranches::Fill2Mu2J(const reco::GenParticleCollection &gens)
   }
 }
 
+//TODO: this is very poor design... need to get event number to do this correctly
+static unsigned int eventCount = 0;
+
 // fill gen branches for some other MC type, simply filling everything
 void GenBranches::FillOther(const reco::GenParticleCollection &gens)
 {
+  bool otherDebug = false;
+  if(otherDebug) std::cout << "\n\n----- New Event: " << eventCount << " -----" << std::endl;
+
   for (const auto &p : gens)
   {
+    if(otherDebug && abs(p.pdgId()) == PDGID::MUON && p.pt() > 2) {
+    	std::cout << "== Found Muon ==" << std::endl;
+    	printAncestry(p);
+
+    }
     gen_status.push_back(p.status());
     gen_pdgID .push_back(p.pdgId ());
     gen_px    .push_back(p.px    ());
@@ -571,4 +639,17 @@ FreeTrajectoryState GenBranches::PropagateToBeamSpot(
   FreeTrajectoryState ftsPCABS(propagator->propagate(fts, beamspot));
 
   return ftsPCABS;
+}
+
+void GenBranches::printAncestry(const reco::Candidate& gen) const{
+	if(gen.numberOfMothers() != 0) {
+		printAncestry(*gen.mother());
+		std::cout << "|" << std::endl;
+		std::cout << "v" << std::endl;
+	}
+	std::string name = PDGID::NAMES.find(gen.pdgId()) != PDGID::NAMES.end()? PDGID::NAMES.at(gen.pdgId()) : "???";
+	std::cout << std::setw(10) << name << " (" << std::setw(6) << gen.pdgId() << ")\t with pt: " << std::setw(3) << gen.pt() <<" at [eta: "
+			<< std::setprecision(3)<< std::setw(6) << gen.eta() << ", phi: " << std::setw(6)<<gen.phi() <<
+			"] at ("<< std::setw(6) << gen.vx() << ", " << std::setw(6)<<gen.vy() << ", "<< std::setw(6)<<gen.vz() <<
+			") with nDaughters: " <<std::setw(3) << gen.numberOfDaughters()<< std::endl;
 }

@@ -474,6 +474,7 @@ class RecoMuon(Muon):
             if     self.nSeg_ProxMatch   < 0   : self.nSeg_ProxMatch   = None
         # only refitted PAT has these attributes
         if 'REF' in tag:
+            self.set('iso',E, prefix+'iso',i)
             if 'PAT' in self.tag:
                 for attr in ('hitsBeforeVtx', 'missingHitsAfterVtx'):
                     self.set(attr, E, prefix+attr, i)
@@ -533,7 +534,7 @@ class ImpactParameter(Primitive):
 class Dimuon(Particle):
     def __init__(self, E, i):
         Particle.__init__(self, E, i, 'dim_')
-        for attr in ('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha'):
+        for attr in ('normChi2', 'deltaR', 'deltaPhi', 'cosAlpha', 'isoPmumu', 'isoLxy'):
             self.set(attr, E, 'dim_'+attr, i)
         self.Lxy_ = TransverseDecayLength(E, i, 'dim_')
 
@@ -570,6 +571,7 @@ class Dimuon(Particle):
             return self.mu1.charge != self.mu2.charge
         else:
             return DSAmuons[self.idx1].charge != DSAmuons[self.idx2].charge
+
 
 # Lxy wrapper class for Lxy and its significance
 # and wrt PV or BS

@@ -173,6 +173,7 @@ def RecoMuonPrint(obj, title=True, header=True, lines=(1, 2, 3), alt=None):
                 d['highPurity'] = str(d['highPurity'])
 
             if RTYPE == 'REF':
+                d['iso'] = str(d['iso'])
                 if 'DSA' in obj.tag:
                     d['hitsBeforeVtx'] = '-'
                     d['missingHitsAfterVtx'] = '-'
@@ -501,16 +502,16 @@ for RTYPE in ('PAT',):
     DataStrings  ['RecoExtra'][RTYPE] += ' {nMatchedStations:9d} {isGlobal:6s} {isTracker:7s} {isMedium:6s} {highPurity:7s} {nPixelHits:8d} {nTrackerLayers:8d} {nTrackerHits:8d} {trackIso:8.2f} {ecalIso:8.2f} {hcalIso:8.2f}'
 
 for RTYPE in ('REF',):
-    HeaderStrings['RecoExtra'][RTYPE] += ' {HBV:>13s} {MHAV:>19s}'.format(HBV='hitsBeforeVtx', MHAV='missingHitsAfterVtx')
-    DataStrings  ['RecoExtra'][RTYPE] += ' {hitsBeforeVtx:>13s} {missingHitsAfterVtx:>19s}'
+    HeaderStrings['RecoExtra'][RTYPE] += ' {HBV:>13s} {MHAV:>19s} {ISO:8s}'.format(HBV='hitsBeforeVtx', MHAV='missingHitsAfterVtx', ISO='iso')
+    DataStrings  ['RecoExtra'][RTYPE] += ' {hitsBeforeVtx:>13s} {missingHitsAfterVtx:>19s} {iso:>8s}'
 
 # Dimuon
 TitleStrings ['Dimuon'] = '=== DIMUONS ==='
 HeaderStrings['Dimuon'] = {'pre' :'  {IDX:8s} {TYP:6s}'.format(IDX='ID', TYP='type'),
-                           'post':'{NC2:>10s} {DR:>8s} {DPHI:>8s} {CA:>8s} {LXY:>7s} {LXYS:>7s} {LXYPV:>7s} {LXYSPV:>9s}'.format(
-                                NC2='normChi2', DR='deltaR', DPHI='deltaPhi', CA='cosAlpha', LXY='Lxy', LXYS='LxySig', LXYPV='PV-Lxy', LXYSPV='PV-LxySig')}
+                           'post':'{NC2:>10s} {DR:>8s} {DPHI:>8s} {CA:>8s} {LXY:>7s} {LXYS:>7s} {LXYPV:>7s} {LXYSPV:>9s} {ISOP:>8s} {ISOL:>8s}'.format(
+                                NC2='normChi2', DR='deltaR', DPHI='deltaPhi', CA='cosAlpha', LXY='Lxy', LXYS='LxySig', LXYPV='PV-Lxy', LXYSPV='PV-LxySig', ISOP='isoPmumu', ISOL='isoLxy')}
 DataStrings  ['Dimuon'] = {'pre' : '  {idx1:2d}  {idx2:2d}   {composition:6s}',
-                           'post':'{normChi2:10.2f} {deltaR:8.2f} {deltaPhi:8.2f} {cosAlpha:8.2f} {Lxy:7.2f} {LxySig:7.2f} {LxyPV:7.2f} {LxySigPV:9.2f}'}
+                           'post':'{normChi2:10.2f} {deltaR:8.2f} {deltaPhi:8.2f} {cosAlpha:8.2f} {Lxy:7.2f} {LxySig:7.2f} {LxyPV:7.2f} {LxySigPV:9.2f} {isoPmumu:8.3f} {isoLxy:8.3f}'}
 
 # Alt Title Strings
 TitleStrings['AltDSA'] = '=== DSA MUONS ==='
