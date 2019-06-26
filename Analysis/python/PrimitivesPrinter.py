@@ -502,7 +502,7 @@ for RTYPE in ('PAT',):
     DataStrings  ['RecoExtra'][RTYPE] += ' {nMatchedStations:9d} {isGlobal:6s} {isTracker:7s} {isMedium:6s} {highPurity:7s} {nPixelHits:8d} {nTrackerLayers:8d} {nTrackerHits:8d} {trackIso:8.2f} {ecalIso:8.2f} {hcalIso:8.2f}'
 
 for RTYPE in ('REF',):
-    HeaderStrings['RecoExtra'][RTYPE] += ' {HBV:>13s} {MHAV:>19s} {ISO:8s}'.format(HBV='hitsBeforeVtx', MHAV='missingHitsAfterVtx')
+    HeaderStrings['RecoExtra'][RTYPE] += ' {HBV:>13s} {MHAV:>19s}'.format(HBV='hitsBeforeVtx', MHAV='missingHitsAfterVtx')
     DataStrings  ['RecoExtra'][RTYPE] += ' {hitsBeforeVtx:>13s} {missingHitsAfterVtx:>19s}'
     #HeaderStrings['RecoExtra'][RTYPE] += ' {HBV:>13s} {MHAV:>19s} {ISO:8s}'.format(HBV='hitsBeforeVtx', MHAV='missingHitsAfterVtx', ISO='iso')
     #DataStrings  ['RecoExtra'][RTYPE] += ' {hitsBeforeVtx:>13s} {missingHitsAfterVtx:>19s} {iso:>8s}'
