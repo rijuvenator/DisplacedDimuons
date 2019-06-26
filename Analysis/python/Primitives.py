@@ -483,6 +483,10 @@ class RecoMuon(Muon):
             return getattr(self.IP, name)
         raise AttributeError('\'RecoMuon\' object has no attribute \''+name+'\'')
 
+# this is a simple container class for a PAT match
+# it's either a Prox(imity) match or a Seg(ment) match
+# it's either PD (position-direction) or PP (position-position)
+# it stores the PAT muon index, the number of matched segments, and the deltaR
 class PATMatch(Primitive):
     def __init__(self, E, i, prefix, matchType, vectorType):
         Primitive.__init__(self)

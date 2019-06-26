@@ -2,8 +2,8 @@
 <use name="CommonTools/UtilAlgos"/>
 <use name="DataFormats/BeamSpot"/>
 <use name="DataFormats/Common"/>
-<use name="DataFormats/HLTReco"/>
 <use name="DataFormats/HepMCCandidate"/>
+<use name="DataFormats/HLTReco"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/RecoCandidate"/>
@@ -17,17 +17,16 @@
 <use name="MagneticField/Records"/>
 <use name="RecoMuon/MuonIsolation"/>
 <use name="PhysicsTools/RecoUtils"/>
-<use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/AdaptiveVertexFit"/>
 <use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/VertexPrimitives"/>
 <use name="RecoVertex/VertexTools"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="SimDataFormats/PileupSummaryInfo"/>
-<use name="TrackPropagation/SteppingHelixPropagator"/>
 <use name="TrackingTools/IPTools"/>
 <use name="TrackingTools/Records"/>
 <use name="TrackingTools/TransientTrack"/>
+<use name="TrackPropagation/SteppingHelixPropagator"/>
 <export>
 	<lib name="1"/>
 </export>
