@@ -16,6 +16,9 @@
 #include "DisplacedDimuons/Tupler/interface/TreeContainer.h"
 #include "DisplacedDimuons/Tupler/interface/BranchCollection.h"
 
+//pdgid-include
+#include <map>
+
 // gen particle branch collection
 class GenBranches : public BranchCollection
 {
@@ -179,6 +182,9 @@ class GenBranches : public BranchCollection
 
   virtual bool alreadyPrinted() { return alreadyPrinted_ && alreadyPrinted_GEIP; }
   virtual void setAlreadyPrinted() { alreadyPrinted_ = true; }
+
+  void printAncestry(const reco::Candidate& gen) const;
+
 };
 
 #endif

@@ -10,3 +10,8 @@ tmp*
 out*
 pdfs
 pngs
+.autotools
+.cproject
+.project
+.pydevproject
+.settings/
