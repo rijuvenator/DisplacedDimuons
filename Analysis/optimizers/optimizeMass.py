@@ -164,7 +164,7 @@ canvas.makeLegend(lWidth=.2, autoOrder=False, pos='tr')
 for sp in justTheseFour:
     canvas.legend.addLegendEntry(FOM_PLOTS[sp])
 
-canvas.firstPlot.setTitles(Y=PRETTY_LEG[FIGURE_OF_MERIT])
+canvas.firstPlot.setTitles(X='M(#mu#mu) [GeV]', Y=PRETTY_LEG[FIGURE_OF_MERIT])
 canvas.legend.resizeHeight()
 canvas.firstPlot.SetMaximum(8.)
 canvas.firstPlot.SetMinimum(0.)

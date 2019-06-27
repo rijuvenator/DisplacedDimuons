@@ -72,7 +72,7 @@ def makeKinkDistPlot(quantity, masses):
 
 # this plots the two ZBi curves near each other, with some options for tweaking what cross section to use
 # this shows you what is going on with finding the optimum of the curves
-def makeKinkFOMPlot(quantity, masses, sigmaBMode='GLOBAL'):
+def makeKinkFOMPlot(quantity, masses, sigmaBMode='DEFAULT'):
     points = sorted([sp for sp in SignalInfo if sp[0] == masses[0] and sp[1] == masses[1]], key=lambda x: x[2])
     s = {
         points[0] : HG.getHistogram(FILES['Signal'], (fs, points[0]), '{}_1' .format(quantity)).Clone(),

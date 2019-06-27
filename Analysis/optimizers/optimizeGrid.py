@@ -40,7 +40,7 @@ def fillData(fs, sp, quantity, hkey):
 
     if SignalInfo[sp]['sigmaBLimit'] == 0.: return
 
-    s.Scale(ScaleFactor(sp))
+    s.Scale(ScaleFactor(sp, sigmaB=1.e-2))
 
     # get cumulatives
     sCum = s.GetCumulative(CONFIG[quantity]['forward'])
