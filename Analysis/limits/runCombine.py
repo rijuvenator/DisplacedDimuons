@@ -73,7 +73,7 @@ for card in CARDS:
         ArgsList.append('-d {relCard} -n Limits_2Mu_{token}'.format(relCard=relCard, token=token))
 
     elif METHOD == 'HybridNew':
-        appendString = '-M HybridNew --LHCmode LHC-limits'
+        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0'
         for quantile in ('', '0.025', '0.16', '0.5', '0.84', '0.975'):
             if quantile == '':
                 ArgsList.append('-d {relCard} -n Limits_2Mu_{token} {a}'.format(relCard=relCard, token=token, a=appendString))

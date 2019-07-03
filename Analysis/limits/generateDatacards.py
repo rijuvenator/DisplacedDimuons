@@ -15,18 +15,20 @@ for job in data:
     ##### DATACARD VALUES #####
     ###########################
 
-    OBS = 19
+    OBS = 3
 
     PROCESSES = ('2Mu', 'BG')
 
     RATES = {
         '2Mu' : str(float(job['sig'])/float(job['sumw'])*INTEGRATED_LUMINOSITY_2016*1.e-2),
-        'BG'  : '19.00',
+        'BG'  : '3.00',
     }
 
     SYSTEMATICS = {
-        'lumi' : {'mode':'lnN', '2Mu':'1.20', 'BG':'1.20'},
-    #   'stat' : {'mode':'gmN', '2Mu':'1.02', 'BG':'1.02', 'alpha':'4'},
+#       'lumi' : {'mode':'lnN', '2Mu':'1.025', 'BG':'1.025'              },
+        'systS': {'mode':'lnN', '2Mu':'1.2'  , 'BG':'-'                  },
+        'systB': {'mode':'lnN', '2Mu':'-'    , 'BG':'1.2'                },
+        'stat' : {'mode':'gmN', '2Mu':'-'    , 'BG':'1.00' , 'nOff':'3'  },
     }
 
     ###########################
@@ -64,23 +66,23 @@ observation {obs}
 
     SystValString = KeyString + ' {:3s} {:s} ' + BinValString
 
-    # extra spaces accounting for the mode and alpha fields
+    # extra spaces accounting for the mode and nOff fields
     extra = '     '
-    maxAlpha = 1
+    maxNOff = 2
 
-    # name mode (alpha) unc ...
+    # name mode (nOff) unc ...
     FormattedSystString = ''
     for key, dic in SYSTEMATICS.iteritems():
-        if 'alpha' in dic:
-            maxAlpha = max(maxAlpha, len(dic['alpha']))
+        if 'nOff' in dic:
+            maxNOff = max(maxNOff, len(dic['nOff']))
         FormattedSystString += '\n' + SystValString.format(
             key,
             dic['mode'],
-            ' ' if dic['mode'] != 'gmN' else str(dic['alpha']),
+            ' ' if dic['mode'] != 'gmN' else str(dic['nOff']),
             *[dic[p] for p in PROCESSES]
         )
 
-    extra += ' '*maxAlpha
+    extra += ' '*maxNOff
 
     ##################
     ##### OUTPUT #####

@@ -69,6 +69,6 @@ for baseName in allBaseNames:
     grepOutput = grab('grep -A1 {}.err logs/{}/condorSubmit'.format(baseName, runDir))
     # more verbosely:
     #secondLine            = grepOutput          .split('\n')[1]
-    #everythingAfterEquals = secondLine          .split('=')[1]
+    #everythingAfterEquals = secondLine          .split('=', 1)[1] # second argument to split means do only 1 split
     #argsWithoutFirstSpace = everythingAfterEquals[1:]
-    print grepOutput.split('\n')[1].split('=')[1][1:]
+    print grepOutput.split('\n')[1].split('=', 1)[1][1:]

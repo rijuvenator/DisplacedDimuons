@@ -76,7 +76,7 @@ for token in TOKENS:
 # also, if a particular quantile code doesn't exist, fill it with obs
 # which should always exist. it should become obvious if there's a problem.
 newData = {}
-for token in data:
+for token in sorted(data.keys()):
     match = re.match(r'(\d{3,4})_(\d{2,3})_(\d{1,4})_(div|mul)_(\d{1,2})', token)
     mH, mX, cTau, op, factor = match.groups()
     sp = tuple(map(int, (mH, mX, cTau)))
@@ -98,6 +98,8 @@ for token in data:
 # fill an X and 6 Y vectors with values
 # X only needs to be filled once; do it on OBS
 # Y gets filled for each key; that is also when the applied cross section is put back in
+# just before filling all the Y, determine whether to skip this point:
+# if it's pointVeto, or the limit is 0 because the job didn't finish or whatever, etc.
 # the table zip block sorts a "table" by the X values so that a connected graph doesn't jump around
 # then, because zip is its own inverse, the vectors can be updated
 # then, make some graphs, setting the errors "manually", make the plots, put them on a canvas, and finish
@@ -108,8 +110,13 @@ for mH in SIGNALS:
         x = []
         y = {key:[] for key in QUANTILES}
         for i,cTau in enumerate(SIGNALS[mH][mX]):
-            for op, factor in newData[(mH, mX, cTau)]:
+
+            sp = (mH, mX, cTau)
+            if (mH, mX, cTau) not in newData: continue
+            for op, factor in newData[sp]:
                 if pointVeto(mH, mX, cTau, op, factor): continue
+                if newData[sp][(op, factor)]['OBS']['limit'] == 0.: continue
+
                 for key in QUANTILES:
                     if key == 'OBS':
                         x.append(OP[op](float(cTau), float(factor))/10.)
@@ -122,8 +129,8 @@ for mH in SIGNALS:
         xArray = np.array(x)
         zeroes = np.zeros(len(x))
         g = {
-            'OBS' : R.TGraph           (len(x), xArray, np.array(y['OBS'])                                                        ),
-            'MED' : R.TGraph           (len(x), xArray, np.array(y['MED'])                                                        ),
+            'OBS' : R.TGraph           (len(x), xArray, np.array(y['OBS'])                                                                                               ),
+            'MED' : R.TGraph           (len(x), xArray, np.array(y['MED'])                                                                                               ),
             '1S'  : R.TGraphAsymmErrors(len(x), xArray, np.array(y['MED']), zeroes, zeroes, -np.array(y['-1S'])+np.array(y['MED']), np.array(y['+1S'])-np.array(y['MED'])),
             '2S'  : R.TGraphAsymmErrors(len(x), xArray, np.array(y['MED']), zeroes, zeroes, -np.array(y['-2S'])+np.array(y['MED']), np.array(y['+2S'])-np.array(y['MED'])),
         }
@@ -135,7 +142,14 @@ for mH in SIGNALS:
             '2S'  : Plotter.Plot(g['2S' ], 'Expected limits (#pm2#sigma)', 'f' , '3' ),
         }
 
+        dummyGraph = R.TGraph(2, np.array([.1, 3000.]), np.array([10., 5.e-4]))
+        dummy = Plotter.Plot(dummyGraph, '', '', 'p')
+
         c = Plotter.Canvas(lumi='13 TeV ( 35.9 fb^{{-1}} ) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
+
+        c.addMainPlot(dummy, addToPlotList=False)
+        dummy.setColor(0, which='LMF')
+
         #c.addMainPlot(p['2S'])
         c.addMainPlot(p['1S'])
         c.addMainPlot(p['MED'])

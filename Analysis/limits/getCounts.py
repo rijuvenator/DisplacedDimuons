@@ -8,7 +8,7 @@ import itertools, operator
 
 OP = {'div':operator.div, 'mul':operator.mul}
 
-CUTSTRING = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_OS_DPHI'
+CUTSTRING = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_OS_DPHI'
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
@@ -51,6 +51,7 @@ def analyze(self, E, PARAMS=None):
     if selectedDimuons is not None:
         for dim in selectedDimuons:
             if dim.composition != 'DSA': continue
+            if dim.LxySig() < 7.: continue
             if self.SP is not None:
                 for op in self.COUNTS:
                     for factor in self.COUNTS[op]:
