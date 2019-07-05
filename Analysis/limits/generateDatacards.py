@@ -1,13 +1,15 @@
 import sys
 from DisplacedDimuons.Analysis.HistogramGetter import INTEGRATED_LUMINOSITY_2016
 
-headers = ['mH', 'mX', 'cTau', 'op', 'factor', 'sumw', 'sig']
+headers = ['mH', 'mX', 'cTau', 'op', 'factor', 'nEvents', 'sumW', 'sig', 'sig2']
 data = []
 f = open('text/datacardRawInput.txt')
 for line in f:
     cols = line.strip('\n').split()
-    data.append(dict(zip(headers, cols[:3] + cols[4:6] + cols[7:9])))
+    data.append(dict(zip(headers, cols[:3] + cols[4:6] + cols[7:11])))
 f.close()
+
+skippedJobs = 0
 
 for job in data:
 
@@ -20,15 +22,45 @@ for job in data:
     PROCESSES = ('2Mu', 'BG')
 
     RATES = {
-        '2Mu' : str(float(job['sig'])/float(job['sumw'])*INTEGRATED_LUMINOSITY_2016*1.e-2),
+        '2Mu' : str(float(job['sig'])/float(job['sumW'])*INTEGRATED_LUMINOSITY_2016*1.e-2),
         'BG'  : '3.00',
     }
 
+    # first make sure there are no jobs with zero expected signal
+    if float(RATES['2Mu']) < 1.e-5:
+        print 'Skipping job : {} {} {} :: {} {} ... due to sig. eff. = 0'    .format(*[job[k] for k in headers[:5]])
+        skippedJobs += 1
+        continue
+
+    # now compute the statistical uncertainty on the signal efficiency from weights
+    # if job['sig2'] < 1.e-6, I ran out of digits, so assign it 1.e-6. then,
+    # freshman error propagation, ignoring the uncertainty on sumW (which is probably ~0.5%)
+    # means just sqrt(sum(w^2))/sum(w)
+    # then skip any that are more than 50% uncertainty
+
+    sumW2 = float(job['sig2'])
+    if sumW2 < 1.e-6: sumW2 = 1.e-6
+
+    STATSIG = '{:.4f}'.format(1.+(sumW2**0.5)/float(job['sig']))
+
+    if (float(STATSIG)-1.) > .5:
+        print 'Skipping job : {} {} {} :: {} {} ... due to stat. unc. on sig.'.format(*[job[k] for k in headers[:5]])
+        skippedJobs += 1
+        continue
+
+    # systematics dictionary
+    # lumi is the luminosity uncertainty
+    # systS is the systematic uncertainty on expected signal
+    # systB is the systematic uncertainty on expected background
+    # statS is the statistical uncertainty on expected signal, as above
+    # statB is the correct way to propagate uncertainty on nBG-Exp obtained from CR
+
     SYSTEMATICS = {
-#       'lumi' : {'mode':'lnN', '2Mu':'1.025', 'BG':'1.025'              },
-        'systS': {'mode':'lnN', '2Mu':'1.2'  , 'BG':'-'                  },
-        'systB': {'mode':'lnN', '2Mu':'-'    , 'BG':'1.2'                },
-        'stat' : {'mode':'gmN', '2Mu':'-'    , 'BG':'1.00' , 'nOff':'3'  },
+        'lumi' : {'mode':'lnN', '2Mu':'1.025' , 'BG':'-'                 },
+        'systS': {'mode':'lnN', '2Mu':'1.2'   , 'BG':'-'                 },
+        'systB': {'mode':'lnN', '2Mu':'-'     , 'BG':'1.2'               },
+        'statS': {'mode':'lnN', '2Mu':STATSIG , 'BG':'-'                 },
+        'statB': {'mode':'gmN', '2Mu':'-'     , 'BG':'1.0' , 'nOff':'3'  },
     }
 
     ###########################
@@ -114,3 +146,6 @@ observation {obs}
     #########################
 
     open('cards/card_{}_{}_{}_{}_{}.txt'.format(*[job[x] for x in headers[:5]]), 'w').write(out)
+
+
+print 'Total skipped jobs: {}'.format(skippedJobs)

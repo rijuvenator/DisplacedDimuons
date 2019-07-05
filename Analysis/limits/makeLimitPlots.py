@@ -9,6 +9,7 @@ import argparse
 # probably just between AsymptoticLimits and HybridNew
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--method', dest='METHOD', default='AsymptoticLimits')
+PARSER.add_argument('--square', dest='SQUARE', action='store_true')
 ARGS = PARSER.parse_args()
 
 CROSS_SECTION = 1.e-2
@@ -46,6 +47,8 @@ def pointVeto(mH, mX, cTau, op, factor):
     if op == 'mul' and SIGNALS[mH][mX].index(cTau) == 0:
         return True
     if op == 'div' and SIGNALS[mH][mX].index(cTau) == 0 and factor > 8:
+        return True
+    if op == 'mul' and SIGNALS[mH][mX].index(cTau) == 1 and factor > 15:
         return True
     return False
 
@@ -142,10 +145,13 @@ for mH in SIGNALS:
             '2S'  : Plotter.Plot(g['2S' ], 'Expected limits (#pm2#sigma)', 'f' , '3' ),
         }
 
-        dummyGraph = R.TGraph(2, np.array([.1, 3000.]), np.array([10., 5.e-4]))
+        dummyGraph = R.TGraph(2, np.array([.1, 30000.]), np.array([50., 5.e-4]))
         dummy = Plotter.Plot(dummyGraph, '', '', 'p')
 
-        c = Plotter.Canvas(lumi='13 TeV ( 35.9 fb^{{-1}} ) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
+        if ARGS.SQUARE:
+            c = Plotter.Canvas(lumi='35.9 fb^{-1} (13 TeV)', logy=True, cWidth=600)
+        else:
+            c = Plotter.Canvas(lumi='35.9 fb^{{-1}} (13 TeV) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
 
         c.addMainPlot(dummy, addToPlotList=False)
         dummy.setColor(0, which='LMF')
@@ -170,6 +176,10 @@ for mH in SIGNALS:
         c.legend.addLegendEntry(p['1S' ])
         c.legend.resizeHeight()
         c.legend.moveLegend(X=-.15)
+        if ARGS.SQUARE:
+            c.legend.moveLegend(X=-.07)
+            c.drawText('m_{{H}} = {} GeV'.format(mH), (c.margins['l']+.03, 1.-c.margins['t']-.03    ), 'tl')
+            c.drawText('m_{{X}} = {} GeV'.format(mX), (c.margins['l']+.03, 1.-c.margins['t']-.03-.05), 'tl')
 
         c.firstPlot.setTitles(X='c#tau [cm]', Y='Upper limit on #sigma(H#rightarrowXX)B(X#rightarrow#mu#mu) [pb]')
         c.cleanup('pdfs/Limits_2Mu_{}_{}_{}.pdf'.format(mH, mX, ARGS.METHOD))

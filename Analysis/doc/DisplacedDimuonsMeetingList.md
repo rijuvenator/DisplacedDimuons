@@ -45,6 +45,7 @@ Date | Talks
 [2019       May 16](https://indico.cern.ch/event/821429/) | Alberto, Sebastian
 [2019       May 22](https://indico.cern.ch/event/822766/) | Riju, Sebastian
 [2019       Jun 13](https://indico.cern.ch/event/828116/) | Riju, Suchita, Sebastian
+[2019       Jul  4](https://indico.cern.ch/event/832981/) | Riju, Will, Alberto
 
 ## External Talks
 
