@@ -100,7 +100,7 @@ observation {obs}
 
     # extra spaces accounting for the mode and nOff fields
     extra = '     '
-    maxNOff = 2
+    maxNOff = 1
 
     # name mode (nOff) unc ...
     FormattedSystString = ''

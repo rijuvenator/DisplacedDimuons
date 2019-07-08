@@ -54,9 +54,9 @@ for key in KEYS:
     GRAPH = R.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array([.5]*len(x)), np.array([.5]*len(x)), np.array(ylow), np.array(yhigh))
 
     p = {
-        'Signal' : Plotter.Plot(GRAPH        , '2#mu signal: bounds'      , 'f' , 'e3'),
-        'SigMid' : Plotter.Plot(GRAPH.Clone(), '2#mu signal: combined'    , 'l' , 'lx'),
-        'Data'   : Plotter.Plot(DATA[key]    , 'Data, 2016 Re-Reco Golden', 'lp', 'p' ),
+        'Signal' : Plotter.Plot(GRAPH        , '2#mu signal: bounds'    , 'f' , 'e3'),
+        'SigMid' : Plotter.Plot(GRAPH.Clone(), '2#mu signal: combined'  , 'l' , 'lx'),
+        'Data'   : Plotter.Plot(DATA[key]    , 'Data, 2016 Re-Reco Muon', 'lp', 'p' ),
     }
 
     c = Plotter.Canvas(lumi = key + ('' if key != 'Nom' else 'inal'))

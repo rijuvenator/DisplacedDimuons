@@ -7,8 +7,9 @@ import argparse
 
 # for switching between statistical methods
 # probably just between AsymptoticLimits and HybridNew
+# square is for making a square plot
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('--method', dest='METHOD', default='AsymptoticLimits')
+PARSER.add_argument('--method', dest='METHOD', default='HybridNew')
 PARSER.add_argument('--square', dest='SQUARE', action='store_true')
 ARGS = PARSER.parse_args()
 
@@ -158,9 +159,9 @@ for mH in SIGNALS:
         dummyGraph = R.TGraph(2, np.array([.1, 30000.]), np.array([50., 5.e-4]))
         dummy = Plotter.Plot(dummyGraph, '', '', 'p')
 
-        c = Plotter.Canvas(lumi='35.9 fb^{-1} (13 TeV)', logy=True, cWidth=600 if ARGS.SQUARE else 800)
+        c = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=True, cWidth=600 if ARGS.SQUARE else 800)
 
-        #c = Plotter.Canvas(lumi='35.9 fb^{{-1}} (13 TeV) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
+        #c = Plotter.Canvas(lumi='36.3 fb^{{-1}} (13 TeV) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
 
         c.addMainPlot(dummy, addToPlotList=False)
         dummy.setColor(0, which='LMF')

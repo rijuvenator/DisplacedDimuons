@@ -22,14 +22,15 @@ pileupCalc.py                       \
 
 where, for 2016 regular analysis,
 
-  * **MyAnalysisJSON.txt** is the re-reco JSON from [PdmV](https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2016Analysis)
+  * ~~MyAnalysisJSON.txt is the Golden re-reco JSON from [PdmV](https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2016Analysis)~~
+  * **MyAnalysisJSON.txt** is the Muon re-reco JSON from [PdmV](https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2016Analysis)
   * **pileup_latest.txt** is linked on the page at the top of this file for 2016
 
 So the full command is
 
 ```bash
 pileupCalc.py                       \
-  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt             \
+  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_MuonPhys.txt             \
   --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt \
   --calcMode true                   \
   --minBiasXsec 69200               \
@@ -42,7 +43,7 @@ pileupCalc.py                       \
 
 ```bash
 pileupCalc.py                       \
-  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt             \
+  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_MuonPhys.txt             \
   --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt \
   --calcMode true                   \
   --minBiasXsec 65740               \
@@ -53,7 +54,7 @@ pileupCalc.py                       \
 
 ```bash
 pileupCalc.py                       \
-  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt             \
+  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_MuonPhys.txt             \
   --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt \
   --calcMode true                   \
   --minBiasXsec 72660               \
@@ -72,13 +73,13 @@ runAll.py signalPileupHistograms.py --samples 2 --extra __trigger
 
 Make sure `roots/` and `logs/` exist!
 
-The script will output a table in the format
+Now run `makeSignalPileupHistograms.py`. This will make some plots of the pileup distributions and weights, and will also output a table in the format
 
 ```
 .
 .
 .
- 10 : 0.96185 1.53871 0.60867
+ 10 : 0.95201 1.52298 0.60303
 .
 .
 .
