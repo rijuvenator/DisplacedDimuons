@@ -9,6 +9,10 @@ do
         hadd ${j}.HybridNew-hadded.mH120.root ${j}.HybridNew*
     else
         echo ${j}.HybridNew-hadded.mH120.root ${j}.HybridNew* >> ARGS
+        if [ "$(ls *${j}.H* | wc -l)" != "6" ]
+        then
+            echo "Didn't find 6 files for "$j
+        fi
     fi
 done
 

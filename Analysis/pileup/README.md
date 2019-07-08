@@ -2,6 +2,9 @@
 
 ## Data Histograms
 
+New: Pileup histograms for nominal, +4.6%, and -4.6% can be found here:  
+`/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/`
+
 See here: [PileupJSONFileForData](https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData)
 
 In CMSSW, do

@@ -97,6 +97,11 @@ for token in sorted(data.keys()):
                 data[token][key] = {'limit':0., 'err':0.}
         print '  ', key, data[token][key]['limit']
 
+rColors = {
+    'UCLA_BLUE' : R.TColor(7001, *[c/255. for c in (39 , 116, 174)]),
+    'UCLA_GOLD' : R.TColor(7002, *[c/255. for c in (259, 209,   0)]),
+}
+
 # loop over mH, mX pairs
 # fill an X and 6 Y vectors with values
 # X only needs to be filled once; do it on OBS
@@ -117,8 +122,12 @@ for mH in SIGNALS:
             sp = (mH, mX, cTau)
             if (mH, mX, cTau) not in newData: continue
             for op, factor in newData[sp]:
-                if pointVeto(mH, mX, cTau, op, factor): continue
-                if newData[sp][(op, factor)]['OBS']['limit'] == 0.: continue
+                if pointVeto(mH, mX, cTau, op, factor):
+                    print 'Vetoing', mH, mX, cTau, op, factor
+                    continue
+                if newData[sp][(op, factor)]['OBS']['limit'] == 0.:
+                    print 'Zeroing', mH, mX, cTau, op, factor
+                    continue
 
                 for key in QUANTILES:
                     if key == 'OBS':
@@ -139,19 +148,19 @@ for mH in SIGNALS:
         }
 
         p = {
-            'OBS' : Plotter.Plot(g['OBS'], 'Observed limits'             , 'pl', 'pl'),
-            'MED' : Plotter.Plot(g['MED'], 'Expected limits (median)'    , 'pl', 'pl'),
-            '1S'  : Plotter.Plot(g['1S' ], 'Expected limits (#pm1#sigma)', 'f' , '3' ),
-            '2S'  : Plotter.Plot(g['2S' ], 'Expected limits (#pm2#sigma)', 'f' , '3' ),
+            'OBS' : Plotter.Plot(g['OBS'], 'Observed'               , 'pl', 'pl'),
+#           'MED' : Plotter.Plot(g['MED'], 'Expected (median)'      , 'pl', 'pl'),
+            'MED' : Plotter.Plot(g['MED'], 'Expected (median)'      , 'l' , 'l' ),
+            '1S'  : Plotter.Plot(g['1S' ], 'Expected (68% quantile)', 'f' , '3' ),
+            '2S'  : Plotter.Plot(g['2S' ], 'Expected (95% quantile)', 'f' , '3' ),
         }
 
         dummyGraph = R.TGraph(2, np.array([.1, 30000.]), np.array([50., 5.e-4]))
         dummy = Plotter.Plot(dummyGraph, '', '', 'p')
 
-        if ARGS.SQUARE:
-            c = Plotter.Canvas(lumi='35.9 fb^{-1} (13 TeV)', logy=True, cWidth=600)
-        else:
-            c = Plotter.Canvas(lumi='35.9 fb^{{-1}} (13 TeV) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
+        c = Plotter.Canvas(lumi='35.9 fb^{-1} (13 TeV)', logy=True, cWidth=600 if ARGS.SQUARE else 800)
+
+        #c = Plotter.Canvas(lumi='35.9 fb^{{-1}} (13 TeV) m_{{H}} = {} GeV, m_{{X}} = {} GeV'.format(mH, mX), logy=True)
 
         c.addMainPlot(dummy, addToPlotList=False)
         dummy.setColor(0, which='LMF')
@@ -161,12 +170,24 @@ for mH in SIGNALS:
         c.addMainPlot(p['MED'])
         c.addMainPlot(p['OBS'])
 
-        p['2S'].setColor(R.kOrange, which='LMF')
-        p['1S'].setColor(R.kGreen , which='LMF')
+        COLORS = {
+            'STANDARD' : {
+                'MED': R.kRed,
+                '1S' : R.kGreen,
+            },
+            'UCLA' : {
+                'MED': 7001,
+                '1S' : 7002,
+            }
+        }
+
+        CKEY = 'UCLA'
+
+        p['1S'].setColor(COLORS[CKEY]['1S'] , which='LMF')
 
         p['MED'].SetMarkerSize(2.)
         p['MED'].SetLineWidth(5)
-        p['MED'].setColor(R.kRed, which='LMF')
+        p['MED'].setColor(COLORS[CKEY]['MED'], which='LMF')
 
         c.mainPad.SetLogx()
 
@@ -175,11 +196,13 @@ for mH in SIGNALS:
         c.legend.addLegendEntry(p['MED'])
         c.legend.addLegendEntry(p['1S' ])
         c.legend.resizeHeight()
-        c.legend.moveLegend(X=-.15)
+        c.legend.moveLegend(X=-.19)
         if ARGS.SQUARE:
-            c.legend.moveLegend(X=-.07)
-            c.drawText('m_{{H}} = {} GeV'.format(mH), (c.margins['l']+.03, 1.-c.margins['t']-.03    ), 'tl')
-            c.drawText('m_{{X}} = {} GeV'.format(mX), (c.margins['l']+.03, 1.-c.margins['t']-.03-.05), 'tl')
+            c.legend.moveLegend(X=-.04)
+            c.firstPlot.scaleTitleOffsets(1.1, 'XY')
 
-        c.firstPlot.setTitles(X='c#tau [cm]', Y='Upper limit on #sigma(H#rightarrowXX)B(X#rightarrow#mu#mu) [pb]')
+        c.drawText('m_{{H}} = {} GeV'.format(mH), (c.margins['l']+.03, 1.-c.margins['t']-.04    ), 'tl')
+        c.drawText('m_{{X}} = {} GeV'.format(mX), (c.margins['l']+.03, 1.-c.margins['t']-.04-.05), 'tl')
+
+        c.firstPlot.setTitles(X='c#tau [cm]', Y='95% CL upper limit on #sigma(H#rightarrowXX)B(X#rightarrow#mu#mu) [pb]')
         c.cleanup('pdfs/Limits_2Mu_{}_{}_{}.pdf'.format(mH, mX, ARGS.METHOD))
