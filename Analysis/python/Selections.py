@@ -93,7 +93,7 @@ CUTS = {
     'm_pT'       :      Cut('pT'       , lambda mu : mu.pt                          , operator.gt,         10.      ),
     'm_d0Sig'    : MultiCut('d0Sig'    , lambda mu : mu.d0Sig()                     , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda mu: mu.tag              ),
-    'm_trkChi2'  :      Cut('trkChi2'  , lambda mu : mu.normChi2                    , operator.lt,          4.      ),
+    'm_trkChi2'  :      Cut('trkChi2'  , lambda mu : mu.normChi2                    , operator.lt,          2.5     ),
     'm_nDTHits'  : MultiCut('nDTHits'  , lambda mu : mu.nDTHits                     , operator.gt, {True : 18        ,
                                                                                                     False: -1       }, lambda mu: mu.nCSCHits == 0    ),
 
@@ -108,7 +108,7 @@ CUTS = {
     'd_DCA'      :      Cut('DCA'      , lambda dim: dim.DCA                        , operator.lt,         50.      ),
     'd_d0Sig'    : DimMuCut('d0Sig'    , lambda ref: ref.d0Sig()                    , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda ref: ref.tag[4:7]       ),
-    'd_LxySig'   : MultiCut('LxySig'   , lambda dim: dim.LxySig()                   , operator.gt, {'DSA':  5.       ,
+    'd_LxySig'   : MultiCut('LxySig'   , lambda dim: dim.LxySig()                   , operator.gt, {'DSA':  7.       ,
                                                                                                     'PAT':  3.       ,
                                                                                                     'HYB':  3.      }, lambda dim: dim.composition[:3]),
     'd_deltaPhi' :      Cut('deltaPhi' , lambda dim: dim.deltaPhi                   , operator.le,        math.pi/2.),

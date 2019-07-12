@@ -31,14 +31,14 @@ canvas.addMainPlot(pCum['LxySig_DPHI'])
 pCum ['LxySig_IDPHI'].setColor(R.kRed )
 pCum ['LxySig_DPHI' ].setColor(R.kBlue)
 canvas.makeLegend(lWidth=.2)
-canvas.cleanup('cum.pdf')
+canvas.cleanup('pdfs/cum.pdf')
 
 #### Plot 2
 canvas = Plotter.Canvas()
 canvas.addMainPlot(pCumRatio)
 pCumRatio.setColor(R.kBlue)
 pCumRatio.setTitles(Y='Ratio of CR/SR')
-canvas.cleanup('ratio.pdf')
+canvas.cleanup('pdfs/ratio.pdf')
 
 #### Plot 3
 canvas = Plotter.Canvas()
@@ -47,14 +47,14 @@ canvas.addMainPlot(pDist['LxySig_DPHI'])
 pDist['LxySig_IDPHI'].setColor(R.kRed )
 pDist['LxySig_DPHI' ].setColor(R.kBlue)
 canvas.makeLegend(lWidth=.2)
-canvas.cleanup('dist.pdf')
+canvas.cleanup('pdfs/dist.pdf')
 
 #### Plot 4
 canvas = Plotter.Canvas()
 canvas.addMainPlot(pDistRatio)
 pDistRatio.setColor(R.kBlue)
 pDistRatio.setTitles(Y='Ratio of CR/SR')
-canvas.cleanup('ratioDist.pdf')
+canvas.cleanup('pdfs/ratioDist.pdf')
 
 #### KS Probability
 print h['LxySig_IDPHI'].KolmogorovTest(h['LxySig_DPHI'])
