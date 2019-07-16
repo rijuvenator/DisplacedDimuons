@@ -75,9 +75,10 @@ for hkey in ('hDeltaPhi', 'hDeltaPhiBig'):
     makeSinglePlots(hkey, logy=False)
 
 def makeLessMorePlots(quantity, LxyRange, logy=True):
+    legDict = {'Less':'<  #pi/4', 'More':'> 3#pi/4'}
     hkeys  = {key:'h{}{}{}'.format(key, quantity, LxyRange) for key in ('Less', 'More')}
-    PLOTS  = {key:Plotter.Plot( HISTS[hkeys[key]]['stack'].GetStack().Last(), '  MC |#Delta#Phi| {} #pi/2'.format('<' if key == 'Less' else '>'), 'l' , 'hist') for key in ('Less', 'More')}
-    DPLOTS = {key:Plotter.Plot(DHists[hkeys[key]]                           , 'Data |#Delta#Phi| {} #pi/2'.format('<' if key == 'Less' else '>'), 'pe', 'pe'  ) for key in ('Less', 'More')}
+    PLOTS  = {key:Plotter.Plot( HISTS[hkeys[key]]['stack'].GetStack().Last(), '  MC |#Delta#Phi| {}'.format(legDict[key]), 'l' , 'hist') for key in ('Less', 'More')}
+    DPLOTS = {key:Plotter.Plot(DHists[hkeys[key]]                           , 'Data |#Delta#Phi| {}'.format(legDict[key]), 'pe', 'pe'  ) for key in ('Less', 'More')}
 
     canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=logy)
 
@@ -115,8 +116,10 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
                 canvas.firstPlot.SetMaximum(120000.)
             canvas.firstPlot.SetMinimum(0.)
 
+    for key in DPLOTS:
+        print 'Data', key, DPLOTS[key].Integral(0,  PLOTS[key].GetNbinsX()+1)
     for key in PLOTS:
-        print key, PLOTS[key].Integral(0, PLOTS[key].GetNbinsX()+1)
+        print 'MC  ', key,  PLOTS[key].Integral(0, DPLOTS[key].GetNbinsX()+1)
 
 
     paveDataLess = canvas.makeStatsBox(DHists[hkeys['Less']], color=colors['Less'])
@@ -141,8 +144,45 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
 
     canvas.cleanup('pdfs/{}_{}.pdf'.format(keyList[hkeys['Less']], 'Lin' if not canvas.logy else 'Log'))
 
+def makeRatioPlots(quantity, LxyRange):
+    legDict = {'Less':'<  #pi/4', 'More':'> 3#pi/4'}
+    hkeys  = {key:'h{}{}{}'.format(key, quantity, LxyRange) for key in ('Less', 'More')}
+
+    a = HISTS[hkeys['Less']]['stack'].GetStack().Last().Clone()
+    den = HISTS[hkeys['More']]['stack'].GetStack().Last().Clone()
+    a.Rebin(2), den.Rebin(2)
+    a.Divide(den)
+    d = DHists[hkeys['Less']].Clone()
+    den = DHists[hkeys['More']].Clone()
+    d.Rebin(2), den.Rebin(2)
+    d.Divide(den)
+
+    PLOTS  = {'':Plotter.Plot(a, '  MC SR/CR', 'lp', 'hist p')}
+    DPLOTS = {'':Plotter.Plot(d, 'Data SR/CR', 'lp', 'hist p')}
+
+    canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=False)
+
+    colors = {'':R.kBlue}
+    canvas.addMainPlot(PLOTS [''])
+    canvas.addMainPlot(DPLOTS[''])
+
+    PLOTS [''].setColor(R.kBlue)
+    DPLOTS[''].setColor(R.kBlack)
+
+    canvas.firstPlot.setTitles(X='', copy=DHists[hkeys['Less']])
+    canvas.firstPlot.setTitles(Y='Event Yield')
+    canvas.makeLegend(lWidth=.3, pos='tr')
+    canvas.legend.resizeHeight()
+    RT.addBinWidth(canvas.firstPlot)
+
+    canvas.firstPlot.SetMaximum( 2.)
+    canvas.firstPlot.SetMinimum(-1.)
+
+    canvas.cleanup('pdfs/Ratio_{}_{}.pdf'.format(keyList[hkeys['Less']], 'Lin' if not canvas.logy else 'Log'))
+
 for quantity in ('LxySig', 'DeltaPhi'):
     for LxyRange in ('', 'Big', 'Edges'):
         if LxyRange == 'Edges' and quantity != 'LxySig': continue
         makeLessMorePlots(quantity, LxyRange, logy=True)
         makeLessMorePlots(quantity, LxyRange, logy=False)
+        makeRatioPlots(quantity, LxyRange)

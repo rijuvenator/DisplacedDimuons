@@ -7,15 +7,13 @@ import argparse, itertools
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('FILE', help='which file to run over')
+PARSER.add_argument('--cutoff', dest='LXYSIGCUTOFF', type=float, default=0.)
 ARGS = PARSER.parse_args()
 
 singles = {}
 for sample in itertools.chain(HG.BGORDER, ['Data']):
 
-    singles[sample] = {
-        'LxyVSSig'   : R.TH3F('h_LxyVSSig_{}'   .format(sample), '', 100, 0., R.TMath.Pi(), 300, 0., 300., 200, 0., 50.),
-        'LxyVSLxySig': R.TH3F('h_LxyVSLxySig_{}'.format(sample), '', 100, 0., R.TMath.Pi(), 300, 0., 300., 200, 0., 50.),
-    }
+    singles[sample] = {'plot': R.TH3F('hDalitz_{}'.format(sample), ';#rho_{1};#rho_{2};M', 100, 0., 0.5, 100, 0., 0.5, 20, 50., 250.)}
 
 boolMap = {True:'Less', False:'More'}
 
@@ -29,9 +27,11 @@ for line in f:
     Lxy      = float(cols[20])
     Sig      = float(cols[21])
 
-    #if LxySig < 7.: continue
-    if not abs(LxySig - Lxy/Sig) < 1.e-3:
-        print LxySig, Lxy, Sig, Lxy/Sig
+    if LxySig < ARGS.LXYSIGCUTOFF: continue
+
+    pA, pB, pM = map(float, cols[23:])
+
+    M = pA+pB+pM
 
     weight = float(cols[4])
 
@@ -42,13 +42,14 @@ for line in f:
     else:
         sample = name
 
-    singles[sample]['LxyVSSig']   .Fill(deltaPhi, Lxy,    Sig, weight)
-    singles[sample]['LxyVSLxySig'].Fill(deltaPhi, Lxy, LxySig, weight)
+    try:
+        singles[sample]['plot'].Fill(pA/M, pB/M, M)
+    except:
+        pass
 
 f.close()
 
-X = R.TFile.Open('roots/Fixed.root', 'RECREATE')
+X = R.TFile.Open('Dalitz{}.root'.format('' if ARGS.LXYSIGCUTOFF == 0. else '_'+str(int(ARGS.LXYSIGCUTOFF))), 'RECREATE')
 for sample in singles:
-    for key in singles[sample]:
-        singles[sample][key].Write()
+    singles[sample]['plot'].Write()
 X.Close()

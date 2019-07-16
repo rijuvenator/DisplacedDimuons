@@ -61,7 +61,7 @@ def analyze(self, E, PARAMS=None):
     if selectedDimuons is not None:
         for dim in selectedDimuons:
             if dim.composition != 'DSA': continue
-            if dim.LxySig() < 7.: continue
+            if not Selections.modelDependentMassCut(self.SP.mX, dim.mass): continue
             if self.SP is not None:
                 for op in self.COUNTS:
                     for factor in self.COUNTS[op]:

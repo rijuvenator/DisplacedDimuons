@@ -12,6 +12,17 @@ def passedTrigger(E):
         return True
     return False
 
+# signal model dependent mass cut
+def modelDependentMassCut(mX, mass):
+    if   mX == 20:
+        return 10. < mass < 32.
+    elif mX == 50:
+        return 20. < mass < 80.
+    elif mX == 150:
+        return 35. < mass < 245.
+    elif mX == 350:
+        return mass > 60.
+
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264', operator.eq:'='}
 
@@ -108,11 +119,11 @@ CUTS = {
     'd_DCA'      :      Cut('DCA'      , lambda dim: dim.DCA                        , operator.lt,         50.      ),
     'd_d0Sig'    : DimMuCut('d0Sig'    , lambda ref: ref.d0Sig()                    , operator.gt, {'DSA':  3.       ,
                                                                                                     'PAT': 10.      }, lambda ref: ref.tag[4:7]       ),
-    'd_LxySig'   : MultiCut('LxySig'   , lambda dim: dim.LxySig()                   , operator.gt, {'DSA':  7.       ,
+    'd_LxySig'   : MultiCut('LxySig'   , lambda dim: dim.LxySig()                   , operator.gt, {'DSA':  6.       ,
                                                                                                     'PAT':  3.       ,
                                                                                                     'HYB':  3.      }, lambda dim: dim.composition[:3]),
-    'd_deltaPhi' :      Cut('deltaPhi' , lambda dim: dim.deltaPhi                   , operator.le,        math.pi/2.),
-    'd_IDeltaPhi':      Cut('IDeltaPhi', lambda dim: dim.deltaPhi                   , operator.gt,        math.pi/2.),
+    'd_deltaPhi' :      Cut('deltaPhi' , lambda dim: dim.deltaPhi                   , operator.le,        math.pi/4.),
+    'd_IDeltaPhi':      Cut('IDeltaPhi', lambda dim: dim.deltaPhi                   , operator.gt,     3.*math.pi/4.),
     'd_oppSign'  :      Cut('oppSign'  , lambda dim: dim.mu1.charge+dim.mu2.charge  , operator.eq,          0       ),
 
 ### RUN 1 RECO MUON CUTS ###

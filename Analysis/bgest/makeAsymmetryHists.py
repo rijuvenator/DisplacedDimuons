@@ -51,7 +51,14 @@ for line in f:
     deltaPhi = float(cols[18])
     LxySig   = float(cols[15])
 
-    Less_DPhi = (deltaPhi < R.TMath.Pi()/2.)
+    Less_DPhi = (deltaPhi <    R.TMath.Pi()/4.)
+    More_DPhi = (deltaPhi > 3.*R.TMath.Pi()/4.)
+
+    #Less_DPhi = (deltaPhi <    R.TMath.Pi()/2.)
+    #More_DPhi = (deltaPhi >    R.TMath.Pi()/2.)
+
+    if not Less_DPhi and not More_DPhi: continue
+
     More_LSig = (LxySig > ARGS.LXYSIGCUTOFF)
 
     weight = float(cols[4])
