@@ -2,7 +2,7 @@ import ROOT as R
 import DisplacedDimuons.Analysis.Plotter as Plotter
 
 f = R.TFile.Open('roots/Fixed_All.root')
-h = f.Get('h_LxyVSLxySig_Data')
+h = f.Get('h_LxyVSSig_Data')
 
 proj = {}
 DPHIBINS = 5
@@ -27,20 +27,22 @@ for i in xrange(DPHIBINS):
     #h.GetYaxis().SetRange(1, 100)
     #h.GetZaxis().SetRange(1, 100)
 
-    proj[i] = h.Project3D('new{}_y'.format(i))
+    #proj[i] = h.Project3D('new{}_y'.format(i))
+    proj[i] = h.Project3D('new{}_z'.format(i))
     print proj[i].Integral()
 
-c = Plotter.Canvas()#logy=True)
+c = Plotter.Canvas(lumi='Data', logy=True)
 for i in xrange(DPHIBINS):
-    proj[i].Scale(1./proj[i].Integral(0, 301))
+    #proj[i].Scale(1./proj[i].Integral(0, 301))
+    proj[i].Scale(1./proj[i].Integral(0, 101))
     c.addMainPlot(Plotter.Plot(proj[i], getLumiStr(DPHIBINS, i), 'l', 'hist'))
     c.plotList[-1].setColor(i+1)
-#c.firstPlot.setTitles(X='#sigma_{L_{xy}}', Y='Counts')
-c.firstPlot.setTitles(X='L_{xy}', Y='Counts')
-#c.firstPlot.setTitles(X='L_{xy}/#sigma_{L_{xy}}', Y='Counts')
+c.firstPlot.setTitles(X='#sigma_{L_{xy}} [cm]', Y='Normalized Counts')
+#c.firstPlot.setTitles(X='L_{xy} [cm]', Y='Normalized Counts')
+#c.firstPlot.setTitles(X='L_{xy}/#sigma_{L_{xy}}', Y='Normalized Counts')
 c.makeLegend(lWidth=.2)
 c.setMaximum()
-c.firstPlot.GetXaxis().SetRangeUser(0., 20.)
+#c.firstPlot.GetXaxis().SetRangeUser(0., 20.)
 c.legend.resizeHeight()
 c.legend.moveLegend(X=-.1)
 c.cleanup('plot.pdf')

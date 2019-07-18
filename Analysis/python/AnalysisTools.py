@@ -571,17 +571,30 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
     DSAProxMatch = True
 
     # as a last resort, use the proximity match in certain cases
-    def lookForProximityMatch(DSAmuon):
+    def lookForProximityMatch(DSAmuon, inputPATs):
         # only do this if there are NO segment matches
 
         # to do: this line used to read  if DSAmuon.SegMatchPP.idx is not None: return None
         # but now, it being None doesn't mean there ARE valid SegMatches
         #if DSAmuon.SegMatchPP.idx is not None: return None
+
         if DSAmuon.ProxMatchPP.idx is None: return None
 
-        # option 2: proximity match is within deltaR of 0.1
+        # option 1: proximity match is within deltaR of 0.1
         if DSAmuon.ProxMatchPP.deltaR < 0.1:
             return DSAmuon.ProxMatchPP.idx
+
+        # option 2: if it's a global muon, we don't have segments,
+        # but check if the number of hits is the same, and if they
+        # are, and the deltaR is < 0.2, take it as a match
+        PATmuon = inputPATs[DSAmuon.ProxMatchPP.idx]
+        if PATmuon.isGlobal and (not PATmuon.isTracker) and DSAmuon.ProxMatchPP.deltaR < 0.2:
+            PATmuon = inputPATs[DSAmuon.ProxMatchPP.idx]
+            if     PATmuon.nDTHits      == DSAmuon.nDTHits      \
+               and PATmuon.nCSCHits     == DSAmuon.nCSCHits     \
+               and PATmuon.nDTStations  == DSAmuon.nDTStations  \
+               and PATmuon.nCSCStations == DSAmuon.nCSCStations:
+               return DSAmuon.ProxMatchPP.idx
 
         return None
 
@@ -596,7 +609,7 @@ def replaceDSAMuons(selectedDSAmuons, selectedPATmuons, selectedDimuons, PATSele
         candidate = lookForSegMatch(mu)
         if candidate is None:
             if DSAProxMatch:
-                candidate = lookForProximityMatch(mu)
+                candidate = lookForProximityMatch(mu, inputPATs)
         if candidate is not None:
             if candidate in PATIndices: continue
             filteredPATmuons.append(inputPATs[candidate])

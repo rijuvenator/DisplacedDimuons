@@ -75,7 +75,7 @@ for card in CARDS:
         ArgsList.append('-d {relCard} -n Limits_2Mu_{token}'.format(relCard=relCard, token=token))
 
     elif METHOD == 'HybridNew':
-        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0'
+        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0 --toysH=5000 -s -1'
 
         QUANTILES = ('', '0.025', '0.16', '0.5', '0.84', '0.975')
         THESEQUANTILES = QUANTILES

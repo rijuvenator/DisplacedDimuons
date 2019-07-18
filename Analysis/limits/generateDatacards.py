@@ -1,6 +1,40 @@
 import sys
 from DisplacedDimuons.Analysis.HistogramGetter import INTEGRATED_LUMINOSITY_2016
 
+##############
+#### DATA ####
+##############
+
+# transfer factors and cross section
+TAU = 1.025
+ALPHA = 1./TAU
+SIGMAB = 1.e-2
+
+# systematics dictionary
+# lumi is the luminosity uncertainty
+# systS is the systematic uncertainty on expected signal
+# systB is the systematic uncertainty on expected background
+# statS is the statistical uncertainty on expected signal, as above
+# statB is the correct way to propagate uncertainty on nBG-Exp obtained from CR
+SYSTEMATICS = {
+    'lumi' : {'mode':'lnN', '2Mu':'1.025' , 'BG':'-'            },
+    'systS': {'mode':'lnN', '2Mu':'1.21'  , 'BG':'-'            },
+    'systB': {'mode':'lnN', '2Mu':'-'     , 'BG':'1.25'         },
+    'statS': {'mode':'lnN', '2Mu':''      , 'BG':'-'            },
+    'statB': {'mode':'gmN', '2Mu':'-'     , 'BG':'' , 'nOff': ''},
+}
+SYSTEMATICS['statB']['BG'] = str(ALPHA)
+
+# needs to be a text file with four lines in the format '20 0 0'
+DATACOUNTS = {m:{'CR':0, 'OBS':0} for m in ('20', '50', '150', '350')}
+f = open('text/realDataCounts.txt')
+for line in f:
+    cols = line.strip('\n').split()
+    DATACOUNTS[cols[0]]['CR' ] = int(cols[1])
+    DATACOUNTS[cols[0]]['OBS'] = int(cols[2])
+f.close()
+
+# output of getCounts
 headers = ['mH', 'mX', 'cTau', 'op', 'factor', 'nEvents', 'sumW', 'sig', 'sig2']
 data = []
 f = open('text/datacardRawInput.txt')
@@ -17,13 +51,14 @@ for job in data:
     ##### DATACARD VALUES #####
     ###########################
 
-    OBS = 3
+    OBS = DATACOUNTS[job['mX']]['OBS']
+    EXP = DATACOUNTS[job['mX']]['CR' ]*ALPHA
 
     PROCESSES = ('2Mu', 'BG')
 
     RATES = {
-        '2Mu' : str(float(job['sig'])/float(job['sumW'])*INTEGRATED_LUMINOSITY_2016*1.e-2),
-        'BG'  : '3.00',
+        '2Mu' : str(float(job['sig'])/float(job['sumW'])*INTEGRATED_LUMINOSITY_2016*SIGMAB),
+        'BG'  : '{:.2f}'.format(EXP),
     }
 
     # first make sure there are no jobs with zero expected signal
@@ -48,20 +83,10 @@ for job in data:
         skippedJobs += 1
         continue
 
-    # systematics dictionary
-    # lumi is the luminosity uncertainty
-    # systS is the systematic uncertainty on expected signal
-    # systB is the systematic uncertainty on expected background
-    # statS is the statistical uncertainty on expected signal, as above
-    # statB is the correct way to propagate uncertainty on nBG-Exp obtained from CR
+    # fill missing values in systematics dictionary
 
-    SYSTEMATICS = {
-        'lumi' : {'mode':'lnN', '2Mu':'1.025' , 'BG':'-'                 },
-        'systS': {'mode':'lnN', '2Mu':'1.2'   , 'BG':'-'                 },
-        'systB': {'mode':'lnN', '2Mu':'-'     , 'BG':'1.2'               },
-        'statS': {'mode':'lnN', '2Mu':STATSIG , 'BG':'-'                 },
-        'statB': {'mode':'gmN', '2Mu':'-'     , 'BG':'1.0' , 'nOff':'3'  },
-    }
+    SYSTEMATICS['statS']['2Mu' ] = STATSIG
+    SYSTEMATICS['statB']['nOff'] = str(DATACOUNTS[job['mX']]['CR'])
 
     ###########################
     ##### DATACARD FORMAT #####

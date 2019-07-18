@@ -16,8 +16,8 @@ def begin(self, PARAMS=None):
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
-    self.HistInit('LxySig_IDPHI', ';L_{xy}/#sigma_{L_{xy}};Counts', 100, 0., 5.)
-    self.HistInit('LxySig_DPHI' , ';L_{xy}/#sigma_{L_{xy}};Counts', 100, 0., 5.)
+    self.HistInit('LxySig_IDPHI', ';L_{xy}/#sigma_{L_{xy}};Counts', 120, 0., 6.)
+    self.HistInit('LxySig_DPHI' , ';L_{xy}/#sigma_{L_{xy}};Counts', 120, 0., 6.)
 
 # internal loop function for Analyzer class
 def analyze(self, E, PARAMS=None):
@@ -61,7 +61,7 @@ def analyze(self, E, PARAMS=None):
         selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING+DPHI, Dimuons3, DSAmuons, PATmuons)
         if selectedDimuons is None: continue
 
-        DSADimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA' and dim.LxySig() < 5.]
+        DSADimuons = [dim for dim in selectedDimuons if dim.composition == 'DSA' and dim.LxySig() < 6.]
 
         for dim in DSADimuons:
             self.HISTS['LxySig'+DPHI].Fill(dim.LxySig())

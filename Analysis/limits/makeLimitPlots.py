@@ -56,7 +56,7 @@ def pointVeto(mH, mX, cTau, op, factor):
 # output files are expected to be in combineOutput/ in the format below
 # for HybridNew you probably need to hadd the different quantiles together
 # now it opens each file, which is each individual point, gets the limit tree,
-# loops over all 6 (obs + 5 quantiles) entries, and fills a dictionary
+# loops over all entries (obs + however many quantiles, probably 3 or 5) and fills a dictionary
 data = {}
 for token in TOKENS:
     fname = 'combineOutput/higgsCombineLimits_2Mu_{}.{}{}.mH120.root'.format(token,ARGS.METHOD, '-hadded' if ARGS.METHOD=='HybridNew' else '')
@@ -67,8 +67,7 @@ for token in TOKENS:
         print fname
         continue
     data[token] = {}
-    for i in xrange(6):
-        t.GetEntry(i)
+    for event in t:
         quantileToken = getQuantileFromValue(t.quantileExpected)
         data[token][quantileToken] = {}
         data[token][quantileToken]['limit'] = t.limit
@@ -130,6 +129,13 @@ for mH in SIGNALS:
                     print 'Zeroing', mH, mX, cTau, op, factor
                     continue
 
+                # temporary tweaks to skip some points
+                med, q1u, q1d = [newData[(mH, mX, cTau)][(op, factor)][key]['limit'] * CROSS_SECTION for key in ('MED', '+1S', '-1S')]
+                if q1u < med or q1d > med: continue
+
+                if (mH, mX) == (1000, 150) and OP[op](float(cTau), float(factor))/10. == 10.: continue
+                # end of temporary tweaks
+
                 for key in QUANTILES:
                     if key == 'OBS':
                         x.append(OP[op](float(cTau), float(factor))/10.)
@@ -188,6 +194,7 @@ for mH in SIGNALS:
 
         p['MED'].SetMarkerSize(2.)
         p['MED'].SetLineWidth(5)
+        p['MED'].SetLineStyle(2)
         p['MED'].setColor(COLORS[CKEY]['MED'], which='LMF')
 
         c.mainPad.SetLogx()
