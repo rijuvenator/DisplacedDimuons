@@ -52,7 +52,7 @@ def makeSinglePlots(hkey, logy=True):
         canvas.firstPlot.SetMinimum(10.**0.)
     else:
         if 'Big' in hkey:
-            canvas.firstPlot.SetMaximum(1500.)
+            canvas.firstPlot.SetMaximum(2500.)
             canvas.firstPlot.SetMinimum(200. )
         else:
             canvas.firstPlot.SetMaximum(120000.)
@@ -67,6 +67,12 @@ def makeSinglePlots(hkey, logy=True):
     paveMC = canvas.makeStatsBox(z)
     Plotter.MOVE_OBJECT(paveMC, X=-.35, Y=-.02)
     canvas.drawText('MC', pos=(paveMC.GetX1(), paveMC.GetY2()-.006), align='bl', fontcode='b')
+
+    for key in ('stack', 'Data'):
+        if key == 'Data':
+            print 'Data', keyList[hkey], PLOTS[key].Integral(0,  PLOTS[key].GetNbinsX()+1)
+        else:
+            print 'MC  ', keyList[hkey], PLOTS[key].GetStack().Last().Integral(0,  PLOTS[key].GetStack().Last().GetNbinsX()+1)
 
     canvas.cleanup('pdfs/{}_{}.pdf'.format(keyList[hkey], 'Lin' if not logy else 'Log'))
 
@@ -89,12 +95,6 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
 
         PLOTS [key].setColor(colors[key])
         DPLOTS[key].setColor(colors[key])
-
-    canvas.firstPlot.setTitles(X='', copy=DHists[hkeys['Less']])
-    canvas.firstPlot.setTitles(Y='Event Yield')
-    canvas.makeLegend(lWidth=.3, pos='tr')
-    canvas.legend.resizeHeight()
-    RT.addBinWidth(canvas.firstPlot)
 
     if logy:
         canvas.firstPlot.SetMaximum(10.**7.)
@@ -122,25 +122,61 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
         print 'MC  ', key,  PLOTS[key].Integral(0, DPLOTS[key].GetNbinsX()+1)
 
 
-    paveDataLess = canvas.makeStatsBox(DHists[hkeys['Less']], color=colors['Less'])
-    Plotter.MOVE_OBJECT(paveDataLess, X=-.55, Y=-.02)
-    canvas.drawText('Data SR', pos=(paveDataLess.GetX1(), paveDataLess.GetY2()-.006), align='bl', fontcode='b')
+    if '{}_{}'.format(keyList[hkeys['Less']], 'Lin' if not canvas.logy else 'Log') != 'deltaPhi-SplitLxySig-Big_Lin':
 
-    paveMCLess = canvas.makeStatsBox(PLOTS['Less'], color=colors['Less'])
-    Plotter.MOVE_OBJECT(paveMCLess, X=-.35, Y=-.02)
-    canvas.drawText('MC SR', pos=(paveMCLess.GetX1(), paveMCLess.GetY2()-.006), align='bl', fontcode='b')
+        canvas.firstPlot.setTitles(X='', copy=DHists[hkeys['Less']])
+        canvas.firstPlot.setTitles(Y='Event Yield')
+        canvas.makeLegend(lWidth=.3, pos='tr')
+        canvas.legend.resizeHeight()
+        RT.addBinWidth(canvas.firstPlot)
 
-    paveDataMore = canvas.makeStatsBox(DHists[hkeys['More']], color=colors['More'])
-    Plotter.MOVE_OBJECT(paveDataMore, X=-.55, Y=-.3)
-    if paveDataMore.GetX1() != paveDataLess.GetX1():
-        Plotter.MOVE_OBJECT(paveDataMore, X=-(paveDataMore.GetX1()-paveDataLess.GetX1()))
-    canvas.drawText('Data CR', pos=(paveDataMore.GetX1(), paveDataMore.GetY2()-.006), align='bl', fontcode='b')
+        paveDataLess = canvas.makeStatsBox(DHists[hkeys['Less']], color=colors['Less'])
+        Plotter.MOVE_OBJECT(paveDataLess, X=-.55, Y=-.02)
+        canvas.drawText('Data SR', pos=(paveDataLess.GetX1(), paveDataLess.GetY2()-.006), align='bl', fontcode='b')
 
-    paveMCMore = canvas.makeStatsBox(PLOTS['More'], color=colors['More'])
-    Plotter.MOVE_OBJECT(paveMCMore, X=-.35, Y=-.3)
-    if paveMCMore.GetX1() != paveMCLess.GetX1():
-        Plotter.MOVE_OBJECT(paveMCMore, X=-(paveMCMore.GetX1()-paveMCLess.GetX1()))
-    canvas.drawText('MC CR', pos=(paveMCMore.GetX1(), paveMCMore.GetY2()-.006), align='bl', fontcode='b')
+        paveMCLess = canvas.makeStatsBox(PLOTS['Less'], color=colors['Less'])
+        Plotter.MOVE_OBJECT(paveMCLess, X=-.35, Y=-.02)
+        canvas.drawText('MC SR', pos=(paveMCLess.GetX1(), paveMCLess.GetY2()-.006), align='bl', fontcode='b')
+
+        paveDataMore = canvas.makeStatsBox(DHists[hkeys['More']], color=colors['More'])
+        Plotter.MOVE_OBJECT(paveDataMore, X=-.55, Y=-.3)
+        if paveDataMore.GetX1() != paveDataLess.GetX1():
+            Plotter.MOVE_OBJECT(paveDataMore, X=-(paveDataMore.GetX1()-paveDataLess.GetX1()))
+        canvas.drawText('Data CR', pos=(paveDataMore.GetX1(), paveDataMore.GetY2()-.006), align='bl', fontcode='b')
+
+        paveMCMore = canvas.makeStatsBox(PLOTS['More'], color=colors['More'])
+        Plotter.MOVE_OBJECT(paveMCMore, X=-.35, Y=-.3)
+        if paveMCMore.GetX1() != paveMCLess.GetX1():
+            Plotter.MOVE_OBJECT(paveMCMore, X=-(paveMCMore.GetX1()-paveMCLess.GetX1()))
+        canvas.drawText('MC CR', pos=(paveMCMore.GetX1(), paveMCMore.GetY2()-.006), align='bl', fontcode='b')
+    else:
+
+        canvas.firstPlot.setTitles(X='', copy=DHists[hkeys['Less']])
+        canvas.firstPlot.setTitles(Y='Event Yield')
+        canvas.makeLegend(lWidth=.3, pos='tl')
+        canvas.legend.resizeHeight()
+        RT.addBinWidth(canvas.firstPlot)
+
+        paveDataLess = canvas.makeStatsBox(DHists[hkeys['Less']], color=colors['Less'])
+        Plotter.MOVE_OBJECT(paveDataLess, X=-.2, Y=-.02)
+        canvas.drawText('Data SR', pos=(paveDataLess.GetX1(), paveDataLess.GetY2()-.006), align='bl', fontcode='b')
+
+        paveMCLess = canvas.makeStatsBox(PLOTS['Less'], color=colors['Less'])
+        Plotter.MOVE_OBJECT(paveMCLess, X=0., Y=-.02)
+        canvas.drawText('MC SR', pos=(paveMCLess.GetX1(), paveMCLess.GetY2()-.006), align='bl', fontcode='b')
+
+        paveDataMore = canvas.makeStatsBox(DHists[hkeys['More']], color=colors['More'])
+        Plotter.MOVE_OBJECT(paveDataMore, X=-.2, Y=-.3)
+        if paveDataMore.GetX1() != paveDataLess.GetX1():
+            Plotter.MOVE_OBJECT(paveDataMore, X=-(paveDataMore.GetX1()-paveDataLess.GetX1()))
+        canvas.drawText('Data CR', pos=(paveDataMore.GetX1(), paveDataMore.GetY2()-.006), align='bl', fontcode='b')
+
+        paveMCMore = canvas.makeStatsBox(PLOTS['More'], color=colors['More'])
+        Plotter.MOVE_OBJECT(paveMCMore, X=0., Y=-.3)
+        if paveMCMore.GetX1() != paveMCLess.GetX1():
+            Plotter.MOVE_OBJECT(paveMCMore, X=-(paveMCMore.GetX1()-paveMCLess.GetX1()))
+        canvas.drawText('MC CR', pos=(paveMCMore.GetX1(), paveMCMore.GetY2()-.006), align='bl', fontcode='b')
+
 
     canvas.cleanup('pdfs/{}_{}.pdf'.format(keyList[hkeys['Less']], 'Lin' if not canvas.logy else 'Log'))
 

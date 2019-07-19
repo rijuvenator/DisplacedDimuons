@@ -44,9 +44,10 @@ Date | Talks
 [2019       May  9](https://indico.cern.ch/event/819804/) | Riju, Alberto, Slava
 [2019       May 16](https://indico.cern.ch/event/821429/) | Alberto, Sebastian
 [2019       May 22](https://indico.cern.ch/event/822766/) | Riju, Sebastian
-[2019       Jun 13](https://indico.cern.ch/event/828116/) | Riju, Suchita, Sebastian
-[2019       Jul  4](https://indico.cern.ch/event/832981/) | Riju, Will, Alberto
-[2019       Jul 11](https://indico.cern.ch/event/834612/) | Alberto, Sebastian
+[2019      June 13](https://indico.cern.ch/event/828116/) | Riju, Suchita, Sebastian
+[2019      July  4](https://indico.cern.ch/event/832981/) | Riju, Will, Alberto
+[2019      July 11](https://indico.cern.ch/event/834612/) | Alberto, Sebastian
+[2019      July 18](https://indico.cern.ch/event/836144/) | Riju, Alberto
 
 ## External Talks
 
