@@ -131,6 +131,7 @@ def optimizeCut(fs, sp, quantity):
     canvas.cleanup('pdfs/OPT_{}_{}_HTo2XTo{}_{}.pdf'.format(quantity, FIGURE_OF_MERIT, fs, SPStr(sp)))
 
 for fs in ('2Mu2J',):
-    for sp in ((400, 50, 800),):
+    #for sp in ((400, 50, 800),):
+    for sp in ((1000, 150, 1000),):
         for quantity in CONFIG:
             optimizeCut(fs, sp, quantity)
