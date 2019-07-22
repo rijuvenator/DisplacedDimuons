@@ -37,6 +37,155 @@ COLORS = {20:7000, 50:7001, 150:7002, 350:7003}
 
 COLORS = {20:R.kRed, 50:R.kBlue, 150:R.kGreen, 350:R.kOrange}
 
+
+#########################################
+####   Plot 0: invariant-mass plots  ####
+#########################################
+fname = 'pdfs/invmassPlots.pdf'
+canvas = R.TCanvas('c1', 'canvas', 0, 0, 800, 600)
+R.gStyle.SetOptStat(111111)
+
+canvas.Clear()
+htit = 'm(X) = 350 GeV'
+mLow = 0.
+mHigh = 400.
+func = R.TF1('f', 'gaus', mLow, mHigh)
+pad = R.TPad('pad','pad', 0, 0, 1, 1)
+legend = {}
+pad.Draw()
+pad.Divide(2,2)
+ipad = 1
+for sp in SIGNALPOINTS:
+    print sp
+    if sp[1] == 350:
+        pad.cd(ipad)
+        HISTS[sp].Rebin(4)
+        HISTS[sp].Fit('f', 'LRE')
+        str = "%s %s %s" %(sp[0], sp[1], sp[2])
+    	legend[sp] = R.TLegend(0.2, 0.6, 0.4, 0.8)
+        legend[sp].AddEntry("HISTS[sp]", str, "l");
+        legend[sp].Draw()
+        ipad = ipad + 1
+canvas.Print(fname+"(", "Title:"+htit)
+
+canvas.Clear()
+htit = 'm(X) = 150 GeV'
+mLow = 50.
+mHigh = 220.
+func = R.TF1('f', 'gaus', mLow, mHigh)
+pad = R.TPad('pad','pad', 0, 0, 1, 1)
+legend = {}
+pad.Draw()
+pad.Divide(2,3)
+ipad = 1
+for sp in SIGNALPOINTS:
+    if sp[1] == 150:
+        pad.cd(ipad)
+        HISTS[sp].Rebin(2)
+        HISTS[sp].Fit('f', 'LRE')
+        str = "%s %s %s" %(sp[0], sp[1], sp[2])
+    	legend[sp] = R.TLegend(0.65, 0.3, 0.85, 0.5)
+        legend[sp].AddEntry("HISTS[sp]", str, "l");
+        legend[sp].Draw()
+        ipad = ipad + 1
+canvas.Print(fname, "Title:"+htit)
+
+htit = 'm(X) = 50 GeV'
+mLow = 10.
+mHigh = 70.
+func = R.TF1('f', 'gaus', mLow, mHigh)
+ihist = 0
+hist = {}
+for sp in SIGNALPOINTS:
+    if sp[1] == 50:
+        ipad = ihist%6
+        if ipad == 0:
+            canvas.Clear()
+            pad = R.TPad('pad','pad', 0, 0, 1, 1)
+            legend = {}
+            pad.Draw()
+            pad.Divide(2,3)
+        pad.cd(ipad+1)
+#        HISTS[sp].Rebin(2)
+        nbins = HISTS[sp].GetNbinsX()
+        xmax = HISTS[sp].GetXaxis().GetXmax()
+        nbins_100GeV = int(nbins*100./xmax)
+        hist[sp] = R.TH1F("h", "hist", nbins_100GeV, 0., 100.)
+        for ibin in range(1, nbins_100GeV):
+            f_bin   = HISTS[sp].GetBinContent(ibin)
+            err_bin = HISTS[sp].GetBinError(ibin)
+            hist[sp].SetBinContent(ibin, f_bin)
+            hist[sp].SetLineColor(R.kBlue)
+        hist[sp].Rebin(2)
+        hist[sp].Fit('f', 'LRE')
+        str = "%s %s %s" %(sp[0], sp[1], sp[2])
+    	legend[sp] = R.TLegend(0.65, 0.3, 0.85, 0.5)
+        legend[sp].AddEntry("HISTS[sp]", str, "l");
+        legend[sp].Draw()
+        ihist = ihist + 1
+        if ipad == 5 or ipad == 11:
+            canvas.Print(fname, "Title:"+htit)
+
+htit = 'm(X) = 20 GeV'
+mLow = 5.
+mHigh = 30.
+func = R.TF1('f', 'gaus', mLow, mHigh)
+ihist = 0
+hist = {}
+for sp in SIGNALPOINTS:
+    if sp[1] == 20:
+        ipad = ihist%6
+        if ipad == 0:
+            canvas.Clear()
+            pad = R.TPad('pad','pad', 0, 0, 1, 1)
+            legend = {}
+            pad.Draw()
+            pad.Divide(2,3)
+        pad.cd(ipad+1)
+#        HISTS[sp].Rebin(2)
+        nbins = HISTS[sp].GetNbinsX()
+        xmax = HISTS[sp].GetXaxis().GetXmax()
+        nbins_50GeV = int(nbins*50./xmax)
+        hist[sp] = R.TH1F("h", "hist", nbins_50GeV, 0., 50.)
+        for ibin in range(1, nbins_50GeV):
+            f_bin   = HISTS[sp].GetBinContent(ibin)
+            err_bin = HISTS[sp].GetBinError(ibin)
+            hist[sp].SetBinContent(ibin, f_bin)
+            hist[sp].SetLineColor(R.kBlue)
+        hist[sp].Rebin(2)
+        hist[sp].Fit('f', 'LRE')
+        str = "%s %s %s" %(sp[0], sp[1], sp[2])
+    	legend[sp] = R.TLegend(0.65, 0.3, 0.85, 0.5)
+        legend[sp].AddEntry("HISTS[sp]", str, "l");
+        legend[sp].Draw()
+        ihist = ihist + 1
+        if ipad == 5 or ipad == 11:
+            canvas.Print(fname, "Title:"+htit)
+
+canvas.Clear()
+htit = 'm(X) = 150 GeV'
+mLow = 50.
+mHigh = 220.
+func = R.TF1('f', 'gaus', mLow, mHigh)
+pad = R.TPad('pad','pad', 0, 0, 1, 1)
+legend = {}
+pad.Draw()
+pad.Divide(2,3)
+ipad = 1
+for sp in SIGNALPOINTS:
+    if sp[1] == 150:
+        pad.cd(ipad)
+        HISTS[sp].Rebin(2)
+        HISTS[sp].Fit('f', 'LRE')
+        str = "%s %s %s" %(sp[0], sp[1], sp[2])
+    	legend[sp] = R.TLegend(0.6, 0.5, 0.8, 0.7)
+        legend[sp].AddEntry("HISTS[sp]", str, "l");
+        legend[sp].Draw()
+        ipad = ipad + 1
+canvas.Print(fname+")", "Title:"+htit)
+
+#exit()
+
 #########################################
 #### Plot 1: Distributions of masses ####
 #########################################
