@@ -11,6 +11,7 @@ import argparse
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--method', dest='METHOD', default='HybridNew')
 PARSER.add_argument('--square', dest='SQUARE', action='store_true')
+PARSER.add_argument('--noCMS' , dest='NOCMS' , action='store_true')
 ARGS = PARSER.parse_args()
 
 CROSS_SECTION = 1.e-2
@@ -213,4 +214,4 @@ for mH in SIGNALS:
         c.drawText('m_{{X}} = {} GeV'.format(mX), (c.margins['l']+.03, 1.-c.margins['t']-.04-.05), 'tl')
 
         c.firstPlot.setTitles(X='c#tau [cm]', Y='95% CL upper limit on #sigma(H#rightarrowXX)B(X#rightarrow#mu#mu) [pb]')
-        c.cleanup('pdfs/Limits_2Mu_{}_{}_{}.pdf'.format(mH, mX, ARGS.METHOD))
+        c.cleanup('pdfs/Limits_2Mu_{}_{}_{}.pdf'.format(mH, mX, ARGS.METHOD), mode='LUMI' if ARGS.NOCMS else None)

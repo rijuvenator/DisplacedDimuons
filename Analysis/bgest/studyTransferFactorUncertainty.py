@@ -42,6 +42,9 @@ DHists['Prompt']['hMoreLxySig'].Rebin(2)
 DHists['Prompt']['hLessLxySig'].GetXaxis().SetRange(1, 6)
 DHists['Prompt']['hMoreLxySig'].GetXaxis().SetRange(1, 6)
 
+print 'Less', DHists['Prompt']['hLessLxySig'].Integral(1, 6)
+print 'More', DHists['Prompt']['hMoreLxySig'].Integral(1, 6)
+
 #DHists['Prompt']['hLessLxySig'].Clone()
 DHists['Prompt']['hLessLxySig'].Divide(DHists['Prompt']['hMoreLxySig'])
 

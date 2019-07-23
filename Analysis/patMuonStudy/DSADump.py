@@ -27,8 +27,8 @@ def analyze(self, E, PARAMS=None):
 
     # take 10% of data: event numbers ending in 7
     # unmask data if we're sure we're in the |deltaPhi| > pi/2 range
-    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
-        if Event.event % 10 != 7: return
+    #if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
+    #    if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')

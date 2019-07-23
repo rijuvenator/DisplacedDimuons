@@ -2,6 +2,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
 import DisplacedDimuons.Analysis.RootTools as RT
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--square', dest='SQUARE', action='store_true')
+ARGS = parser.parse_args()
 
 f = R.TFile.Open('roots/Hists.root')
 
@@ -31,7 +36,7 @@ def makeSinglePlots(hkey, logy=True):
         PLOTS[key] = Plotter.Plot(HISTS[hkey][key], *PConfig[hkey][key])
     PLOTS['Data'] = Plotter.Plot(DHists[hkey], 'DoubleMuon2016', 'pe', 'pe')
 
-    canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=logy)
+    canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=logy, cWidth=800 if not ARGS.SQUARE else 600)
 
     for key in HG.BGORDER:
         PLOTS[key].setColor(HG.PLOTCONFIG[key]['COLOR'], which='LF')
@@ -41,7 +46,8 @@ def makeSinglePlots(hkey, logy=True):
 
     canvas.firstPlot.setTitles(X='', copy=PLOTS[HG.BGORDER[0]])
     canvas.firstPlot.setTitles(Y='Event Yield')
-    canvas.makeLegend(lWidth=.3, pos='tr', autoOrder=False, fontscale=0.8)
+    canvas.makeLegend(lWidth=.3, pos='tl', autoOrder=False, fontscale=0.8)
+    canvas.addLegendEntry(PLOTS['Data'])
     for ref in reversed(HG.BGORDER):
         canvas.addLegendEntry(PLOTS[ref])
     canvas.legend.resizeHeight()
@@ -60,13 +66,15 @@ def makeSinglePlots(hkey, logy=True):
 
     z = PLOTS['stack'].GetStack().Last()
 
-    paveData = canvas.makeStatsBox(PLOTS['Data'])
-    Plotter.MOVE_OBJECT(paveData, X=-.55, Y=-.02)
-    canvas.drawText('Data', pos=(paveData.GetX1(), paveData.GetY2()-.006), align='bl', fontcode='b')
+    if not ARGS.SQUARE:
 
-    paveMC = canvas.makeStatsBox(z)
-    Plotter.MOVE_OBJECT(paveMC, X=-.35, Y=-.02)
-    canvas.drawText('MC', pos=(paveMC.GetX1(), paveMC.GetY2()-.006), align='bl', fontcode='b')
+        paveData = canvas.makeStatsBox(PLOTS['Data'])
+        Plotter.MOVE_OBJECT(paveData, X=-.55, Y=-.02)
+        canvas.drawText('Data', pos=(paveData.GetX1(), paveData.GetY2()-.006), align='bl', fontcode='b')
+
+        paveMC = canvas.makeStatsBox(z)
+        Plotter.MOVE_OBJECT(paveMC, X=-.35, Y=-.02)
+        canvas.drawText('MC', pos=(paveMC.GetX1(), paveMC.GetY2()-.006), align='bl', fontcode='b')
 
     for key in ('stack', 'Data'):
         if key == 'Data':
@@ -74,7 +82,10 @@ def makeSinglePlots(hkey, logy=True):
         else:
             print 'MC  ', keyList[hkey], PLOTS[key].GetStack().Last().Integral(0,  PLOTS[key].GetStack().Last().GetNbinsX()+1)
 
-    canvas.cleanup('pdfs/{}_{}.pdf'.format(keyList[hkey], 'Lin' if not logy else 'Log'))
+    if ARGS.SQUARE:
+        canvas.firstPlot.scaleTitleOffsets(1.15, 'Y')
+
+    canvas.cleanup('pdfs/{}_{}.pdf'.format(keyList[hkey], 'Lin' if not logy else 'Log'), mode='LUMI' if ARGS.SQUARE else None)
 
 for hkey in ('hDeltaPhi', 'hDeltaPhiBig'):
     makeSinglePlots(hkey, logy=True)
@@ -86,7 +97,7 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
     PLOTS  = {key:Plotter.Plot( HISTS[hkeys[key]]['stack'].GetStack().Last(), '  MC |#Delta#Phi| {}'.format(legDict[key]), 'l' , 'hist') for key in ('Less', 'More')}
     DPLOTS = {key:Plotter.Plot(DHists[hkeys[key]]                           , 'Data |#Delta#Phi| {}'.format(legDict[key]), 'pe', 'pe'  ) for key in ('Less', 'More')}
 
-    canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=logy)
+    canvas = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=logy, cWidth=800 if not ARGS.SQUARE else 600)
 
     colors = {'Less':R.kRed, 'More':R.kBlue}
     for key in hkeys:
