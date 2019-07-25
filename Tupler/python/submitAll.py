@@ -81,7 +81,7 @@ if Do_Background:
 
 # submit all data jobs
 if Do_Data:
-    dataSamples = DH.getDataSamples()
+    dataSamples = DH.getDoubleMuonDataSamples()
     for data in dataSamples:
         verbose('DATA : {}'.format(data.name))
         bash.call('python runNTupler.py {NAME} {MODE}'.format(NAME=data.name, MODE=MODE), shell=True)
