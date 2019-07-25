@@ -21,7 +21,7 @@ def modelDependentMassCut(mX, mass):
     elif mX == 150:
         return 35. < mass < 245.
     elif mX == 350:
-        return mass > 60.
+        return mass > 65.
 
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264', operator.eq:'='}

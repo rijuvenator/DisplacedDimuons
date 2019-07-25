@@ -86,8 +86,35 @@ for line in f:
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
     # apply the conditions
-    if oppositeSign(vals): continue
-    print strippedLine
+    if LxySig(vals): continue
+
+    # figure out the region
+    region = None
+    for reg in REGIONS:
+        if deltaPhi(vals, region=reg):
+            region = reg
+            break
+
+    # all same sign is currently unblinded
+    if False:
+        if not oppositeSign(vals):
+            print '=== SAME SIGN, REGION = {} ==='.format(region)
+            print strippedLine
+
+    # opposite sign: odd enddigits
+    if True:
+        if oppositeSign(vals):
+            enddigit = vals['event'] % 10
+
+            if region == 'SR' and enddigit % 2 == 0:
+                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
+                print strippedLine
+            if region == 'SR' and enddigit % 2 == 1:
+                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
+                print strippedLine
+            elif region != 'SR':
+                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
+                print strippedLine
 
     #if oppositeSign(vals): print strippedLine
     #if deltaPhi(vals, region='CR'): print strippedLine
