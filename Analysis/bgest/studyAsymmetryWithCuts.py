@@ -147,6 +147,18 @@ def getPATDimuon(self, SelectedDSADimuon):
         if DSAmuon.ProxMatchPP.deltaR < 0.1:
             return DSAmuon.ProxMatchPP.idx
 
+        # option 2: if it's a global muon, we don't have segments,
+        # but check if the number of hits is the same, and if they
+        # are, and the deltaR is < 0.2, take it as a match
+        # NEW: removing the deltaR cut, so now it's 0.4
+        PATmuon = inputPATs[DSAmuon.ProxMatchPP.idx]
+        if PATmuon.isGlobal and (not PATmuon.isTracker):
+            if     PATmuon.nDTHits      == DSAmuon.nDTHits      \
+               and PATmuon.nCSCHits     == DSAmuon.nCSCHits     \
+               and PATmuon.nDTStations  == DSAmuon.nDTStations  \
+               and PATmuon.nCSCStations == DSAmuon.nCSCStations:
+               return DSAmuon.ProxMatchPP.idx
+
         return None
 
     matchingPATMuons = {}

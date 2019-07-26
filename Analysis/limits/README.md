@@ -7,6 +7,7 @@
       * This also determines the grid points for weighting, e.g. `div_2`. Currently there are `div_{1..10}` and `mul_{2..5} + mul_{10,15..50}`, meaning 23 points per signal sample.
       * The output (`cat *.out`) should be saved as `text/datcardRawInput.txt`
       * TODO: When we decide how to do the final selection, e.g. different L<sub>xy</sub> significance cuts for different lifetimes, then handling data should also be done by this script.
+  * Make sure `text/realDataCounts.txt` exists, with 4 lines of the format `<mass> <CR> <OBS>`
   * Run `generateDatacards.py`
       * Make sure that `cards/` exists
       * TODO: When systematics, observations, etc. are determined, then this script will accomodate them.
