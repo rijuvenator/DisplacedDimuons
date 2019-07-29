@@ -20,23 +20,25 @@ HOME         = os.environ['HOME']
 
 # parse arguments -- this configures which samples to process, which analyzer to run, and which batch system to use
 parser = argparse.ArgumentParser()
-parser.add_argument('--local'    , dest='LOCAL'  , action='store_true'   , help='whether to run locally'                                         )
-parser.add_argument('--condor'   , dest='CONDOR' , action='store_true'   , help='whether to run on condor'                                       )
-parser.add_argument('--lxbatch'  , dest='LXBATCH', action='store_true'   , help='whether to run on LXBATCH (LSF) batch system'                   )
-parser.add_argument('--hephy'    , dest='HEPHY'  , action='store_true'   , help='whether to run on HEPHY batch system'                           )
-parser.add_argument('--use-proxy', dest='PROXY'  , action='store_true'   , help='whether to ship the GRID certificate with the jobs'             )
-parser.add_argument('--method'   , dest='METHOD' , default=''            , help='which statistical method to use'                                )
-parser.add_argument('--file'     , dest='FILE'   , default=''            , help='file containing a specific list of jobs to be run'              )
-parser.add_argument('--extra'    , dest='EXTRA'  , default=[], nargs='*' , help='any extra command-line parameters to be passed to script'       )
-parser.add_argument('--flavour'  , dest='FLAVOUR', default='microcentury', help='which condor job flavour to use'                                )
-parser.add_argument('--queue'    , dest='QUEUE'  , default='1nh'         , help='which LSF job queue to use'                                     )
+parser.add_argument('--local'    , dest='LOCAL'    , action='store_true'    , help='whether to run locally'                                  )
+parser.add_argument('--condor'   , dest='CONDOR'   , action='store_true'    , help='whether to run on condor'                                )
+parser.add_argument('--lxbatch'  , dest='LXBATCH'  , action='store_true'    , help='whether to run on LXBATCH (LSF) batch system'            )
+parser.add_argument('--hephy'    , dest='HEPHY'    , action='store_true'    , help='whether to run on HEPHY batch system'                    )
+parser.add_argument('--use-proxy', dest='PROXY'    , action='store_true'    , help='whether to ship the GRID certificate with the jobs'      )
+parser.add_argument('--method'   , dest='METHOD'   , default=''             , help='which statistical method to use'                         )
+parser.add_argument('--file'     , dest='FILE'     , default=''             , help='file containing a specific list of jobs to be run'       )
+parser.add_argument('--extra'    , dest='EXTRA'    , default=[], nargs='*'  , help='any extra command-line parameters to be passed to script')
+parser.add_argument('--flavour'  , dest='FLAVOUR'  , default='microcentury' , help='which condor job flavour to use'                         )
+parser.add_argument('--queue'    , dest='QUEUE'    , default='1nh'          , help='which LSF job queue to use'                              )
+parser.add_argument('--splitting', dest='SPLITTING', default=None, type=int , help='whether to split by quantile, and if so, which'          )
 args = parser.parse_args()
 
 # this is mostly so that **locals() works later on
-METHOD  = args.METHOD
-EXTRA   = args.EXTRA
-FLAVOUR = args.FLAVOUR
-QUEUE   = args.QUEUE
+METHOD    = args.METHOD
+EXTRA     = args.EXTRA
+FLAVOUR   = args.FLAVOUR
+QUEUE     = args.QUEUE
+SPLITTING = args.SPLITTING
 
 # set mode: local, lxbatch, hephy, or condor
 # condor is now the default
@@ -73,8 +75,14 @@ for card in CARDS:
         ArgsList.append('-d {relCard} -n Limits_2Mu_{token}'.format(relCard=relCard, token=token))
 
     elif METHOD == 'HybridNew':
-        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0'
-        for quantile in ('', '0.025', '0.16', '0.5', '0.84', '0.975'):
+        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0 --toysH=5000 -s -1'
+
+        QUANTILES = ('', '0.025', '0.16', '0.5', '0.84', '0.975')
+        THESEQUANTILES = QUANTILES
+        if SPLITTING is not None:
+            THESEQUANTILES = [QUANTILES[SPLITTING]]
+
+        for quantile in THESEQUANTILES:
             if quantile == '':
                 ArgsList.append('-d {relCard} -n Limits_2Mu_{token} {a}'.format(relCard=relCard, token=token, a=appendString))
             else:

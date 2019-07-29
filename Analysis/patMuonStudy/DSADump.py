@@ -27,8 +27,8 @@ def analyze(self, E, PARAMS=None):
 
     # take 10% of data: event numbers ending in 7
     # unmask data if we're sure we're in the |deltaPhi| > pi/2 range
-    if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
-        if Event.event % 10 != 7: return
+    #if 'DoubleMuon' in self.NAME and '_IDPHI' not in self.CUTS:
+    #    if Event.event % 10 != 7: return
 
     DSAmuons = E.getPrimitives('DSAMUON')
     PATmuons = E.getPrimitives('PATMUON')
@@ -69,7 +69,7 @@ def analyze(self, E, PARAMS=None):
         mu1, mu2 = getOriginalMuons(dim, DSAmuons)
         nMinusPP, nPlusPP = numberOfParallelPairs(DSAmuons)
 
-        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:6.3f} {:.3e} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} ::: {:2d} {:2d} {:2d} {:2d} {:2d} ::: {:6.3f} {:6.3f} ::: {:2d} {:2d} {:2d} {:2d} ::: {:6.4f} ::: {:2d} {:2d} {:2d} {:2d}'.format(
+        print '{:9s} {:d} {:7d} {:10d} {:2d} ::: {:3s} {:2d} {:2d} ::: {:9.4f} {:8.4f} {:5.2f} {:6.3f} {:6.3f} {:.3e} ::: {:6.2f} {:6.2f} {:7.2f} {:7.2f} ::: {:2d} {:2d} {:2d} {:2d} {:2d} ::: {:6.3f} {:6.3f} ::: {:2d} {:2d} {:2d} {:2d} ::: {:6.4f} ::: {:2d} {:2d} {:2d} {:2d} ::: {:.5e} {:.5e} {:.5e} ::: {:.3e}'.format(
                 modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                 dim.composition[:3], dim.idx1, dim.idx2,
                 dim.LxySig(), dim.Lxy(), dim.normChi2, dim.cosAlpha, dim.cosAlphaOriginal, dim.DCA,
@@ -79,6 +79,8 @@ def analyze(self, E, PARAMS=None):
                 mu1.nCSCHits, mu2.nCSCHits, mu1.nDTHits, mu2.nDTHits,
                 dim.deltaPhi,
                 mu1.charge, mu2.charge, dim.mu1.charge, dim.mu2.charge,
+                dim.mu1.pt, dim.mu2.pt, dim.pt,
+                dim.mass
         )
 
 #               dim.pos.Dist(dim.PCA), dim.pos.Proj2D().Dist(dim.PCA.Proj2D()), abs(dim.z-dim.z_PCA),

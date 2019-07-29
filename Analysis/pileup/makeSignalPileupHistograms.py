@@ -2,6 +2,10 @@ import numpy as np
 import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
+import DisplacedDimuons.Analysis.PlotterParser as PP
+
+PP.PARSER.add_argument('--thesis', dest='THESIS', action='store_true')
+ARGS = PP.PARSER.parse_args()
 
 ##################################
 #### Get histograms and scale ####
@@ -54,12 +58,12 @@ for key in KEYS:
     GRAPH = R.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array([.5]*len(x)), np.array([.5]*len(x)), np.array(ylow), np.array(yhigh))
 
     p = {
-        'Signal' : Plotter.Plot(GRAPH        , '2#mu signal: bounds'      , 'f' , 'e3'),
-        'SigMid' : Plotter.Plot(GRAPH.Clone(), '2#mu signal: combined'    , 'l' , 'lx'),
-        'Data'   : Plotter.Plot(DATA[key]    , 'Data, 2016 Re-Reco Golden', 'lp', 'p' ),
+        'Signal' : Plotter.Plot(GRAPH        , '2#mu signal: bounds'    , 'f' , 'e3'),
+        'SigMid' : Plotter.Plot(GRAPH.Clone(), '2#mu signal: combined'  , 'l' , 'lx'),
+        'Data'   : Plotter.Plot(DATA[key]    , 'Data, 2016 Re-Reco Muon', 'lp', 'p' ),
     }
 
-    c = Plotter.Canvas(lumi = key + ('' if key != 'Nom' else 'inal'))
+    c = Plotter.Canvas(lumi = key + ('' if key != 'Nom' else 'inal'), cWidth=600 if ARGS.THESIS else 800)
     c.addMainPlot(p['Signal'])
     c.addMainPlot(p['SigMid'])
     c.addMainPlot(p['Data'])
@@ -74,7 +78,10 @@ for key in KEYS:
     c.firstPlot.setTitles(X='N(true primary vertices)', Y='Density')
     c.firstPlot.GetXaxis().SetRangeUser(0., 100.)
 
-    c.cleanup('pdfs/distribution{}.pdf'.format(key))
+    if ARGS.THESIS:
+        c.legend.moveLegend(X=-.1)
+        c.firstPlot.scaleTitleOffsets(1.1, 'XY')
+    c.cleanup('pdfs/distribution{}.pdf'.format(key), mode='LUMI' if ARGS.THESIS else None)
 
     #####################################
     #### Make a graph of the weights ####
@@ -108,7 +115,7 @@ for key in KEYS:
         'SigMid' : Plotter.Plot(GRAPH.Clone(), '2#mu signal: combined'    , 'lp', 'px'),
     }
 
-    c = Plotter.Canvas(lumi = key + ('' if key != 'Nom' else 'inal'))
+    c = Plotter.Canvas(lumi = key + ('' if key != 'Nom' else 'inal'), cWidth=600 if ARGS.THESIS else 800)
     c.addMainPlot(p['Signal'])
     c.addMainPlot(p['SigMid'])
 
@@ -123,7 +130,10 @@ for key in KEYS:
     c.firstPlot.GetXaxis().SetRangeUser(0., 100.)
     c.firstPlot.SetMaximum(2.)
 
-    c.cleanup('pdfs/weight{}.pdf'.format(key))
+    if ARGS.THESIS:
+        c.legend.moveLegend(X=-.1)
+        c.firstPlot.scaleTitleOffsets(1.1, 'XY')
+    c.cleanup('pdfs/weight{}.pdf'.format(key), mode='LUMI' if ARGS.THESIS else None)
 
 
 #######################

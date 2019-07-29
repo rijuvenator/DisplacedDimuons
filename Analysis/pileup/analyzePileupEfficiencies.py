@@ -12,9 +12,9 @@ for line in open(sys.argv[1]):
 
     print '{:4d} {:3d} {:4d} ::: {:>9.4%} {:>9.4%} {:>9.4%} ::: {:>9.4%} {:>9.4%}'.format(
             sp[0], sp[1], sp[2],
-            (1.-safeDivide( safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) )),
-            (1.-safeDivide( safeDivide(data[sp]['pass_Low' ], data[sp]['sumw_Low' ]) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) )),
-            (1.-safeDivide( safeDivide(data[sp]['pass_High'], data[sp]['sumw_High']) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) )),
-            (1.-safeDivide( safeDivide(data[sp]['pass_Low' ], data[sp]['sumw_Low' ]) , safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) )),
-            (1.-safeDivide( safeDivide(data[sp]['pass_High'], data[sp]['sumw_High']) , safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) )),
+            (safeDivide( safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) ) - 1.),
+            (safeDivide( safeDivide(data[sp]['pass_Low' ], data[sp]['sumw_Low' ]) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) ) - 1.),
+            (safeDivide( safeDivide(data[sp]['pass_High'], data[sp]['sumw_High']) , safeDivide(data[sp]['pass_None'], data[sp]['sumw_None']) ) - 1.),
+            (safeDivide( safeDivide(data[sp]['pass_Low' ], data[sp]['sumw_Low' ]) , safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) ) - 1.),
+            (safeDivide( safeDivide(data[sp]['pass_High'], data[sp]['sumw_High']) , safeDivide(data[sp]['pass_Nom' ], data[sp]['sumw_Nom' ]) ) - 1.),
     )

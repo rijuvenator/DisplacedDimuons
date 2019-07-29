@@ -52,7 +52,7 @@ def optimizeCut(fs, sp, quantity):
     b = DHists[quantity]['data']
 
     n = s.Integral(0, s.GetNbinsX()+1)
-    s.Scale(ScaleFactor(sp))
+    s.Scale(ScaleFactor(sp, sigmaB=1.e-2))
 
     # get cumulatives
     sCum = s.GetCumulative(CONFIG[quantity]['forward'])
@@ -132,6 +132,7 @@ def optimizeCut(fs, sp, quantity):
 
 for fs in ('2Mu2J',):
     #for sp in ((400, 50, 800),):
-    for sp in ((1000, 150, 1000),):
+    #for sp in ((1000, 150, 1000),):
+    for sp in ((1000, 20, 20),):
         for quantity in CONFIG:
             optimizeCut(fs, sp, quantity)

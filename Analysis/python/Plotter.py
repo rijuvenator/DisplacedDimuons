@@ -551,7 +551,7 @@ class Canvas(R.TCanvas):
     # align is a string containing two characters, one each of 'bct' and 'lcr' controlling alignment
     # fontcode is a string containing a subset (including empty) of 'bi' controlling bold, italic
     # NDC is whether or not to use NDC
-    def drawText(self, text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True):
+    def drawText(self, text='', pos=(0., 0.), align='bl', fontcode='', fontscale=1., NDC=True, color=1):
         latex = R.TLatex()
         AlignDict = {'l' : 1, 'c' : 2, 'r' : 3, 'b' : 1, 't' : 3}
         FontDict = {'' : 4, 'i' : 5, 'b' : 6, 'bi' : 7}
@@ -561,9 +561,9 @@ class Canvas(R.TCanvas):
         latex.SetTextFont(RFont)
         latex.SetTextSize(self.fontsize * fontscale)
         if NDC:
-            latex.DrawLatexNDC(pos[0], pos[1], text)
+            latex.DrawLatexNDC(pos[0], pos[1], '#color[{C}]{{{T}}}'.format(C=color, T=text))
         else:
-            latex.DrawLatex(pos[0], pos[1], text)
+            latex.DrawLatex(pos[0], pos[1], '#color[{C}]{{{T}}}'.format(C=color, T=text))
         return latex
 
     # makes a stat box, given a ROOT color number, for the specified list of entries

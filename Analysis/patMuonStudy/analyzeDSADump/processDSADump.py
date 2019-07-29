@@ -42,6 +42,8 @@ config = {
     'q2'       : {'cast':int  , 'col':39},
     'rq1'      : {'cast':int  , 'col':40},
     'rq2'      : {'cast':int  , 'col':41},
+
+    'mass'     : {'cast':float, 'col':47},
 }
 
 f = open(sys.argv[1])
