@@ -273,6 +273,11 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // *********************
   // *** DSA MUON DATA ***
   // *********************
+  edm::ESHandle<CSCGeometry> cscGeom;
+  edm::ESHandle<DTGeometry>  dtGeom;
+  iSetup.get<MuonGeometryRecord>().get(cscGeom);
+  iSetup.get<MuonGeometryRecord>().get(dtGeom);
+
   edm::Handle<reco::TrackCollection> dsaMuons;
   edm::Handle<pat::MuonCollection>   patMuons;
   if (source != "GEN")
@@ -281,7 +286,7 @@ void SimpleNTupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     iEvent.getByToken(muonToken,    patMuons);
 
     if (vertexData.isValid())
-      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield, patMuons);
+      dsaMuonData.Fill(dsaMuons, ttB, vertices, beamspot, propagator, magfield, patMuons, cscGeom, dtGeom);
   }
 
   // *********************

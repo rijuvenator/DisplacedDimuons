@@ -99,6 +99,44 @@ void PATMuonBranches::Fill(const edm::Handle<pat::MuonCollection> &muonsHandle,
 	       << " hcal iso = "  << mu.hcalIso() << std::endl;
     }
 
+#ifdef ONCE_STA_SEGMENTS_ARE_AVAILABLE
+    // Extract the list of segments belonging to a global muon
+    // if (isStandalone) {
+    if (isGlobal) {
+      reco::TrackRef outTrack = mu.outerTrack();
+
+      trackingRecHit_iterator recHitIt  = outTrack->recHitsBegin();
+      trackingRecHit_iterator recHitEnd = outTrack->recHitsEnd();
+      for (; recHitIt != recHitEnd; ++recHitIt) {
+	if (!(*recHitIt)->isValid()) continue;
+	DetId id = (*recHitIt)->geographicalId();
+	if (id.det() != DetId::Muon) continue;
+	int muonSubdetId = id.subdetId();
+	if (muonSubdetId == MuonSubdetId::DT ||
+	    muonSubdetId == MuonSubdetId::CSC) {
+	  int station;
+	  if (muonSubdetId == MuonSubdetId::DT) {
+	    DTChamberId segId(id.rawId());
+	    station = segId.station();
+	  }
+	  else if (muonSubdetId == MuonSubdetId::CSC) {
+	    CSCDetId segId(id.rawId());
+	    station = segId.station();
+	  }
+
+	  if (debug)
+	    std::cout << "STA muon segment: subdet "
+                      << ((muonSubdetId == MuonSubdetId::DT) ? "DT" : "CSC")
+		      << " station = " << station
+		      << " id = " << id.rawId()
+		      << " x = " << (*recHitIt)->localPosition().x()
+		      << " y = " << (*recHitIt)->localPosition().y()
+		      << std::endl;
+	}
+      }
+    }
+#endif
+
     // Fill the Tree
     patmu_idx    .push_back(muon_cand.idx);
     patmu_px     .push_back(muon_cand.px);

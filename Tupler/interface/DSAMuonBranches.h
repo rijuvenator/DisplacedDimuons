@@ -8,6 +8,8 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 
@@ -215,7 +217,9 @@ class DSAMuonBranches : public BranchCollection
 	    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 	    const edm::ESHandle<Propagator>& propagator,
 	    const edm::ESHandle<MagneticField>& magfield,
-	    const edm::Handle<pat::MuonCollection> &patmuonsHandle);
+	    const edm::Handle<pat::MuonCollection> &patmuonsHandle,
+	    const edm::ESHandle<CSCGeometry>& cscGeom,
+	    const edm::ESHandle<DTGeometry>& dtGeom);
 
   void DRExtrapTrackToDSA(const reco::Track& track,
 			  const reco::Track& dsamuon,

@@ -10,7 +10,9 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     const edm::Handle<reco::BeamSpot> &beamspotHandle,
     const edm::ESHandle<Propagator>& propagator,
     const edm::ESHandle<MagneticField>& magfield,
-    const edm::Handle<pat::MuonCollection> &patmuonsHandle)
+    const edm::Handle<pat::MuonCollection> &patmuonsHandle,
+    const edm::ESHandle<CSCGeometry>& cscGeom,
+    const edm::ESHandle<DTGeometry>& dtGeom)
 {
   static bool debug = false;
   Reset();
@@ -67,23 +69,30 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
 	    int muonSubdetId = id.subdetId();
             if (muonSubdetId == MuonSubdetId::DT ||
 		muonSubdetId == MuonSubdetId::CSC) {
-	      int station;
+              std::cout << "DSA muon segment:";
 	      if (muonSubdetId == MuonSubdetId::DT) {
 		DTChamberId segId(id.rawId());
-		station = segId.station();
+		const DTChamber* theChamber = dtGeom->chamber(segId);
+		std::cout << " DT: station = " << segId.station()
+			  << " wheel = "       << segId.wheel()
+			  << " id = "          << id.rawId()
+			  << " eta = " << theChamber->toGlobal((*hit)->localPosition()).eta()
+			  << " phi = " << theChamber->toGlobal((*hit)->localPosition()).phi();
 	      }
-	      else if (muonSubdetId == MuonSubdetId::CSC) {
+	      else {
 		CSCDetId segId(id.rawId());
-		station = segId.station();
+		const CSCChamber* theChamber = cscGeom->chamber(segId);
+		std::cout << " CSC: endcap = " << segId.endcap()
+			  << " station = "     << segId.station()
+			  << " ring = "        << segId.ring()
+			  << " chamber = "     << segId.chamber()
+			  << " id = "          << id.rawId()
+			  << " eta = " << theChamber->toGlobal((*hit)->localPosition()).eta()
+			  << " phi = " << theChamber->toGlobal((*hit)->localPosition()).phi();
 	      }
-
-              std::cout << "DSA muon segment: subdet "
-                << ((id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
-                << " station = " << station
-                << " id = "    << id.rawId()
-                << " x = "     << (*hit)->localPosition().x()
-                << " y = "     << (*hit)->localPosition().y()
-                << std::endl;
+              std::cout << " local x = "   << (*hit)->localPosition().x()
+			<< " local y = "   << (*hit)->localPosition().y()
+			<< std::endl;
             }
 	  }
         }
