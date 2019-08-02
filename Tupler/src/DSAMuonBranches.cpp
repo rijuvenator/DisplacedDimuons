@@ -26,6 +26,31 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
   if (FailedToGet(patmuonsHandle)) return;
   const pat::MuonCollection &patmuons = *patmuonsHandle;
 
+  // Print the full list of standalone muons (used for timing info)
+  if (debug) {
+    for (const auto &mu : patmuons) {
+      if (mu.isStandAloneMuon()) {
+	const reco::Track* tk = mu.outerTrack().get();
+	std::cout << "STA muon: eta = " << tk->eta() << " phi = " << tk->phi()
+		  << " pT = " << tk->pt() << std::endl;
+	if (mu.isTimeValid()) {
+	  reco::MuonTime time = mu.time();
+	  std::cout << " * timing info: direction = " << time.direction()
+		    << " timeAtIpInOut = " << time.timeAtIpInOut << " +/- " 
+		    << time.timeAtIpInOutErr
+		    << " timeAtIpOutIn = " << time.timeAtIpOutIn << " +/- " 
+		    << time.timeAtIpOutInErr << std::endl;
+	  reco::MuonTime rpctime = mu.rpcTime();
+	  std::cout << " * RPC timing info: direction = " << rpctime.direction()
+		    << " timeAtIpInOut = " << rpctime.timeAtIpInOut << " +/- " 
+		    << rpctime.timeAtIpInOutErr
+		    << " timeAtIpOutIn = " << rpctime.timeAtIpOutIn << " +/- " 
+		    << rpctime.timeAtIpOutInErr << std::endl;
+	}
+      }
+    }
+  }
+
   unsigned int idx = 0;
   double dR_thr = 0.4; // very generous, should be tightened downstream
   double min_fraction_matched_segm = 0.49; // min. fraction of matched
@@ -252,6 +277,39 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
       }
     }
 
+    double dR_DSA_STA_min = 999.;
+    int direction = -999, direction_RPC = -999;
+    float timeAtIpInOut = -999., timeAtIpInOutErr = -999;
+    float timeAtIpOutIn = -999., timeAtIpOutInErr = -999;
+    float timeAtIpInOut_RPC = -999., timeAtIpInOutErr_RPC = -999;
+    float timeAtIpOutIn_RPC = -999., timeAtIpOutInErr_RPC = -999;
+    for (const auto &mu : patmuons) {
+      if (mu.isStandAloneMuon()) {
+	if (mu.isTimeValid()) {
+	  const reco::Track* statk = mu.outerTrack().get();
+	  double dR = deltaR(dsamu.eta(),  dsamu.phi(),
+			     statk->eta(), statk->phi());
+	  if (dR < dR_thr && dR < dR_DSA_STA_min) {
+	    reco::MuonTime time = mu.time();
+	    direction        = time.direction();
+	    timeAtIpInOut    = time.timeAtIpInOut;
+	    timeAtIpInOutErr = time.timeAtIpInOutErr;
+	    timeAtIpOutIn    = time.timeAtIpOutIn;
+	    timeAtIpOutInErr = time.timeAtIpOutInErr;
+
+	    reco::MuonTime rpctime = mu.rpcTime();
+	    direction_RPC        = rpctime.direction();
+	    timeAtIpInOut_RPC    = rpctime.timeAtIpInOut;
+	    timeAtIpInOutErr_RPC = rpctime.timeAtIpInOutErr;
+	    timeAtIpOutIn_RPC    = rpctime.timeAtIpOutIn;
+	    timeAtIpOutInErr_RPC = rpctime.timeAtIpOutInErr;
+
+	    dR_DSA_STA_min = dR;
+	  }
+	}
+      }
+    }
+
     // Fill the tree
     dsamu_idx             .push_back(     muon_cand.idx          );
     dsamu_px              .push_back(     muon_cand.px           );
@@ -308,8 +366,31 @@ void DSAMuonBranches::Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHan
     dsamu_nSegms_pp_ProxMatch.push_back(nmatches_closest_pp    );
     dsamu_deltaR_pp_ProxMatch.push_back(dR_pp_min              );
 
+    dsamu_dR_DSA_STA          .push_back(dR_DSA_STA_min       );
+    dsamu_direction           .push_back(direction            );
+    dsamu_timeAtIpInOut       .push_back(timeAtIpInOut        );
+    dsamu_timeAtIpInOutErr    .push_back(timeAtIpInOutErr     );
+    dsamu_timeAtIpOutIn       .push_back(timeAtIpOutIn        );
+    dsamu_timeAtIpOutInErr    .push_back(timeAtIpOutInErr     );
+    dsamu_direction_RPC       .push_back(direction_RPC        );
+    dsamu_timeAtIpInOut_RPC   .push_back(timeAtIpInOut_RPC    );
+    dsamu_timeAtIpInOutErr_RPC.push_back(timeAtIpInOutErr_RPC );
+    dsamu_timeAtIpOutIn_RPC   .push_back(timeAtIpOutIn_RPC    );
+    dsamu_timeAtIpOutInErr_RPC.push_back(timeAtIpOutInErr_RPC );
+
     if (debug) {
       std::cout << "DSA muon info:" << muon_cand;
+      std::cout << "  dR(DSA; STA) = " << dR_DSA_STA_min << std::endl;
+      std::cout << "  * DT/CSC timing info: direction = " << direction
+		<< " timeAtIpInOut = " << timeAtIpInOut
+		<< " +/- " << timeAtIpInOutErr
+		<< " timeAtIpOutIn = " << timeAtIpOutIn
+		<< " +/- " << timeAtIpOutInErr << std::endl;
+      std::cout << "  * RPC timing info:    direction = " << direction_RPC
+		<< " timeAtIpInOut = " << timeAtIpInOut_RPC
+		<< " +/- " << timeAtIpInOutErr_RPC
+		<< " timeAtIpOutIn = " << timeAtIpOutIn_RPC
+		<< " +/- " << timeAtIpOutInErr_RPC << std::endl;
     }
 
     idx++;
