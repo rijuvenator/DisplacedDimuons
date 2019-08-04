@@ -68,7 +68,7 @@ def analyze(self, E, PARAMS=None):
         #if patDimuon.LxySig() < 1.:
 
         mu1, mu2 = PATmuons[patDimuon.mu1.idx], PATmuons[patDimuon.mu2.idx]
-        if patDimuon.LxySig() < 1.:
+        if patDimuon.LxySig() < 115. and patDimuon.LxySig() > 60. and mu1.trackIso/mu1.pt > 0.5 and mu2.trackIso/mu2.pt > 0.5:
             print '{:9s} {:d} {:7d} {:10d} {:2d} ::: PAT {:2d} {:2d} <-- DSA {:2d} {:2d} ::: {:9.4f} {:9.4f} ::: {:6.4f} {:6.4f} ::: {:.5e} {:.5e} ::: {:.5e} {:.5e} {:.5e} ::: {:.4e} {:6.4f}'.format(
                     modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                     patDimuon   .ID[0], patDimuon   .ID[1],

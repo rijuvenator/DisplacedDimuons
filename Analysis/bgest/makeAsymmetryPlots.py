@@ -128,9 +128,9 @@ def makeLessMorePlots(quantity, LxyRange, logy=True):
             canvas.firstPlot.SetMinimum(0.)
 
     for key in DPLOTS:
-        print 'Data', key, DPLOTS[key].Integral(0,  PLOTS[key].GetNbinsX()+1)
+        print 'Data', key, DPLOTS[key].Integral(0, DPLOTS[key].GetNbinsX()+1)
     for key in PLOTS:
-        print 'MC  ', key,  PLOTS[key].Integral(0, DPLOTS[key].GetNbinsX()+1)
+        print 'MC  ', key,  PLOTS[key].Integral(0,  PLOTS[key].GetNbinsX()+1)
 
 
     if '{}_{}'.format(keyList[hkeys['Less']], 'Lin' if not canvas.logy else 'Log') != 'deltaPhi-SplitLxySig-Big_Lin':

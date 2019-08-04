@@ -78,10 +78,21 @@ DHists['Full']['LxySig_IDPHI'].GetXaxis().SetRange(1, 6)
 
 DHists['Full']['LxySig_IDPHI_Reweighted'] = DHists['Full']['LxySig_IDPHI'].Clone()
 
+SSCounts = (3, 5, 1, 0, 3, 1)
+OSINVCounts = (43, 57, 45, 19, 15, 13)
+SSINVCounts = (35, 50, 32, 12, 11, 5)
+OSINVCounts, SSINVCounts = zip(*((70, 52),
+(97, 76),
+(66, 40),
+(27, 21),
+(17, 14),
+(19, 5 )))
+SSEvents = {i+1:SSCounts[i]*float(OSINVCounts[i])/SSINVCounts[i] for i in xrange(6)}
+
 #DHists['Full']['LxySig_IDPHI_Reweighted'].Multiply(DHists['Prompt']['hLessLxySig'])
 #for ibin in xrange(1, 13):
 for ibin in xrange(1, DHists['Full']['LxySig_IDPHI_Reweighted'].GetNbinsX()+1):
-    DHists['Full']['LxySig_IDPHI_Reweighted'].SetBinContent(ibin, DHists['Full']['LxySig_IDPHI_Reweighted'].GetBinContent(ibin) * weights[ibin-1])
+    DHists['Full']['LxySig_IDPHI_Reweighted'].SetBinContent(ibin, DHists['Full']['LxySig_IDPHI_Reweighted'].GetBinContent(ibin) * weights[ibin-1] + SSEvents[ibin])
     DHists['Full']['LxySig_IDPHI_Reweighted'].SetBinError  (ibin, DHists['Full']['LxySig_IDPHI_Reweighted'].GetBinContent(ibin)**0.5             )
 
 p = {
