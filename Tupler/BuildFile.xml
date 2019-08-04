@@ -14,6 +14,8 @@
 <use name="FWCore/ParameterSet"/>
 <use name="FWCore/PluginManager"/>
 <use name="FWCore/ServiceRegistry"/>
+<use name="Geometry/CSCGeometry"/>
+<use name="Geometry/DTGeometry"/>
 <use name="MagneticField/Records"/>
 <use name="RecoMuon/MuonIsolation"/>
 <use name="PhysicsTools/RecoUtils"/>

@@ -8,6 +8,8 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 
@@ -92,6 +94,19 @@ class DSAMuonBranches : public BranchCollection
   std::vector<int>   dsamu_nSegms_pp_ProxMatch;
   std::vector<float> dsamu_deltaR_pp_ProxMatch;
 
+  // Timing info.  Use timing of the nearest standalone muon as proxy.
+  std::vector<float> dsamu_dR_DSA_STA          ;
+  std::vector<int>   dsamu_direction           ;
+  std::vector<float> dsamu_timeAtIpInOut       ;
+  std::vector<float> dsamu_timeAtIpInOutErr    ;
+  std::vector<float> dsamu_timeAtIpOutIn       ;
+  std::vector<float> dsamu_timeAtIpOutInErr    ;
+  std::vector<int>   dsamu_direction_RPC       ;
+  std::vector<float> dsamu_timeAtIpInOut_RPC   ;
+  std::vector<float> dsamu_timeAtIpInOutErr_RPC;
+  std::vector<float> dsamu_timeAtIpOutIn_RPC   ;
+  std::vector<float> dsamu_timeAtIpOutInErr_RPC;
+
   // methods
   void Declarations()
   {
@@ -149,6 +164,18 @@ class DSAMuonBranches : public BranchCollection
     Declare("dsamu_idx_pp_ProxMatch"   , dsamu_idx_pp_ProxMatch   );
     Declare("dsamu_nSegms_pp_ProxMatch", dsamu_nSegms_pp_ProxMatch);
     Declare("dsamu_deltaR_pp_ProxMatch", dsamu_deltaR_pp_ProxMatch);
+
+    Declare("dsamu_dR_DSA_STA"           , dsamu_dR_DSA_STA          );
+    Declare("dsamu_direction"            , dsamu_direction           );
+    Declare("dsamu_timeAtIpInOut"        , dsamu_timeAtIpInOut       );
+    Declare("dsamu_timeAtIpInOutErr"     , dsamu_timeAtIpInOutErr    );
+    Declare("dsamu_timeAtIpOutIn"        , dsamu_timeAtIpOutIn       );
+    Declare("dsamu_timeAtIpOutInErr"     , dsamu_timeAtIpOutInErr    );
+    Declare("dsamu_direction_RPC"        , dsamu_direction_RPC       );
+    Declare("dsamu_timeAtIpInOut_RPC"    , dsamu_timeAtIpInOut_RPC   );
+    Declare("dsamu_timeAtIpInOutErr_RPC" , dsamu_timeAtIpInOutErr_RPC);
+    Declare("dsamu_timeAtIpOutIn_RPC"    , dsamu_timeAtIpOutIn_RPC   );
+    Declare("dsamu_timeAtIpOutInErr_RPC" , dsamu_timeAtIpOutInErr_RPC);
   }
 
   void Reset()
@@ -207,6 +234,18 @@ class DSAMuonBranches : public BranchCollection
     dsamu_idx_pp_ProxMatch   .clear();
     dsamu_deltaR_pp_ProxMatch.clear();
     dsamu_nSegms_pp_ProxMatch.clear();
+
+    dsamu_dR_DSA_STA          .clear();
+    dsamu_direction           .clear();
+    dsamu_timeAtIpInOut       .clear();
+    dsamu_timeAtIpInOutErr    .clear();
+    dsamu_timeAtIpOutIn       .clear();
+    dsamu_timeAtIpOutInErr    .clear();
+    dsamu_direction_RPC       .clear();
+    dsamu_timeAtIpInOut_RPC   .clear();
+    dsamu_timeAtIpInOutErr_RPC.clear();
+    dsamu_timeAtIpOutIn_RPC   .clear();
+    dsamu_timeAtIpOutInErr_RPC.clear();
   }
 
   void Fill(const edm::Handle<reco::TrackCollection> &dsamuonsHandle,
@@ -215,7 +254,9 @@ class DSAMuonBranches : public BranchCollection
 	    const edm::Handle<reco::BeamSpot> &beamspotHandle,
 	    const edm::ESHandle<Propagator>& propagator,
 	    const edm::ESHandle<MagneticField>& magfield,
-	    const edm::Handle<pat::MuonCollection> &patmuonsHandle);
+	    const edm::Handle<pat::MuonCollection> &patmuonsHandle,
+	    const edm::ESHandle<CSCGeometry>& cscGeom,
+	    const edm::ESHandle<DTGeometry>& dtGeom);
 
   void DRExtrapTrackToDSA(const reco::Track& track,
 			  const reco::Track& dsamuon,
