@@ -471,6 +471,9 @@ class RecoMuon(Muon):
             self.ProxMatchPP = PATMatch(E, i, prefix, 'Prox', 'PP')
             self.SegMatchPD  = PATMatch(E, i, prefix, 'Seg' , 'PD')
             self.SegMatchPP  = PATMatch(E, i, prefix, 'Seg' , 'PP')
+
+            self.set('deltaR_SA'     , E, prefix+'dR_DSA_STA', i)
+            self.set('timeAtIP_InOut', E, prefix+'timeAtIpInOut', i)
         # only refitted PAT has these attributes
         if 'REF' in tag:
             #self.set('iso',E, prefix+'iso',i)

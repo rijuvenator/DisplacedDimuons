@@ -53,11 +53,11 @@ void SplitData(Long64_t globaljob=0)
   TFile *f;
   if (era == "B")
   {
-    f = TFile::Open("/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Jun23/ntuple_DoubleMuonRun2016B-07Aug17-v2.root");
+    f = TFile::Open("/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Aug1/ntuple_DoubleMuonRun2016B-07Aug17-v2.root");
   }
   else
   {
-    f = TFile::Open("/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Jun23/ntuple_DoubleMuonRun2016"+era+"-07Aug17.root");
+    f = TFile::Open("/eos/cms/store/user/valuev/DisplacedDimuons/Tupler/Aug1/ntuple_DoubleMuonRun2016"+era+"-07Aug17.root");
   }
   TTree *t = (TTree*) f->Get("SimpleNTupler/DDTree");
 
