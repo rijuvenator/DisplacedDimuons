@@ -47,6 +47,9 @@ config = {
     'rq2'      : {'cast':int  , 'col':41},
 
     'mass'     : {'cast':float, 'col':47},
+
+    'time1'    : {'cast':float, 'col':49},
+    'time2'    : {'cast':float, 'col':50},
 }
 
 ##### CONDITIONS #####
@@ -96,7 +99,7 @@ for line in f:
             break
 
     # all same sign is currently unblinded
-    if False:
+    if True:
         if not oppositeSign(vals):
             print '=== SAME SIGN, REGION = {} ==='.format(region)
             print strippedLine
@@ -104,17 +107,8 @@ for line in f:
     # opposite sign: odd enddigits
     if True:
         if oppositeSign(vals):
-            enddigit = vals['event'] % 10
-
-            if region == 'SR' and enddigit % 2 == 0:
-                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
-                print strippedLine
-            if region == 'SR' and enddigit % 2 == 1:
-                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
-                print strippedLine
-            elif region != 'SR':
-                print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
-                print strippedLine
+            print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
+            print strippedLine
 
     #if oppositeSign(vals): print strippedLine
     #if deltaPhi(vals, region='CR'): print strippedLine

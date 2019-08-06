@@ -23,6 +23,17 @@ def modelDependentMassCut(mX, mass):
     elif mX == 350:
         return mass > 65.
 
+# timing cut
+def timingCutFailed(mu):
+    cut = 12.
+    t   = mu.timeAtIP_InOut
+    dR  = mu.deltaR_SA
+
+    if dR < 0.3 and ( (t > cut) or (t < -1.*cut and t > -998.) ):
+        return True
+
+    return False
+
 # for printing purposes, mapping operators to strings
 OpDict = {operator.gt:'>', operator.ge:u'\u2265', operator.lt:'<', operator.le:u'\u2264', operator.eq:'='}
 

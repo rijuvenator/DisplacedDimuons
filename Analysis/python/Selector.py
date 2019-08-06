@@ -18,6 +18,7 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
     PT        = '_PT'       in CUTS
     TRKCHI2   = '_TRK'      in CUTS
     NDTHITS   = '_NDT'      in CUTS
+    TIMING    = '_TIME'     in CUTS
     DCA       = '_DCA'      in CUTS
     PC        = '_PC'       in CUTS
     LXYERR    = '_LXYE'     in CUTS
@@ -300,6 +301,26 @@ def SelectObjects(E, CUTS, Dimuons3, DSAmuons, PATmuons, bumpFPTE=False):
         # cutList is some nonzero list, meaning keep only the muons that pass the cut keys in cutList
         if len(cutList) > 0:
             selectedDimuons = [dim for dim in selectedDimuons if DimuonSelections[(dim.ID, dim.composition)].allOf(*cutList)]
+
+    # timing cut
+    # for stability, it is being applied last, but it is a muon selection
+    # and should be moved up
+    # so some shenanigans are necessary to apply the cut correctly
+    if TIMING:
+        tempDimuons = []
+        for dim in selectedDimuons:
+            if dim.composition != 'DSA':
+                tempDimuons.append(dim)
+                continue
+
+            mu1 = [mu for mu in selectedMuons['DSA'] if mu.idx == dim.idx1][0]
+            mu2 = [mu for mu in selectedMuons['DSA'] if mu.idx == dim.idx2][0]
+
+            if Selections.timingCutFailed(mu1) or Selections.timingCutFailed(mu2):
+                continue
+
+            tempDimuons.append(dim)
+        selectedDimuons = tempDimuons
 
     # for the MC/Data events, skip events with no dimuons, but not for "no selection"
     if NSTATIONS:

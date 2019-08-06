@@ -10,7 +10,7 @@ from PileupTools import PileupWeight
 FACTORS = {'div': range(1,11), 'mul': range(2, 6) + range(10, 51, 5)}
 OP = {'div':operator.div, 'mul':operator.mul}
 
-CUTSTRING = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_OS_DPHI'
+CUTSTRING = '_Combined_NS_NH_FPTE_HLT_REP_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_LXYSIG_OS_DPHI_TIME'
 
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class

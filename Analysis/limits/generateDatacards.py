@@ -6,32 +6,39 @@ from DisplacedDimuons.Analysis.HistogramGetter import INTEGRATED_LUMINOSITY_2016
 ##############
 
 # transfer factors and cross section
-TAU = 1.025
-ALPHA = 1./TAU
-SIGMAB = 1.e-2
+TAU_DRY   = 1.12
+ALPHA_DRY = 1./TAU_DRY
+TAU_QCD   = 1./3.
+ALPHA_QCD = 1./TAU_QCD
+SIGMAB    = 1.e-2
 
 # systematics dictionary
 # lumi is the luminosity uncertainty
 # systS is the systematic uncertainty on expected signal
-# systB is the systematic uncertainty on expected background
 # statS is the statistical uncertainty on expected signal, as above
-# statB is the correct way to propagate uncertainty on nBG-Exp obtained from CR
+# systB-*** is the systematic uncertainty on expected *** background
+# statB-*** is the correct way to propagate uncertainty on expected *** background obtained from CR
 SYSTEMATICS = {
-    'lumi' : {'mode':'lnN', '2Mu':'1.025' , 'BG':'-'            },
-    'systS': {'mode':'lnN', '2Mu':'1.21'  , 'BG':'-'            },
-    'systB': {'mode':'lnN', '2Mu':'-'     , 'BG':'1.25'         },
-    'statS': {'mode':'lnN', '2Mu':''      , 'BG':'-'            },
-    'statB': {'mode':'gmN', '2Mu':'-'     , 'BG':'' , 'nOff': ''},
-}
-SYSTEMATICS['statB']['BG'] = str(ALPHA)
+        'lumi'     : {'mode':'lnN', '2Mu':'1.025', 'DRY':'-'   , 'QCD':'-'   ,           },
+        'systS'    : {'mode':'lnN', '2Mu':'1.21' , 'DRY':'-'   , 'QCD':'-'   ,           },
+        'statS'    : {'mode':'lnN', '2Mu':''     , 'DRY':'-'   , 'QCD':'-'   ,           },
 
-# needs to be a text file with four lines in the format '20 0 0'
-DATACOUNTS = {m:{'CR':0, 'OBS':0} for m in ('20', '50', '150', '350')}
+        'systB-DRY': {'mode':'lnN', '2Mu':'-'    , 'DRY':'1.25', 'QCD':'-'   ,           },
+        'systB-QCD': {'mode':'lnN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':'1.25',           },
+        'statB-DRY': {'mode':'gmN', '2Mu':'-'    , 'DRY':''    , 'QCD':'-'   , 'nOff': ''},
+        'statB-QCD': {'mode':'gmN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':''    , 'nOff': ''},
+}
+SYSTEMATICS['statB-DRY']['DRY'] = str(ALPHA_DRY)
+SYSTEMATICS['statB-QCD']['QCD'] = str(ALPHA_QCD)
+
+# needs to be a text file with four lines in the format '<MASS> <CRDRY> <CRQCD> <OBS>'
+DATACOUNTS = {m:{'CRDY':0, 'CRQCD':0, 'OBS':0} for m in ('20', '50', '150', '350')}
 f = open('text/realDataCounts.txt')
 for line in f:
     cols = line.strip('\n').split()
-    DATACOUNTS[cols[0]]['CR' ] = int(cols[1])
-    DATACOUNTS[cols[0]]['OBS'] = int(cols[2])
+    DATACOUNTS[cols[0]]['CRDRY'] = int(cols[1])
+    DATACOUNTS[cols[0]]['CRQCD'] = int(cols[2])
+    DATACOUNTS[cols[0]]['OBS'  ] = int(cols[3])
 f.close()
 
 # output of getCounts
@@ -51,14 +58,16 @@ for job in data:
     ##### DATACARD VALUES #####
     ###########################
 
-    OBS = DATACOUNTS[job['mX']]['OBS']
-    EXP = DATACOUNTS[job['mX']]['CR' ]*ALPHA
+    OBS     = DATACOUNTS[job['mX']]['OBS']
+    EXP_DRY = DATACOUNTS[job['mX']]['CRDRY']*ALPHA_DRY
+    EXP_QCD = DATACOUNTS[job['mX']]['CRQCD']*ALPHA_QCD
 
-    PROCESSES = ('2Mu', 'BG')
+    PROCESSES = ('2Mu', 'DRY', 'QCD')
 
     RATES = {
         '2Mu' : str(float(job['sig'])/float(job['sumW'])*INTEGRATED_LUMINOSITY_2016*SIGMAB),
-        'BG'  : '{:.2f}'.format(EXP),
+        'DRY' : '{:.2f}'.format(EXP_DRY),
+        'QCD' : '{:.2f}'.format(EXP_QCD),
     }
 
     # first make sure there are no jobs with zero expected signal
@@ -86,7 +95,9 @@ for job in data:
     # fill missing values in systematics dictionary
 
     SYSTEMATICS['statS']['2Mu' ] = STATSIG
-    SYSTEMATICS['statB']['nOff'] = str(DATACOUNTS[job['mX']]['CR'])
+
+    SYSTEMATICS['statB-DRY']['nOff'] = str(DATACOUNTS[job['mX']]['CRDRY'])
+    SYSTEMATICS['statB-QCD']['nOff'] = str(DATACOUNTS[job['mX']]['CRQCD'])
 
     ###########################
     ##### DATACARD FORMAT #####
@@ -171,6 +182,5 @@ observation {obs}
     #########################
 
     open('cards/card_{}_{}_{}_{}_{}.txt'.format(*[job[x] for x in headers[:5]]), 'w').write(out)
-
 
 print 'Total skipped jobs: {}'.format(skippedJobs)
