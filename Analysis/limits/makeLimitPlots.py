@@ -98,6 +98,9 @@ for token in sorted(data.keys()):
                 data[token][key] = {'limit':0., 'err':0.}
         print '  ', key, data[token][key]['limit']
 
+    #if int(factor) == 1 and op == 'div':
+    #    print '{:4s} {:3s} {:4s} ::: {:.2e} {:.2e}'.format(mH, mX, cTau, data[token]['OBS']['limit'], data[token]['MED']['limit'])
+
 rColors = {
     'UCLA_BLUE' : R.TColor(7001, *[c/255. for c in (39 , 116, 174)]),
     'UCLA_GOLD' : R.TColor(7002, *[c/255. for c in (259, 209,   0)]),
@@ -131,8 +134,8 @@ for mH in SIGNALS:
                     continue
 
                 # temporary tweaks to skip some points
-                med, q1u, q1d = [newData[(mH, mX, cTau)][(op, factor)][key]['limit'] * CROSS_SECTION for key in ('MED', '+1S', '-1S')]
-                if q1u < med or q1d > med: continue
+                #med, q1u, q1d = [newData[(mH, mX, cTau)][(op, factor)][key]['limit'] * CROSS_SECTION for key in ('MED', '+1S', '-1S')]
+                #if q1u < med or q1d > med: continue
 
                 if (mH, mX) == (1000, 150) and OP[op](float(cTau), float(factor))/10. == 10.: continue
                 # end of temporary tweaks
@@ -163,7 +166,7 @@ for mH in SIGNALS:
             '2S'  : Plotter.Plot(g['2S' ], 'Expected (95% quantile)', 'f' , '3' ),
         }
 
-        dummyGraph = R.TGraph(2, np.array([.1, 30000.]), np.array([50., 5.e-4]))
+        dummyGraph = R.TGraph(2, np.array([.1, 30000.]), np.array([300., 5.e-4]))
         dummy = Plotter.Plot(dummyGraph, '', '', 'p')
 
         c = Plotter.Canvas(lumi='36.3 fb^{-1} (13 TeV)', logy=True, cWidth=600 if ARGS.SQUARE else 800)
@@ -195,7 +198,6 @@ for mH in SIGNALS:
 
         p['MED'].SetMarkerSize(2.)
         p['MED'].SetLineWidth(5)
-        p['MED'].SetLineStyle(2)
         p['MED'].setColor(COLORS[CKEY]['MED'], which='LMF')
 
         c.mainPad.SetLogx()

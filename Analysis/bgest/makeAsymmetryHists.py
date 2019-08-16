@@ -48,8 +48,13 @@ for line in f:
     cols = line.strip('\n').split()
 
     name     = cols[0]
+    PdPhi    = float(cols[14])
     deltaPhi = float(cols[18])
     LxySig   = float(cols[15])
+    sign     = cols[-1]
+
+    if sign != 'OS': continue
+    if PdPhi >= 1.: continue
 
     Less_DPhi = (deltaPhi <    R.TMath.Pi()/4.)
     More_DPhi = (deltaPhi > 3.*R.TMath.Pi()/4.)

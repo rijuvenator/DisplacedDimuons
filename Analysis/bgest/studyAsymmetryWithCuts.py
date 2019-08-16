@@ -9,8 +9,7 @@ import DisplacedDimuons.Analysis.Selector as Selector
 #### CLASS AND FUNCTION DEFINITIONS ####
 # setup function for Analyzer class
 def begin(self, PARAMS=None):
-    if 'QCD' in self.NAME:
-        self.COUNTS = {'rep':0, 'norep':0}
+    pass
 
 # declare histograms for Analyzer class
 def declareHistograms(self, PARAMS=None):
@@ -44,32 +43,32 @@ def analyze(self, E, PARAMS=None):
         return name
 
     # no replacement, LxySig, no Dphi, and no blinding
-    # LxySig < 1 applied to the REPLACED PAT muons below; iDphi and Dphi kept track of in dump
-    CUTSTRING = '_Combined_NS_NH_FPTE_HLT_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP'
+    # LxySig < 1.5 or 60 < < 115. applied to the REPLACED PAT muons below; iDphi and Dphi kept track of in dump
+    CUTSTRING = '_Combined_NS_NH_FPTE_HLT_PT_TRK_NDT_DCA_PC_LXYE_MASS_CHI2_VTX_COSA_NPP_TIME'
 
     selectedDimuons, selectedDSAmuons, selectedPATmuons = Selector.SelectObjects(E, CUTSTRING, Dimuons3, DSAmuons, PATmuons)
     if selectedDimuons is None: return
 
+    def keepEvent(patDimuon, mu1, mu2):
+        if ARGS.STYLE == 'QCD':
+            return (patDimuon.LxySig() < 115. and patDimuon.LxySig() > 60. and mu1.trackIso/mu1.pt > 0.5  and mu2.trackIso/mu2.pt > 0.5 )
+        if ARGS.STYLE == 'DY':
+            return (patDimuon.LxySig() < 1.5                               and mu1.trackIso/mu1.pt < 0.05 and mu2.trackIso/mu2.pt < 0.05)
+
     for dim in selectedDimuons:
-        # select same sign / opposite sign
-        if dim.mu1.charge + dim.mu2.charge != 0: continue
+
+        # opposite sign and same sign are combined
+        # depending on QCD mode or DY mode, select DSA-DSA dimuons based on PAT quantities
+        # print useful information
 
         patDimuon = self.getPATDimuon(dim)
         if patDimuon is None:
-            if 'QCD' in self.NAME:
-                if dim.LxySig() > 9.:
-                    self.COUNTS['norep'] += 1
             continue
 
-        if 'QCD' in self.NAME:
-            if dim.LxySig() > 9.:
-                self.COUNTS['rep'] += 1
-
-        #if patDimuon.LxySig() < 1.:
-
         mu1, mu2 = PATmuons[patDimuon.mu1.idx], PATmuons[patDimuon.mu2.idx]
-        if patDimuon.LxySig() < 1.:
-            print '{:9s} {:d} {:7d} {:10d} {:2d} ::: PAT {:2d} {:2d} <-- DSA {:2d} {:2d} ::: {:9.4f} {:9.4f} ::: {:6.4f} {:6.4f} ::: {:.5e} {:.5e} ::: {:.5e} {:.5e} {:.5e} ::: {:.4e} {:6.4f}'.format(
+
+        if keepEvent(patDimuon, mu1, mu2):
+            print '{:9s} {:d} {:7d} {:10d} {:2d} ::: PAT {:2d} {:2d} <-- DSA {:2d} {:2d} ::: {:9.4f} {:9.4f} ::: {:6.4f} {:6.4f} ::: {:.5e} {:.5e} ::: {:.5e} {:.5e} {:.5e} ::: {:.4e} {:6.4f} ::: {:2s}'.format(
                     modifiedName(self.NAME), Event.run, Event.lumi, Event.event, int(eventWeight),
                     patDimuon   .ID[0], patDimuon   .ID[1],
                     dim         .ID[0], dim         .ID[1],
@@ -77,13 +76,13 @@ def analyze(self, E, PARAMS=None):
                     patDimuon.deltaPhi, dim.deltaPhi,
                     dim.Lxy(), dim.LxyErr(),
                     dim.mu1.pt, dim.mu2.pt, dim.pt,
-                    dim.mass, dim.deltaR
+                    dim.mass, dim.deltaR,
+                    'OS' if dim.mu1.charge + dim.mu2.charge == 0 else 'SS'
             )
 
 # cleanup function for Analyzer class
 def end(self, PARAMS=None):
-    if 'QCD' in self.NAME:
-        print self.COUNTS
+    pass
 
 def getPATDimuon(self, SelectedDSADimuon):
     selectedDSAmuons = [mu for mu in self.DSAmuons if mu.idx in SelectedDSADimuon.ID]
@@ -203,6 +202,7 @@ def getPATDimuon(self, SelectedDSADimuon):
 #### RUN ANALYSIS ####
 if __name__ == '__main__':
     # get arguments
+    Analyzer.PARSER.add_argument('--style', dest='STYLE', default='QCD', choices=['QCD', 'DY'])
     ARGS = Analyzer.PARSER.parse_args()
 
     # set sample object based on arguments
@@ -217,6 +217,3 @@ if __name__ == '__main__':
         ARGS        = ARGS,
         BRANCHKEYS  = ('DIMUON', 'PATMUON', 'DSAMUON', 'TRIGGER', 'GEN', 'EVENT', 'FILTER'),
     )
-
-    # write plots
-    #analyzer.writeHistograms('roots/mcbg/AsymmetryPlots{}_{{}}.root'.format('_Trig' if ARGS.TRIGGER else ''))

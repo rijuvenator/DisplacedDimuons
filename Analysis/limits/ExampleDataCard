@@ -1,0 +1,20 @@
+#
+imax 1
+jmax 2
+kmax 7
+-----------------
+bin         bin1
+observation 0
+-----------------
+bin             bin1          bin1          bin1
+process         2Mu           DRY           QCD
+process         0             1             2
+rate            30.0          0.00          0.00
+-----------------
+lumi      lnN   1.025         -             -
+statS     lnN   1.02          -             -
+systS     lnN   1.20          -             -
+statB-DRY gmN 0 -             0.8           -
+systB-DRY lnN   -             1.1           -
+statB-QCD gmN 0 -             -             1.8
+systB-QCD lnN   -             -             1.4

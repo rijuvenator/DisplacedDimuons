@@ -2,6 +2,11 @@ import ROOT as R
 import DisplacedDimuons.Analysis.HistogramGetter as HG
 import DisplacedDimuons.Analysis.Plotter as Plotter
 
+# the input histogram here is just two histograms with LxySig < 6 and DeltaPhi < pi/4 and > 3pi/4 separately
+# the script to make it is validateBackground which is in oldscripts now
+# this script makes a little less sense now, also it is superseded by smallLxySigConsistency,
+# but I'm leaving it here in case you want to see how to to the KS probability
+
 f = R.TFile.Open('roots/ValidationPlots_DATA.root')
 
 D, P = HG.getDataHistograms(f, ('LxySig_DPHI', 'LxySig_IDPHI'), addFlows=False)

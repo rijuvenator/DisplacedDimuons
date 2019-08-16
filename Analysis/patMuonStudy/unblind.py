@@ -89,7 +89,7 @@ for line in f:
     vals = {key:config[key]['cast'](cols[config[key]['col']]) for key in config}
 
     # apply the conditions
-    if LxySig(vals): continue
+    if LxySig(vals, lessMore='More'): continue
 
     # figure out the region
     region = None
@@ -110,6 +110,7 @@ for line in f:
             print '== OPPOSITE SIGN, REGION = {} ==='.format(region)
             print strippedLine
 
+    # Examples
     #if oppositeSign(vals): print strippedLine
     #if deltaPhi(vals, region='CR'): print strippedLine
     #if slices(vals, 7): print strippedLine

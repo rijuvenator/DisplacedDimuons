@@ -5,41 +5,46 @@ from DisplacedDimuons.Analysis.HistogramGetter import INTEGRATED_LUMINOSITY_2016
 #### DATA ####
 ##############
 
-# transfer factors and cross section
-TAU_DRY   = 1.12
-ALPHA_DRY = 1./TAU_DRY
-TAU_QCD   = 1./3.
-ALPHA_QCD = 1./TAU_QCD
+# arbitrary cross section, and masses
 SIGMAB    = 1.e-2
+MASSES = ('20', '50', '150', '350')
 
-# systematics dictionary
-# lumi is the luminosity uncertainty
-# systS is the systematic uncertainty on expected signal
-# statS is the statistical uncertainty on expected signal, as above
-# systB-*** is the systematic uncertainty on expected *** background
-# statB-*** is the correct way to propagate uncertainty on expected *** background obtained from CR
-SYSTEMATICS = {
-        'lumi'     : {'mode':'lnN', '2Mu':'1.025', 'DRY':'-'   , 'QCD':'-'   ,           },
-        'systS'    : {'mode':'lnN', '2Mu':'1.21' , 'DRY':'-'   , 'QCD':'-'   ,           },
-        'statS'    : {'mode':'lnN', '2Mu':''     , 'DRY':'-'   , 'QCD':'-'   ,           },
-
-        'systB-DRY': {'mode':'lnN', '2Mu':'-'    , 'DRY':'1.25', 'QCD':'-'   ,           },
-        'systB-QCD': {'mode':'lnN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':'1.25',           },
-        'statB-DRY': {'mode':'gmN', '2Mu':'-'    , 'DRY':''    , 'QCD':'-'   , 'nOff': ''},
-        'statB-QCD': {'mode':'gmN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':''    , 'nOff': ''},
-}
-SYSTEMATICS['statB-DRY']['DRY'] = str(ALPHA_DRY)
-SYSTEMATICS['statB-QCD']['QCD'] = str(ALPHA_QCD)
-
-# needs to be a text file with four lines in the format '<MASS> <CRDRY> <CRQCD> <OBS>'
-DATACOUNTS = {m:{'CRDY':0, 'CRQCD':0, 'OBS':0} for m in ('20', '50', '150', '350')}
+# needs to be a text file with four (mass) lines in the format '<MASS> <CR-DRY> <TF-DRY> <UNC-DRY> <CR-QCD> <TF-QCD> <UNC-QCD> <OBS>'
+HEADERS = ('MASS', 'CR-DRY', 'TF-DRY', 'UNC-DRY', 'CR-QCD', 'TF-QCD', 'UNC-QCD', 'OBS')
+DATACOUNTS = {m:{h:0 for h in HEADERS[1:]} for m in MASSES}
 f = open('text/realDataCounts.txt')
 for line in f:
     cols = line.strip('\n').split()
-    DATACOUNTS[cols[0]]['CRDRY'] = int(cols[1])
-    DATACOUNTS[cols[0]]['CRQCD'] = int(cols[2])
-    DATACOUNTS[cols[0]]['OBS'  ] = int(cols[3])
+    vals = dict(zip(HEADERS, tuple(cols)))
+    for h in HEADERS[1:]:
+        DATACOUNTS[vals['MASS']][h] = float(vals[h]) if 'CR-' not in h and 'OBS' != h else int(vals[h])
 f.close()
+
+TAU   = {'DRY' : {}, 'QCD' : {}}
+ALPHA = {'DRY' : {}, 'QCD' : {}}
+for m in MASSES:
+    TAU  ['DRY'][m] = {'val':   DATACOUNTS[m]['TF-DRY'], 'unc':DATACOUNTS[m]['UNC-DRY']}
+    TAU  ['QCD'][m] = {'val':1./DATACOUNTS[m]['TF-QCD'], 'unc':DATACOUNTS[m]['UNC-QCD']} # I copy the QCD value as the reciprocal of the right value
+
+    ALPHA['DRY'][m] = 1./TAU['DRY'][m]['val']
+    ALPHA['QCD'][m] = 1./TAU['QCD'][m]['val']
+
+# systematics dictionary
+# lumi is the luminosity uncertainty, fixed
+# systS is the systematic uncertainty on expected signal, fixed
+# statS is the statistical uncertainty on expected signal, computed from weights in the loop below
+# systB-*** is the systematic uncertainty on expected *** background, different for each mass and TF
+# statB-*** is the correct way to propagate uncertainty on expected *** background obtained from CR, different for each CR
+SYSTEMATICS = {
+        'lumi'     : {'mode':'lnN', '2Mu':'1.025', 'DRY':'-'   , 'QCD':'-'   ,           },
+        'systS'    : {'mode':'lnN', '2Mu':'1.20' , 'DRY':'-'   , 'QCD':'-'   ,           },
+        'statS'    : {'mode':'lnN', '2Mu':''     , 'DRY':'-'   , 'QCD':'-'   ,           },
+
+        'systB-DRY': {'mode':'lnN', '2Mu':'-'    , 'DRY':''    , 'QCD':'-'   ,           },
+        'systB-QCD': {'mode':'lnN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':''    ,           },
+        'statB-DRY': {'mode':'gmN', '2Mu':'-'    , 'DRY':''    , 'QCD':'-'   , 'nOff': ''},
+        'statB-QCD': {'mode':'gmN', '2Mu':'-'    , 'DRY':'-'   , 'QCD':''    , 'nOff': ''},
+}
 
 # output of getCounts
 headers = ['mH', 'mX', 'cTau', 'op', 'factor', 'nEvents', 'sumW', 'sig', 'sig2']
@@ -59,8 +64,8 @@ for job in data:
     ###########################
 
     OBS     = DATACOUNTS[job['mX']]['OBS']
-    EXP_DRY = DATACOUNTS[job['mX']]['CRDRY']*ALPHA_DRY
-    EXP_QCD = DATACOUNTS[job['mX']]['CRQCD']*ALPHA_QCD
+    EXP_DRY = DATACOUNTS[job['mX']]['CR-DRY']*ALPHA['DRY'][job['mX']]
+    EXP_QCD = DATACOUNTS[job['mX']]['CR-QCD']*ALPHA['QCD'][job['mX']]
 
     PROCESSES = ('2Mu', 'DRY', 'QCD')
 
@@ -96,8 +101,10 @@ for job in data:
 
     SYSTEMATICS['statS']['2Mu' ] = STATSIG
 
-    SYSTEMATICS['statB-DRY']['nOff'] = str(DATACOUNTS[job['mX']]['CRDRY'])
-    SYSTEMATICS['statB-QCD']['nOff'] = str(DATACOUNTS[job['mX']]['CRQCD'])
+    for BG in ('DRY', 'QCD'):
+        SYSTEMATICS['systB-'+BG][BG    ] = str(1.+        TAU[BG][job['mX']]['unc']   )
+        SYSTEMATICS['statB-'+BG]['nOff'] = str(    DATACOUNTS    [job['mX']]['CR-'+BG])
+        SYSTEMATICS['statB-'+BG][BG    ] = str(         ALPHA[BG][job['mX']]          )
 
     ###########################
     ##### DATACARD FORMAT #####
