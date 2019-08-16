@@ -306,12 +306,14 @@ Scripts in this folder use the _OptimizerTools_ library, which contains cross se
 ### bgest
 Background estimation scripts. Probably still in progress.
 
-  * **validateBackground** and **makeValidationPlots** were the first attempt. They simply took the region L<sub>xy</sub>/&sigma;<sub>L<sub>xy</sub></sub> < 6 and compared the &Delta;&Phi; regions. There's ratios and cumulative plots too.
+  * **validateBackground** and **makeValidationPlots** were the first attempt. They simply took the region L<sub>xy</sub>/&sigma;<sub>L<sub>xy</sub></sub> < 6 and compared the &Delta;&Phi; regions. There's ratios and cumulative plots too, and KS probability
   * **studyAsymmetry** was the first version of inverting PAT matches, but it wasn't really what we wanted. We wanted DSA muons to pass all cuts, not just PAT muons that got inverted. So instead, we have
   * **studyAsymmetryWithCuts**, which instead selects down to DSA muons except for replacement, then _redoes_ the replacement and takes PAT muons fitting some criteria. This makes a large dump of 5 million data events (and MC events too).
   * All the other **make\*** take the log file from the above and parse it in different ways to make different sets of plots. If they end in `Hists`, it usually makes a ROOT file with the histogram, which then the matching `Plots` version actually makes the plots.
   * **studyTransferFactorUncertainty** made the binwise reweighting procedure in the 19 July 2019 status report.
+    * Now it's **smallLxySigConsistency**, superseding it
   * **poorMansShapeAnalysis** tried to make sense of the background estimation discrepancy by reversing the transfer factor.
+  * **checkLxySigCutEffect** looks at the effect of incrementally increasing the L<sub>xy</sub>/&sigma;<sub>L<sub>xy</sub></sub> cut
 
 <a name="pileup"></a>
 ### pileup
