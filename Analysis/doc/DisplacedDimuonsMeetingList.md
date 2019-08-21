@@ -48,6 +48,8 @@ Date | Talks
 [2019      July  4](https://indico.cern.ch/event/832981/) | Riju, Will, Alberto
 [2019      July 11](https://indico.cern.ch/event/834612/) | Alberto, Sebastian
 [2019      July 18](https://indico.cern.ch/event/836144/) | Riju, Alberto
+[2019      July 25](https://indico.cern.ch/event/837562/) | Riju, Alberto, Sebastian
+[2019     August 1](https://indico.cern.ch/event/838918/) | Riju, Slava, Will, Sebastian
 
 ## External Talks
 
