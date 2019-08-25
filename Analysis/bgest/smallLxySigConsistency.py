@@ -130,6 +130,9 @@ for ibin in xrange(1, hists['PRev_SR'].GetNbinsX()+1):
     totalError = (error**2. + ssError**2.)**0.5
     hists['Full_CR_Corr_SS'].SetBinError(ibin, totalError)
 
+# Garwood error bars
+hists['Full_SR'].SetBinErrorOption(R.TH1.kPoisson)
+
 # make the plot
 p = {
     'SR'         : Plotter.Plot(hists['Full_SR'        ], 'SR'          , 'elp', 'pe'),
