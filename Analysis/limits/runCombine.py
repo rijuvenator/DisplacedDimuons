@@ -31,6 +31,7 @@ parser.add_argument('--extra'    , dest='EXTRA'    , default=[], nargs='*'  , he
 parser.add_argument('--flavour'  , dest='FLAVOUR'  , default='microcentury' , help='which condor job flavour to use'                         )
 parser.add_argument('--queue'    , dest='QUEUE'    , default='1nh'          , help='which LSF job queue to use'                              )
 parser.add_argument('--splitting', dest='SPLITTING', default=None, type=int , help='whether to split by quantile, and if so, which'          )
+parser.add_argument('--bayesian' , dest='BAYESIAN' , action='store_true'    , help='whether to margnizalize the nuisance parameters'         )
 args = parser.parse_args()
 
 # this is mostly so that **locals() works later on
@@ -75,7 +76,10 @@ for card in CARDS:
         ArgsList.append('-d {relCard} -n Limits_2Mu_{token}'.format(relCard=relCard, token=token))
 
     elif METHOD == 'HybridNew':
-        appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0 --toysH=5000 -s -1'
+        if args.BAYESIAN:
+            appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=1 --fitNuisances=0 --toysH=5000 -s -1'
+        else:
+            appendString = '-H AsymptoticLimits -M HybridNew --testStat LHC --generateNuisances=0 --generateExternalMeasurements=1 --fitNuisances=1 --toysH=5000 -s -1'
 
         QUANTILES = ('', '0.025', '0.16', '0.5', '0.84', '0.975')
         THESEQUANTILES = QUANTILES

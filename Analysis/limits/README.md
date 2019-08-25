@@ -22,6 +22,8 @@
             * One number 0-5 representing which of 6 jobs to do: 0 = observed, 1-5 = quantiles -2S -1S MED +1S +2S
             * So for any number of datacards, `for i in {0..5}; do python runCombine.py --method HybridNew --splitting $i; done`
             * Also useful for NOT running some quantiles, e.g. the -2S and +2S cards! With `for i in 0 2 3 4;`
+        * `--bayesian`
+            * Flag for marginalizing the nuisance parameters, instead of profiling them (default, now)
       * If running toys, `hadd` the output together with `haddHybridNew.sh`.
         * By default, this script will make a file with the relevant arguments and print a command to run, and also informs you if there are missing files. It is currently configured for 4 files per point: observed, expected, +1S, and -1S.
   * Run `makeLimitPlots.py`

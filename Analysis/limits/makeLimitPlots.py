@@ -98,8 +98,11 @@ for token in sorted(data.keys()):
                 data[token][key] = {'limit':0., 'err':0.}
         print '  ', key, data[token][key]['limit']
 
-    #if int(factor) == 1 and op == 'div':
-    #    print '{:4s} {:3s} {:4s} ::: {:.2e} {:.2e}'.format(mH, mX, cTau, data[token]['OBS']['limit'], data[token]['MED']['limit'])
+    # turn off the two prints above and turn this one one
+    # to get just 33 observed and expected (for the table in my thesis)
+    if False:
+        if int(factor) == 1 and op == 'div':
+            print '{:4s} {:3s} {:4s} ::: {:.2e} {:.2e}'.format(mH, mX, cTau, data[token]['MED']['limit'], data[token]['OBS']['limit'])
 
 rColors = {
     'UCLA_BLUE' : R.TColor(7001, *[c/255. for c in (39 , 116, 174)]),
